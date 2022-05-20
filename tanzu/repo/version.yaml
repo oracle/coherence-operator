@@ -1,0 +1,36 @@
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  name: coherence-operator.oracle.github.com.${VERSION}
+spec:
+  refName: coherence-operator.oracle.github.com
+  version: ${VERSION}
+  releaseNotes: |
+    Oracle Coherence Operator v${VERSION}
+  valuesSchema:
+      openAPIv3:
+      title: Values schema
+      examples:
+        - namespace: coherence
+      properties:
+        namespace:
+          type: string
+          description: The kubernetes namespace in which to install the Coherence operator.
+          default: coherence
+          examples:
+            - coherence
+  template:
+    spec:
+      fetch:
+        - imgpkgBundle:
+            image: ${OPERATOR_PACKAGE_IMAGE}
+      template:
+        - ytt:
+            paths:
+              - "config/"
+        - kbld:
+            paths:
+              - "-"
+              - ".imgpkg/images.yml"
+      deploy:
+        - kapp: {}

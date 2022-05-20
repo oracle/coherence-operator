@@ -1,0 +1,8 @@
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: PackageMetadata
+metadata:
+  name: coherence-operator.oracle.github.com
+spec:
+  displayName: "Oracle Coherence Operator"
+  longDescription: "A Kubernetes operator that manages the full lifecycle of Oracle Coherence clusters"
+  shortDescription: "A Kubernetes operator for managing Oracle Coherence clusters"

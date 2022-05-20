@@ -1,4 +1,4 @@
-{{- if eq .Values.webhookCertType "self-signed" }}
+{{- if ne .Values.webhookCertType "manual" }}
 ---
 apiVersion: v1
 kind: Secret

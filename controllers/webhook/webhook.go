@@ -39,10 +39,9 @@ type certManagerVersion struct {
 }
 
 const (
-	admissionAPI          = "admissionregistration.k8s.io/v1"
-	certManagerCertName   = "coherence-webhook-server-certificate"
-	certManagerIssuerName = "coherence-webhook-server-issuer"
-	certTypeAnnotation    = "operator.coherence.oracle.com/cert-type"
+	admissionAPI        = "admissionregistration.k8s.io/v1"
+	certManagerCertName = "coherence-webhook-server-certificate"
+	certTypeAnnotation  = "operator.coherence.oracle.com/cert-type"
 )
 
 var (
@@ -78,21 +77,20 @@ func (k *HookInstaller) uninstallWebHook() error {
 	return nil
 }
 
-func (k *HookInstaller) InstallWithCertManager() error {
+func (k *HookInstaller) InstallWithCertManager(ctx context.Context) error {
 	if err := k.validateCertManagerInstallation(); err != nil {
 		return err
 	}
 	// install the cert-manager Issuer
-	if err := k.installUnstructured(k.issuer); err != nil {
+	if err := k.installUnstructured(ctx, k.issuer); err != nil {
 		return err
 	}
 	// install the cert-manager Certificate
-	if err := k.installUnstructured(k.certificate); err != nil {
+	if err := k.installUnstructured(ctx, k.certificate); err != nil {
 		return err
 	}
 	// Install the webhooks
 	ns := operator.GetNamespace()
-	ctx := context.TODO()
 	m := createMutatingWebhookWithCertManager(ns, k.certManagerGroup)
 	if err := installMutatingWebhook(ctx, k.Clients, m); err != nil {
 		return err
@@ -174,33 +172,6 @@ func (k *HookInstaller) validateCertManagerInstallation() error {
 	k.certificate = certificate(operator.GetNamespace(), k.certManagerGroup, k.certManagerAPIVersion)
 	k.issuer = issuer(operator.GetNamespace(), k.certManagerGroup, k.certManagerAPIVersion)
 
-	// A couple extra checks, checking for cert manager, detection requires the label app=cert-manager which is the
-	// default according to k8s.io docs.
-	deployments, err := k.Clients.KubeClient.AppsV1().Deployments("").List(context.TODO(), metav1.ListOptions{
-		LabelSelector: "app=cert-manager",
-	})
-	if err != nil {
-		// err is an infra error, 0 deploys is not an error
-		return err
-	}
-	switch cnt := len(deployments.Items); {
-	case cnt == 0:
-		return errors.Wrap(err, "unable to find cert-manager deployment. Make sure cert-manager is running.")
-	case cnt > 1:
-		return errors.Wrap(err, "more than 1 cert-manager deployment found.")
-	}
-
-	// for some reason the list of objects (which are []Deployment) are stripped of their kind and apiversions (causing issues with unstructuring in the isHealth func)
-	// there should only be 1, regardless we check the first (the warning for more than 1 found is already provided above)
-	deployment := deployments.Items[0]
-	deployment.Kind = "Deployment"
-	deployment.APIVersion = "apps/v1"
-
-	if len(deployment.Spec.Template.Spec.Containers) < 1 {
-		return errors.Wrap(err, "unable to validate cert-manager controller deployment. Spec had no containers")
-	}
-
-	log.Info(fmt.Sprintf("Cert-Manager %s/%s is running", k.certManagerGroup, k.certManagerAPIVersion))
 	return nil
 }
 
@@ -221,18 +192,32 @@ func (k *HookInstaller) validateCrdVersion(crdName string, expectedVersion strin
 	return nil
 }
 
-func (k *HookInstaller) installUnstructured(item *unstructured.Unstructured) error {
+func (k *HookInstaller) installUnstructured(ctx context.Context, item *unstructured.Unstructured) error {
+	var err error
+
 	gvk := item.GroupVersionKind()
-	_, err := k.Clients.DynamicClient.Resource(schema.GroupVersionResource{
+	gvr := schema.GroupVersionResource{
 		Group:    gvk.Group,
 		Version:  gvk.Version,
 		Resource: fmt.Sprintf("%ss", strings.ToLower(gvk.Kind)), // since we know what kinds are we dealing with here, this is OK
-	}).Namespace(item.GetNamespace()).Create(context.TODO(), item, metav1.CreateOptions{})
-	if kerrors.IsAlreadyExists(err) {
-		log.Info(fmt.Sprintf("resource %s already registered", item.GetName()))
-	} else if err != nil {
-		return fmt.Errorf("error when creating resource %s/%s. %v", item.GetName(), item.GetNamespace(), err)
 	}
+
+	client := k.Clients.DynamicClient.Resource(gvr).Namespace(item.GetNamespace())
+
+	_, err = client.Get(ctx, item.GetName(), metav1.GetOptions{})
+	if err != nil {
+		// issuer does not exist, so create it
+		_, err = client.Create(context.TODO(), item, metav1.CreateOptions{})
+		if kerrors.IsAlreadyExists(err) {
+			log.Info(fmt.Sprintf("resource %s/%s %s already registered and will not be overwritten", item.GetAPIVersion(), item.GetKind(), item.GetName()))
+		} else if err != nil {
+			return fmt.Errorf("error when creating resource %s/%s. %v", item.GetName(), item.GetNamespace(), err)
+		}
+		log.Info(fmt.Sprintf("created resource %s/%s %s", item.GetAPIVersion(), item.GetKind(), item.GetName()))
+	} else if err != nil {
+		log.Info(fmt.Sprintf("resource %s/%s %s already registered and will not be overwritten", item.GetAPIVersion(), item.GetKind(), item.GetName()))
+	}
+
 	return nil
 }
 
@@ -420,12 +405,13 @@ func createWebhookClientConfig(ns, path string) admissionv1.WebhookClientConfig 
 
 func issuer(ns string, group string, apiVersion string) *unstructured.Unstructured {
 	apiString := fmt.Sprintf("%s/%s", group, apiVersion)
+	certIssuer := viper.GetString(operator.FlagCertIssuer)
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": apiString,
 			"kind":       "Issuer",
 			"metadata": map[string]interface{}{
-				"name":      certManagerIssuerName,
+				"name":      certIssuer,
 				"namespace": ns,
 			},
 			"spec": map[string]interface{}{
@@ -438,6 +424,7 @@ func issuer(ns string, group string, apiVersion string) *unstructured.Unstructur
 func certificate(ns string, group string, apiVersion string) *unstructured.Unstructured {
 	apiString := fmt.Sprintf("%s/%s", group, apiVersion)
 	name := viper.GetString(operator.FlagWebhookService)
+	certIssuer := viper.GetString(operator.FlagCertIssuer)
 	dns := operator.GetWebhookServiceDNSNames()
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
@@ -452,7 +439,7 @@ func certificate(ns string, group string, apiVersion string) *unstructured.Unstr
 				"dnsNames":   dns,
 				"issuerRef": map[string]interface{}{
 					"kind": "Issuer",
-					"name": "selfsigned-issuer",
+					"name": certIssuer,
 				},
 				"secretName": viper.GetString(operator.FlagWebhookSecret),
 			},

@@ -15,17 +15,17 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.2.6
+VERSION ?= 3.2.7
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.4
+PREV_VERSION ?= 3.2.6
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  = 3.2.4
+COMPATIBLE_VERSION  = 3.2.6
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = control-plane=coherence
 
@@ -35,8 +35,8 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
-COHERENCE_VERSION ?= 21.12.1
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12.1
+COHERENCE_VERSION ?= 21.12.4
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12.4
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -74,7 +74,8 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
 RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
-OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)coherence-operator
+OPERATOR_IMAGE_NAME    := coherence-operator
+OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
 OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
@@ -86,6 +87,11 @@ OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
 UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
 TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)-test-base
 BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
+
+OPERATOR_PACKAGE_PREFIX := $(OPERATOR_IMAGE_REPO)-package
+OPERATOR_PACKAGE_IMAGE  := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
+OPERATOR_REPO_PREFIX    := $(OPERATOR_IMAGE_REPO)-repo
+OPERATOR_REPO_IMAGE     := $(OPERATOR_REPO_PREFIX):$(VERSION)
 
 GPG_PASSPHRASE :=
 
@@ -207,6 +213,12 @@ endif
 endif
 endif
 
+ifeq (Darwin, $(UNAME_S))
+	SED = sed -i ''
+else
+	SED = sed -i
+endif
+
 IMAGE_PULL_POLICY  ?= IfNotPresent
 
 # Env variable used by the kubectl test framework to locate the kubectl binary
@@ -225,6 +237,9 @@ override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
+override TANZU_DIR           := $(BUILD_OUTPUT)/tanzu
+override TANZU_PACKAGE_DIR   := $(BUILD_OUTPUT)/tanzu/package
+override TANZU_REPO_DIR      := $(BUILD_OUTPUT)/tanzu/repo
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -235,6 +250,25 @@ TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
 PROMETHEUS_HOME   = $(TOOLS_DIRECTORY)/prometheus
+
+# ----------------------------------------------------------------------------------------------------------------------
+# The ttl.sh images used in integration tests
+# ----------------------------------------------------------------------------------------------------------------------
+TTL_REGISTRY                       := ttl.sh
+TTL_TIMEOUT                        := 1h
+TTL_UUID_FILE                      := $(BUILD_OUTPUT)/ttl-uuid.txt
+TTL_UUID                           := $(shell if [ -f $(TTL_UUID_FILE) ]; then cat $(TTL_UUID_FILE); else uuidgen | tr A-Z a-z > $(TTL_UUID_FILE) && cat $(TTL_UUID_FILE); fi)
+TTL_OPERATOR_IMAGE                 := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME):$(TTL_TIMEOUT)
+TTL_UTILS_IMAGE                    := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-utils:$(TTL_TIMEOUT)
+TTL_PACKAGE_IMAGE                  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-package:$(TTL_TIMEOUT)
+TTL_REPO_IMAGE                     := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-repo:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE              := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test:$(TTL_TIMEOUT)
+TTL_COMPATIBILITY_IMAGE            := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-compatibility:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_CLIENT       := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-client:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_HELIDON      := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-helidon:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING       := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_FAT   := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-fat:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_CNBP  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-cnbp:$(TTL_TIMEOUT)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -307,6 +341,8 @@ ISTIO_VERSION ?=
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+ttl-uuid:
+	echo "TTL UUID: $(TTL_UUID)"
 
 # ======================================================================================================================
 # Build targets
@@ -335,16 +371,17 @@ $(BUILD_PROPS):
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
 	UTILS_IMAGE=$(UTILS_IMAGE)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
-	VERSION=$(VERSION)\n" > $(BUILD_PROPS)
+	VERSION=$(VERSION)\n\
+	OPERATOR_PACKAGE_IMAGE=$(OPERATOR_PACKAGE_IMAGE)\n" > $(BUILD_PROPS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Clean-up all of the build artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean
 clean: ## Cleans the build 
-	-rm -rf $(BUILD_OUTPUT)
-	-rm -rf $(BUILD_BIN)
-	-rm -rf bundle
+	-rm -rf $(BUILD_OUTPUT) || true
+	-rm -rf $(BUILD_BIN) || true
+	-rm -rf bundle || true
 	rm pkg/data/zz_generated_*.go || true
 	./mvnw -f java clean $(MAVEN_BUILD_OPTS)
 	./mvnw -f examples clean $(MAVEN_BUILD_OPTS)
@@ -354,7 +391,7 @@ clean: ## Cleans the build
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-tools
 clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool version)
-	-rm -rf $(TOOLS_BIN)
+	-rm -rf $(TOOLS_BIN) || true
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -459,7 +496,7 @@ build-client-image: ## Build the test client image
 # Build all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
-build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-base build-test-images ## Build all images (including tests)
+build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-base build-test-images build-compatibility-image ## Build all images (including tests)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the operator linux binary
@@ -516,7 +553,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
-	$(call replaceprop,coherence-operator/Chart.yaml coherence-operator/values.yaml coherence-operator/templates/deployment.yaml)
+	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml)
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
@@ -528,7 +565,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # ---------------------------------------------------------------------------
 define replaceprop
 	for i in $(1); do \
-		filename="$(BUILD_HELM)/$${i}"; \
+		filename="$${i}"; \
 		echo "Replacing properties in file $${filename}"; \
 		if [ -f $${filename} ]; then \
 			temp_file=$(BUILD_OUTPUT)/temp.out; \
@@ -1189,7 +1226,7 @@ install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1209,12 +1246,12 @@ endif
 
 .PHONY: just-deploy
 just-deploy:
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
 
 .PHONY: deploy-debug
 deploy-debug: prepare-deploy-debug create-namespace kustomize   ## Deploy the Coherence Operator running with Delve
@@ -1248,7 +1285,7 @@ port-forward-debug:  ## Run a port-forward process to forward localhost:2345 to 
 
 .PHONY: prepare-deploy-debug
 prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
 
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
@@ -1267,7 +1304,7 @@ define prepare_deploy
 	mkdir -p $(BUILD_DEPLOY)
 	cp -R config $(BUILD_OUTPUT)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal UTILS_IMAGE=$(UTILS_IMAGE)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal UTILS_IMAGE=$(3)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit set image controller=$(1)
 	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
 endef
@@ -1277,7 +1314,7 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests kustomize  ## Undeploy the Coherence Operator
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
@@ -1301,15 +1338,10 @@ $(BUILD_MANIFESTS_PKG): kustomize
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
 	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
-	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
+	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence",$(UTILS_IMAGE))
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
-ifeq (Darwin, $(UNAME_S))
-	sed -i '' -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
-else
-	sed -i 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
-endif
-
+	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1410,7 +1442,8 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ======================================================================================================================
 ##@ KinD
 
-KIND_IMAGE ?= "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
+KIND_CLUSTER ?= operator
+KIND_IMAGE   ?= "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
@@ -1420,41 +1453,145 @@ kind:   ## Run a default KinD cluster
 	./hack/kind.sh --image $(KIND_IMAGE)
 	./hack/kind-label-node.sh
 	docker pull $(COHERENCE_IMAGE)
-	kind load docker-image --name operator $(COHERENCE_IMAGE)
+	kind load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop and delete the Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-stop
-kind-stop:   ## Stop and delete the KinD cluster named "operator"
-	kind delete cluster --name operator
+kind-stop:   ## Stop and delete the KinD cluster named "$(KIND_CLUSTER)"
+	kind delete cluster --name $(KIND_CLUSTER)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load
 kind-load: kind-load-operator  ## Load all images into the KinD cluster
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_CLIENT) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_HELIDON) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
-	kind load docker-image --name operator $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
-	kind load docker-image --name operator gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
-	kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
-	kind load docker-image --name operator docker.elastic.co/kibana/kibana:7.6.2 || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_CLIENT) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
+	kind load docker-image --name $(KIND_CLUSTER) gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
+	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
+	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:7.6.2 || true
 
 .PHONY: kind-load-operator
 kind-load-operator:   ## Load the Operator images into the KinD cluster
-	kind load docker-image --name operator $(OPERATOR_IMAGE) || true
-	kind load docker-image --name operator $(UTILS_IMAGE) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(OPERATOR_IMAGE) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(UTILS_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load compatibility images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load-compatibility
 kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
-	kind load docker-image --name operator $(TEST_COMPATIBILITY_IMAGE) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_COMPATIBILITY_IMAGE) || true
+
+# ======================================================================================================================
+# Kubernetes Cert Manager targets
+# ======================================================================================================================
+##@ Cert Manager
+
+.PHONY: install-cert-manager
+install-cert-manager:  ## Install Cert manager into the Kubernetes cluster
+	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+
+.PHONY: uninstall-cert-manager
+uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
+	kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+
+# Get latest version...
+#  curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
+
+# ======================================================================================================================
+# Tanzu related targets
+# ======================================================================================================================
+##@ Tanzu
+
+.PHONY: tanzu-create-cluster
+tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
+	tanzu uc create $(KIND_CLUSTER) --worker-node-count 2
+
+.PHONY: tanzu-delete-cluster
+tanzu-delete-cluster: ## Delete the local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
+	tanzu uc delete $(KIND_CLUSTER) --worker-node-count 2
+
+.PHONY: tanzu-package-internal
+tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
+	rm -r $(TANZU_PACKAGE_DIR) || true
+	mkdir -p $(TANZU_PACKAGE_DIR)/config $(TANZU_PACKAGE_DIR)/.imgpkg || true
+	cp -R ./tanzu/package/ $(TANZU_PACKAGE_DIR)/config
+	$(call prepare_deploy,$(OPERATOR_IMAGE),tanzu-namespace,$(UTILS_IMAGE))
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
+
+.PHONY: tanzu-package
+tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
+	$(call pushTanzuPackage,$(OPERATOR_PACKAGE_IMAGE))
+
+.PHONY: tanzu-ttl-package
+tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files using images from ttl.sh
+	$(SED) -e 's,$(UTILS_IMAGE),$(TTL_UTILS_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(SED) -e 's,$(OPERATOR_IMAGE),$(TTL_OPERATOR_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(call pushTanzuPackage,$(TTL_PACKAGE_IMAGE))
+
+define pushTanzuPackage
+	kbld -f $(TANZU_PACKAGE_DIR)/config/ --imgpkg-lock-output $(TANZU_PACKAGE_DIR)/.imgpkg/images.yml
+	imgpkg push -b $(1) -f $(TANZU_PACKAGE_DIR)/
+endef
+
+.PHONY: tanzu-repo-internal
+tanzu-repo-internal:
+	rm -r $(TANZU_REPO_DIR) || true
+	mkdir -p $(TANZU_REPO_DIR)/.imgpkg $(TANZU_REPO_DIR)/packages/coherence-operator.oracle.github.com
+	cp ./tanzu/repo/metadata.yaml $(TANZU_REPO_DIR)/packages/coherence-operator.oracle.github.com/metadata.yaml
+	cp ./tanzu/repo/version.yaml $(TANZU_REPO_DIR)/packages/coherence-operator.oracle.github.com/v$(VERSION).yaml
+	$(call replaceprop,$(TANZU_REPO_DIR)/packages/coherence-operator.oracle.github.com/v$(VERSION).yaml)
+
+.PHONY: tanzu-repo
+tanzu-repo: tanzu-package tanzu-repo-internal ## Create the Tanzu repo files
+	$(call pushTanzuRepo,$(OPERATOR_REPO_IMAGE))
+
+.PHONY: tanzu-ttl-repo
+tanzu-ttl-repo: tanzu-ttl-package tanzu-repo-internal ## Create the Tanzu repo files using images from ttl.sh
+	$(SED) -e 's,$(OPERATOR_PACKAGE_IMAGE),$(TTL_PACKAGE_IMAGE),g' $(TANZU_REPO_DIR)/packages/coherence-operator.oracle.github.com/v$(VERSION).yaml
+	$(call pushTanzuRepo,$(TTL_REPO_IMAGE))
+
+define pushTanzuRepo
+	kbld -f $(TANZU_REPO_DIR)/packages/ --imgpkg-lock-output $(TANZU_REPO_DIR)/.imgpkg/images.yml
+	imgpkg push -b $(1) -f $(TANZU_REPO_DIR)/
+endef
+
+.PHONY: tanzu-install-repo
+tanzu-install-repo: ## Install the Coherence package repo into Tanzu
+	$(call tanzuInstallRepo,$(OPERATOR_REPO_IMAGE))
+
+.PHONY: tanzu-ttl-install-repo
+tanzu-ttl-install-repo: ## Install the Coherence package repo into Tanzu using images from ttl.sh
+	$(call tanzuInstallRepo,$(TTL_REPO_IMAGE))
+
+.PHONY: tanzu-delete-repo
+tanzu-delete-repo: ## Delete the Coherence package repo into Tanzu
+	tanzu package repository delete coherence-repo -y --namespace coherence
+
+define tanzuInstallRepo
+	tanzu package repository add coherence-repo \
+		--url $(1) \
+		--namespace coherence \
+		--create-namespace
+	tanzu package repository list --namespace coherence
+	tanzu package available list --namespace coherence
+endef
+
+.PHONY: tanzu-install
+tanzu-install: ## Install the Coherence Operator package into Tanzu
+	tanzu package install coherence \
+		--package-name coherence-operator.oracle.github.com \
+		--version $(VERSION) \
+		--namespace coherence
+	tanzu package installed list --namespace coherence
 
 # ======================================================================================================================
 # Miscellaneous targets
@@ -1556,7 +1693,7 @@ endif
 # Push the Operator Utils Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-utils-image
-push-utils-image:
+push-utils-image: build-utils
 ifeq ($(UTILS_RELEASE_IMAGE), $(UTILS_IMAGE))
 	@echo "Pushing $(UTILS_IMAGE)-amd64"
 	docker push $(UTILS_IMAGE)-amd64
@@ -1635,6 +1772,24 @@ push-test-images:
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Push the Operator Test images to ttl.sh
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-ttl-test-images
+push-ttl-test-images:
+	docker tag $(TEST_APPLICATION_IMAGE) $(TTL_APPLICATION_IMAGE)
+	docker push $(TTL_APPLICATION_IMAGE)
+	docker tag $(TEST_APPLICATION_IMAGE_CLIENT) $(TTL_APPLICATION_IMAGE_CLIENT)
+	docker push $(TTL_APPLICATION_IMAGE_CLIENT)
+	docker tag $(TEST_APPLICATION_IMAGE_HELIDON) $(TTL_APPLICATION_IMAGE_HELIDON)
+	docker push $(TTL_APPLICATION_IMAGE_HELIDON)
+	docker tag $(TEST_APPLICATION_IMAGE_SPRING) $(TTL_APPLICATION_IMAGE_SPRING)
+	docker push $(TTL_APPLICATION_IMAGE_SPRING)
+	docker tag $(TEST_APPLICATION_IMAGE_SPRING_FAT) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
+	docker push $(TTL_APPLICATION_IMAGE_SPRING_FAT)
+	docker tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+	docker push $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
@@ -1650,14 +1805,38 @@ build-compatibility-image: build-mvn
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-compatibility-image
-push-compatibility-image:
+push-compatibility-image: build-compatibility-image
 	docker push $(TEST_COMPATIBILITY_IMAGE)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Push the Operator JIB Test Docker images to ttl.sh
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-ttl-compatibility-image
+push-ttl-compatibility-image:
+	docker tag $(TEST_COMPATIBILITY_IMAGE) $(TTL_COMPATIBILITY_IMAGE)
+	docker push $(TTL_COMPATIBILITY_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-all-images
 push-all-images: push-test-images push-test-base-images push-utils-image push-operator-image
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Push the Operator images to ttl.sh
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-ttl-operator-images
+push-ttl-operator-images:
+	docker tag $(OPERATOR_IMAGE) $(TTL_OPERATOR_IMAGE)
+	docker push $(TTL_OPERATOR_IMAGE)
+	docker tag $(UTILS_IMAGE) $(TTL_UTILS_IMAGE)
+	docker push $(TTL_UTILS_IMAGE)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Push all the images to ttl.sh
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-all-ttl-images
+push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images that are released
@@ -1812,7 +1991,7 @@ uninstall-metallb: ## Uninstall MetalLB
 # Install the latest Istio version
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-istio
-install-istio: get-istio ## Install the latest version of Istio into k8s
+install-istio: get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
 	sleep 10
@@ -1886,9 +2065,9 @@ serve-docs:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: pre-release
 pre-release:
-	sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' README.md
-	find docs \( -name '*.adoc' -o -name '*.md' \) -exec sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
-	find examples \( -name '*.adoc' -o -name '*.md' -o -name '*.yaml' \) -exec sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
+	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' README.md
+	find docs \( -name '*.adoc' -o -name '*.md' \) -exec $(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
+	find examples \( -name '*.adoc' -o -name '*.md' -o -name '*.yaml' \) -exec $(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Post-Release Tasks
@@ -1909,10 +2088,10 @@ endif
 
 .PHONY: new-version
 new-version:
-	sed -i '' 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' MAKEFILE
-	sed -i '' 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' MAKEFILE
-	find config \( -name '*.yaml' -o -name '*.json' \) -exec sed -i '' 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' {} +
-	find java \( -name 'pom.xml' \) -exec sed -i '' 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEW_VERSION)<\/version>/g' {} +
+	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' MAKEFILE
+	$(SED) 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' MAKEFILE
+	find config \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' {} +
+	find java \( -name 'pom.xml' \) -exec $(SED) 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEW_VERSION)<\/version>/g' {} +
 
 
 # ----------------------------------------------------------------------------------------------------------------------
