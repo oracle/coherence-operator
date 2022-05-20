@@ -325,13 +325,6 @@ type CoherenceResourceSpec struct {
 	// Defaults to PreemptLowerPriority if unset.
 	// +optional
 	PreemptionPolicy *corev1.PreemptionPolicy `json:"preemptionPolicy,omitempty"`
-	// Priority is the priority value. Various system components use this field to find the
-	// priority of the pod. When Priority Admission Controller is enabled, it
-	// prevents users from setting this field. The admission controller populates
-	// this field from PriorityClassName.
-	// The higher the value, the higher the priority.
-	// +optional
-	Priority *int32 `json:"priority,omitempty"`
 	// PriorityClassName, if specified, indicates the pod's priority. "system-node-critical" and
 	// "system-cluster-critical" are two special keywords which indicate the
 	// highest priorities with the former being the highest priority. Any other
@@ -796,7 +789,6 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				ImagePullSecrets:             in.GetImagePullSecrets(),
 				Overhead:                     in.Overhead,
 				PreemptionPolicy:             in.PreemptionPolicy,
-				Priority:                     in.Priority,
 				PriorityClassName:            notNilString(in.PriorityClassName),
 				NodeSelector:                 in.NodeSelector,
 				ReadinessGates:               in.ReadinessGates,
