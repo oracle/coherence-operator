@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -214,7 +214,7 @@ func (k *HookInstaller) installUnstructured(ctx context.Context, item *unstructu
 			return fmt.Errorf("error when creating resource %s/%s. %v", item.GetName(), item.GetNamespace(), err)
 		}
 		log.Info(fmt.Sprintf("created resource %s/%s %s", item.GetAPIVersion(), item.GetKind(), item.GetName()))
-	} else if err != nil {
+	} else {
 		log.Info(fmt.Sprintf("resource %s/%s %s already registered and will not be overwritten", item.GetAPIVersion(), item.GetKind(), item.GetName()))
 	}
 
