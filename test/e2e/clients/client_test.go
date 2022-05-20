@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -28,7 +28,7 @@ func TestSimpleClients(t *testing.T) {
 	testCases := []ClientTestCase{
 		// Simple Extend test direct connection
 		{ClientType: ClientTypeExtend, Name: "ExtendInternalDirect", Cluster: cluster, Test: simpleClientTest},
-		//Simple Extend test name-service connection
+		// Simple Extend test name-service connection
 		{ClientType: ClientTypeExtend, Name: "ExtendInternalNS", Cluster: cluster, Test: simpleClientTest, CacheConfig: "test-cache-config-ns.xml"},
 		// Simple gRPC test
 		{ClientType: ClientTypeGrpc, Name: "GrpcInternal", Cluster: cluster, Test: simpleClientTest},
@@ -81,53 +81,55 @@ func simpleClientTest(t *testing.T, tc ClientTestCase) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-//// simpleExternalClientTest runs a simple Extend or gRPC client test where the client runs outside k8s
-//// The test client is run in a container on the local host, which will just run and complete with an exit code of success or failure.
-//func simpleExternalClientTest(t *testing.T, tc ClientTestCase) {
-//	g := NewGomegaWithT(t)
-//	host, port, err := findIngress(tc, string(tc.ClientType))
-//	g.Expect(err).NotTo(HaveOccurred())
-//
-//	cfg := tc.CacheConfig
-//	if cfg == "" {
-//		cfg = "test-cache-config.xml"
-//	}
-//
-//	image := helper.GetClientImage()
-//
-//	var hostEnvVar string
-//	var portEnvVar string
-//
-//	switch tc.ClientType {
-//	case ClientTypeExtend:
-//		hostEnvVar = "COHERENCE_EXTEND_ADDRESS"
-//		portEnvVar = "COHERENCE_EXTEND_PORT"
-//		break
-//	case ClientTypeGrpc:
-//		hostEnvVar = "COHERENCE_GRPC_CHANNELS_DEFAULT_HOST"
-//		portEnvVar = "COHERENCE_GRPC_CHANNELS_DEFAULT_PORT"
-//		break
-//	}
-//
-//	t.Logf("docker run -it --rm -e CLIENT_TYPE=%s -e COHERENCE_CACHECONFIG=%s -e COHERENCE_DISTRIBUTED_LOCALSTORAGE=false -e %s=%s -e %s=%d %s", string(tc.ClientType), cfg, hostEnvVar, host, portEnvVar, port, image)
-//	time.Sleep(20*time.Second)
-//}
+/*
+// simpleExternalClientTest runs a simple Extend or gRPC client test where the client runs outside k8s
+// The test client is run in a container on the local host, which will just run and complete with an exit code of success or failure.
+func simpleExternalClientTest(t *testing.T, tc ClientTestCase) {
+	g := NewGomegaWithT(t)
+	host, port, err := findIngress(tc, string(tc.ClientType))
+	g.Expect(err).NotTo(HaveOccurred())
 
-//func findIngress(tc ClientTestCase, portName string) (string, int32, error) {
-//	ingress, found := tc.Cluster.ServiceIngress[portName]
-//	if !found {
-//		return "", -1, fmt.Errorf("could not find ingress configuration for port %s", portName)
-//	}
-//
-//	for _, i := range ingress {
-//		if i.IP != "" {
-//			for _, p := range i.Ports {
-//				if p.Error == nil {
-//					return "127.0.0.1", p.Port, nil
-//				}
-//			}
-//		}
-//	}
-//
-//	return "", -1, fmt.Errorf("could not find a working ingress configuration for port %s", portName)
-//}
+	cfg := tc.CacheConfig
+	if cfg == "" {
+		cfg = "test-cache-config.xml"
+	}
+
+	image := helper.GetClientImage()
+
+	var hostEnvVar string
+	var portEnvVar string
+
+	switch tc.ClientType {
+	case ClientTypeExtend:
+		hostEnvVar = "COHERENCE_EXTEND_ADDRESS"
+		portEnvVar = "COHERENCE_EXTEND_PORT"
+		break
+	case ClientTypeGrpc:
+		hostEnvVar = "COHERENCE_GRPC_CHANNELS_DEFAULT_HOST"
+		portEnvVar = "COHERENCE_GRPC_CHANNELS_DEFAULT_PORT"
+		break
+	}
+
+	t.Logf("docker run -it --rm -e CLIENT_TYPE=%s -e COHERENCE_CACHECONFIG=%s -e COHERENCE_DISTRIBUTED_LOCALSTORAGE=false -e %s=%s -e %s=%d %s", string(tc.ClientType), cfg, hostEnvVar, host, portEnvVar, port, image)
+	time.Sleep(20*time.Second)
+}
+
+func findIngress(tc ClientTestCase, portName string) (string, int32, error) {
+	ingress, found := tc.Cluster.ServiceIngress[portName]
+	if !found {
+		return "", -1, fmt.Errorf("could not find ingress configuration for port %s", portName)
+	}
+
+	for _, i := range ingress {
+		if i.IP != "" {
+			for _, p := range i.Ports {
+				if p.Error == nil {
+					return "127.0.0.1", p.Port, nil
+				}
+			}
+		}
+	}
+
+	return "", -1, fmt.Errorf("could not find a working ingress configuration for port %s", portName)
+}
+*/

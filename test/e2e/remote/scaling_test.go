@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -150,7 +150,7 @@ func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasSt
 	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	//Give the deployment a unique name based on the test name
+	// Give the deployment a unique name based on the test name
 	deployment.SetName(fmt.Sprintf("%s-%s", deployment.GetName(), strings.ToLower(id)))
 
 	// update the replica count and scaling policy
@@ -201,7 +201,7 @@ func assertScaleDownToZero(t *testing.T, id string, scaler ScaleFunction, suspen
 	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-to-zero-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	//Give the deployment a unique name based on the test name
+	// Give the deployment a unique name based on the test name
 	deployment.SetName(fmt.Sprintf("%s-%s", deployment.GetName(), strings.ToLower(id)))
 	deployment.Spec.SuspendServicesOnShutdown = suspend
 

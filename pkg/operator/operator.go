@@ -84,12 +84,13 @@ func SetupFlags(cmd *cobra.Command) {
 		setupLog.Error(err, "finding config.json asset")
 		os.Exit(1)
 	}
-	defer f.Close()
 
 	viper.SetConfigType("json")
 	if err := viper.ReadConfig(f); err != nil {
 		setupLog.Error(err, "reading configuration file")
 		os.Exit(1)
+	} else {
+		_ = f.Close()
 	}
 
 	cmd.Flags().Duration(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -43,14 +43,16 @@ func FindContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool
 	return corev1.Container{}, false
 }
 
-//func FindInitContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool) {
-//	for _, c := range sts.Spec.Template.Spec.InitContainers {
-//		if c.Name == name {
-//			return c, true
-//		}
-//	}
-//	return corev1.Container{}, false
-//}
+/*
+func FindInitContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool) {
+	for _, c := range sts.Spec.Template.Spec.InitContainers {
+		if c.Name == name {
+			return c, true
+		}
+	}
+	return corev1.Container{}, false
+}
+*/
 
 func FindContainerPort(container corev1.Container, name string) (corev1.ContainerPort, bool) {
 	for _, port := range container.Ports {

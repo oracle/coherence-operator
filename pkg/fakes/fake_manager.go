@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -49,8 +49,6 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 	restMapper := func(c *rest.Config) (meta.RESTMapper, error) {
 		return testrestmapper.TestOnlyStaticRESTMapper(s), nil
 	}
-	// Using NewDiscoveryRESTMapper requires a k8s server
-	//restMapper = apiutil.NewDiscoveryRESTMapper
 
 	options := manager.Options{
 		Namespace:      helper.GetTestNamespace(),

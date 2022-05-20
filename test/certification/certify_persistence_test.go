@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -69,8 +69,7 @@ func TestActivePersistenceScaleUpAndDown(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Start with one replica
-	//_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
-	//g.Expect(err).NotTo(HaveOccurred())
+	// g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Up to three
 	err = scale(t, ns, deployment.Name, 3)
@@ -128,8 +127,8 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Start with three replicas
-	//_, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
-	//g.Expect(err).NotTo(HaveOccurred())
+	// _, err = helper.WaitForStatefulSetForDeployment(f.KubeClient, ns, &deployment, time.Second*10, time.Minute*5, t)
+	// g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Down to One
 	err = scale(t, ns, deployment.Name, 1)

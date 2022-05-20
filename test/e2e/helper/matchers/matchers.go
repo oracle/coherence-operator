@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -17,7 +17,7 @@ import (
 
 var emptyEnvVars []coreV1.EnvVar
 
-//HaveEnvVar asserts that a []EnvVar does not contain a specified EnvVar.
+// HaveEnvVar asserts that a []EnvVar does not contain a specified EnvVar.
 func HaveEnvVarNamed(name string) types.GomegaMatcher {
 	return &HaveNamedEnvVarMatcher{Name: name}
 }
@@ -55,7 +55,7 @@ func (h *HaveNamedEnvVarMatcher) NegatedFailureMessage(actual interface{}) (mess
 	return format.Message(actual, "to not contain an EnvVar named %s", h.Name)
 }
 
-//HaveEnvVar asserts that a []EnvVar contains a specified EnvVar.
+// HaveEnvVar asserts that a []EnvVar contains a specified EnvVar.
 func HaveEnvVar(expected coreV1.EnvVar) types.GomegaMatcher {
 	return &HaveEnvVarMatcher{EnvVar: expected}
 }

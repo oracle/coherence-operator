@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -26,7 +26,7 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // CoherenceResourceSpec defines the specification of a Coherence resource. A Coherence resource is
-//typically one or more Pods that perform the same functionality, for example storage members.
+// typically one or more Pods that perform the same functionality, for example storage members.
 // +k8s:openapi-gen=true
 type CoherenceResourceSpec struct {
 	// The name of the image.
@@ -1010,7 +1010,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 	if deployment.Spec.AutoResumeServices != nil {
 		b := new(bytes.Buffer)
 		for key, value := range deployment.Spec.AutoResumeServices {
-			_, _ = fmt.Fprintf(b, "\"%s\"=%t,", strings.Replace(key, "\"", "\\\"", -1), value)
+			_, _ = fmt.Fprintf(b, "\"%s\"=%t,", strings.ReplaceAll(key, "\"", "\\\""), value)
 		}
 		value := base64.StdEncoding.EncodeToString(b.Bytes())
 		env = append(env, corev1.EnvVar{Name: EnvVarOperatorResumeServices, Value: value})

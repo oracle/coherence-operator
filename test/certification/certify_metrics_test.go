@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -132,7 +132,6 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	for key, value := range ports {
 		fmt.Println(key, value)
 	}
-	//url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[coh.PortNameMetrics])
 	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[v1.PortNameMetrics])
 
 	var resp *http.Response
