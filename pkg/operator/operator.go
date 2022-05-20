@@ -37,9 +37,10 @@ const (
 	// KeyFileName is used for Private Keys inside a secret
 	KeyFileName = "tls.key"
 
-	CertTypeSelfSigned  = "self-signed"
-	CertTypeCertManager = "cert-manager"
-	CertTypeManual      = "manual"
+	CertTypeSelfSigned    = "self-signed"
+	CertTypeCertManager   = "cert-manager"
+	CertTypeManual        = "manual"
+	CertManagerIssuerName = "coherence-webhook-server-issuer"
 
 	DefaultMutatingWebhookName   = "coherence-operator-mutating-webhook-configuration"
 	DefaultValidatingWebhookName = "coherence-operator-validating-webhook-configuration"
@@ -47,6 +48,7 @@ const (
 	FlagCACertRotateBefore    = "ca-cert-rotate-before"
 	FlagCACertValidity        = "ca-cert-validity"
 	FlagCertType              = "cert-type"
+	FlagCertIssuer            = "cert-issuer"
 	FlagCoherenceImage        = "coherence-image"
 	FlagDevMode               = "coherence-dev-mode"
 	FlagCRD                   = "install-crd"
@@ -104,6 +106,12 @@ func SetupFlags(cmd *cobra.Command) {
 		FlagCertType,
 		CertTypeSelfSigned,
 		fmt.Sprintf("The type of certificate management used for webhook certificates. "+
+			"Valid options are %v", []string{CertTypeSelfSigned, CertTypeCertManager, CertTypeManual}),
+	)
+	cmd.Flags().String(
+		FlagCertIssuer,
+		CertManagerIssuerName,
+		fmt.Sprintf("The name of an existing cert-manager issuer (in the same namespace) used for webhook certificates. "+
 			"Valid options are %v", []string{CertTypeSelfSigned, CertTypeCertManager, CertTypeManual}),
 	)
 	cmd.Flags().String(

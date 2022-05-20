@@ -52,7 +52,7 @@ func (r *CertReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager)
 	switch {
 	case operator.ShouldUseCertManager():
 		r.hookInstaller = &HookInstaller{Clients: r.Clientset}
-		if err := r.hookInstaller.InstallWithCertManager(); err != nil {
+		if err := r.hookInstaller.InstallWithCertManager(ctx); err != nil {
 			return errors.Wrap(err, " unable to install cert-manager resources")
 		}
 		// if in dev-mode write the certs to local cert files

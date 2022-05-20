@@ -7,7 +7,7 @@ metadata:
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.2.6"
+    app.kubernetes.io/version: "3.2.7"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
 spec:
@@ -21,7 +21,7 @@ spec:
         control-plane: coherence
         app.kubernetes.io/name: coherence-operator
         app.kubernetes.io/instance: coherence-operator-manager
-        app.kubernetes.io/version: "3.2.6"
+        app.kubernetes.io/version: "3.2.7"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
     spec:
@@ -64,6 +64,8 @@ spec:
             value: $(WEBHOOK_SECRET_NAME)
           - name: SERVICE_NAME
             value: $(REST_SERVICE_NAME)
+          - name: CERT_TYPE
+            value: "self-signed"
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
