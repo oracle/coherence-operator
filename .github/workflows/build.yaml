@@ -59,7 +59,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        java-version: '1.8'
+        java-version: '11'
 
     - name: Cache Go Modules
       uses: actions/cache@v1
@@ -87,6 +87,11 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
+    - name: Code Review
+      shell: bash
+      run: |
+        make code-review
+
     - name: Start KinD Cluster
 #     Start a KinD K8s cluster with single worker node
       shell: bash
@@ -97,11 +102,6 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11
         docker pull gcr.io/distroless/java17
-
-    - name: Code Review
-      shell: bash
-      run: |
-        make code-review
 
     - name: Build
       shell: bash
