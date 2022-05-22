@@ -1535,7 +1535,7 @@ uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
 
 TANZU = $(HOME)/bin/tanzu
 .PHONY: get-tanzu
-get-tanzu:
+get-tanzu: $(BUILD_PROPS)
 	./hack/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
 
 .PHONY: tanzu-create-cluster
@@ -1882,7 +1882,7 @@ push-release-images: push-test-base-images push-utils-image push-operator-image
 .PHONY: get-prometheus
 get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
 
-$(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt:
+$(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
 	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz
 	mkdir $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
@@ -2048,7 +2048,7 @@ uninstall-istio: get-istio ## Uninstall Istio from k8s
 # Get the latest Istio version
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
-get-istio:
+get-istio: $(BUILD_PROPS)
 	./hack/get-istio-latest.sh "$(ISTIO_VERSION)" "$(TOOLS_DIRECTORY)"
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	@echo "Istio installed at $(ISTIO_HOME)"
