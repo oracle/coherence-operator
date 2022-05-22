@@ -44,6 +44,7 @@ if [ ! -d "${TANZU_HOME}" ]; then
   rm tanzu.tar.gz
 
   mkdir ~/bin || true
+  export PATH=~/bin:$PATH
   ./install.sh
 
   tanzu version

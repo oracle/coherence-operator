@@ -94,8 +94,7 @@ jobs:
     - name: Install Tanzu Community
       shell: bash
       run: |
-        sh ./hack/get-tanzu.sh
-        tanzu version
+        make get-tanzu
 
     - name: Build
       shell: bash

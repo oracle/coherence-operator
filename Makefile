@@ -330,6 +330,13 @@ METALLB_VERSION ?= v0.10.2
 # The version of Istio to install, leave empty for the latest
 ISTIO_VERSION ?=
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Tanzu settings
+# ----------------------------------------------------------------------------------------------------------------------
+# The version of Tanzu to install, leave empty for the latest
+TANZU_VERSION ?=
+TANZU =  
+
 # ======================================================================================================================
 # Makefile targets start here
 # ======================================================================================================================
@@ -1526,13 +1533,18 @@ uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
 # ======================================================================================================================
 ##@ Tanzu
 
+TANZU = $(HOME)/bin/tanzu
+.PHONY: get-tanzu
+get-tanzu:
+	./hack/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
+
 .PHONY: tanzu-create-cluster
 tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
-	tanzu uc create $(KIND_CLUSTER) --worker-node-count 2
+	$(TANZU) uc create $(KIND_CLUSTER) --worker-node-count 2
 
 .PHONY: tanzu-delete-cluster
 tanzu-delete-cluster: ## Delete the local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
-	tanzu uc delete $(KIND_CLUSTER)
+	$(TANZU) uc delete $(KIND_CLUSTER)
 
 .PHONY: tanzu-package-internal
 tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
@@ -1590,24 +1602,24 @@ tanzu-ttl-install-repo: ## Install the Coherence package repo into Tanzu using i
 
 .PHONY: tanzu-delete-repo
 tanzu-delete-repo: ## Delete the Coherence package repo into Tanzu
-	tanzu package repository delete coherence-repo -y --namespace coherence
+	$(TANZU) package repository delete coherence-repo -y --namespace coherence
 
 define tanzuInstallRepo
-	tanzu package repository add coherence-repo \
+	$(TANZU) package repository add coherence-repo \
 		--url $(1) \
 		--namespace coherence \
 		--create-namespace
-	tanzu package repository list --namespace coherence
-	tanzu package available list --namespace coherence
+	$(TANZU) package repository list --namespace coherence
+	$(TANZU) package available list --namespace coherence
 endef
 
 .PHONY: tanzu-install
 tanzu-install: ## Install the Coherence Operator package into Tanzu
-	tanzu package install coherence \
+	$(TANZU) package install coherence \
 		--package-name coherence-operator.oracle.github.com \
 		--version $(VERSION) \
 		--namespace coherence
-	tanzu package installed list --namespace coherence
+	$(TANZU) package installed list --namespace coherence
 	sleep 20
 	@echo "Waiting for Operator Pod to be ready"
 	OP_POD=$(shell kubectl -n coherence get pod -l control-plane=coherence -o name) \
