@@ -43,8 +43,6 @@ if [ ! -d "${TANZU_HOME}" ]; then
   tar --strip-components=1 -xf tanzu.tar.gz
   rm tanzu.tar.gz
 
-  mkdir ~/bin || true
-  export PATH=~/bin:$PATH
   ./install.sh
 
   tanzu version

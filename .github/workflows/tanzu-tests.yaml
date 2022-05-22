@@ -95,6 +95,7 @@ jobs:
       shell: bash
       run: |
         make get-tanzu
+        make tanzu-create-cluster
 
     - name: Pull Base Images
       shell: bash
@@ -110,13 +111,14 @@ jobs:
         make all
         make push-ttl-operator-images
         make tanzu-ttl-repo
-        make tanzu-ttl-install-repo
 
     - name: Tanzu Tests
       shell: bash
       run: |
+        make tanzu-ttl-install-repo
         make tanzu-install
-        make compatibility-test
+        make create-ssl-secrets OPERATOR_NAMESPACE=coherence
+        make run-certification OPERATOR_NAMESPACE=coherence
 
     - uses: actions/upload-artifact@v1
       if: failure()
