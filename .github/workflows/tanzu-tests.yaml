@@ -96,6 +96,13 @@ jobs:
       run: |
         make get-tanzu
 
+    - name: Pull Base Images
+      shell: bash
+      run: |
+        docker pull gcr.io/distroless/java
+        docker pull gcr.io/distroless/java11
+        docker pull gcr.io/distroless/java17
+
     - name: Build
       shell: bash
       run: |
