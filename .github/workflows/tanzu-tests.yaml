@@ -107,7 +107,6 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        make 
         make all
         make push-ttl-operator-images
         make tanzu-ttl-repo
@@ -119,6 +118,12 @@ jobs:
         make tanzu-install
         make create-ssl-secrets OPERATOR_NAMESPACE=coherence
         make run-certification OPERATOR_NAMESPACE=coherence
+
+    - uses: actions/upload-artifact@v1
+      if: failure()
+      with:
+        name: tanzu-artifacts
+        path: build/_output/tanzu
 
     - uses: actions/upload-artifact@v1
       if: failure()
