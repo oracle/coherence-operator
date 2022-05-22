@@ -1552,15 +1552,17 @@ tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS
 	mkdir -p $(TANZU_PACKAGE_DIR)/config $(TANZU_PACKAGE_DIR)/.imgpkg || true
 	cp -R ./tanzu/package/ $(TANZU_PACKAGE_DIR)/config
 	$(call prepare_deploy,$(OPERATOR_IMAGE),tanzu-namespace,$(UTILS_IMAGE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
-	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
 
 .PHONY: tanzu-package
 tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(call pushTanzuPackage,$(OPERATOR_PACKAGE_IMAGE))
 
 .PHONY: tanzu-ttl-package
 tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files using images from ttl.sh
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(SED) -e 's,$(UTILS_IMAGE),$(TTL_UTILS_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(SED) -e 's,$(OPERATOR_IMAGE),$(TTL_OPERATOR_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(call pushTanzuPackage,$(TTL_PACKAGE_IMAGE))
@@ -2246,7 +2248,7 @@ endif
 # Generate Java client
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(KUSTOMIZE)
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.6 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds
