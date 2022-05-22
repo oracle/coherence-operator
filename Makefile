@@ -1567,6 +1567,7 @@ tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files usin
 
 define pushTanzuPackage
 	kbld -f $(TANZU_PACKAGE_DIR)/config/ --imgpkg-lock-output $(TANZU_PACKAGE_DIR)/.imgpkg/images.yml
+	tar -czvf $(TANZU_DIR)/tanzu-package.tar.gz  $(TANZU_PACKAGE_DIR)/
 	imgpkg push -b $(1) -f $(TANZU_PACKAGE_DIR)/
 endef
 
@@ -1589,6 +1590,7 @@ tanzu-ttl-repo: tanzu-ttl-package tanzu-repo-internal ## Create the Tanzu repo f
 
 define pushTanzuRepo
 	kbld -f $(TANZU_REPO_DIR)/packages/ --imgpkg-lock-output $(TANZU_REPO_DIR)/.imgpkg/images.yml
+	tar -czvf $(TANZU_DIR)/tanzu-repo.tar.gz  $(TANZU_REPO_DIR)/
 	imgpkg push -b $(1) -f $(TANZU_REPO_DIR)/
 endef
 
