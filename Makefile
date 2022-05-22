@@ -79,14 +79,14 @@ OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
 OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
-UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
-TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-test-base
+UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)
+TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
 # The Operator images to push
 OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
-UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
-TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)-test-base
-BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
+UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO)-utils:$(VERSION)
+TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO)-test-base:$(VERSION)
+BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO)-bundle:$(VERSION)
 
 OPERATOR_PACKAGE_PREFIX := $(OPERATOR_IMAGE_REPO)-package
 OPERATOR_PACKAGE_IMAGE  := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
@@ -1496,16 +1496,30 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 # ======================================================================================================================
 ##@ Cert Manager
 
+CERT_MANAGER_VERSION ?= v1.8.0
+# Get latest version...
+#  curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
+
+.PHONY: install-cmctl
+install-cmctl: $(TOOLS_BIN)/cmctl ## Install the Cert Manager CLI into $(TOOLS_BIN)
+
+CMCTL = $(TOOLS_BIN)/cmctl
+$(TOOLS_BIN)/cmctl:
+	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
+	curl -sSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cmctl-$${OS}-$${ARCH}.tar.gz
+	tar xzf cmctl.tar.gz
+	mv cmctl $(TOOLS_BIN)
+	rm cmctl.tar.gz
+
 .PHONY: install-cert-manager
-install-cert-manager:  ## Install Cert manager into the Kubernetes cluster
+install-cert-manager: $(TOOLS_BIN)/cmctl ## Install Cert manager into the Kubernetes cluster
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+	$(CMCTL) check api --wait=10m
 
 .PHONY: uninstall-cert-manager
 uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
-	kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+	kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yam
 
-# Get latest version...
-#  curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
 
 # ======================================================================================================================
 # Tanzu related targets
@@ -1518,7 +1532,7 @@ tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CL
 
 .PHONY: tanzu-delete-cluster
 tanzu-delete-cluster: ## Delete the local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
-	tanzu uc delete $(KIND_CLUSTER) --worker-node-count 2
+	tanzu uc delete $(KIND_CLUSTER)
 
 .PHONY: tanzu-package-internal
 tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
@@ -1594,6 +1608,10 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 		--version $(VERSION) \
 		--namespace coherence
 	tanzu package installed list --namespace coherence
+	sleep 20
+	@echo "Waiting for Operator Pod to be ready"
+	OP_POD=$(shell kubectl -n coherence get pod -l control-plane=coherence -o name) \
+		kubectl -n coherence wait --for condition=ready --timeout 180s $${OP_POD}
 
 # ======================================================================================================================
 # Miscellaneous targets

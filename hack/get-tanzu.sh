@@ -49,6 +49,6 @@ if [ ! -d "${TANZU_HOME}" ]; then
   tanzu version
 fi
 
-#curl -L https://carvel.dev/install.sh | bash
+curl -L https://carvel.dev/install.sh | bash
 
 exit 0
