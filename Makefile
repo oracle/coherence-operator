@@ -1533,7 +1533,7 @@ uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
 # ======================================================================================================================
 ##@ Tanzu
 
-TANZU = $(HOME)/bin/tanzu
+TANZU = $(shell which tanzu)
 .PHONY: get-tanzu
 get-tanzu: $(BUILD_PROPS)
 	./hack/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
