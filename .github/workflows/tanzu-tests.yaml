@@ -120,6 +120,7 @@ jobs:
         export  OPERATOR_NAMESPACE=coherence
         make wait-for-deploy
         make create-ssl-secrets
+        make kind-load
         make run-certification OPERATOR_NAMESPACE=coherence
 
     - uses: actions/upload-artifact@v1
