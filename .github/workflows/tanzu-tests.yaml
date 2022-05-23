@@ -116,7 +116,10 @@ jobs:
       run: |
         make tanzu-ttl-install-repo
         make tanzu-install
-        make create-ssl-secrets OPERATOR_NAMESPACE=coherence
+        sleep 20
+        export  OPERATOR_NAMESPACE=coherence
+        make wait-for-deploy
+        make create-ssl-secrets
         make run-certification OPERATOR_NAMESPACE=coherence
 
     - uses: actions/upload-artifact@v1

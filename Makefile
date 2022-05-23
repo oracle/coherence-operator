@@ -1299,7 +1299,7 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
-	echo "Waiting for Operator to be ready"
+	echo "Waiting for Operator to be ready. Pod: $(POD)"
 	sleep 10
 	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 120s $(POD)
 
@@ -1562,29 +1562,10 @@ tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
 
 .PHONY: tanzu-ttl-package
 tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files using images from ttl.sh
-	@echo "Running kustomize to producr package.yaml"
-	@echo ">>>>> Before:"
-	cat $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo "<<<<< Before:"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo ">>>>> After:"
-	cat $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo "<<<<< After:"
-	@echo "Running sed to set namespace"
 	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo ">>>>> After:"
-	cat $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo "<<<<< After:"
-	@echo "Running sed to set utils image"
 	$(SED) -e 's,$(UTILS_IMAGE),$(TTL_UTILS_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo ">>>>> After:"
-	cat $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo "<<<<< After:"
-	@echo "Running sed to set operator image"
 	$(SED) -e 's,$(OPERATOR_IMAGE),$(TTL_OPERATOR_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo ">>>>> After:"
-	cat $(TANZU_PACKAGE_DIR)/config/package.yml
-	@echo "<<<<< After:"
 	$(call pushTanzuPackage,$(TTL_PACKAGE_IMAGE))
 
 define pushTanzuPackage
@@ -1644,10 +1625,6 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 		--version $(VERSION) \
 		--namespace coherence
 	$(TANZU) package installed list --namespace coherence
-	sleep 20
-	@echo "Waiting for Operator Pod to be ready"
-	OP_POD=$(shell kubectl -n coherence get pod -l control-plane=coherence -o name) \
-		kubectl -n coherence wait --for condition=ready --timeout 180s $${OP_POD}
 
 # ======================================================================================================================
 # Miscellaneous targets
