@@ -1550,7 +1550,8 @@ tanzu-delete-cluster: ## Delete the local Tanzu unmanaged cluster named "$(KIND_
 tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
 	rm -r $(TANZU_PACKAGE_DIR) || true
 	mkdir -p $(TANZU_PACKAGE_DIR)/config $(TANZU_PACKAGE_DIR)/.imgpkg || true
-	cp -R ./tanzu/package/ $(TANZU_PACKAGE_DIR)/config
+	cp -vR tanzu/package/* $(TANZU_PACKAGE_DIR)/config/
+	ls -al $(TANZU_PACKAGE_DIR)/config/
 	$(call prepare_deploy,$(OPERATOR_IMAGE),tanzu-namespace,$(UTILS_IMAGE))
 
 .PHONY: tanzu-package
