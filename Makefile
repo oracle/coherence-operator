@@ -1561,10 +1561,29 @@ tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
 
 .PHONY: tanzu-ttl-package
 tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files using images from ttl.sh
+	@echo "Running kustomize to producr package.yaml"
+	@echo ">>>>> Before:"
+	cat $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo "<<<<< Before:"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo ">>>>> After:"
+	cat $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo "<<<<< After:"
+	@echo "Running sed to set namespace"
 	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo ">>>>> After:"
+	cat $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo "<<<<< After:"
+	@echo "Running sed to set utils image"
 	$(SED) -e 's,$(UTILS_IMAGE),$(TTL_UTILS_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo ">>>>> After:"
+	cat $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo "<<<<< After:"
+	@echo "Running sed to set operator image"
 	$(SED) -e 's,$(OPERATOR_IMAGE),$(TTL_OPERATOR_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo ">>>>> After:"
+	cat $(TANZU_PACKAGE_DIR)/config/package.yml
+	@echo "<<<<< After:"
 	$(call pushTanzuPackage,$(TTL_PACKAGE_IMAGE))
 
 define pushTanzuPackage
