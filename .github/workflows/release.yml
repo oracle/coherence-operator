@@ -67,20 +67,46 @@ jobs:
         if echo $GITHUB_EVENT_NAME -eq "release"; then PRE_RELEASE=false; else PRE_RELEASE=true; fi
         make release RELEASE_DRY_RUN=false PRE_RELEASE=$PRE_RELEASE
 
-    - name: Upload Manifests
-      uses: actions/upload-artifact@v1
+    - name: Upload Release Manifests
+      id: upload-release-manifests
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: coherence-operator-manifests.tar.gz
-        path: /tmp/coherence-operator/_output/coherence-operator-manifests.tar.gz
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/coherence-operator-manifests.tar.gz
+        asset_name: coherence-operator-manifests.tar.gz
+        asset_content_type: application/tar+gzip
 
-    - name: Upload Yaml
-      uses: actions/upload-artifact@v1
+    - name: Upload Release Yaml
+      id: upload-release-yaml
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: coherence-operator.yaml
-        path: /tmp/coherence-operator/_output/coherence-operator.yaml
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/coherence-operator.yaml
+        asset_name: coherence-operator.yaml
+        asset_content_type: text/plain
 
-    - name: Upload CRD
-      uses: actions/upload-artifact@v1
+    - name: Upload Release CRD
+      id: upload-release-crd
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: coherence.oracle.com_coherence.yaml
-        path: /tmp/coherence-operator/_output/manifests/crd/coherence.oracle.com_coherence.yaml
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/manifests/crd/coherence.oracle.com_coherence.yaml
+        asset_name: coherence.oracle.com_coherence.yaml
+        asset_content_type: text/plain
+
+    - name: Upload Release Dashboards
+      id: upload-release-dashboards
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/coherence-dashboards.tar.gz
+        asset_name: coherence-dashboards.tar.gz
+        asset_content_type: text/plain

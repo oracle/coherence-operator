@@ -1875,7 +1875,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the Docker images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-test-base-images push-utils-image push-operator-image
+push-release-images: push-utils-image push-operator-image tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
@@ -2136,9 +2136,9 @@ release-dashboards:
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
 	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
+		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
 	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
+		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator to the gh-pages branch.
@@ -2147,6 +2147,7 @@ release-dashboards:
 release-ghpages:  helm-chart docs release-dashboards
 	mkdir -p /tmp/coherence-operator || true
 	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
+	cp $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz /tmp/coherence-operator/_output/coherence-dashboards.tar.gz
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout --track origin/gh-pages
