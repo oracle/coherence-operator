@@ -70,7 +70,7 @@
         <version.lib.spring>2.6.7</version.lib.spring>
 
         <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
-        <version.lib.gson>2.8.6</version.lib.gson>
+        <version.lib.gson>2.8.9</version.lib.gson>
         <version.lib.okhttp>3.14.7</version.lib.okhttp>
         <version.lib.swagger.core>1.5.24</version.lib.swagger.core>
         <version.lib.commons.lang3>3.10</version.lib.commons.lang3>
