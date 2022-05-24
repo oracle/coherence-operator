@@ -36,7 +36,7 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
 COHERENCE_VERSION ?= 21.12.4
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12.4
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:$(COHERENCE_VERSION)
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -1540,6 +1540,7 @@ get-tanzu: $(BUILD_PROPS)
 
 .PHONY: tanzu-create-cluster
 tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
+	rm -rf $(HOME)/.config/tanzu/tkg/unmanaged/$(KIND_CLUSTER)
 	$(TANZU) uc create $(KIND_CLUSTER) --worker-node-count 2
 
 .PHONY: tanzu-delete-cluster
@@ -2077,6 +2078,7 @@ docs:
 		-Doperator.version=$(VERSION) \
 		-Doperator.image=$(OPERATOR_IMAGE) \
 		-Doperator.utils.image=$(UTILS_IMAGE) \
+		-Dcoherence.image=$(COHERENCE_IMAGE) \
 		$(MAVEN_OPTIONS)
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/
