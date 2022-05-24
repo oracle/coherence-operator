@@ -29,9 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         coherenceVersion:
-          - "21.12"
-          - "21.06.2"
-          - "20.12.2"
+          - "21.12.4"
           - "14.1.2-0-0-SNAPSHOT"
           - "14.1.1-0-10-SNAPSHOT"
           - "14.1.1-0-9"
