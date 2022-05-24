@@ -3,9 +3,9 @@
 # http://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
-# Coherence Operator GitHub Actions Backwards Compatibility Tests.
+# Coherence Operator GitHub Actions Tanzu Compatibility Tests.
 # ---------------------------------------------------------------------------
-name: Istio Tests
+name: Tanzu Tests
 
 on:
   workflow_dispatch:
@@ -31,11 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        istioVersion:
+        tanzuVersion:
         - latest
-        - 1.12.1
-        - 1.11.5
-        - 1.10.6
 
     steps:
     - uses: actions/checkout@v2
@@ -94,35 +91,43 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-    - name: Start KinD Cluster
-#     Start a KinD K8s cluster with single worker node
+    - name: Install Tanzu Community
       shell: bash
       run: |
-        make kind
-        kubectl version
-        kubectl get nodes
+        make get-tanzu
+        make tanzu-create-cluster
+
+    - name: Pull Base Images
+      shell: bash
+      run: |
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11
         docker pull gcr.io/distroless/java17
 
     - name: Build
       shell: bash
-      run: make all
+      run: |
+        make all
+        make push-ttl-operator-images
+        make tanzu-ttl-repo
 
-    - name: Load Images to KinD
-#     Load the images just built to the KinD cluster
+    - name: Tanzu Tests
       shell: bash
       run: |
+        make tanzu-ttl-install-repo
+        make tanzu-install
+        sleep 20
+        export  OPERATOR_NAMESPACE=coherence
+        make wait-for-deploy
+        make create-ssl-secrets
         make kind-load
+        make run-certification OPERATOR_NAMESPACE=coherence
 
-    - name: Istio Tests
-      shell: bash
-      run: |
-        make deploy
-        ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
-        make e2e-client-test
-        make undeploy
-        ISTIO_VERSION=${{ matrix.istioVersion }} make uninstall-istio
+    - uses: actions/upload-artifact@v1
+      if: failure()
+      with:
+        name: tanzu-artifacts
+        path: build/_output/tanzu
 
     - uses: actions/upload-artifact@v1
       if: failure()

@@ -43,12 +43,11 @@ if [ ! -d "${TANZU_HOME}" ]; then
   tar --strip-components=1 -xf tanzu.tar.gz
   rm tanzu.tar.gz
 
-  mkdir ~/bin || true
   ./install.sh
 
   tanzu version
 fi
 
-#curl -L https://carvel.dev/install.sh | bash
+curl -L https://carvel.dev/install.sh | bash
 
 exit 0

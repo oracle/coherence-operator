@@ -36,7 +36,7 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
 COHERENCE_VERSION ?= 21.12.4
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:21.12.4
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:$(COHERENCE_VERSION)
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -79,14 +79,14 @@ OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
 OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
-UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-utils
-TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO):$(VERSION)-test-base
+UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)
+TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
 # The Operator images to push
 OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
-UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO):$(VERSION)-utils
-TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO):$(VERSION)-test-base
-BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO):$(VERSION)-bundle
+UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO)-utils:$(VERSION)
+TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO)-test-base:$(VERSION)
+BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO)-bundle:$(VERSION)
 
 OPERATOR_PACKAGE_PREFIX := $(OPERATOR_IMAGE_REPO)-package
 OPERATOR_PACKAGE_IMAGE  := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
@@ -329,6 +329,13 @@ METALLB_VERSION ?= v0.10.2
 # ----------------------------------------------------------------------------------------------------------------------
 # The version of Istio to install, leave empty for the latest
 ISTIO_VERSION ?=
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Tanzu settings
+# ----------------------------------------------------------------------------------------------------------------------
+# The version of Tanzu to install, leave empty for the latest
+TANZU_VERSION ?=
+TANZU =  
 
 # ======================================================================================================================
 # Makefile targets start here
@@ -1292,7 +1299,7 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
-	echo "Waiting for Operator to be ready"
+	echo "Waiting for Operator to be ready. Pod: $(POD)"
 	sleep 10
 	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 120s $(POD)
 
@@ -1496,51 +1503,75 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 # ======================================================================================================================
 ##@ Cert Manager
 
+CERT_MANAGER_VERSION ?= v1.8.0
+# Get latest version...
+#  curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
+
+.PHONY: install-cmctl
+install-cmctl: $(TOOLS_BIN)/cmctl ## Install the Cert Manager CLI into $(TOOLS_BIN)
+
+CMCTL = $(TOOLS_BIN)/cmctl
+$(TOOLS_BIN)/cmctl:
+	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
+	curl -sSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cmctl-$${OS}-$${ARCH}.tar.gz
+	tar xzf cmctl.tar.gz
+	mv cmctl $(TOOLS_BIN)
+	rm cmctl.tar.gz
+
 .PHONY: install-cert-manager
-install-cert-manager:  ## Install Cert manager into the Kubernetes cluster
+install-cert-manager: $(TOOLS_BIN)/cmctl ## Install Cert manager into the Kubernetes cluster
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+	$(CMCTL) check api --wait=10m
 
 .PHONY: uninstall-cert-manager
 uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
-	kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+	kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yam
 
-# Get latest version...
-#  curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
 
 # ======================================================================================================================
 # Tanzu related targets
 # ======================================================================================================================
 ##@ Tanzu
 
+TANZU = $(shell which tanzu)
+.PHONY: get-tanzu
+get-tanzu: $(BUILD_PROPS)
+	./hack/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
+
 .PHONY: tanzu-create-cluster
 tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
-	tanzu uc create $(KIND_CLUSTER) --worker-node-count 2
+	rm -rf $(HOME)/.config/tanzu/tkg/unmanaged/$(KIND_CLUSTER)
+	$(TANZU) uc create $(KIND_CLUSTER) --worker-node-count 2
 
 .PHONY: tanzu-delete-cluster
 tanzu-delete-cluster: ## Delete the local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
-	tanzu uc delete $(KIND_CLUSTER) --worker-node-count 2
+	$(TANZU) uc delete $(KIND_CLUSTER)
 
 .PHONY: tanzu-package-internal
 tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
 	rm -r $(TANZU_PACKAGE_DIR) || true
 	mkdir -p $(TANZU_PACKAGE_DIR)/config $(TANZU_PACKAGE_DIR)/.imgpkg || true
-	cp -R ./tanzu/package/ $(TANZU_PACKAGE_DIR)/config
+	cp -vR tanzu/package/* $(TANZU_PACKAGE_DIR)/config/
+	ls -al $(TANZU_PACKAGE_DIR)/config/
 	$(call prepare_deploy,$(OPERATOR_IMAGE),tanzu-namespace,$(UTILS_IMAGE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
-	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
 
 .PHONY: tanzu-package
 tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(call pushTanzuPackage,$(OPERATOR_PACKAGE_IMAGE))
 
 .PHONY: tanzu-ttl-package
 tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files using images from ttl.sh
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
+	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(SED) -e 's,$(UTILS_IMAGE),$(TTL_UTILS_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(SED) -e 's,$(OPERATOR_IMAGE),$(TTL_OPERATOR_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(call pushTanzuPackage,$(TTL_PACKAGE_IMAGE))
 
 define pushTanzuPackage
 	kbld -f $(TANZU_PACKAGE_DIR)/config/ --imgpkg-lock-output $(TANZU_PACKAGE_DIR)/.imgpkg/images.yml
+	tar -czvf $(TANZU_DIR)/tanzu-package.tar.gz  $(TANZU_PACKAGE_DIR)/
 	imgpkg push -b $(1) -f $(TANZU_PACKAGE_DIR)/
 endef
 
@@ -1563,6 +1594,7 @@ tanzu-ttl-repo: tanzu-ttl-package tanzu-repo-internal ## Create the Tanzu repo f
 
 define pushTanzuRepo
 	kbld -f $(TANZU_REPO_DIR)/packages/ --imgpkg-lock-output $(TANZU_REPO_DIR)/.imgpkg/images.yml
+	tar -czvf $(TANZU_DIR)/tanzu-repo.tar.gz  $(TANZU_REPO_DIR)/
 	imgpkg push -b $(1) -f $(TANZU_REPO_DIR)/
 endef
 
@@ -1576,24 +1608,24 @@ tanzu-ttl-install-repo: ## Install the Coherence package repo into Tanzu using i
 
 .PHONY: tanzu-delete-repo
 tanzu-delete-repo: ## Delete the Coherence package repo into Tanzu
-	tanzu package repository delete coherence-repo -y --namespace coherence
+	$(TANZU) package repository delete coherence-repo -y --namespace coherence
 
 define tanzuInstallRepo
-	tanzu package repository add coherence-repo \
+	$(TANZU) package repository add coherence-repo \
 		--url $(1) \
 		--namespace coherence \
 		--create-namespace
-	tanzu package repository list --namespace coherence
-	tanzu package available list --namespace coherence
+	$(TANZU) package repository list --namespace coherence
+	$(TANZU) package available list --namespace coherence
 endef
 
 .PHONY: tanzu-install
 tanzu-install: ## Install the Coherence Operator package into Tanzu
-	tanzu package install coherence \
+	$(TANZU) package install coherence \
 		--package-name coherence-operator.oracle.github.com \
 		--version $(VERSION) \
 		--namespace coherence
-	tanzu package installed list --namespace coherence
+	$(TANZU) package installed list --namespace coherence
 
 # ======================================================================================================================
 # Miscellaneous targets
@@ -1844,7 +1876,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the Docker images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-test-base-images push-utils-image push-operator-image
+push-release-images: push-utils-image push-operator-image tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
@@ -1852,7 +1884,7 @@ push-release-images: push-test-base-images push-utils-image push-operator-image
 .PHONY: get-prometheus
 get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
 
-$(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt:
+$(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
 	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz
 	mkdir $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
@@ -2018,7 +2050,7 @@ uninstall-istio: get-istio ## Uninstall Istio from k8s
 # Get the latest Istio version
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
-get-istio:
+get-istio: $(BUILD_PROPS)
 	./hack/get-istio-latest.sh "$(ISTIO_VERSION)" "$(TOOLS_DIRECTORY)"
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	@echo "Istio installed at $(ISTIO_HOME)"
@@ -2046,6 +2078,7 @@ docs:
 		-Doperator.version=$(VERSION) \
 		-Doperator.image=$(OPERATOR_IMAGE) \
 		-Doperator.utils.image=$(UTILS_IMAGE) \
+		-Dcoherence.image=$(COHERENCE_IMAGE) \
 		$(MAVEN_OPTIONS)
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/
@@ -2105,9 +2138,9 @@ release-dashboards:
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
 	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
+		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
 	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
-		--dry-run -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
+		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator to the gh-pages branch.
@@ -2116,6 +2149,7 @@ release-dashboards:
 release-ghpages:  helm-chart docs release-dashboards
 	mkdir -p /tmp/coherence-operator || true
 	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
+	cp $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz /tmp/coherence-operator/_output/coherence-dashboards.tar.gz
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout --track origin/gh-pages
@@ -2214,7 +2248,7 @@ endif
 # Generate Java client
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(KUSTOMIZE)
+$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
 	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.6 || true
 	rm -rf $(BUILD_OUTPUT)/java-client || true
 	mkdir -p $(BUILD_OUTPUT)/java-client/crds

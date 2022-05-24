@@ -13,6 +13,7 @@ engine:
       plantumlconfig: "_plantuml-config.txt"
       operator-version: "${operator.version}"
       operator-image: "${operator.image}"
+      coherence-image: "${coherence.image}"
       operator-utils-image: "${operator.utils.image}"
       guides-dir: "${project.basedir}/../examples/guides"
 assets:

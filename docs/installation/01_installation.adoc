@@ -28,6 +28,7 @@ There are a few ways to install the Coherence Operator documented below:
 * <<manifest,Simple installation using Kubectl>>
 * <<helm,Install the Helm chart>>
 * <<kubectl,Kubectl with Kustomize>>
+* <<tanzu,VMWare Tanzu Package (kapp-controller)>>
 
 NOTE: Installing the Coherence Operator using the methods above will create a number of `ClusterRole` RBAC resources.
 Some corporate security policies do not like to give cluster wide roles to third-party products.
@@ -44,22 +45,18 @@ installations may configure iptables in a way that causes Coherence to fail to c
 See the <<docs/installation/08_networking.adoc,O/S Network Configuration>> section of the documentation
 for more details if you have well-known-address issues when Pods attempt to form a cluster.
 
-[WARNING]
-====
-*Upgrading from version 3.1.0*
+== Coherence Operator Images
 
-Due to a CRD incompatibility that was initially un-noticed in v3.1.0 we deprecated v3.1.0 and recommended that
-it not be used.
-If you did install v3.1.0 and are upgrading to the latest version you must manually uninstall the
-`coherences.coherence.oracle.com` CRD from your Kubernetes cluster before installing the new Operator version.
+The Coherence Operator uses two images, the Operator itself and a utilities image that runs as an init-container in the Coherence cluster Pods.
 
-[source,bash]
-----
-kubectl delete crd coherences.coherence.oracle.com
-----
+* `{operator-image}` - The Operator image.
+* `{operator-utils-image}` - The Operator Utilities image.
 
-Note that the CRD name in the 3.1.0 CRD being uninstalled has a plural `coherences` for the first part of the name.
-====
+If no image is specified in the `Coherence` yaml, then the default Coherence image will also be used,
+
+* `{coherence-image}` - The default Coherence image.
+
+If using a private image registry then these images will all need to be pushed to that registry for the Operator to work.
 
 [#manifest]
 == Default Install with Kubectl
@@ -345,3 +342,87 @@ For example if the Operator is to be deployed to the `coherence-test` namespace:
 kubectl -n coherence-test create secret generic coherence-webhook-server-cert
 kubectl -n coherence-test create -f operator.yaml
 ----
+
+
+[#tanzu]
+== Install as a VMWare Tanzu Package (Carvel kapp-controller)
+
+If using https://tanzucommunityedition.io[VMWare Tanzu] the Coherence Operator can be installed as a package.
+Under the covers, Tanzu uses the https://carvel.dev[Carvel] tool set to deploy packages.
+The Carvel tools can be used outside Tanzu, so the Coherence Operator repo and package images could also be deployed
+using a standalone Carvel https://carvel.dev/kapp-controller/[kapp-controller].
+
+The Coherence Operator release published two images required to deploy the Operator as a Tanzu package.
+
+* `ghcr.io/oracle/coherence-operator-package:{operator-version}` - the Coherence Operator package
+* `ghcr.io/oracle/coherence-operator-repo:{operator-version}` - the Coherence Operator repository
+
+=== Install the Coherence Repository
+
+The first step to deploy the Coherence Operator package in Tanzu is to add the repository.
+This can be done using the Tanzu CLI.
+
+[source,bash]
+----
+tanzu package repository add coherence-repo \
+    --url ghcr.io/oracle/coherence-operator-repo:3.2.7 \
+    --namespace coherence \
+    --create-namespace
+----
+
+The installed repositories can be listed using the CLI:
+
+[source,bash]
+----
+tanzu package repository list --namespace coherence
+----
+
+which should display something like the following
+[source,bash]
+----
+NAME            REPOSITORY                              TAG  STATUS               DETAILS
+coherence-repo  ghcr.io/oracle/coherence-operator-repo  1h   Reconcile succeeded
+----
+
+The available packages in the Coherence repository can also be displayed using the CLI
+
+[source,bash]
+----
+tanzu package available list --namespace coherence
+----
+
+which should include the Operator package, `coherence-operator.oracle.github.com` something like the following
+[source,bash]
+----
+NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.2.7
+----
+
+=== Install the Coherence Operator Package
+
+Once the Coherence Operator repository has been installed, the `coherence-operator.oracle.github.com` package can be installed, which will install the Coherence Operator itself.
+
+[source,bash]
+----
+tanzu package install coherence \
+    --package-name coherence-operator.oracle.github.com \
+    --version 3.2.7 \
+    --namespace coherence
+----
+
+The Tanzu CLI will display the various steps it is going through to install the package and if all goes well, finally display `Added installed package 'coherence'`
+The packages installed in the `coherence` namespace can be displayed using the CLI.
+
+[source,bash]
+----
+tanzu package installed list --namespace coherence
+----
+
+which should display the Coherence Operator package.
+[source,bash]
+----
+NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
+coherence  coherence-operator.oracle.github.com  3.2.7            Reconcile succeeded
+----
+
+The Operator is now installed and ready to mage Coherence clusters.
