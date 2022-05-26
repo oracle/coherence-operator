@@ -23,6 +23,7 @@ nodes:
 - role: control-plane
 - role: worker
 - role: worker
+- role: worker
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]

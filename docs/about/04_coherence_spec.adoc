@@ -184,6 +184,8 @@ m| restartPolicy | Restart policy for all containers within the pod. One of Alwa
 m| runtimeClassName | RuntimeClassName refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.  If no RuntimeClass resource matches the named class, the pod will not be run. If unset or empty, the \"legacy\" RuntimeClass will be used, which is an implicit class with an empty definition that uses the default runtime handler. More info: https://git.k8s.io/enhancements/keps/sig-node/585-runtime-class m| &#42;string | false
 m| schedulerName | If specified, the pod will be dispatched by specified scheduler. If not specified, the pod will be dispatched by default scheduler. m| &#42;string | false
 m| topologySpreadConstraints | TopologySpreadConstraints describes how a group of pods ought to spread across topology domains. Scheduler will schedule pods in a way which abides by the constraints. All topologySpreadConstraints are ANDed. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#topologyspreadconstraint-v1-core[corev1.TopologySpreadConstraint] | false
+m| rackLabel | RackLabel is an optional Node label to use for the value of the Coherence member's rack name. The default labels to use are determined by the Operator. m| &#42;string | false
+m| siteLabel | SiteLabel is an optional Node label to use for the value of the Coherence member's site name The default labels to use are determined by the Operator. m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
