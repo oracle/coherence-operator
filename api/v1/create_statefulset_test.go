@@ -7,6 +7,7 @@
 package v1_test
 
 import (
+	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -55,6 +56,38 @@ func TestCreateStatefulSetWithReplicas(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithRackLabel(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		RackLabel: pointer.String("coherence.oracle.com/test"),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	url := fmt.Sprintf("%s?nodeLabel=%s", coh.OperatorRackURL, "coherence.oracle.com/test")
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohRack, Value: url})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithSiteLabel(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		SiteLabel: pointer.String("coherence.oracle.com/test"),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	url := fmt.Sprintf("%s?nodeLabel=%s", coh.OperatorSiteURL, "coherence.oracle.com/test")
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSite, Value: url})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

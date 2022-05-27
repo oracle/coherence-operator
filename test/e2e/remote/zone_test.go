@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -39,7 +39,26 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
 	}
 
-	assertLabel(t, "zone", operator.DefaultSiteLabels, fn, dfn)
+	assertLabel(t, "zone", "zone-test.yaml", operator.DefaultSiteLabels, fn, dfn)
+}
+
+// Verify that a Coherence resource deployed by the Operator has the correct site value
+// set from a specific Node label.
+func TestCustomSiteLabel(t *testing.T) {
+	// This test uses Management over REST to verify the site
+	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+
+	fn := func(member management.MemberData) string {
+		return member.SiteName
+	}
+
+	dfn := func(namespace string) string {
+		return fmt.Sprintf("custom-site-zone-test-sts.%s.svc.cluster.local", namespace)
+	}
+
+	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -58,15 +77,34 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", operator.DefaultRackLabels, fn, dfn)
+	assertLabel(t, "rack", "zone-test.yaml", operator.DefaultRackLabels, fn, dfn)
 }
 
-func assertLabel(t *testing.T, name string, labels []string, fn func(management.MemberData) string, dfn func(string) string) {
+// Verify that a Coherence resource deployed by the Operator has the correct rack value
+// set from a specific Node label.
+func TestCustomRackLabel(t *testing.T) {
+	// This test uses Management over REST to verify the rack
+	helper.SkipIfCoherenceVersionLessThan(t, 12, 2, 1, 4)
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+
+	fn := func(member management.MemberData) string {
+		return member.RackName
+	}
+
+	dfn := func(namespace string) string {
+		return "n/a"
+	}
+
+	assertLabel(t, "custom-rack", "zone-test-custom-rack.yaml", []string{"coherence.oracle.com/test"}, fn, dfn)
+}
+
+func assertLabel(t *testing.T, name string, fileName string, labels []string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
 	namespace := helper.GetTestNamespace()
 
 	// load the test Coherence resource from a yaml files
-	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "zone-test.yaml")
+	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, fileName)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deployment.SetName(name + "-zone-test")
@@ -126,7 +164,7 @@ func assertLabel(t *testing.T, name string, labels []string, fn func(management.
 			t.Logf("Node %s found zero non-blank labels, using default expected '%s'", node.Name, expected)
 		}
 
-		t.Logf("Expecting label value to be: %s", expected)
+		t.Logf("Expecting label value to be: '%s' and is '%s'", expected, actual)
 		g.Expect(actual).To(Equal(expected))
 	}
 }

@@ -67,6 +67,11 @@ const (
 	FlagWebhookCertDir        = "webhook-cert-dir"
 	FlagWebhookSecret         = "webhook-secret"
 	FlagWebhookService        = "webhook-service"
+
+	// OCI Node Labels
+
+	// LabelOciNodeFaultDomain is the OCI Node label fo the fault domain.
+	LabelOciNodeFaultDomain = "oci.oraclecloud.com/fault-domain"
 )
 
 var setupLog = ctrl.Log.WithName("setup")
@@ -74,8 +79,7 @@ var setupLog = ctrl.Log.WithName("setup")
 var (
 	operatorVersion   = "unknown"
 	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
-	DefaultRackLabels = []string{corev1.LabelTopologyRegion, corev1.LabelFailureDomainBetaRegion,
-		corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
+	DefaultRackLabels = []string{LabelOciNodeFaultDomain, corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 )
 
 func SetupFlags(cmd *cobra.Command) {

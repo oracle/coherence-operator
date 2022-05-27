@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -143,6 +143,10 @@ const (
 	OperatorConfigName = "coherence-operator-config"
 	// OperatorConfigKeyHost is the key used in the Operator configuration Secret
 	OperatorConfigKeyHost = "operatorhost"
+	// OperatorSiteURL is the default Operator site query URL
+	OperatorSiteURL = "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)"
+	// OperatorRackURL is the default Operator rack query URL
+	OperatorRackURL = "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)"
 
 	// DefaultReadinessPath is the default readiness endpoint path
 	DefaultReadinessPath = "/ready"
