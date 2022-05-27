@@ -44,22 +44,31 @@ jobs:
         include:
         - compatibilityVersion: 3.2.6
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.5
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.4
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.3
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.2.2
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.2.1
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.1.5
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.1.4
           compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.0.2
           compatibilitySelector: component=coherence-operator
+          k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
 
     steps:
     - uses: actions/checkout@v2
@@ -122,6 +131,7 @@ jobs:
 #     Start a KinD K8s cluster with single worker node
       shell: bash
       run: |
+        export KIND_IMAGE=${{ matrix.k8s }}
         make kind
         kubectl version
         kubectl get nodes

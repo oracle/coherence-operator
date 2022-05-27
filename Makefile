@@ -1486,7 +1486,10 @@ kind-calico: export KIND_CONFIG=./hack/kind-config-calico.yaml
 kind-calico:   ## Run a KinD cluster with Calico
 	./hack/kind.sh --image $(KIND_IMAGE)
 	./hack/kind-label-node.sh
-	./hack/get-calico.sh
+	curl -sL https://docs.projectcalico.org/manifests/calico.yaml | kubectl apply -f -
+	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=calico-node pod
+	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=kube-dns pod
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop and delete the Kind cluster
