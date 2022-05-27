@@ -349,7 +349,7 @@ type CoherenceResourceSpec struct {
 	// If specified, the pod will be dispatched by specified scheduler.
 	// If not specified, the pod will be dispatched by default scheduler.
 	// +optional
-	SchedulerName *string `json:"schedulerName,omitempty" protobuf:"bytes,19,opt,name=schedulerName"`
+	SchedulerName *string `json:"schedulerName,omitempty"`
 	// TopologySpreadConstraints describes how a group of pods ought to spread across topology
 	// domains. Scheduler will schedule pods in a way which abides by the constraints.
 	// All topologySpreadConstraints are ANDed.
@@ -360,6 +360,14 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=topologyKey
 	// +listMapKey=whenUnsatisfiable
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" patchStrategy:"merge" patchMergeKey:"topologyKey"`
+	// RackLabel is an optional Node label to use for the value of the Coherence member's rack name.
+	// The default labels to use are determined by the Operator.
+	// +optional
+	RackLabel *string `json:"rackLabel,omitempty"`
+	// SiteLabel is an optional Node label to use for the value of the Coherence member's site name
+	// The default labels to use are determined by the Operator.
+	// +optional
+	SiteLabel *string `json:"siteLabel,omitempty"`
 }
 
 // Action is an action to execute when the StatefulSet becomes ready.
@@ -981,6 +989,20 @@ func (in *CoherenceResourceSpec) AddEnvVarIfAbsent(envVar corev1.EnvVar) {
 
 // CreateDefaultEnv creates the default environment variables for the Coherence container.
 func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
+	var siteURL string
+	if in.SiteLabel == nil {
+		siteURL = OperatorSiteURL
+	} else {
+		siteURL = fmt.Sprintf("%s?nodeLabel=%s", OperatorSiteURL, *in.SiteLabel)
+	}
+
+	var rackURL string
+	if in.RackLabel == nil {
+		rackURL = OperatorRackURL
+	} else {
+		rackURL = fmt.Sprintf("%s?nodeLabel=%s", OperatorRackURL, *in.RackLabel)
+	}
+
 	env := append(in.CreateCommonEnv(deployment),
 		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.Spec.Coherence.GetWKA(deployment)},
 		corev1.EnvVar{
@@ -992,8 +1014,8 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 				},
 			},
 		},
-		corev1.EnvVar{Name: EnvVarCohSite, Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)"},
-		corev1.EnvVar{Name: EnvVarCohRack, Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)"},
+		corev1.EnvVar{Name: EnvVarCohSite, Value: siteURL},
+		corev1.EnvVar{Name: EnvVarCohRack, Value: rackURL},
 		corev1.EnvVar{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 		corev1.EnvVar{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
@@ -1118,27 +1140,38 @@ func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment *Coherence) *corev
 
 // CreateDefaultPodAffinity creates the default Pod Affinity to use in a deployment's StatefulSet.
 func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment *Coherence) *corev1.Affinity {
+	selector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      LabelCoherenceCluster,
+				Operator: metav1.LabelSelectorOpIn,
+				Values:   []string{deployment.GetCoherenceClusterName()},
+			},
+			{
+				Key:      LabelCoherenceDeployment,
+				Operator: metav1.LabelSelectorOpIn,
+				Values:   []string{deployment.Name},
+			},
+		},
+	}
+
+	// prefer to schedule Pods in different zones, and additionally
+	// in OCI (but lower weight) on different fault domains
 	return &corev1.Affinity{
 		PodAntiAffinity: &corev1.PodAntiAffinity{
 			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
 				{
+					Weight: 50,
+					PodAffinityTerm: corev1.PodAffinityTerm{
+						TopologyKey:   AffinityTopologyKey,
+						LabelSelector: &selector,
+					},
+				},
+				{
 					Weight: 1,
 					PodAffinityTerm: corev1.PodAffinityTerm{
-						TopologyKey: AffinityTopologyKey,
-						LabelSelector: &metav1.LabelSelector{
-							MatchExpressions: []metav1.LabelSelectorRequirement{
-								{
-									Key:      LabelCoherenceCluster,
-									Operator: metav1.LabelSelectorOpIn,
-									Values:   []string{deployment.GetCoherenceClusterName()},
-								},
-								{
-									Key:      LabelCoherenceDeployment,
-									Operator: metav1.LabelSelectorOpIn,
-									Values:   []string{deployment.Name},
-								},
-							},
-						},
+						TopologyKey:   operator.LabelOciNodeFaultDomain,
+						LabelSelector: &selector,
 					},
 				},
 			},

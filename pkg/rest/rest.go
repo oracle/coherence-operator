@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -101,7 +101,12 @@ func (s server) Running() <-chan struct{} {
 }
 
 // Start starts this server
-func (s server) Start(ctx context.Context) error {
+func (s server) Start(context.Context) error {
+	if s.listener != nil {
+		log.Info("The REST server is already started", "listenAddress", s.listener.Addr().String())
+		return nil
+	}
+
 	mux := http.NewServeMux()
 	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
 	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
@@ -136,7 +141,6 @@ func (s server) GetPort() int32 {
 func (s server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
 	s.httpServer.SetKeepAlivesEnabled(false)
 	return s.httpServer.Shutdown(ctx)
 }
@@ -207,11 +211,18 @@ func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.
 
 	if err == nil {
 		var ok bool
-		for _, label := range labels {
-			if value, ok = node.Labels[label]; ok && value != "" {
-				labelUsed = label
-				break
+
+		queryLabel := r.URL.Query().Get("nodeLabel")
+		if queryLabel == "" {
+			for _, label := range labels {
+				if value, ok = node.Labels[label]; ok && value != "" {
+					labelUsed = label
+					break
+				}
 			}
+		} else {
+			value = node.Labels[queryLabel]
+			labelUsed = queryLabel
 		}
 	} else {
 		if apierrors.IsNotFound(err) {
