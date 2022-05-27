@@ -28,7 +28,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-#   Checkout the source, we need a depth of zero to fetch all of the history otherwise
+#   Checkout the source, we need a depth of zero to fetch all the history otherwise
 #   the copyright check cannot work out the date of the files from Git.
     steps:
     - uses: actions/checkout@v2
@@ -87,13 +87,7 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-    - name: Code Review
-      shell: bash
-      run: |
-        make code-review
-
     - name: Start KinD Cluster
-#     Start a KinD K8s cluster with single worker node
       shell: bash
       run: |
         make kind
@@ -103,64 +97,12 @@ jobs:
         docker pull gcr.io/distroless/java11
         docker pull gcr.io/distroless/java17
 
-    - name: Build
-      shell: bash
-      run: make all
-
-    - name: Load Images to KinD
-#     Load the images just built to the KinD cluster
+    - name: E2E Prometheus Tests
       shell: bash
       run: |
+        make all
         make kind-load
-
-    - name: Unit Tests
-      shell: bash
-      run: make test-all
-
-    - name: E2E Local Tests
-      shell: bash
-      run: make e2e-local-test
-
-    - name: E2E Remote Tests
-      shell: bash
-      run: make e2e-test
-
-    - name: Helm Chart Tests
-      shell: bash
-      run: |
-        make e2e-helm-test
-
-    - name: Deploy Snapshots
-      if: ${{ github.ref == 'refs/heads/master' && success() }}
-      env:
-        MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
-        MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      shell: bash
-      run: |
-        sh ./hack/maven-gpg.sh
-        make mvn-deploy GPG_PASSPHRASE=${GPG_PASSPHRASE}
-
-    - name: Upload Manifests
-      uses: actions/upload-artifact@v1
-      if: success()
-      with:
-        name: coherence-operator-manifests.tar.gz
-        path: build/_output/coherence-operator-manifests.tar.gz
-
-    - name: Upload Yaml
-      uses: actions/upload-artifact@v1
-      if: success()
-      with:
-        name: coherence-operator.yaml
-        path: build/_output/coherence-operator.yaml
-
-    - name: Upload CRD
-      uses: actions/upload-artifact@v1
-      if: success()
-      with:
-        name: coherence.oracle.com_coherence.yaml
-        path: build/_output/manifests/crd/coherence.oracle.com_coherence.yaml
+        make e2e-prometheus-test
 
     - uses: actions/upload-artifact@v1
       if: failure()
