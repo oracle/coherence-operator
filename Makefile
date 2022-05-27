@@ -1244,17 +1244,22 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 .PHONY: deploy-and-wait
 deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Operator Pod to be ready
 
+OPERATOR_HA ?= false
+
 .PHONY: deploy
 deploy: prepare-deploy create-namespace kustomize   ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+endif
+ifeq (true,$(OPERATOR_HA))
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path ha-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 	sleep 5
 
 .PHONY: just-deploy
-just-deploy:
+just-deploy: ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
@@ -1362,6 +1367,8 @@ ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	kubectl get ns $(OPERATOR_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE)
 	kubectl get ns $(OPERATOR_NAMESPACE_CLIENT) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE_CLIENT)
 endif
+	kubectl label namespace $(OPERATOR_NAMESPACE) coherence.oracle.com/test=true --overwrite
+	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) coherence.oracle.com/test=true --overwrite
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1452,17 +1459,34 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER ?= operator
-KIND_IMAGE   ?= "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
+KIND_IMAGE   ?= "kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind:   ## Run a default KinD cluster
+	./hack/kind.sh --wait 10m --image $(KIND_IMAGE)
+	./hack/kind-label-node.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Start a Kind cluster
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-single-worker
+kind-single-worker: export KIND_CONFIG=./hack/kind-config-single.yaml
+kind-single-worker:   ## Run a KinD cluster with a single worker node
+	./hack/kind.sh --wait 10m --image $(KIND_IMAGE)
+	./hack/kind-label-node.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Start a Kind cluster with Calico
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-calico
+kind-calico: export KIND_CONFIG=./hack/kind-config-calico.yaml
+kind-calico:   ## Run a KinD cluster with Calico
 	./hack/kind.sh --image $(KIND_IMAGE)
 	./hack/kind-label-node.sh
-	docker pull $(COHERENCE_IMAGE)
-	kind load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
+	./hack/get-calico.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop and delete the Kind cluster
@@ -1475,7 +1499,7 @@ kind-stop:   ## Stop and delete the KinD cluster named "$(KIND_CLUSTER)"
 # Load images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load
-kind-load: kind-load-operator  ## Load all images into the KinD cluster
+kind-load: kind-load-operator kind-load-coherence  ## Load all images into the KinD cluster
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_CLIENT) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON) || true
@@ -1485,6 +1509,11 @@ kind-load: kind-load-operator  ## Load all images into the KinD cluster
 	kind load docker-image --name $(KIND_CLUSTER) gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
 	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
 	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:7.6.2 || true
+
+.PHONY: kind-load-coherence
+kind-load-coherence:   ## Load the Coherence image into the KinD cluster
+	docker pull $(COHERENCE_IMAGE)
+	kind load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
 
 .PHONY: kind-load-operator
 kind-load-operator:   ## Load the Operator images into the KinD cluster

@@ -90,7 +90,7 @@ jobs:
     - name: Start KinD Cluster
       shell: bash
       run: |
-        make kind
+        make kind-single-worker
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
