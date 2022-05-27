@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------
 # Coherence Operator GitHub Actions CI build.
 # ---------------------------------------------------------------------------
-name: Operator CI
+name: ElasticSearch Tests
 
 on:
   workflow_dispatch:
