@@ -58,7 +58,7 @@ spec:
   - name: Coherence Operator
     url: https://oracle.github.io/coherence-operator/docs/latest
   maturity: alpha
-  minKubeVersion: "1.16"
+  minKubeVersion: "1.18"
   maintainers:
     - name: Jonathan Knight
       email: jonathan.knight@oracle.com

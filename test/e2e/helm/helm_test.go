@@ -89,7 +89,32 @@ func TestBasicHelmInstall(t *testing.T) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstall(t, "basic", cmd, g, ns)
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, ns, AssertThreeReplicas)
+}
+
+func TestSetReplicas(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
+
+	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
+		Cleanup(ns, "operator")
+	})
+
+	chart, err := helper.FindOperatorHelmChartDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmd := exec.Command("helm", "install",
+		"--set", "replicas=1",
+		"--set", "image="+helper.GetOperatorImage(),
+		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
+		"--namespace", ns, "--wait", "operator", chart)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, ns, AssertSingleReplica)
 }
 
 func TestHelmInstallWithServiceAccountName(t *testing.T) {
@@ -182,6 +207,32 @@ func AssertOnlyNodeClusterRoles() error {
 	return AssertRBAC(true)
 }
 
+func AssertSingleReplica() error {
+	ns := helper.GetTestNamespace()
+	pods, err := helper.ListOperatorPods(testContext, ns)
+	if err != nil {
+		return err
+	}
+	count := len(pods)
+	if count != 1 {
+		return fmt.Errorf("expected a single Coherence Operator Pod but found %d", count)
+	}
+	return nil
+}
+
+func AssertThreeReplicas() error {
+	ns := helper.GetTestNamespace()
+	pods, err := helper.ListOperatorPods(testContext, ns)
+	if err != nil {
+		return err
+	}
+	count := len(pods)
+	if count != 3 {
+		return fmt.Errorf("expected three Coherence Operator Pods but found %d", count)
+	}
+	return nil
+}
+
 func AssertRBAC(allowNode bool) error {
 	rbacClient := testContext.KubeClient.RbacV1()
 
@@ -244,7 +295,7 @@ func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *Gom
 	t.Logf("Asserting Helm install. Ensure Operator Pod is ready")
 	pods, err := helper.ListOperatorPods(testContext, ns)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(pods)).To(Equal(1))
+	g.Expect(len(pods)).NotTo(Equal(0))
 
 	pod := pods[0]
 	err = helper.WaitForPodReady(testContext.KubeClient, pod.Namespace, pod.Name, 10*time.Second, 5*time.Minute)
