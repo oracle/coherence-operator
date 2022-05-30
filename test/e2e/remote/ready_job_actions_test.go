@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,17 +23,17 @@ func TestExecuteJobActionWhenReady(t *testing.T) {
 	data, ok := deployment["action-test"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'action-test' deployment")
 
-	_, err := helper.WaitForDeploymentReady(testContext, data.Namespace, data.Name, time.Second * 5, time.Minute * 5)
+	_, err := helper.WaitForDeploymentReady(testContext, data.Namespace, data.Name, time.Second*5, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// find action job
-	jobs, err := helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 1, time.Second * 5, time.Minute * 2)
+	jobs, err := helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 1, time.Second*5, time.Minute*2)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jobs).To(HaveLen(1))
 	firstJob := jobs[0]
 
 	// find action pod
-	pods, err := helper.WaitForPodsWithLabel(testContext, data.Namespace, "job-name=" + jobs[0].Name, 1, time.Second * 5, time.Minute * 2)
+	pods, err := helper.WaitForPodsWithLabel(testContext, data.Namespace, "job-name="+jobs[0].Name, 1, time.Second*5, time.Minute*2)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(pods).To(HaveLen(1))
 
@@ -43,7 +43,7 @@ func TestExecuteJobActionWhenReady(t *testing.T) {
 	assertDeploymentEventuallyInDesiredState(t, data, 3)
 
 	// no new action jobs
-	jobs, err = helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 2, time.Second * 5, time.Minute * 1)
+	jobs, err = helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 2, time.Second*5, time.Minute*1)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(jobs).To(HaveLen(1))
 	g.Expect(jobs[0].Name).Should(Equal(firstJob.Name))
@@ -57,9 +57,8 @@ func TestExecuteJobActionWhenReady(t *testing.T) {
 	err = helper.WaitForDeletion(testContext, data.Namespace, data.Name, &sts, time.Second*5, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
-
 	// no new action jobs
-	jobs, err = helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 2, time.Second * 5, time.Minute * 2)
+	jobs, err = helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 2, time.Second*5, time.Minute*2)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(jobs).To(HaveLen(1)) // COMPLETED one
 	g.Expect(jobs[0].Name).Should(Equal(firstJob.Name))
@@ -70,9 +69,10 @@ func TestExecuteJobActionWhenReady(t *testing.T) {
 	assertDeploymentEventuallyInDesiredState(t, data, 2)
 
 	// find action jobs
-	jobs, err = helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 2, time.Second * 5, time.Minute * 2)
+	jobs, err = helper.WaitForJobsWithLabel(testContext, data.Namespace, "test=actions", 2, time.Second*5, time.Minute*2)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(jobs).To(HaveLen(2))
+	count := len(jobs)
+	g.Expect(count).To(Equal(2))
 	g.Expect([]string{jobs[0].Name, jobs[1].Name}).Should(ContainElement(firstJob.Name))
 	var secondJob batchv1.Job
 	if jobs[0].Name == firstJob.Name {
@@ -82,7 +82,7 @@ func TestExecuteJobActionWhenReady(t *testing.T) {
 	}
 
 	// find action pod
-	pods, err = helper.WaitForPodsWithLabel(testContext, data.Namespace, "job-name=" + secondJob.Name, 1, time.Second * 5, time.Minute * 2)
+	pods, err = helper.WaitForPodsWithLabel(testContext, data.Namespace, "job-name="+secondJob.Name, 1, time.Second*5, time.Minute*2)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(pods).To(HaveLen(1))
 }
