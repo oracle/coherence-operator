@@ -1,4 +1,4 @@
-# Copyright 2020, 2021 Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2022, Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -98,6 +98,28 @@ readinessProbe:
   # failureThreshold is the minimum consecutive failures for the probe to be considered failed after having succeeded.
   # Defaults to 3. Minimum value is 1.
   failureThreshold: 3
+
+# resources will configure the Coherence Operator container's resource limits.
+# The resources can be specified in a values file, the same as they would be
+# for a container in a k8s Pod spec, for example:
+#
+#    resources:
+#      requests:
+#        memory: "64Mi"
+#        cpu: "250m"
+#      limits:
+#        memory: "128Mi"
+#        cpu: "500m"
+#
+# Or, alternatively they can be specified individually using the Helm install --set option, for example
+#
+# helm install --set resources.requests.memory="64Mi" \
+#     -- set resources.requests.cpu="250m"
+#     -- set resources.limits.memory="128Mi"
+#     -- set resources.limits.cpu="250m"
+#
+# ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+resources:
 
 # clusterRoles controls whether the Helm chart will create RBAC ClusterRole and bindings for the Operator
 # These are required if the Operator will watch multiple namespaces.

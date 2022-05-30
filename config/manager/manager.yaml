@@ -76,6 +76,13 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
           failureThreshold: 3
+        resources:
+          limits:
+            memory: "64Mi"
+            cpu: "250m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
       volumes:
       - name: cert
         secret:

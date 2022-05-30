@@ -16,6 +16,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"os/exec"
@@ -115,6 +116,83 @@ func TestSetReplicas(t *testing.T) {
 	cmd.Stderr = os.Stderr
 
 	AssertHelmInstallWithSubTest(t, "basic", cmd, g, ns, AssertSingleReplica)
+}
+
+func TestSetReResources(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ns := helper.GetTestNamespace()
+
+	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
+		Cleanup(ns, "operator")
+	})
+
+	chart, err := helper.FindOperatorHelmChartDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmd := exec.Command("helm", "install",
+		"--set", "replicas=1",
+		"--set", "resources.requests.memory=64Mi",
+		"--set", "resources.requests.cpu=250m",
+		"--set", "resources.limits.memory=128Mi",
+		"--set", "resources.limits.cpu=512m",
+		"--set", "image="+helper.GetOperatorImage(),
+		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
+		"--namespace", ns, "--wait", "operator", chart)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, ns, AssertResources)
+}
+
+func AssertResources() error {
+	ns := helper.GetTestNamespace()
+	pods, err := helper.ListOperatorPods(testContext, ns)
+	if err != nil {
+		return err
+	}
+	if len(pods) == 0 {
+		return fmt.Errorf("expected at least one Coherence Operator Pod but found zero")
+	}
+	resources := pods[0].Spec.Containers[0].Resources
+
+	var qty *resource.Quantity
+
+	qty = resources.Limits.Name("cpu", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a cpu requests quantity")
+	}
+	if qty.String() != "250m" {
+		return fmt.Errorf("expected a cpu requests of 250m")
+	}
+
+	qty = resources.Limits.Name("memory", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a memory requests quantity")
+	}
+	if qty.String() != "64Mi" {
+		return fmt.Errorf("expected a memory requests of 64Mi")
+	}
+
+	qty = resources.Limits.Name("cpu", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a cpu limits quantity")
+	}
+	if qty.String() != "512m" {
+		return fmt.Errorf("expected a cpu limit of 512m")
+	}
+
+	qty = resources.Limits.Name("memory", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a memory limits quantity")
+	}
+	if qty.String() != "128Mi" {
+		return fmt.Errorf("expected a memory limit of 128Mi")
+	}
+
+	return nil
 }
 
 func TestHelmInstallWithServiceAccountName(t *testing.T) {
