@@ -1477,7 +1477,6 @@ kind:   ## Run a default KinD cluster
 .PHONY: kind-single-worker
 kind-single-worker:   ## Run a KinD cluster with a single worker node
 	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-single.yaml --image $(KIND_IMAGE)
-	$(SCRIPTS_DIR)/kind.sh --wait 10m --image $(KIND_IMAGE)
 	$(SCRIPTS_DIR)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
