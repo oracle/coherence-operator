@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -78,17 +78,42 @@ func TestCompatibility(t *testing.T) {
 }
 
 func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) {
-	cmd := exec.Command("helm", "install", "--version", version,
+	chartDir, err := helper.FindOperatorTestHelmChartDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	prevDir := chartDir + string(os.PathSeparator) + version
+
+	err = os.RemoveAll(prevDir)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = os.MkdirAll(prevDir, os.ModePerm)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmd := exec.Command("helm", "fetch", "--version", version,
+		"--untar", "--untardir", prevDir, "coherence/coherence-operator")
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	valuesFile := prevDir + string(os.PathSeparator) + "coherence-operator" + string(os.PathSeparator) + "values.yaml"
+
+	values := helper.OperatorValues{}
+	err = values.LoadFromYaml(valuesFile)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmd = exec.Command("helm", "install", "--version", version,
 		"--namespace", ns, name, "coherence/coherence-operator")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
 	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(pods)).To(Equal(1))
+	g.Expect(len(pods)).To(Equal(values.GetReplicas(1)))
 	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
@@ -111,7 +136,7 @@ func UpgradeToCurrentVersion(g *GomegaWithT, ns, name string) {
 
 	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(pods)).To(Equal(1))
+	g.Expect(len(pods)).To(Equal(3))
 	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }

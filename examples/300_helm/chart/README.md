@@ -15,7 +15,7 @@ This chart manages a `Coherence` resource on a
 package manager.
 
 ## Prerequisites
-* Kubernetes 1.16 or above
+* Kubernetes 1.18 or above
 * Helm 3 or above
 
 ## Installing the Chart

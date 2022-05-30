@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strconv"
 	"strings"
 	"time"
@@ -90,6 +91,14 @@ type server struct {
 	httpServer *http.Server
 }
 
+// blank assignment to verify that CoherenceReconciler implements manager.LeaderElectionRunnable
+// There will be a compile-time error here if this breaks
+var _ manager.LeaderElectionRunnable = &server{}
+
+// blank assignment to verify that CoherenceReconciler implements manager.Runnable
+// There will be a compile-time error here if this breaks
+var _ manager.Runnable = &server{}
+
 // SetupWithManager configures this server from the specified Manager.
 func (s server) SetupWithManager(mgr ctrl.Manager) error {
 	s.mgr = mgr
@@ -100,7 +109,12 @@ func (s server) Running() <-chan struct{} {
 	return s.running
 }
 
-// Start starts this server
+func (s server) NeedLeaderElection() bool {
+	// The REST server does not require leadership
+	return false
+}
+
+// Start starts this REST server
 func (s server) Start(context.Context) error {
 	if s.listener != nil {
 		log.Info("The REST server is already started", "listenAddress", s.listener.Addr().String())

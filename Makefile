@@ -236,6 +236,7 @@ override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
 override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar.gz
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
+override SCRIPTS_DIR         := $(CURRDIR)/hack
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 override TANZU_DIR           := $(BUILD_OUTPUT)/tanzu
 override TANZU_PACKAGE_DIR   := $(BUILD_OUTPUT)/tanzu/package
@@ -521,7 +522,7 @@ $(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TA
 .PHONY: ensure-sdk
 ensure-sdk:
 	@echo "Ensuring Operator SDK is present at version $(OPERATOR_SDK_VERSION)"
-	./hack/ensure-sdk.sh $(OPERATOR_SDK_VERSION) $(OPERATOR_SDK_HOME)
+	$(SCRIPTS_DIR)/ensure-sdk.sh $(OPERATOR_SDK_VERSION) $(OPERATOR_SDK_HOME)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal make step that builds the Operator runner artifacts utility
@@ -647,7 +648,7 @@ docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
 # ----------------------------------------------------------------------------------------------------------------------
 $(BUILD_OUTPUT)/certs:
 	@echo "Generating test keys and certs"
-	./hack/keys.sh
+	$(SCRIPTS_DIR)/keys.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the code review targets.
@@ -779,7 +780,7 @@ run-debug-clean: reset-namespace run-debug ## run the Operator locally with Delv
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: stop
 stop: ## kill any locally running operator process
-	./hack/kill-local.sh
+	$(SCRIPTS_DIR)/kill-local.sh
 
 # ======================================================================================================================
 # Targets related to Operator Lifecycle Manager and the Operator SDK
@@ -1244,15 +1245,16 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 .PHONY: deploy-and-wait
 deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and wait for the Operator Pod to be ready
 
-OPERATOR_HA ?= false
+# The Operator is deployed HA by default
+OPERATOR_HA ?= true
 
 .PHONY: deploy
 deploy: prepare-deploy create-namespace kustomize   ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
-ifeq (true,$(OPERATOR_HA))
-	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path ha-patch.yaml
+ifeq (false,$(OPERATOR_HA))
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
@@ -1466,26 +1468,25 @@ KIND_IMAGE   ?= "kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind:   ## Run a default KinD cluster
-	./hack/kind.sh --wait 10m --image $(KIND_IMAGE)
-	./hack/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config.yaml --image $(KIND_IMAGE)
+	$(SCRIPTS_DIR)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-single-worker
-kind-single-worker: export KIND_CONFIG=./hack/kind-config-single.yaml
 kind-single-worker:   ## Run a KinD cluster with a single worker node
-	./hack/kind.sh --wait 10m --image $(KIND_IMAGE)
-	./hack/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-single.yaml --image $(KIND_IMAGE)
+	$(SCRIPTS_DIR)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster with Calico
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-calico
-kind-calico: export KIND_CONFIG=./hack/kind-config-calico.yaml
+kind-calico: export KIND_CONFIG=$(SCRIPTS_DIR)/kind-config-calico.yaml
 kind-calico:   ## Run a KinD cluster with Calico
-	./hack/kind.sh --image $(KIND_IMAGE)
-	./hack/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-calico.yaml --image $(KIND_IMAGE)
+	$(SCRIPTS_DIR)/kind-label-node.sh
 	curl -sL https://docs.projectcalico.org/manifests/calico.yaml | kubectl apply -f -
 	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=calico-node pod
@@ -1568,7 +1569,7 @@ uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
 TANZU = $(shell which tanzu)
 .PHONY: get-tanzu
 get-tanzu: $(BUILD_PROPS)
-	./hack/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
+	$(SCRIPTS_DIR)/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
 
 .PHONY: tanzu-create-cluster
 tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
@@ -2083,7 +2084,7 @@ uninstall-istio: get-istio ## Uninstall Istio from k8s
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
 get-istio: $(BUILD_PROPS)
-	./hack/get-istio-latest.sh "$(ISTIO_VERSION)" "$(TOOLS_DIRECTORY)"
+	$(SCRIPTS_DIR)/get-istio-latest.sh "$(ISTIO_VERSION)" "$(TOOLS_DIRECTORY)"
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	@echo "Istio installed at $(ISTIO_HOME)"
 

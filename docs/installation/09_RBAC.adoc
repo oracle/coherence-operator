@@ -42,10 +42,9 @@ You MUST ensure that the CRD manifests match the version of the Operator being i
 
 * Download the manifests and unpack them.
 
-* In the directory that the .tar.gz file was unpacked to will be two versions of the CRDs.
-The directory `crd/` contains the `apiextensions.k8s.io/v1` version, which must be installed into Kubernetes cluster from k8s v1.16.x and above. The `crd-v1beta1/` directory contains the `apiextensions.k8s.io/v1beta1` version, which must be installed into Kubernetes cluster of k8s v1.15.x and below.
+* In the directory that the .tar.gz file the was unpacked the `crd/` directory will the Coherence CRD.
+The CRD can be installed with kubectl
 
-The required CRD can be installed with kubectl
 [source,bash]
 ----
 kubectl create -f crd/coherence.oracle.com_coherence.yaml

@@ -14,7 +14,7 @@ Heap dumps can be very useful when debugging but generating and downloading a he
 
 == Ephemeral Containers
 
-Ephemeral containers were introduced in k8s v1.16 and at the time of writing are still in alpha.
+Ephemeral containers were introduced in Kubernetes v1.16 and moved to beta in v1.23.
 Ephemeral containers is a feature gate that must be enabled for your cluster.
 If you have the `EphemeralContainers` feature gate enabled, then obtaining a heap dump is not so difficult.
 

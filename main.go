@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -41,6 +41,11 @@ const (
 	flagMetricsAddress = "metrics-addr"
 	flagHealthAddress  = "health-addr"
 	flagLeaderElection = "enable-leader-election"
+
+	// lockName is the name of the lock used for leadership election.
+	// This value should not be changed, otherwise a rolling upgrade of the Operator
+	// would have two leaders.
+	lockName = "ca804aa8.oracle.com"
 )
 
 var (
@@ -116,7 +121,7 @@ func execute() {
 		MetricsBindAddress:     viper.GetString(flagMetricsAddress),
 		Port:                   9443,
 		LeaderElection:         viper.GetBool(flagLeaderElection),
-		LeaderElectionID:       "ca804aa8.oracle.com",
+		LeaderElectionID:       lockName,
 	}
 
 	// Determine the Operator scope...
@@ -147,7 +152,8 @@ func execute() {
 		os.Exit(1)
 	}
 
-	initialiseOperator(context.TODO(), v, cl)
+	ctx := context.TODO()
+	initialiseOperator(ctx, v, cl)
 
 	// Set up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{

@@ -21,6 +21,10 @@ watchNamespaces: ""
 # If not set the pull policy is "IfNotPresent".
 imagePullPolicy:
 
+# replicas is the number of Operator replicas to run.
+# The operator runs HA by default, with one of the replicas assuming leadership.
+replicas: 3
+
 # imagePullSecrets provides support pulling images from private registries, the value references
 #   one or more secrets to be used when pulling images. Secrets must be manually created in the
 #   target namespace.
