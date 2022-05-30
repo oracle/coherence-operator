@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,6 +16,7 @@ import (
 )
 
 type OperatorValues struct {
+	Replicas int `json:"replicas,omitempty"`
 	// The name to use for the service account to use when RBAC is enabled
 	// The role bindings must already have been created as this chart does not create them it just
 	// sets the serviceAccountName value in the Pod spec.
@@ -62,7 +63,16 @@ type OperatorSSL struct {
 	CaFile   *string `json:"caFile,omitempty"`
 }
 
-// Set whether to generate the ClusterRole yaml.
+// GetReplicas retruns the replica count in the values file,
+// or the dflt value if no value is set in the values file.
+func (v *OperatorValues) GetReplicas(dflt int) int {
+	if v.Replicas == 0 {
+		return dflt
+	}
+	return v.Replicas
+}
+
+// SetEnableClusterRole sets whether to generate the ClusterRole yaml.
 func (v *OperatorValues) SetEnableClusterRole(enabled bool) {
 	if v != nil {
 		v.EnableClusterRole = &enabled
@@ -96,7 +106,7 @@ func (v *OperatorValues) ToYaml() ([]byte, error) {
 	return yaml.Marshal(v)
 }
 
-// ToYaml marshals this OperatorValues to yaml
+// ToMap marshals this OperatorValues to yaml
 func (v *OperatorValues) ToMap(m *map[string]interface{}) error {
 	if v == nil {
 		return errors.New("attempted to convert nil OperatorValues to a map")

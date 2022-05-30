@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       control-plane: coherence
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -82,3 +82,24 @@ spec:
           defaultMode: 420
           secretName: coherence-webhook-server-cert
           optional: true
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: "topology.kubernetes.io/zone"
+                labelSelector:
+                  matchLabels:
+                    control-plane: coherence
+                    app.kubernetes.io/name: coherence-operator
+                    app.kubernetes.io/instance: coherence-operator-manager
+                    app.kubernetes.io/version: "3.2.7"
+              weight: 50
+            - podAffinityTerm:
+                topologyKey: "oci.oraclecloud.com/fault-domain"
+                labelSelector:
+                  matchLabels:
+                    control-plane: coherence
+                    app.kubernetes.io/name: coherence-operator
+                    app.kubernetes.io/instance: coherence-operator-manager
+                    app.kubernetes.io/version: "3.2.7"
+              weight: 1

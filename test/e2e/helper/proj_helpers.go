@@ -57,6 +57,7 @@ const (
 	chartDir      = outDir + string(os.PathSeparator) + "helm-charts"
 	operatorChart = chartDir + string(os.PathSeparator) + "coherence-operator"
 	testLogs      = outDir + string(os.PathSeparator) + "test-logs"
+	testCharts    = outDir + string(os.PathSeparator) + "test-charts"
 	certs         = outDir + string(os.PathSeparator) + "certs"
 )
 
@@ -171,6 +172,17 @@ func FindOperatorHelmChartDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + operatorChart, nil
+}
+
+// FindOperatorTestHelmChartDir returns the Operator test Helm chart directory
+// where previous version charts are downloaded to.
+func FindOperatorTestHelmChartDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+
+	return pd + string(os.PathSeparator) + testCharts, nil
 }
 
 // FindTestLogsDir returns the test log directory.

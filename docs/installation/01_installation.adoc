@@ -17,20 +17,33 @@ easily be installed into a Kubernetes cluster.
 The prerequisites apply to all installation methods.
 
 * Access to Oracle Coherence Operator images.
-* Access to a Kubernetes v1.16.0+ cluster. The Operator test pipeline is run using Kubernetes versions v1.16 upto v1.23
+* Access to a Kubernetes v1.18.0+ cluster. The Operator test pipeline is run using Kubernetes versions v1.18 upto v1.24
 * A Coherence application image using Coherence version 12.2.1.3 or later. Note that some functionality (e.g. metrics) is only
 available in Coherence 12.2.1.4 and later.
 
 NOTE: ARM Support: As of version 3.2.0, the Coherence Operator is build as a multi-architecture image that supports running in Kubernetes on both Linux/amd64 and Linux/arm64. The prerequisite is that the Coherence application image used has been built to support ARM.
 
-There are a few ways to install the Coherence Operator documented below:
+There are a number of ways to install the Coherence Operator documented below:
 
 * <<manifest,Simple installation using Kubectl>>
 * <<helm,Install the Helm chart>>
 * <<kubectl,Kubectl with Kustomize>>
 * <<tanzu,VMWare Tanzu Package (kapp-controller)>>
 
-NOTE: Installing the Coherence Operator using the methods above will create a number of `ClusterRole` RBAC resources.
+=== High Availability
+
+The Coherence Operator runs in HA mode by default. The `Deployment` created by the installation will have a replica count of 3.
+In reduced capacity Kubernetes clusters, for example, local laptop development and test, the replica count can be reduced. It is recommended to leave the default of 3 for production environments.
+Instructions on how to change the replica count for the different install methods are included below.
+
+The Coherence Operator runs a REST server that the Coherence cluster members will query to discover the site and rack names that should be used by Coherence. If the Coherence Operator is not running when a Coherence Pod starts, then the Coherence member in that Pod will be unable to properly configure its site and rack names, possibly leading to data distribution that is not safely distributed over sites. In production, and in Kubernetes clusters that are spread over multiple availability zones and failure domains, it is important to run the Operator in HA mode.
+
+The Operator yaml files and Helm chart include a default Pod scheduling configuration that uses anti-affinity to distribute the three replicas onto nodes that have different `topology.kubernetes.io/zone` labels. This label is a standard Kubernetes label used to describe the zone the node is running in, and is typically applied by Kubernetes cloud vendors.
+
+
+=== Notes
+
+NOTE: Installing the Coherence Operator using the methods below will create a number of `ClusterRole` RBAC resources.
 Some corporate security policies do not like to give cluster wide roles to third-party products.
 To help in this situation the operator can be installed without cluster roles, but with caveats
 (see the <<docs/installation/09_RBAC.adoc,RBAC>> documentation) for more details.
@@ -56,7 +69,8 @@ If no image is specified in the `Coherence` yaml, then the default Coherence ima
 
 * `{coherence-image}` - The default Coherence image.
 
-If using a private image registry then these images will all need to be pushed to that registry for the Operator to work.
+If using a private image registry then these images will all need to be pushed to that registry for the Operator to work. The default Coherence image may be omitted if all Coherence applications will use custom Coherence images.
+
 
 [#manifest]
 == Default Install with Kubectl
@@ -89,6 +103,21 @@ Then download with:
 kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/${VERSION}/coherence-operator.yaml
 ----
 
+=== Change the Operator Replica Count
+
+When installing with single manifest yaml file, the replica count can be changed by editing the yaml file itself to change the occurrence of `replicas: 3` in the manifest yaml to `replicas: 1`
+
+For example, this could be done using `sed`
+[source,bash]
+----
+sed -i -e 's/replicas: 3/replicas: 1/g' coherence-operator.yaml
+----
+
+Or on MacOS, where `sed` is slightly different:
+[source,bash]
+----
+sed -i '' -e 's/replicas: 3/replicas: 1/g' coherence-operator.yaml
+----
 
 
 == Installing With Helm
@@ -108,7 +137,7 @@ helm repo add coherence https://oracle.github.io/coherence-operator/charts
 helm repo update
 ----
 
-NOTE: To avoid confusion, the URL `https://oracle.github.io/coherence-operator/charts` is a Helm repo, it is not a web site you open in a browser. You may think we shouldn't have to say this, but you'd be surprised.
+NOTE: To avoid confusion, the URL `https://oracle.github.io/coherence-operator/charts` is a Helm repo, it is not a website you open in a browser. You may think we shouldn't have to say this, but you'd be surprised.
 
 === Install the Coherence Operator Helm chart
 
@@ -125,6 +154,20 @@ helm install  \
 
 <1> where `<namespace>` is the namespace that the Coherence Operator will be installed into.
 <2> `coherence` is the name of this Helm installation.
+
+=== Change the Operator Replica Count
+
+To change the replica count when installing the Operator using Helm, the `replicas` value can be set.
+
+For example, to change the replica count from 3 to 1, the `--set replicas=1` option can be used.
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set replicas=1
+    coherence \
+    coherence/coherence-operator
+----
 
 
 ==== Uninstall the Coherence Operator Helm chart
@@ -213,7 +256,7 @@ helm install  \
 ----
 <1> the `private-repo-values.yaml` values fle will be used by Helm to inject the settings into the Operator deployment
 
-==== Add Pull Secrets Using --Set
+==== Add Pull Secrets Using --set
 
 Although the `imagePullSecrets` field in the values file is an array of `name` to value pairs it is possible to set
 these values with the normal Helm `--set` parameter.
@@ -272,6 +315,19 @@ NOTE: All the commands below are run from a console in the `manifests/` director
 
 If you have Kustomize installed (or can install it from https://github.com/kubernetes-sigs/kustomize) you can use
 Kustomize to configure the yaml and install.
+
+==== Change the Operator Replica Count
+
+To change the replica count using Kustomize a patch file needs to be applied.
+The Operator manifests include a patch file, named `manager/single-replica-patch.yaml`, that changes the replica count from 3 to 1. This patch can be applied with the following Kustomize command.
+
+[source,bash]
+----
+cd ./manager && kustomize edit add patch \
+  --kind Deployment --name controller-manager \
+  --path single-replica-patch.yaml
+----
+
 
 ==== Set Image Names
 If you need to use different iamge names from the defaults `kustomize` can be used to specify different names:
