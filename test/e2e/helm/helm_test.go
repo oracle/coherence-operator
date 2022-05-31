@@ -16,6 +16,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"os/exec"
@@ -70,127 +71,116 @@ func TestNotCreateWebhookCertSecretIfManualCertManager(t *testing.T) {
 
 func TestBasicHelmInstall(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ns := helper.GetTestNamespace()
-
-	t.Cleanup(func() {
-		if t.Failed() {
-			helper.DumpOperatorLogs(t, testContext)
-		}
-		Cleanup(ns, "operator")
-	})
-
-	chart, err := helper.FindOperatorHelmChartDir()
+	cmd, err := createHelmCommand()
 	g.Expect(err).NotTo(HaveOccurred())
-
-	cmd := exec.Command("helm", "install",
-		"--set", "image="+helper.GetOperatorImage(),
-		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
-		"--namespace", ns, "--wait", "operator", chart)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	AssertHelmInstallWithSubTest(t, "basic", cmd, g, ns, AssertThreeReplicas)
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertThreeReplicas)
 }
 
 func TestSetReplicas(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ns := helper.GetTestNamespace()
-
-	t.Cleanup(func() {
-		if t.Failed() {
-			helper.DumpOperatorLogs(t, testContext)
-		}
-		Cleanup(ns, "operator")
-	})
-
-	chart, err := helper.FindOperatorHelmChartDir()
+	cmd, err := createHelmCommand("--set", "replicas=1")
 	g.Expect(err).NotTo(HaveOccurred())
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertSingleReplica)
+}
 
-	cmd := exec.Command("helm", "install",
-		"--set", "replicas=1",
-		"--set", "image="+helper.GetOperatorImage(),
-		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
-		"--namespace", ns, "--wait", "operator", chart)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+func TestSetReResources(t *testing.T) {
+	g := NewGomegaWithT(t)
+	cmd, err := createHelmCommand("--set", "replicas=1", "--set", "resources.requests.cpu=250m", "--set", "resources.requests.memory=64Mi", "--set", "resources.limits.cpu=512m", "--set", "resources.limits.memory=128Mi")
+	g.Expect(err).NotTo(HaveOccurred())
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertResources)
+}
 
-	AssertHelmInstallWithSubTest(t, "basic", cmd, g, ns, AssertSingleReplica)
+func AssertResources() error {
+	ns := helper.GetTestNamespace()
+	pods, err := helper.ListOperatorPods(testContext, ns)
+	if err != nil {
+		return err
+	}
+	if len(pods) == 0 {
+		return fmt.Errorf("expected at least one Coherence Operator Pod but found zero")
+	}
+	resources := pods[0].Spec.Containers[0].Resources
+
+	var qty *resource.Quantity
+
+	qty = resources.Requests.Name("cpu", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a cpu requests quantity")
+	}
+	if qty.String() != "250m" {
+		return fmt.Errorf("expected a cpu requests of 250m")
+	}
+
+	qty = resources.Requests.Name("memory", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a memory requests quantity")
+	}
+	if qty.String() != "64Mi" {
+		return fmt.Errorf("expected a memory requests of 64Mi")
+	}
+
+	qty = resources.Limits.Name("cpu", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a cpu limits quantity")
+	}
+	if qty.String() != "512m" {
+		return fmt.Errorf("expected a cpu limit of 512m")
+	}
+
+	qty = resources.Limits.Name("memory", resource.BinarySI)
+	if qty == nil {
+		return fmt.Errorf("expected a memory limits quantity")
+	}
+	if qty.String() != "128Mi" {
+		return fmt.Errorf("expected a memory limit of 128Mi")
+	}
+
+	return nil
 }
 
 func TestHelmInstallWithServiceAccountName(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ns := helper.GetTestNamespace()
-
-	t.Cleanup(func() {
-		if t.Failed() {
-			helper.DumpOperatorLogs(t, testContext)
-		}
-		Cleanup(ns, "operator")
-	})
-
-	chart, err := helper.FindOperatorHelmChartDir()
+	cmd, err := createHelmCommand("--set", "serviceAccountName=test-operator-account")
 	g.Expect(err).NotTo(HaveOccurred())
-
-	cmd := exec.Command("helm", "install",
-		"--set", "serviceAccountName=test-operator-account",
-		"--set", "image="+helper.GetOperatorImage(),
-		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
-		"--namespace", ns, "--wait", "operator", chart)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	AssertHelmInstall(t, "account", cmd, g, ns)
+	AssertHelmInstallWithSubTest(t, "account", cmd, g, emptySubTest)
 }
 
 func TestHelmInstallWithoutClusterRoles(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ns := helper.GetTestNamespace()
-
-	t.Cleanup(func() {
-		if t.Failed() {
-			helper.DumpOperatorLogs(t, testContext)
-		}
-		Cleanup(ns, "operator")
-	})
-
-	chart, err := helper.FindOperatorHelmChartDir()
+	cmd, err := createHelmCommand("--set", "clusterRoles=false")
 	g.Expect(err).NotTo(HaveOccurred())
-
-	cmd := exec.Command("helm", "install",
-		"--set", "clusterRoles=false",
-		"--set", "image="+helper.GetOperatorImage(),
-		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
-		"--namespace", ns, "--wait", "operator", chart)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	AssertHelmInstallWithSubTest(t, "no-roles", cmd, g, ns, AssertNoClusterRoles)
+	AssertHelmInstallWithSubTest(t, "no-roles", cmd, g, AssertNoClusterRoles)
 }
 
 func TestHelmInstallWithoutClusterRolesWithNodeRole(t *testing.T) {
 	g := NewGomegaWithT(t)
+	cmd, err := createHelmCommand("--set", "clusterRoles=false", "--set", "nodeRoles=true")
+	g.Expect(err).NotTo(HaveOccurred())
+	AssertHelmInstallWithSubTest(t, "node-role", cmd, g, AssertOnlyNodeClusterRoles)
+}
+
+func createHelmCommand(args ...string) (*exec.Cmd, error) {
 	ns := helper.GetTestNamespace()
 
-	t.Cleanup(func() {
-		if t.Failed() {
-			helper.DumpOperatorLogs(t, testContext)
-		}
-		Cleanup(ns, "operator")
-	})
-
 	chart, err := helper.FindOperatorHelmChartDir()
-	g.Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		return nil, err
+	}
 
-	cmd := exec.Command("helm", "install",
-		"--set", "clusterRoles=false",
-		"--set", "nodeRoles=true",
-		"--set", "image="+helper.GetOperatorImage(),
-		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
-		"--namespace", ns, "--wait", "operator", chart)
+	argList := []string{"install",
+		"--set", "image=" + helper.GetOperatorImage(),
+		"--set", "defaultCoherenceUtilsImage=" + helper.GetUtilsImage()}
+
+	argList = append(argList, args...)
+
+	argList = append(argList, args...)
+	argList = append(argList, "--namespace", ns, "--wait", "operator", chart)
+
+	cmd := exec.Command("helm", argList...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	AssertHelmInstallWithSubTest(t, "node-role", cmd, g, ns, AssertOnlyNodeClusterRoles)
+	return cmd, nil
 }
 
 type SubTest func() error
@@ -276,11 +266,16 @@ func AssertRBAC(allowNode bool) error {
 	return nil
 }
 
-func AssertHelmInstall(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, ns string) {
-	AssertHelmInstallWithSubTest(t, id, cmd, g, ns, emptySubTest)
-}
+func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, test SubTest) {
+	ns := helper.GetTestNamespace()
 
-func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, ns string, test SubTest) {
+	t.Cleanup(func() {
+		if t.Failed() {
+			helper.DumpOperatorLogs(t, testContext)
+		}
+		Cleanup(ns, "operator")
+	})
+
 	t.Logf("Asserting Helm install. Removing Webhooks")
 	err := RemoveWebHook()
 	g.Expect(err).NotTo(HaveOccurred())

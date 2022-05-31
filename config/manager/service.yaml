@@ -37,7 +37,7 @@ spec:
   ports:
     - name: http-rest
       port: 8000
-      targetPort: 8000
+      targetPort: operator
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager

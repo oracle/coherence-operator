@@ -1485,7 +1485,7 @@ kind-single-worker:   ## Run a KinD cluster with a single worker node
 .PHONY: kind-calico
 kind-calico: export KIND_CONFIG=$(SCRIPTS_DIR)/kind-config-calico.yaml
 kind-calico:   ## Run a KinD cluster with Calico
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-calico.yaml --image $(KIND_IMAGE)
+	kind create cluster --name $(KIND_CLUSTER) --config $(SCRIPTS_DIR)/kind-config-calico.yaml --image $(KIND_IMAGE)
 	$(SCRIPTS_DIR)/kind-label-node.sh
 	curl -sL https://docs.projectcalico.org/manifests/calico.yaml | kubectl apply -f -
 	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
