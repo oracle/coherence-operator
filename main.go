@@ -18,10 +18,12 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/util/version"
+	"net/http"
 	"os"
 	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
 
@@ -188,20 +190,25 @@ func execute() {
 	}
 
 	// Create the REST server
-	if err := rest.NewServer(cs).SetupWithManager(mgr); err != nil {
+	restServer := rest.NewServer(cs)
+	if err := restServer.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, " unable to start REST server")
 		os.Exit(1)
 	}
 
-	//// ToDo: Make the ready check actually check stuff...
-	//if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
-	//	setupLog.Error(err, "unable to set up health check")
-	//	os.Exit(1)
-	//}
-	//if err := mgr.AddReadyzCheck("check", healthz.Ping); err != nil {
-	//	setupLog.Error(err, "unable to set up ready check")
-	//	os.Exit(1)
-	//}
+	var health healthz.Checker = func(_ *http.Request) error {
+		<-restServer.Running()
+		return nil
+	}
+
+	if err := mgr.AddHealthzCheck("health", health); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("ready", health); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
 
 	// +kubebuilder:scaffold:builder
 

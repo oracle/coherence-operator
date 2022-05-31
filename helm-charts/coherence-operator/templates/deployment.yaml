@@ -137,21 +137,33 @@ spec:
           containerPort: 9443
           protocol: TCP
         - containerPort: 8080
-          name: metrics-server
+          name: metrics
           protocol: TCP
         - containerPort: 8088
-          name: health-server
+          name: health
           protocol: TCP
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
           readOnly: true
         readinessProbe:
-          tcpSocket:
-            port: metrics-server
+          httpGet:
+            port: health
+            path: /readyz
           initialDelaySeconds: {{ default 10 .Values.readinessProbe.initialDelaySeconds }}
           periodSeconds: {{ default 10 .Values.readinessProbe.periodSeconds }}
           failureThreshold: {{ default 3 .Values.readinessProbe.failureThreshold }}
+        livenessProbe:
+          httpGet:
+            port: health
+            path: /healthz
+          initialDelaySeconds: {{ default 10 .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default 10 .Values.livenessProbe.periodSeconds }}
+          failureThreshold: {{ default 3 .Values.livenessProbe.failureThreshold }}
+{{- if .Values.resources }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+{{- end }}
 {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
