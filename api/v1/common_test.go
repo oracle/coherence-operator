@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -206,6 +206,14 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 						FieldPath: "metadata.name",
 					},
 				},
+			},
+			{
+				Name:  "COHERENCE_LOCALPORT",
+				Value: "7575",
+			},
+			{
+				Name:  "COHERENCE_LOCALPORT_ADJUST",
+				Value: "7576",
 			},
 			{
 				Name:  "COH_METRICS_ENABLED",

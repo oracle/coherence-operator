@@ -250,6 +250,8 @@ m| wka | Specify an existing Coherence deployment to be used for WKA. If an exis
 see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;<<CoherenceWKASpec,CoherenceWKASpec>> | false
 m| skipVersionCheck | Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the start script to find coherence.jar but if due to how the image has been built this check is failing then setting this flag to true will skip version checking and assume that the latest coherence.jar is being used. m| &#42;bool | false
 m| enableIpMonitor | Enables the Coherence IP Monitor feature. The Operator disables the IP Monitor by default. m| &#42;bool | false
+m| unicastPort | LocalPort sets the Coherence unicast port. When manually configuring unicast ports, a single port is specified and the second port is automatically selected. If either of the ports are not available, then the default behavior is to select the next available port. For example, if port 9000 is configured for the first port (port1) and it is not available, then the next available port is automatically selected. The second port (port2) is automatically opened and defaults to the next available port after port1 (port1 + 1 if available). m| &#42;int32 | false
+m| unicastPortAdjust | LocalPortAdjust sets the Coherence unicast port adjust value. To specify a range of unicast ports from which ports are selected, include a port value that represents the upper limit of the port range. m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>

@@ -138,6 +138,10 @@ const (
 	DefaultJmxmpPort int32 = 9099
 	// DefaultHealthPort is the default health port
 	DefaultHealthPort int32 = 6676
+	// DefaultUnicastPort is the default Coherence unicast port
+	DefaultUnicastPort int32 = 7575
+	// DefaultUnicastPortAdjust is the default Coherence unicast port adjust value
+	DefaultUnicastPortAdjust int32 = 7576
 
 	// OperatorConfigName is the Operator configuration Secret name
 	OperatorConfigName = "coherence-operator-config"
@@ -193,6 +197,8 @@ const (
 	EnvVarCohMetricsPrefix            = "COH_METRICS"
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"
+	EnvVarCoherenceLocalPort          = "COHERENCE_LOCALPORT"
+	EnvVarCoherenceLocalPortAdjust    = "COHERENCE_LOCALPORT_ADJUST"
 	EnvVarEnableIPMonitor             = "COH_ENABLE_IPMONITOR"
 	EnvVarSuffixSSLEnabled            = "_SSL_ENABLED"
 	EnvVarSuffixSSLCerts              = "_SSL_CERTS"

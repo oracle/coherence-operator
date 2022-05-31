@@ -286,6 +286,17 @@ type CoherenceSpec struct {
 	// Enables the Coherence IP Monitor feature.
 	// The Operator disables the IP Monitor by default.
 	EnableIPMonitor *bool `json:"enableIpMonitor,omitempty"`
+	// LocalPort sets the Coherence unicast port.
+	// When manually configuring unicast ports, a single port is specified and the second port is automatically selected.
+	// If either of the ports are not available, then the default behavior is to select the next available port.
+	// For example, if port 9000 is configured for the first port (port1) and it is not available, then the next
+	// available port is automatically selected. The second port (port2) is automatically opened and defaults to
+	// the next available port after port1 (port1 + 1 if available).
+	LocalPort *int32 `json:"unicastPort,omitempty"`
+	// LocalPortAdjust sets the Coherence unicast port adjust value.
+	// To specify a range of unicast ports from which ports are selected, include a port value that represents the
+	// upper limit of the port range.
+	LocalPortAdjust *string `json:"unicastPortAdjust,omitempty"`
 }
 
 // IsWKAMember returns true if this deployment is a WKA list member.
@@ -350,6 +361,22 @@ func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vols...)
 }
 
+// GetUnicastPort obtains the configured (or default) unicast port to use.
+func (in *CoherenceSpec) GetUnicastPort() int32 {
+	if in == nil || in.LocalPort == nil {
+		return DefaultUnicastPort
+	}
+	return *in.LocalPort
+}
+
+// GetUnicastPortAdjust obtains the configured (or default) unicast port adjust value to use.
+func (in *CoherenceSpec) GetUnicastPortAdjust() string {
+	if in == nil || in.LocalPortAdjust == nil {
+		return strconv.Itoa(int(DefaultUnicastPortAdjust))
+	}
+	return *in.LocalPortAdjust
+}
+
 // UpdateStatefulSet applies Coherence settings to the StatefulSet.
 func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.StatefulSet) {
 	// Get the Coherence container
@@ -362,6 +389,9 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 			corev1.EnvVar{Name: EnvVarCohMetricsPrefix + EnvVarCohEnabledSuffix, Value: "false"})
 		return
 	}
+
+	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: strconv.Itoa(int(in.GetUnicastPort()))})
+	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: in.GetUnicastPortAdjust()})
 
 	if in.CacheConfig != nil && *in.CacheConfig != "" {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohCacheConfig, Value: *in.CacheConfig})
