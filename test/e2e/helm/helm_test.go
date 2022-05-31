@@ -134,10 +134,10 @@ func TestSetReResources(t *testing.T) {
 
 	cmd := exec.Command("helm", "install",
 		"--set", "replicas=1",
-		"--set", "resources.requests.memory=64Mi",
 		"--set", "resources.requests.cpu=250m",
-		"--set", "resources.limits.memory=128Mi",
+		"--set", "resources.requests.memory=64Mi",
 		"--set", "resources.limits.cpu=512m",
+		"--set", "resources.limits.memory=128Mi",
 		"--set", "image="+helper.GetOperatorImage(),
 		"--set", "defaultCoherenceUtilsImage="+helper.GetUtilsImage(),
 		"--namespace", ns, "--wait", "operator", chart)
@@ -160,7 +160,7 @@ func AssertResources() error {
 
 	var qty *resource.Quantity
 
-	qty = resources.Limits.Name("cpu", resource.BinarySI)
+	qty = resources.Requests.Name("cpu", resource.BinarySI)
 	if qty == nil {
 		return fmt.Errorf("expected a cpu requests quantity")
 	}
@@ -168,7 +168,7 @@ func AssertResources() error {
 		return fmt.Errorf("expected a cpu requests of 250m")
 	}
 
-	qty = resources.Limits.Name("memory", resource.BinarySI)
+	qty = resources.Requests.Name("memory", resource.BinarySI)
 	if qty == nil {
 		return fmt.Errorf("expected a memory requests quantity")
 	}
