@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,10 +11,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	"github.com/pkg/errors"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -1192,11 +1192,11 @@ type ServiceMonitorSpec struct {
 	// Interval at which metrics should be scraped
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	Interval string `json:"interval,omitempty"`
+	Interval monitoringv1.Duration `json:"interval,omitempty"`
 	// Timeout after which the scrape is ended
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	ScrapeTimeout string `json:"scrapeTimeout,omitempty"`
+	ScrapeTimeout monitoringv1.Duration `json:"scrapeTimeout,omitempty"`
 	// TLS configuration to use when scraping the endpoint
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional

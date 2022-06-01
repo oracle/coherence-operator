@@ -50,6 +50,13 @@ Securing Coherence clusters using TLS.
 --
 
 [CARD]
+.Network Policies
+[link=examples/095_network_policies/README.adoc]
+--
+An example covering the use of Kubernetes `NetworkPolicy` rules with the Operator and Coherence clusters.
+--
+
+[CARD]
 .Federation
 [link=examples/100_federation/README.adoc]
 --

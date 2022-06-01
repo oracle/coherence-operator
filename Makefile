@@ -250,7 +250,6 @@ TOOLS_DIRECTORY   = $(CURRDIR)/build/tools
 TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
-PROMETHEUS_HOME   = $(TOOLS_DIRECTORY)/prometheus
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
@@ -309,7 +308,8 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
-PROMETHEUS_VERSION           ?= v0.8.0
+PROMETHEUS_VERSION           ?= v0.10.0
+PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSION)
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana/
@@ -323,7 +323,7 @@ KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 # ----------------------------------------------------------------------------------------------------------------------
 # MetalLB load balancer settings
 # ----------------------------------------------------------------------------------------------------------------------
-METALLB_VERSION ?= v0.10.2
+METALLB_VERSION ?= v0.12.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Istio settings

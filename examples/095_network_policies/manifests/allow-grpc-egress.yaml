@@ -5,7 +5,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      coherence.oracle.com/extendClient: "true"
+      coherence.oracle.com/grpcClient: "true"
   policyTypes:
     - Ingress
   egress:
@@ -15,7 +15,5 @@ spec:
           matchLabels:
             coherenceComponent: coherencePod
       ports:
-        - port: extend
-          protocol: TCP
-        - port: extend-concurrent
+        - port: grpc
           protocol: TCP

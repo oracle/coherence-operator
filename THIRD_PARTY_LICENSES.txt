@@ -333,7 +333,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 *****
-github.com/coreos/prometheus-operator/pkg/apis/monitoring@v0.38.1-0.20200424145508-7e176fda06cc
+github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring@v0.38.1-0.20200424145508-7e176fda06cc
 
 Apache License
                            Version 2.0, January 2004
@@ -538,7 +538,7 @@ Apache License
    limitations under the License.
 
 *****
-github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1@v0.38.1-0.20200424145508-7e176fda06cc
+github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1@v0.56.3
 
 Apache License
                            Version 2.0, January 2004
@@ -743,7 +743,7 @@ Apache License
    limitations under the License.
 
 *****
-github.com/coreos/prometheus-operator/pkg/client/versioned/scheme@v0.38.1-0.20200424145508-7e176fda06cc
+github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/scheme@v0.56.3
 
 Apache License
                            Version 2.0, January 2004
@@ -948,7 +948,7 @@ Apache License
    limitations under the License.
 
 *****
-github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1@v0.38.1-0.20200424145508-7e176fda06cc
+github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1@v0.56.3
 
 Apache License
                            Version 2.0, January 2004
