@@ -1919,7 +1919,7 @@ get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometh
 
 $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
 	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz
-	mkdir $(PROMETHEUS_HOME)
+	mkdir -p $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
 	rm $(BUILD_OUTPUT)/prometheus.tar.gz
 	touch $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt
