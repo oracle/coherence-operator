@@ -292,11 +292,11 @@ type CoherenceSpec struct {
 	// For example, if port 9000 is configured for the first port (port1) and it is not available, then the next
 	// available port is automatically selected. The second port (port2) is automatically opened and defaults to
 	// the next available port after port1 (port1 + 1 if available).
-	LocalPort *int32 `json:"unicastPort,omitempty"`
+	LocalPort *int32 `json:"localPort,omitempty"`
 	// LocalPortAdjust sets the Coherence unicast port adjust value.
 	// To specify a range of unicast ports from which ports are selected, include a port value that represents the
 	// upper limit of the port range.
-	LocalPortAdjust *string `json:"unicastPortAdjust,omitempty"`
+	LocalPortAdjust *intstr.IntOrString `json:"localPortAdjust,omitempty"`
 }
 
 // IsWKAMember returns true if this deployment is a WKA list member.
@@ -374,7 +374,8 @@ func (in *CoherenceSpec) GetUnicastPortAdjust() string {
 	if in == nil || in.LocalPortAdjust == nil {
 		return strconv.Itoa(int(DefaultUnicastPortAdjust))
 	}
-	return *in.LocalPortAdjust
+	lpa := in.LocalPortAdjust
+	return lpa.String()
 }
 
 // UpdateStatefulSet applies Coherence settings to the StatefulSet.
@@ -383,15 +384,16 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 	c := EnsureContainer(ContainerNameCoherence, sts)
 	defer ReplaceContainer(sts, c)
 
+	// Always set the unicast ports, as we default them if not specifically set
+	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: strconv.Itoa(int(in.GetUnicastPort()))})
+	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: in.GetUnicastPortAdjust()})
+
 	if in == nil {
 		// we're nil so disable management and metrics/
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohMgmtPrefix + EnvVarCohEnabledSuffix, Value: "false"},
 			corev1.EnvVar{Name: EnvVarCohMetricsPrefix + EnvVarCohEnabledSuffix, Value: "false"})
 		return
 	}
-
-	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: strconv.Itoa(int(in.GetUnicastPort()))})
-	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: in.GetUnicastPortAdjust()})
 
 	if in.CacheConfig != nil && *in.CacheConfig != "" {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohCacheConfig, Value: *in.CacheConfig})

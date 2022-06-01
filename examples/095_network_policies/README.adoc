@@ -1,0 +1,332 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2022, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= Using Network Policies
+
+== Using Network Policies
+
+This example covers running the Coherence Operator and Coherence clusters in Kubernetes with network policies.
+In Kubernetes, a https://kubernetes.io/docs/concepts/services-networking/network-policies/[Network Policy]
+is an application-centric construct which allow you to specify how a pod is allowed to communicate with various network
+"entities" (we use the word "entity" here to avoid overloading the more common terms such as "endpoints" and "services",
+which have specific Kubernetes connotations) over the network.
+
+=== Introduction
+
+Kubernetes network policies specify the access permissions for groups of pods, similar to security groups in the
+cloud are used to control access to VM instances and similar to firewalls.
+The default behaviour of a Kubernetes cluster is to allow all Pods to freely talk to each other.
+Whilst this sounds insecure, originally Kubernetes was designed to orchestrate services that communicated with each other,
+it was only later that network policies were added.
+
+A network policy is applied to a Kubernetes namespace and controls ingress into and egress out of Pods in that namespace.
+
+Network polices would typically end up being dictated by corporate security standards where different companies may
+apply stricter or looser rules than others.
+The examples in this document start from the premise that everything will be blocked by a "deny all" policy and then opened up as needed.
+This is the most secure use of network policies, and hence the examples can easily be tweaked if looser rules are applied.
+
+This example has the following sections:
+
+* <<deny,Deny All Policy>> - denying all ingress and egress
+* <<dns,Allow DNS>> - almost every use case will require egress to DNS
+* <<operator,Coherence Operator Policies>> - the network policies required to run the Coherence Operator
+* Coherence Cluster Policies - the network policies required to run Coherence clusters
+
+[#deny]
+==== Deny All Policy
+
+Kubernetes does not have a “deny all” policy, but this can be achieved with a regular network policy that specifies
+a `policyTypes` of both 'Ingress` and `Egress` but omits any definitions.
+A wild-card `podSelector: {}` applies the policy to all Pods in the namespace.
+
+[source,yaml]
+.manifests/deny-all.yaml
+----
+include::manifests/deny-all.yaml[]
+----
+
+The policy above can be installed into the `coherence` namespace with the following command:
+
+[source,bash]
+----
+kubectl -n coherence apply -f manifests/deny-all.yaml
+----
+
+After installing the `deny-all` policy, any `Pod` in the `coherence` namespace will not be allowed either ingress,
+nor egress. Very secure, but probably impractical for almost all use cases. After applying the `deny-all` policy more polices can be added to gradually open up the required access to run the Coherence Operator and Coherence clusters.
+
+[#dns]
+==== Allow DNS
+
+When enforcing egress, such as with the `deny-all` policy above, it is important to remember that virtually every Pod needs
+to communicate with other Pods or Services, and will therefore need to access DNS.
+
+The policy below allows all Pods (using `podSelector: {}`) egress to UDP port 53 in all namespaces.
+
+[source,yaml]
+.manifests/allow-dns.yaml
+----
+include::manifests/allow-dns.yaml[]
+----
+
+If allowing DNS egress to all namespaces is overly permissive, DNS could be further restricted to just the `kube-system`
+namespace, therefore restricting DNS lookups to only Kubernetes internal DNS.
+Kubernetes applies the `kubernetes.io/metadata.name` label to namespaces, and sets its value to the namespace name,
+so this can be used in label matchers.
+
+With the policy below, Pods will be able to use internal Kubernetes DNS only.
+
+[source,yaml]
+.manifests/allow-dns-kube-system.yaml
+----
+include::manifests/allow-dns-kube-system.yaml[]
+----
+
+The policy above can be installed into the `coherence` namespace with the following command:
+
+[source,bash]
+----
+kubectl -n coherence apply -f manifests/allow-dns-kube-system.yaml
+----
+
+
+[#operator]
+=== Coherence Operator Policies
+
+Assuming the `coherence` namespace exists, and the `deny-all` and `allow-dns` policies described above have been applied,
+if the Coherence Operator is installed, it wil fail to start as it has no access to endpoints it needs to operate.
+The following sections will add network polices to allow the Coherence Operator to access Kubernetes services and
+Pods it requires.
+
+==== Access the Kubernetes API Server
+
+The Coherence Operator uses Kubernetes APIs to manage various resources in the Kubernetes cluster.
+For this to work, the Operator Pod must be allowed egress to the Kubernetes API server.
+Configuring access to the API server is not as straight forward as other network policies.
+The reason for this is that there is no Pod available with labels that can be used in the configuration,
+instead, the IP address of the API server itself must be used.
+
+There are various methods to find the IP address of the API server.
+The exact method required may vary depending on the type of Kubernetes cluster being used, for example a simple
+development cluster running in KinD on a laptop may differ from a cluster running in a cloud provider's infrastructure.
+
+The common way to find the API server's IP address is to use `kubectl cluster-info` as follows:
+
+[source,bash]
+----
+$ kubectl cluster-info
+Kubernetes master is running at https://192.168.99.100:8443
+----
+
+In the above case the IP address of the API server would be `192.168.99.100`.
+
+In a simple KinD development cluster, the API server IP address can be obtained using `kubectl` as shown below:
+
+[source,bash]
+----
+$ kubectl get pod -n kube-system kube-apiserver-operator-control-plane -o wide
+NAME                                    READY   STATUS    RESTARTS   AGE     IP           NODE
+kube-apiserver-operator-control-plane   1/1     Running   0          7h43m   172.18.0.5   operator-control-plane
+----
+
+In the above case the IP address of the API server would be `172.18.0.5`.
+
+The IP address displayed for the API server can then be used in the network policy.
+The policy shown below allows Pods with the `app.kubernetes.io/name: coherence-operator` label (which the Operator has)
+egress access to the API server.
+
+[source,yaml]
+.manifests/allow-k8s-api-server.yaml
+----
+include::manifests/allow-k8s-api-server.yaml[]
+----
+
+The `allow-k8s-api-server.yaml` policy can be installed into the `coherence` namespace to allow the Operator to communicate with the API server.
+[source,bash]
+----
+kubectl -n coherence apply -f manifests/allow-k8s-api-server.yaml
+----
+
+With the `allow-k8s-api-server.yaml` policy applied, the Coherence Operator should now start correctly and its Pods should reach the "ready" state.
+
+
+==== Ingress From and Egress Into Coherence Cluster Member Pods
+
+When a Coherence cluster is deployed, on start-up of a Pod the cluster member will connect to the Operator's REST endpoint to query the site name and rack name, based on the Node the Coherence member is running on. To allow this to happen the Operator needs to be configured with the relevant ingress policy.
+
+The `coherence-operator-rest-ingress` policy applies to the Operator Pod, as it has a `podSelector` label of `app.kubernetes.io/name: coherence-operator`, which is a label applied to the Operator Pod. The policy allows any Pod with the label `coherenceComponent: coherencePod` ingress
+into the `operator` REST port. When the Operator creates a Coherence cluster, it applies the label `coherenceComponent: coherencePod` to all the Coherence cluster Pods.
+The policy below allows access from all namespaces using `namespaceSelector: { }` but it could be tightened up to specific namespaces if required.
+
+[source,yaml]
+.manifests/allow-operator-rest-ingress.yaml
+----
+include::manifests/allow-operator-rest-ingress.yaml[]
+----
+
+During operations such as scaling and shutting down of a Coherence cluster, the Operator needs to connect to the health endpoint of the Coherence cluster Pods.
+
+The `coherence-operator-cluster-member-egress` policy below applies to the Operator Pod, as it has a `podSelector` label of `app.kubernetes.io/name: coherence-operator`, which is a label applied to the Operator Pod. The policy allows egress to the `health` port in any Pod with the label `coherenceComponent: coherencePod`. When the Operator creates a Coherence cluster, it applies the label `coherenceComponent: coherencePod` to all the Coherence cluster Pods.
+The policy below allows egress to Coherence Pods in all namespaces using `namespaceSelector: { }` but it could be tightened up to specific namespaces if required.
+
+[source,yaml]
+.manifests/allow-operator-cluster-member-egress.yaml
+----
+include::manifests/allow-operator-cluster-member-egress.yaml[]
+----
+
+The two policies can be applied to the `coherence` namespace.
+[source,bash]
+----
+kubectl -n coherence apply -f manifests/allow-operator-rest-ingress.yaml
+kubectl -n coherence apply -f manifests/allow-operator-cluster-member-egress.yaml
+----
+
+==== Webhook Ingress
+
+With all the above policies in place, the Operator is able to work correctly, but if a `Coherence` resource is now created
+Kubernetes will be unable to call the Operator's webhook without the correct ingress policy.
+
+The following example demonstrates this. Assume there is a minimal`Coherence` yaml file named `minimal.yaml`
+that will create a single member Coherence cluster.
+
+[source,yaml]
+.minimal.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 1
+----
+
+If `minimal.yaml` is applied using `kubectl` with a small timeout of 10 seconds, the creation of the resource will
+fail due to Kubernetes not having access to the Coherence Operator webhook.
+
+[source,bash]
+----
+$ kubectl apply --timeout=10s -f minimal.yaml
+Error from server (InternalError): error when creating "minimal.yaml": Internal error occurred: failed calling webhook "coherence.oracle.com": failed to call webhook: Post "https://coherence-operator-webhook.operator-test.svc:443/mutate-coherence-oracle-com-v1-coherence?timeout=10s": context deadline exceeded
+----
+
+The trick here is to know where the webhook call is coming from so that a network policy can be sufficiently secure.
+
+The simplest solution is to allow ingress from any IP address to the webhook with a policy like that shown below.
+This policy uses and empty `from: []` attribute, which allows access from anywhere.
+
+[source,yaml]
+.manifests/allow-webhook-ingress-from-all.yaml
+----
+include::manifests/allow-webhook-ingress-from-all.yaml[]
+----
+
+Allowing all access to the webhook is not very secure, so a more restrictive `from` attribute could be used.
+
+
+[#coherence]
+=== Coherence Cluster Member Policies
+
+Once the policies are in place to allow the Coherence Operator to work, the policies to allow Coherence clusters to run can be put in place.
+The exact set of policies requires will vary depending on the Coherence functionality being used.
+If Coherence is embedded in another application, such as a web-server, then additional policies may also be needed to allow ingress to other endpoints.
+Conversely, if the Coherence application needs access to other services, for example a database, then additional egress policies may need to be created.
+
+This example is only going to cover Coherence use cases, but it should be simple enough to apply the same techniques to policies for other applications.
+
+==== Access Other Cluster Members
+
+All Pods in a Coherence cluster must be able to talk to each other (otherwise they wouldn't be a cluster).
+This means that there needs to be ingress and egress policies to allow this.
+
+*Cluster port*: The default cluster port is 7574, and there is almost never any need to change this, especially in a containerised environment where there is little chance of port conflicts.
+
+*Unicast ports*: Unicast uses TMB (default) and UDP. Each cluster member listens on one UDP and one TCP port and both ports need to be opened in the network policy. The default behaviour of Coherence is for the unicast ports to be automatically assigned from the operating system's available ephemeral port range. When securing Coherence with network policies, the use of ephemeral ports will not work, so a range of ports can be specified for coherence to operate within. The Coherence Operator sets values for both unicast ports so that ephemeral ports will not be used. The default values are `7575` and `7576`.
+
+The two unicast ports can be changed in the `Coherence` spec by setting the `spec.coherence.localPort` field,
+and the `spec.coherence.localPortAdjust` field for example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  coherence:
+    localPort: 9000
+    localPortAdjust: 9001
+----
+
+Alternatively the values can also be configured using environment variables
+
+[source,yaml]
+----
+env:
+  - name: COHERENCE_LOCALPORT
+    value: "9000"
+  - name: COHERENCE_LOCALPORT_ADJUST
+    value: "9001"
+----
+
+*Echo port `7`*: The default TCP port of the IpMonitor component that is used for detecting hardware failure of cluster members. Coherence doesn't bind to this port, it only tries to connect to it as a means of pinging remote machines, or in this case Pods.
+
+The Coherence Operator applies the `coherenceComponent: coherencePod` label to all Coherence Pods, so this can be used in the network policy `podSelector`, to apply the policy to only the Coherence Pods.
+
+The policy below works with the default ports configured by the Operator.
+
+[source,yaml]
+.manifests/allow-cluster-member-access.yaml
+----
+include::manifests/allow-cluster-member-access.yaml[]
+----
+
+If the Coherence local port and loacl port adjust values are changed, then the policy woul dneed to be amended.
+For example, if `COHERENCE_LOCALPORT=9000` and `COHERENCE_LOCALPORT_ADJUST=9100`
+
+[source,yaml]
+.manifests/allow-cluster-member-access-non-default.yaml
+----
+include::manifests/allow-cluster-member-access-non-default.yaml[]
+----
+
+==== Egress to and Ingress From the Coherence Operator
+
+When a Coherence Pod starts Coherence calls back to the Operator to obtain the site name and rack name based on the Node the Pod is scheduled onto.
+For this to work, there needs to be an egress policy to allow Coherence Pods to access the Operator.
+
+During certain operations the Operator needs to call the Coherence members health endpoint to check health and status.
+For this to work there needs to be an ingress policy to allow the Operator access to the health endpoint in the Coherence Pods
+
+The policy below applies to Pods with the `coherenceComponent: coherencePod` label, which will match Coherence cluster member Pods.
+The policy allows ingress from the Operator to the Coherence Pod health port from namespace `coherence`
+using the namespace selector label `kubernetes.io/metadata.name: coherence`
+and Pod selector label `app.kubernetes.io/name: coherence-operator`
+The policy allows egress from the Coherence pods to the Operator's REST server `operator` port.
+
+[source,yaml]
+.manifests/allow-cluster-member-operator-access.yaml
+----
+include::manifests/allow-cluster-member-operator-access.yaml[]
+----
+
+If the Operator is not running in the `coherence` namespace then the namespace match label can be changed to the required value.
+
+The policies 
+
+==== Client Access (Coherence*Extend and gRPC)
+
+
+==== Metrics
+
+
+==== Coherence REST Management
+
+
+==== External Ingress
+

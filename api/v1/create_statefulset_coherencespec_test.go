@@ -10,6 +10,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"testing"
 )
 
@@ -121,9 +122,10 @@ func TestCreateStatefulSetWithCoherenceLocalPortAlreadyPresent(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithCoherenceLocalPortAdjustTrue(t *testing.T) {
+	lpa := intstr.FromString("true")
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
-			LocalPortAdjust: stringPtr("true"),
+			LocalPortAdjust: &lpa,
 		},
 	}
 
@@ -138,9 +140,10 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjustTrue(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithCoherenceLocalPortAdjustFalse(t *testing.T) {
+	lpa := intstr.FromString("false")
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
-			LocalPortAdjust: stringPtr("false"),
+			LocalPortAdjust: &lpa,
 		},
 	}
 
@@ -155,9 +158,10 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjustFalse(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithCoherenceLocalPortAdjust(t *testing.T) {
+	lpa := intstr.FromInt(9876)
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
-			LocalPortAdjust: stringPtr("9876"),
+			LocalPortAdjust: &lpa,
 		},
 	}
 
@@ -172,9 +176,10 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjust(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithCoherenceLocalPortAdjustAlreadyPresent(t *testing.T) {
+	lpa := intstr.FromInt(9876)
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
-			LocalPortAdjust: stringPtr("9876"),
+			LocalPortAdjust: &lpa,
 		},
 		Env: []corev1.EnvVar{
 			{
