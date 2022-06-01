@@ -226,7 +226,8 @@ This policy uses and empty `from: []` attribute, which allows access from anywhe
 include::manifests/allow-webhook-ingress-from-all.yaml[]
 ----
 
-Allowing all access to the webhook is not very secure, so a more restrictive `from` attribute could be used.
+Allowing all access to the webhook is not very secure, so a more restrictive `from` attribute could be used to limit
+access to the IP address of the Kubernetes API server.
 
 
 [#coherence]
@@ -286,7 +287,7 @@ The policy below works with the default ports configured by the Operator.
 include::manifests/allow-cluster-member-access.yaml[]
 ----
 
-If the Coherence local port and loacl port adjust values are changed, then the policy woul dneed to be amended.
+If the Coherence local port and local port adjust values are changed, then the policy would need to be amended.
 For example, if `COHERENCE_LOCALPORT=9000` and `COHERENCE_LOCALPORT_ADJUST=9100`
 
 [source,yaml]
@@ -294,6 +295,9 @@ For example, if `COHERENCE_LOCALPORT=9000` and `COHERENCE_LOCALPORT_ADJUST=9100`
 ----
 include::manifests/allow-cluster-member-access-non-default.yaml[]
 ----
+
+Both of the policies above should be applied to the namespace where the Coherence cluster will be deployed.
+With the two policies above in place, the Coherence Pods will be able to communicate.
 
 ==== Egress to and Ingress From the Coherence Operator
 
@@ -316,10 +320,71 @@ include::manifests/allow-cluster-member-operator-access.yaml[]
 ----
 
 If the Operator is not running in the `coherence` namespace then the namespace match label can be changed to the required value.
-
-The policies 
+The policy above should be applied to the namespace where the Coherence cluster will be deployed.
 
 ==== Client Access (Coherence*Extend and gRPC)
+
+A typical Coherence cluster does not run in isolation but as part of a larger application.
+If the application has other Pods that are Coherence clients, then they will need access to the Coherence cluster.
+This would usually mean creating ingress and egress policies for the Coherence Extend port and gRPC port,
+depending on which Coherence APIs are being used.
+
+===== Ingress into an Extend Proxy
+
+If Coherence Extend is being used, then first the Extend Proxy must be configured to use a fixed port.
+The default behaviour of Coherence is to bind the Extend proxy to an ephemeral port and clients use the Coherence
+NameService to look up the port to use.
+
+When using the default Coherence images, for example `ghcr.io/oracle/coherence-ce:21.12.4` the Extend proxy is already
+configured to run on a fixed port `20000`. When using this image, or any image that uses the default Coherence cache
+configuration file, this port can be changed by setting the `COHERENCE_EXTEND_PORT` environment variable.
+
+When using the Coherence Concurrent extensions over Extend, the Concurrent Extend proxy also needs to be configured with a fixed port.
+When using the default Coherence images, for example `ghcr.io/oracle/coherence-ce:21.12.4` the Concurrent Extend proxy is already
+configured to run on a fixed port `20001`. When using this image, or any image that uses the default Coherence cache
+configuration file, this port can be changed by setting the `COHERENCE_CONCURRENT_EXTEND_PORT` environment variable.
+
+The ingress policy below will work with the default Coherence image and allow ingress into the Coherence Pods
+to both the default Extend port and Coherence Concurrent Extend port.
+The policy allows ingress from Pods that have the `coherence.oracle.com/extendClient: true` label, from any namespace.
+It could be tightened further by using a specific namespace selector.
+
+[source,yaml]
+.manifests/allow-extend-ingress.yaml
+----
+include::manifests/allow-extend-ingress.yaml[]
+----
+
+The policy above should be applied to the namespace where the Coherence cluster is running,
+
+The egress policy below will work with the default Coherence image and allow egress from Pods with the
+`coherence.oracle.com/extendClient: true` label to Coherence Pods with the label `coherenceComponent: coherencePod`.
+on both the default Extend port and Coherence Concurrent Extend port.
+
+[source,yaml]
+.manifests/allow-extend-egress.yaml
+----
+include::manifests/allow-extend-egress.yaml[]
+----
+
+The policy above allows egress to Coherence Pods in any namespace. This would ideally be tightened up to the specific
+namespace that the Coherence cluster is deployed in.
+For example, if the Coherence cluster is deployed in the `datastore` namespace, then the `to` section of policy could
+be changed as follows:
+
+[source,yaml]
+.manifests/allow-extend-egress.yaml
+----
+- to:
+  - namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: datastore
+    podSelector:
+      matchLabels:
+        coherenceComponent: coherencePod
+----
+
+This policy must be applied to the namespace _where the client Pods will be deployed_.
 
 
 ==== Metrics

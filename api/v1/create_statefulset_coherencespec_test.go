@@ -97,30 +97,6 @@ func TestCreateStatefulSetWithCoherenceLocalPort(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithCoherenceLocalPortAlreadyPresent(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		Coherence: &coh.CoherenceSpec{
-			LocalPort: int32Ptr(1234),
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  coh.EnvVarCoherenceLocalPort,
-				Value: "1111",
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPort, Value: "1111"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
 func TestCreateStatefulSetWithCoherenceLocalPortAdjustTrue(t *testing.T) {
 	lpa := intstr.FromString("true")
 	spec := coh.CoherenceResourceSpec{
@@ -170,30 +146,6 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjust(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "9876"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithCoherenceLocalPortAdjustAlreadyPresent(t *testing.T) {
-	lpa := intstr.FromInt(9876)
-	spec := coh.CoherenceResourceSpec{
-		Coherence: &coh.CoherenceSpec{
-			LocalPortAdjust: &lpa,
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  coh.EnvVarCoherenceLocalPortAdjust,
-				Value: "1111",
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "1111"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

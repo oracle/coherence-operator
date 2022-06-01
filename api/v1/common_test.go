@@ -208,14 +208,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				},
 			},
 			{
-				Name:  "COHERENCE_LOCALPORT",
-				Value: "7575",
-			},
-			{
-				Name:  "COHERENCE_LOCALPORT_ADJUST",
-				Value: "7576",
-			},
-			{
 				Name:  "COH_METRICS_ENABLED",
 				Value: "false",
 			},

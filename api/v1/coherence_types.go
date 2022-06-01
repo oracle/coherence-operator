@@ -361,32 +361,11 @@ func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vols...)
 }
 
-// GetUnicastPort obtains the configured (or default) unicast port to use.
-func (in *CoherenceSpec) GetUnicastPort() int32 {
-	if in == nil || in.LocalPort == nil {
-		return DefaultUnicastPort
-	}
-	return *in.LocalPort
-}
-
-// GetUnicastPortAdjust obtains the configured (or default) unicast port adjust value to use.
-func (in *CoherenceSpec) GetUnicastPortAdjust() string {
-	if in == nil || in.LocalPortAdjust == nil {
-		return strconv.Itoa(int(DefaultUnicastPortAdjust))
-	}
-	lpa := in.LocalPortAdjust
-	return lpa.String()
-}
-
 // UpdateStatefulSet applies Coherence settings to the StatefulSet.
 func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.StatefulSet) {
 	// Get the Coherence container
 	c := EnsureContainer(ContainerNameCoherence, sts)
 	defer ReplaceContainer(sts, c)
-
-	// Always set the unicast ports, as we default them if not specifically set
-	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: strconv.Itoa(int(in.GetUnicastPort()))})
-	c.Env = AddEnvVarIfAbsent(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: in.GetUnicastPortAdjust()})
 
 	if in == nil {
 		// we're nil so disable management and metrics/
@@ -401,6 +380,16 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 
 	if in.OverrideConfig != nil && *in.OverrideConfig != "" {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohOverride, Value: *in.OverrideConfig})
+	}
+
+	// Always set the unicast ports, as we default them if not specifically set
+	if in.LocalPort != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: Int32PtrToString(in.LocalPort)})
+	}
+
+	if in.LocalPortAdjust != nil {
+		lpa := in.LocalPortAdjust
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: lpa.String()})
 	}
 
 	if in.LogLevel != nil {
