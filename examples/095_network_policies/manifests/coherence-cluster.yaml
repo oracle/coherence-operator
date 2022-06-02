@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: coherence-cluster
+spec:
+  podSelector:
+    matchLabels:
+      coherenceComponent: coherencePod
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              coherenceComponent: coherencePod
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              coherenceComponent: coherencePod

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"testing"
 )
 
@@ -73,6 +74,78 @@ func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledTrue(t *testing.T) 
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "true"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceLocalPort(t *testing.T) {
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			LocalPort: int32Ptr(1234),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPort, Value: "1234"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceLocalPortAdjustTrue(t *testing.T) {
+	lpa := intstr.FromString("true")
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			LocalPortAdjust: &lpa,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "true"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceLocalPortAdjustFalse(t *testing.T) {
+	lpa := intstr.FromString("false")
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			LocalPortAdjust: &lpa,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "false"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceLocalPortAdjust(t *testing.T) {
+	lpa := intstr.FromInt(9876)
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			LocalPortAdjust: &lpa,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "9876"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

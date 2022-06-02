@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: coherence-grpc-ingress
+spec:
+  podSelector:
+    matchLabels:
+      coherenceComponent: coherencePod
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              coherence.oracle.com/grpcClient: "true"
+      ports:
+        - port: grpc
+          protocol: TCP

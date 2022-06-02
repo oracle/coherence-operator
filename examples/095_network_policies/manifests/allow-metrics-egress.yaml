@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: coherence-metrics-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: { }
+          podSelector:
+            matchLabels:
+              coherenceComponent: coherencePod
+      ports:
+        - port: metrics
+          protocol: TCP

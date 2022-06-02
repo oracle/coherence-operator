@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: coherence-extend-egress
+spec:
+  podSelector:
+    matchLabels:
+      coherence.oracle.com/extendClient: "true"
+  policyTypes:
+    - Ingress
+  egress:
+    - to:
+      - namespaceSelector: { }
+        podSelector:
+          matchLabels:
+            coherenceComponent: coherencePod
+      ports:
+        - port: extend
+          protocol: TCP
+        - port: extend-concurrent
+          protocol: TCP

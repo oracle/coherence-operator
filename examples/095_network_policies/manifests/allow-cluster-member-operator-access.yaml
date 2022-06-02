@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: coherence-operator-cluster-member-egress
+spec:
+  podSelector:
+    matchLabels:
+      coherenceComponent: coherencePod
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: coherence
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: coherence-operator
+      ports:
+        - port: health
+          protocol: TCP
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: coherence
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: coherence-operator
+      ports:
+        - port: operator
+          protocol: TCP
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,6 +11,8 @@ import (
 	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -51,12 +53,29 @@ func (in *Coherence) Default() {
 			in.Spec.SetReplicas(3)
 		}
 
+		// set the default Coherence local port and local port adjust if not present
+		if in.Spec.Coherence == nil {
+			lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
+			in.Spec.Coherence = &CoherenceSpec{
+				LocalPort:       pointer.Int32(DefaultUnicastPort),
+				LocalPortAdjust: &lpa,
+			}
+		} else {
+			if in.Spec.Coherence.LocalPort == nil {
+				in.Spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
+			}
+			if in.Spec.Coherence.LocalPort == nil {
+				lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
+				in.Spec.Coherence.LocalPortAdjust = &lpa
+			}
+		}
+
 		// apply a label with the hash of the spec
 		if hash, applied := EnsureHashLabel(in); applied {
 			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 		}
 
-		// only set defaults for image names new Coherence instances
+		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
 		in.Spec.EnsureCoherenceImage(&coherenceImage)
 		utilsImage := operator.GetDefaultUtilsImage()

@@ -9,7 +9,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
@@ -20,6 +19,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/spf13/viper"
 	coreV1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

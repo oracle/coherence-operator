@@ -1,0 +1,13 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  coherence:
+    management:
+      enabled: true
+  ports:
+    - name: management
+      service:
+        type: LoadBalancer
+

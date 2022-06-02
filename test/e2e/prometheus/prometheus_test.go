@@ -9,11 +9,11 @@ package prometheus
 import (
 	"encoding/json"
 	"fmt"
-	monitoring "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	client "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	monitoring "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -65,7 +65,7 @@ func AssertPrometheus(t *testing.T, yamlFile string, promPod corev1.Pod, promCli
 
 func IsPrometheusInstalled() (bool, corev1.Pod, error) {
 	promNamespace := helper.GetPrometheusNamespace()
-	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app=prometheus")
+	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app.kubernetes.io/name=prometheus")
 	if err != nil || len(promPods) == 0 {
 		return false, corev1.Pod{}, err
 	}

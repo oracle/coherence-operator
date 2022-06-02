@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,10 +11,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	"github.com/pkg/errors"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -286,6 +286,17 @@ type CoherenceSpec struct {
 	// Enables the Coherence IP Monitor feature.
 	// The Operator disables the IP Monitor by default.
 	EnableIPMonitor *bool `json:"enableIpMonitor,omitempty"`
+	// LocalPort sets the Coherence unicast port.
+	// When manually configuring unicast ports, a single port is specified and the second port is automatically selected.
+	// If either of the ports are not available, then the default behavior is to select the next available port.
+	// For example, if port 9000 is configured for the first port (port1) and it is not available, then the next
+	// available port is automatically selected. The second port (port2) is automatically opened and defaults to
+	// the next available port after port1 (port1 + 1 if available).
+	LocalPort *int32 `json:"localPort,omitempty"`
+	// LocalPortAdjust sets the Coherence unicast port adjust value.
+	// To specify a range of unicast ports from which ports are selected, include a port value that represents the
+	// upper limit of the port range.
+	LocalPortAdjust *intstr.IntOrString `json:"localPortAdjust,omitempty"`
 }
 
 // IsWKAMember returns true if this deployment is a WKA list member.
@@ -369,6 +380,16 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 
 	if in.OverrideConfig != nil && *in.OverrideConfig != "" {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohOverride, Value: *in.OverrideConfig})
+	}
+
+	// Always set the unicast ports, as we default them if not specifically set
+	if in.LocalPort != nil {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: Int32PtrToString(in.LocalPort)})
+	}
+
+	if in.LocalPortAdjust != nil {
+		lpa := in.LocalPortAdjust
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: lpa.String()})
 	}
 
 	if in.LogLevel != nil {
@@ -1171,11 +1192,11 @@ type ServiceMonitorSpec struct {
 	// Interval at which metrics should be scraped
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	Interval string `json:"interval,omitempty"`
+	Interval monitoringv1.Duration `json:"interval,omitempty"`
 	// Timeout after which the scrape is ended
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional
-	ScrapeTimeout string `json:"scrapeTimeout,omitempty"`
+	ScrapeTimeout monitoringv1.Duration `json:"scrapeTimeout,omitempty"`
 	// TLS configuration to use when scraping the endpoint
 	// See https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint
 	// +optional

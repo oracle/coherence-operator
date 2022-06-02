@@ -38,6 +38,9 @@ We will use this image in the various examples we cover here. When we run the im
 * *The Test Client*
 In the <<examples/no-operator/test-client/README.adoc,`test-client/`>> directory is a simple Maven project that we will use to run a simple Extend client.
 
+* *Network Policies*
+When running in Kubernetes cluster where `NetworkPolicy` rules are applied there are certain ingress and egress policies required to allow Coherence to work. These are covered in the <<examples/095_network_policies/README.adoc,Network Policies Example>>
+
 == The Examples
 
 [PILLARS]
