@@ -1926,13 +1926,14 @@ $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
 
 .PHONY: install-prometheus
 install-prometheus: get-prometheus ## Install Prometheus and Grafana
-	kubectl create -f $(PROMETHEUS_HOME)/manifests/setup
+	kubectl apply -f $(PROMETHEUS_HOME)/manifests/setup
+	sleep 10
 	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
 #   We create additional custom RBAC rules because the defaults do not work
 #   in an RBAC enabled cluster such as KinD
 #   See: https://prometheus-operator.dev/docs/operator/rbac/
-	kubectl create -f hack/prometheus-rbac.yaml
-	kubectl create -f $(PROMETHEUS_HOME)/manifests
+	kubectl apply -f hack/prometheus-rbac.yaml
+	kubectl apply -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
 	@echo "Waiting for Prometheus StatefulSet to be ready"
 	kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=5m
