@@ -1935,7 +1935,9 @@ install-prometheus: get-prometheus ## Install Prometheus and Grafana
 	kubectl create -f hack/prometheus-rbac.yaml
 	kubectl create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
+	kubectl -n monitoring get all
 	@echo "Waiting for Prometheus StatefulSet to be ready"
+	until kubectl -n monitoring get statefulset/prometheus-k8s ; do date; sleep 1; echo ""; done
 	kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=5m
 	@echo "Waiting for Grafana Deployment to be ready"
 	kubectl -n monitoring rollout status deployment/grafana --timeout=5m

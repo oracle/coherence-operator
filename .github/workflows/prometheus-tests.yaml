@@ -99,6 +99,7 @@ jobs:
 
     - name: E2E Prometheus Tests
       shell: bash
+      timeout-minutes: 45
       run: |
         make all
         make kind-load
