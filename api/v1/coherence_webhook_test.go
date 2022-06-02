@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"testing"
 )
@@ -78,6 +79,76 @@ func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	c.Default()
 	g.Expect(c.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*c.Spec.Replicas).To(Equal(replicas))
+}
+
+func TestCoherenceLocalPortIsSet(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	c := coh.Coherence{}
+	c.Default()
+	g.Expect(c.Spec.Coherence).NotTo(BeNil())
+	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(coh.DefaultUnicastPort))
+}
+
+func TestCoherenceLocalPortIsNotOverridden(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	var port int32 = 1234
+
+	c := coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				LocalPort: int32Ptr(port),
+			},
+		},
+	}
+	c.Default()
+	g.Expect(c.Spec.Coherence).NotTo(BeNil())
+	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(port))
+}
+
+func TestCoherenceLocalPortIsNotSetOnUpdate(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	c := coh.Coherence{}
+	c.Status.Phase = coh.ConditionTypeReady
+	c.Default()
+	g.Expect(c.Spec.Coherence).To(BeNil())
+}
+
+func TestCoherenceLocalPortAdjustIsSet(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	lpa := intstr.FromInt(int(coh.DefaultUnicastPortAdjust))
+	c := coh.Coherence{}
+	c.Default()
+	g.Expect(c.Spec.Coherence).NotTo(BeNil())
+	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
+}
+
+func TestCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	lpa := intstr.FromInt(9876)
+	c := coh.Coherence{
+		Spec: coh.CoherenceResourceSpec{
+			Coherence: &coh.CoherenceSpec{
+				LocalPortAdjust: &lpa,
+			},
+		},
+	}
+	c.Default()
+	g.Expect(c.Spec.Coherence).NotTo(BeNil())
+	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
+}
+
+func TestCoherenceLocalPortAdjustIsNotSetOnUpdate(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	c := coh.Coherence{}
+	c.Status.Phase = coh.ConditionTypeReady
+	c.Default()
+	g.Expect(c.Spec.Coherence).To(BeNil())
 }
 
 func TestCoherenceImageIsSet(t *testing.T) {

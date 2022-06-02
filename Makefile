@@ -250,7 +250,6 @@ TOOLS_DIRECTORY   = $(CURRDIR)/build/tools
 TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
-PROMETHEUS_HOME   = $(TOOLS_DIRECTORY)/prometheus
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
@@ -309,7 +308,8 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
-PROMETHEUS_VERSION           ?= v0.8.0
+PROMETHEUS_VERSION           ?= v0.10.0
+PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSION)
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana/
@@ -323,7 +323,7 @@ KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 # ----------------------------------------------------------------------------------------------------------------------
 # MetalLB load balancer settings
 # ----------------------------------------------------------------------------------------------------------------------
-METALLB_VERSION ?= v0.10.2
+METALLB_VERSION ?= v0.12.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Istio settings
@@ -1919,7 +1919,7 @@ get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometh
 
 $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
 	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz
-	mkdir $(PROMETHEUS_HOME)
+	mkdir -p $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
 	rm $(BUILD_OUTPUT)/prometheus.tar.gz
 	touch $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt
@@ -1927,6 +1927,7 @@ $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
 .PHONY: install-prometheus
 install-prometheus: get-prometheus ## Install Prometheus and Grafana
 	kubectl create -f $(PROMETHEUS_HOME)/manifests/setup
+	sleep 10
 	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
 #   We create additional custom RBAC rules because the defaults do not work
 #   in an RBAC enabled cluster such as KinD
@@ -1934,7 +1935,9 @@ install-prometheus: get-prometheus ## Install Prometheus and Grafana
 	kubectl create -f hack/prometheus-rbac.yaml
 	kubectl create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
+	kubectl -n monitoring get all
 	@echo "Waiting for Prometheus StatefulSet to be ready"
+	until kubectl -n monitoring get statefulset/prometheus-k8s ; do date; sleep 1; echo ""; done
 	kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=5m
 	@echo "Waiting for Grafana Deployment to be ready"
 	kubectl -n monitoring rollout status deployment/grafana --timeout=5m

@@ -987,6 +987,16 @@ func (in *CoherenceResourceSpec) AddEnvVarIfAbsent(envVar corev1.EnvVar) {
 	in.Env = append(in.Env, envVar)
 }
 
+// AddEnvVarIfAbsent adds the specified EnvVar to the destination slice if one with the same name does not already exist.
+func AddEnvVarIfAbsent(dest []corev1.EnvVar, envVar corev1.EnvVar) []corev1.EnvVar {
+	for _, e := range dest {
+		if e.Name == envVar.Name {
+			return dest
+		}
+	}
+	return append(dest, envVar)
+}
+
 // CreateDefaultEnv creates the default environment variables for the Coherence container.
 func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
 	var siteURL string

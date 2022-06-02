@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-coherence-cluster
+spec:
+  podSelector:
+    matchLabels:
+      coherenceComponent: coherencePod
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              coherenceComponent: coherencePod
+      ports:
+        - port: 7574
+          endPort: 7576
+          protocol: TCP
+        - port: 7574
+          endPort: 7576
+          protocol: UDP
+        - port: 7
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              coherenceComponent: coherencePod
+      ports:
+        - port: 7574
+          endPort: 7576
+          protocol: TCP
+        - port: 7574
+          endPort: 7576
+          protocol: UDP
+        - port: 7
+          protocol: TCP

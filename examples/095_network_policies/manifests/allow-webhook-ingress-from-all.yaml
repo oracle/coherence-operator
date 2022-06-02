@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apiserver-to-operator-webhook-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: coherence-operator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: []
+      ports:
+        - port: webhook-server
+          protocol: TCP
