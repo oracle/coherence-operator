@@ -65,7 +65,7 @@ func AssertPrometheus(t *testing.T, yamlFile string, promPod corev1.Pod, promCli
 
 func IsPrometheusInstalled() (bool, corev1.Pod, error) {
 	promNamespace := helper.GetPrometheusNamespace()
-	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app=prometheus")
+	promPods, err := helper.ListPodsWithLabelSelector(testContext, promNamespace, "app.kubernetes.io/name=prometheus")
 	if err != nil || len(promPods) == 0 {
 		return false, corev1.Pod{}, err
 	}
