@@ -2250,7 +2250,8 @@ endif
 push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
 	rm -rf /tmp/coherence-operator || true
 	mkdir -p /tmp/coherence-operator || true
-	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
+	cp -R $(BUILD_OUTPUT)/ /tmp/coherence-operator
+	ls -al /tmp/coherence-operator
 	git stash save --keep-index --include-untracked || true
 	git stash drop || true
 	git checkout --track origin/gh-pages
