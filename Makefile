@@ -2248,6 +2248,7 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-snapshot-docs
 push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
+	rm -rf /tmp/coherence-operator || true
 	mkdir -p /tmp/coherence-operator || true
 	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
 	git stash save --keep-index --include-untracked || true
@@ -2256,7 +2257,7 @@ push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
 	git config pull.rebase true
 	git pull
 	rm -rf docs/snapshot
-	mv $(BUILD_OUTPUT)/docs/ docs/snapshot/
+	mv /tmp/coherence-operator/docs/ docs/snapshot/
 	git add -A docs/*
 	git status
 	git clean -d -f
