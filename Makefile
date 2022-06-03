@@ -2244,6 +2244,29 @@ endif
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Release the Coherence Operator snapshot documentation.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: push-snapshot-docs
+push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
+	mkdir -p /tmp/coherence-operator || true
+	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
+	git stash save --keep-index --include-untracked || true
+	git stash drop || true
+	git checkout --track origin/gh-pages
+	git config pull.rebase true
+	git pull
+	rm -rf docs/snapshot
+	mv $(BUILD_OUTPUT)/docs/ docs/snapshot/
+	git add -A docs/*
+	git status
+	git clean -d -f
+	git status
+	git commit -m "Release Coherence Operator snapshot docs $(VERSION)"
+	git log -1
+	git push origin gh-pages
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
