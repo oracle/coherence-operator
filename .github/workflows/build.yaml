@@ -130,21 +130,6 @@ jobs:
       run: |
         make e2e-helm-test
 
-    - name: Deploy Snapshots & Docs
-      if: ${{ github.ref == 'refs/heads/master' && success() }}
-      env:
-        MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
-        MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      shell: bash
-      run: |
-        git config --local user.name "Github Action"
-        git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-        export NO_DAEMON=false
-        sh ./hack/maven-gpg.sh
-        make mvn-deploy GPG_PASSPHRASE=${GPG_PASSPHRASE}
-        make push-snapshot-docs
-
     - name: Upload Manifests
       uses: actions/upload-artifact@v1
       if: success()
@@ -171,3 +156,18 @@ jobs:
       with:
         name: test-output
         path: build/_output/test-logs
+
+    - name: Deploy Snapshots & Docs
+      if: ${{ github.ref == 'refs/heads/master' && success() }}
+      env:
+        MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
+        MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      shell: bash
+      run: |
+        git config --local user.name "Github Action"
+        git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        export NO_DAEMON=false
+        sh ./hack/maven-gpg.sh
+        make mvn-deploy GPG_PASSPHRASE=${GPG_PASSPHRASE}
+        make push-snapshot-docs
