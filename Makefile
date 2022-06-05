@@ -2258,7 +2258,7 @@ push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
 	git config pull.rebase true
 	git pull
 	rm -rf docs/snapshot
-	mv /tmp/coherence-operator/docs/ docs/snapshot/
+	mv /tmp/coherence-operator/_output/docs/ docs/snapshot/
 	git add -A docs/*
 	git status
 	git clean -d -f
