@@ -170,4 +170,4 @@ jobs:
         export NO_DAEMON=false
         sh ./hack/maven-gpg.sh
         make mvn-deploy GPG_PASSPHRASE=${GPG_PASSPHRASE}
-        make push-snapshot-docs
+        make push-snapshot-docs || true
