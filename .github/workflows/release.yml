@@ -54,6 +54,7 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11
         docker pull gcr.io/distroless/java17
+        make get-tanzu
 
     - name: Release
       shell: bash
