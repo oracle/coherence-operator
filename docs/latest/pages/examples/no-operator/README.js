@@ -41,6 +41,11 @@ We will use this image in the various examples we cover here. When we run the im
 In the <router-link to="/examples/no-operator/test-client/README"><code>test-client/</code></router-link> directory is a simple Maven project that we will use to run a simple Extend client.</p>
 
 </li>
+<li>
+<p><strong>Network Policies</strong>
+When running in Kubernetes cluster where <code>NetworkPolicy</code> rules are applied there are certain ingress and egress policies required to allow Coherence to work. These are covered in the <router-link to="/examples/095_network_policies/README">Network Policies Example</router-link></p>
+
+</li>
 </ul>
 </div>
 </div>

@@ -76,6 +76,19 @@
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
+<router-link to="/examples/095_network_policies/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Network Policies</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>An example covering the use of Kubernetes <code>NetworkPolicy</code> rules with the Operator and Coherence clusters.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
 <router-link to="/examples/100_federation/README"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
