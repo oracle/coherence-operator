@@ -79,7 +79,7 @@ If you want the default Coherence Operator installation then the simplest soluti
 
 [source,bash]
 ----
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.2.7/coherence-operator.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.2.8/coherence-operator.yaml
 ----
 
 This will create a namespace called `coherence` and install the Operator into it along with all the required `ClusterRole` and `RoleBinding` resources. The `coherence` namespace can be changed by downloading and editing the yaml file.
@@ -277,13 +277,13 @@ helm install  \
 
 If you want to use yaml directly to install the operator, with something like `kubectl`, you can use the manifest files
 published with the GitHub release at this link:
-https://github.com/oracle/coherence-operator/releases/download/v3.2.7/coherence-operator-manifests.tar.gz[3.2.7 Manifests]
+https://github.com/oracle/coherence-operator/releases/download/v3.2.8/coherence-operator-manifests.tar.gz[3.2.8 Manifests]
 
 These manifest files are for use with a tool called Kustomize, which is built into `kubectl`
 see the documentation here: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
 
 Download the
-https://github.com/oracle/coherence-operator/releases/download/v3.2.7/coherence-operator-manifests.tar.gz[3.2.7 Manifests]
+https://github.com/oracle/coherence-operator/releases/download/v3.2.8/coherence-operator-manifests.tar.gz[3.2.8 Manifests]
 from the release page and unpack the file, which should produce a directory called `manifests` with a structure like this:
 
 [source]
@@ -336,14 +336,14 @@ Change the name of the Operator image by running the command below, changing the
 that you are using for the Operator, for example if you have the images in a custom registry
 [source,bash]
 ----
-cd ./manager && kustomize edit set image controller=myregistry/coherence-operator:3.2.7
+cd ./manager && kustomize edit set image controller=myregistry/coherence-operator:3.2.8
 ----
 
 Change the name of the Operator utilities image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image
 [source,bash]
 ----
-cd ./manager && kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=myregistry/coherence-operator:3.2.7-utils
+cd ./manager && kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=myregistry/coherence-operator-utils:3.2.8
 ----
 
 Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
@@ -421,7 +421,7 @@ This can be done using the Tanzu CLI.
 [source,bash]
 ----
 tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.2.7 \
+    --url ghcr.io/oracle/coherence-operator-repo:3.2.8 \
     --namespace coherence \
     --create-namespace
 ----
@@ -451,7 +451,7 @@ which should include the Operator package, `coherence-operator.oracle.github.com
 [source,bash]
 ----
 NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
-coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.2.7
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.2.8
 ----
 
 === Install the Coherence Operator Package
@@ -462,7 +462,7 @@ Once the Coherence Operator repository has been installed, the `coherence-operat
 ----
 tanzu package install coherence \
     --package-name coherence-operator.oracle.github.com \
-    --version 3.2.7 \
+    --version 3.2.8 \
     --namespace coherence
 ----
 
@@ -478,7 +478,7 @@ which should display the Coherence Operator package.
 [source,bash]
 ----
 NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
-coherence  coherence-operator.oracle.github.com  3.2.7            Reconcile succeeded
+coherence  coherence-operator.oracle.github.com  3.2.8            Reconcile succeeded
 ----
 
 The Operator is now installed and ready to mage Coherence clusters.
