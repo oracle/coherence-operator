@@ -54,7 +54,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: ghcr.io/oracle/coherence-ce:21.12.1  # <1>
+      image: ghcr.io/oracle/coherence-ce:22.06  # <1>
       ports:
         - name: mbus
           containerPort: 8000
@@ -101,7 +101,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: ghcr.io/oracle/coherence-ce:21.12.1
+      image: ghcr.io/oracle/coherence-ce:22.06
       command:
         - java                         # <1>
         - -cp
