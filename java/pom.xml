@@ -40,7 +40,7 @@
         <maven.compiler.target>8</maven.compiler.target>
 
         <!--  The Coherence jar version (compile time dependency) -->
-        <coherence.version>21.12.4</coherence.version>
+        <coherence.version>22.06</coherence.version>
         <!-- The version of Coherence to use in the test images -->
         <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
         <coherence.test.version>${coherence.version}</coherence.test.version>

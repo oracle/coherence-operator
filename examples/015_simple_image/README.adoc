@@ -52,7 +52,7 @@ In the `build.gradle` file we add the bom as a platform dependency.
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:21.12.1")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
 ----
 
 We can then add the `coherence` and `coherence-management` modules as dependencies
@@ -77,7 +77,7 @@ In the `build.gradle` file we add the bom as a platform dependency.
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:21.12.1")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
 
     implementation "com.oracle.coherence.ce:coherence"
     implementation "com.oracle.coherence.ce:coherence-management"
