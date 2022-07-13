@@ -23,6 +23,9 @@ the various Coherence dashboard files.</p>
 <p>2 - Clone the Coherence Operator GitHub repo, checkout the branch or tag for the version you want to use and
 then obtain the dashboards from the <code>dashboards/</code> directory.</p>
 
+<div class="admonition note">
+<p class="admonition-inline">The recommended versions of Grafana to use are: <code>8.5.6</code> or <code>6.7.4</code>. It is not yet recommended to use the <code>9.x</code> versions of Grafana as there are a number of bugs that cause issues when using the dashboards.</p>
+</div>
 </div>
 
 <h2 id="_import_the_dashboards_into_grafana">Import the Dashboards into Grafana.</h2>
@@ -38,7 +41,7 @@ If your Grafana environment does not have this datasource, then there are two ch
 
 <ul class="ulist">
 <li>
-<p>Create a Prometheus datasource named <code>prometheus</code> as described in the <a id="" title="" target="_blank" href="https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/">Grafana Add a Datasource</a> documentation.</p>
+<p>Create a Prometheus datasource named <code>prometheus</code> as described in the <a id="" title="" target="_blank" href="https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/">Grafana Add a Datasource</a> documentation and make this the default datasource.</p>
 
 </li>
 <li>

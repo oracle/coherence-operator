@@ -21,7 +21,7 @@
 <h2 id="_coherence_grafana_dashboards">Coherence Grafana Dashboards</h2>
 <div class="section">
 <div class="admonition note">
-<p class="admonition-inline">Note: The Grafana dashboards require Coherence metrics, which is available only when using Coherence version 12.2.1.4.</p>
+<p class="admonition-inline">Note: The Grafana dashboards require Coherence metrics, which is available only when using Coherence version 12.2.1.4 or above.</p>
 </div>
 </div>
 
