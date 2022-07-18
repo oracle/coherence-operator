@@ -262,8 +262,8 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tbody>
 <tr>
 <td class=""><code>spec</code></td>
-<td class="">Spec will be used to create a Job, the name is the Coherence deployment name + \"-\" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource so it gets deleted when the Coherence resource is deleted.</td>
-<td class=""><code>batchv1.JobSpec</code></td>
+<td class="">Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource so it gets deleted when the Coherence resource is deleted.</td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#.jobspec-v1-batch">batchv1.JobSpec</a></code></td>
 <td class="">true</td>
 </tr>
 <tr>
@@ -316,7 +316,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>imagePullPolicy</code></td>
 <td class="">Image pull policy. One of Always, Never, IfNotPresent. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/containers/images#updating-images">https://kubernetes.io/docs/concepts/containers/images#updating-images</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#pullpolicy-v1-core">corev1.PullPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#pullpolicy(*string)-v1-core">corev1.PullPolicy(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -424,7 +424,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>env</code></td>
 <td class="">Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvar-v1-core">corev1.EnvVar</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envvar-v1-core">corev1.EnvVar</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -438,21 +438,21 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <td class="">Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:<br>
 <br>
 annotations:<br>
-  prometheus.io/scrape: \"true\" +<br>
-  prometheus.io/port: \"2408\"<br></td>
+  prometheus.io/scrape: "true" +<br>
+  prometheus.io/port: "2408"<br></td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>initContainers</code></td>
 <td class="">List of additional initialization containers to add to the deployment&#8217;s Pod. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">https://kubernetes.io/docs/concepts/workloads/pods/init-containers/</a></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core">corev1.Container</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core">corev1.Container</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>sideCars</code></td>
 <td class="">List of additional side-car containers to add to the deployment&#8217;s Pod.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#container-v1-core">corev1.Container</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core">corev1.Container</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -474,7 +474,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <td class="">Volumes defines extra volume mappings that will be added to the Coherence Pod.<br>
   The content of this yaml should match the normal k8s volumes section of a Pod definition +<br>
   as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/volumes/">https://kubernetes.io/docs/concepts/storage/volumes/</a><br></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volume-v1-core">corev1.Volume</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core">corev1.Volume</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -487,7 +487,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <td class=""><code>volumeMounts</code></td>
 <td class="">VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above<br>
   in store.volumes and store.volumeClaimTemplates<br></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volumemount-v1-core">corev1.VolumeMount</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumemount-v1-core">corev1.VolumeMount</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -517,7 +517,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>readinessGates</code></td>
 <td class="">ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate</a></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#podreadinessgate-v1-core">corev1.PodReadinessGate</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podreadinessgate-v1-core">corev1.PodReadinessGate</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -528,14 +528,14 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 By default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is &#8656; 32 or the JVM will see 32 cpus if the host has &gt; 32 cpus. The limit is set to zero so that there is no hard-limit applied.<br>
 <br>
 No default memory limits are applied.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>affinity</code></td>
 <td class="">Affinity controls Pod scheduling preferences.<br>
   ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity">https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity</a><br></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#affinity-v1-core">corev1.Affinity</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#affinity-v1-core">corev1.Affinity</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -551,25 +551,25 @@ No default memory limits are applied.</td>
   Useful if you want to dedicate nodes to just run the coherence container +<br>
 For example:<br>
   tolerations: +<br>
-  - key: \"key\" +<br>
-    operator: \"Equal\" +<br>
-    value: \"value\" +<br>
-    effect: \"NoSchedule\" +<br>
+  - key: "key" +<br>
+    operator: "Equal" +<br>
+    value: "value" +<br>
+    effect: "NoSchedule" +<br>
 <br>
   ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/">https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/</a><br></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#toleration-v1-core">corev1.Toleration</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#toleration-v1-core">corev1.Toleration</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>securityContext</code></td>
 <td class="">SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#podsecuritycontext-v1-core">corev1.PodSecurityContext</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podsecuritycontext-v1-core">corev1.PodSecurityContext</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>containerSecurityContext</code></td>
 <td class="">ContainerSecurityContext is the SecurityContext that will be added to the Coherence container in each Pod in this deployment. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#securitycontext-v1-core">corev1.SecurityContext</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#securitycontext-v1-core">corev1.SecurityContext</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -641,30 +641,30 @@ For example:<br>
 <tr>
 <td class=""><code>overhead</code></td>
 <td class="">Overhead represents the resource overhead associated with running a pod for a given RuntimeClass. This field will be autopopulated at admission time by the RuntimeClass admission controller. If the RuntimeClass admission controller is enabled, overhead must not be set in Pod create requests. The RuntimeClass admission controller will reject Pod create requests which have the overhead already set. If RuntimeClass is configured and selected in the PodSpec, Overhead will be set to the value defined in the corresponding RuntimeClass, otherwise it will remain unset and treated as zero. More info: <a id="" title="" target="_blank" href="https://git.k8s.io/enhancements/keps/sig-node/688-pod-overhead/README.md">https://git.k8s.io/enhancements/keps/sig-node/688-pod-overhead/README.md</a></td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#resourcelist-v1-core">corev1.ResourceList</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcelist-v1-core">corev1.ResourceList</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>preemptionPolicy</code></td>
 <td class="">PreemptionPolicy is the Policy for preempting pods with lower priority. One of Never, PreemptLowerPriority. Defaults to PreemptLowerPriority if unset.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#preemptionpolicy-v1-core">corev1.PreemptionPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#preemptionpolicy-v1-core">corev1.PreemptionPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>priorityClassName</code></td>
-<td class="">PriorityClassName, if specified, indicates the pod&#8217;s priority. \"system-node-critical\" and \"system-cluster-critical\" are two special keywords which indicate the highest priorities with the former being the highest priority. Any other name must be defined by creating a PriorityClass object with that name. If not specified, the pod priority will be default or zero if there is no default.</td>
+<td class="">PriorityClassName, if specified, indicates the pod&#8217;s priority. "system-node-critical" and "system-cluster-critical" are two special keywords which indicate the highest priorities with the former being the highest priority. Any other name must be defined by creating a PriorityClass object with that name. If not specified, the pod priority will be default or zero if there is no default.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>restartPolicy</code></td>
 <td class="">Restart policy for all containers within the pod. One of Always, OnFailure, Never. Default to Always. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#restartpolicy-v1-core">corev1.RestartPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#restartpolicy-v1-core">corev1.RestartPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>runtimeClassName</code></td>
-<td class="">RuntimeClassName refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.  If no RuntimeClass resource matches the named class, the pod will not be run. If unset or empty, the \"legacy\" RuntimeClass will be used, which is an implicit class with an empty definition that uses the default runtime handler. More info: <a id="" title="" target="_blank" href="https://git.k8s.io/enhancements/keps/sig-node/585-runtime-class">https://git.k8s.io/enhancements/keps/sig-node/585-runtime-class</a></td>
+<td class="">RuntimeClassName refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.  If no RuntimeClass resource matches the named class, the pod will not be run. If unset or empty, the "legacy" RuntimeClass will be used, which is an implicit class with an empty definition that uses the default runtime handler. More info: <a id="" title="" target="_blank" href="https://git.k8s.io/enhancements/keps/sig-node/585-runtime-class">https://git.k8s.io/enhancements/keps/sig-node/585-runtime-class</a></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -677,7 +677,7 @@ For example:<br>
 <tr>
 <td class=""><code>topologySpreadConstraints</code></td>
 <td class="">TopologySpreadConstraints describes how a group of pods ought to spread across topology domains. Scheduler will schedule pods in a way which abides by the constraints. All topologySpreadConstraints are ANDed.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#topologyspreadconstraint-v1-core">corev1.TopologySpreadConstraint</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#topologyspreadconstraint-v1-core">corev1.TopologySpreadConstraint</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -723,13 +723,13 @@ For example:<br>
 <tbody>
 <tr>
 <td class=""><code>type</code></td>
-<td class="">The application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to \"node\". The default is to run a plain Java application.</td>
+<td class="">The application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to "node". The default is to run a plain Java application.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>main</code></td>
-<td class="">Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is \"node\" the main may be a Javascript file.</td>
+<td class="">Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is "node" the main may be a Javascript file.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -741,7 +741,7 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>workingDir</code></td>
-<td class="">The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is \"/app\".</td>
+<td class="">The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is "/app".</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -753,7 +753,7 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>springBootFatJar</code></td>
-<td class="">SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is \"/app/libs/foo.jar\" the command line will be \"java -jar app/libs/foo.jar\"</td>
+<td class="">SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -924,7 +924,7 @@ see: <router-link to="#coherence_settings/070_wka.adoc" @click.native="this.scro
 <tr>
 <td class=""><code>localPortAdjust</code></td>
 <td class="">LocalPortAdjust sets the Coherence unicast port adjust value. To specify a range of unicast ports from which ports are selected, include a port value that represents the upper limit of the port range.</td>
-<td class=""><code>&#42;intstr.IntOrString</code></td>
+<td class=""><code>&#42;intstr.IntOrString (*int or *string)</code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1067,26 +1067,26 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 </tr>
 <tr>
 <td class=""><code>subPath</code></td>
-<td class="">Path within the volume from which the container&#8217;s volume should be mounted. Defaults to \"\" (volume&#8217;s root).</td>
+<td class="">Path within the volume from which the container&#8217;s volume should be mounted. Defaults to "" (volume&#8217;s root).</td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>mountPropagation</code></td>
 <td class="">mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#mountpropagationmode-v1-core">corev1.MountPropagationMode</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#mountpropagationmode-v1-core">corev1.MountPropagationMode</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>subPathExpr</code></td>
-<td class="">Expanded path within the volume from which the container&#8217;s volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container&#8217;s environment. Defaults to \"\" (volume&#8217;s root). SubPathExpr and SubPath are mutually exclusive.</td>
+<td class="">Expanded path within the volume from which the container&#8217;s volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container&#8217;s environment. Defaults to "" (volume&#8217;s root). SubPathExpr and SubPath are mutually exclusive.</td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>items</code></td>
 <td class="">If unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the ConfigMap, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1139,7 +1139,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>imagePullPolicy</code></td>
 <td class="">Image pull policy. One of Always, Never, IfNotPresent. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/containers/images#updating-images">https://kubernetes.io/docs/concepts/containers/images#updating-images</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#pullpolicy-v1-core">corev1.PullPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#pullpolicy(*string)-v1-core">corev1.PullPolicy(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1203,8 +1203,8 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 </tr>
 <tr>
 <td class=""><code>diagnosticsVolume</code></td>
-<td class="">&#160;</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
+<td class="">DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1511,7 +1511,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 </tr>
 <tr>
 <td class=""><code>nativeMemoryTracking</code></td>
-<td class="">Adds the -XX:NativeMemoryTracking=mode  JVM options where mode is on of \"off\", \"summary\" or \"detail\", the default is \"summary\" If not set to \"off\" also add -XX:+PrintNMTStatistics</td>
+<td class="">Adds the -XX:NativeMemoryTracking=mode  JVM options where mode is on of "off", "summary" or "detail", the default is "summary" If not set to "off" also add -XX:+PrintNMTStatistics</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -1640,8 +1640,8 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 </tr>
 <tr>
 <td class=""><code>protocol</code></td>
-<td class="">Protocol for container port. Must be UDP or TCP. Defaults to \"TCP\"</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#protocol-v1-core">corev1.Protocol</a></code></td>
+<td class="">Protocol for container port. Must be UDP or TCP. Defaults to "TCP"</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#protocol(*string)-v1-core">corev1.Protocol(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1717,14 +1717,14 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 </tr>
 <tr>
 <td class=""><code>dnsPolicy</code></td>
-<td class="">Set DNS policy for the pod. Defaults to \"ClusterFirst\". Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS policy explicitly to 'ClusterFirstWithHostNet'.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#dnspolicy-v1-core">corev1.DNSPolicy</a></code></td>
+<td class="">Set DNS policy for the pod. Defaults to "ClusterFirst". Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS policy explicitly to 'ClusterFirstWithHostNet'.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#dnspolicy-v1-core">corev1.DNSPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>hostAliases</code></td>
 <td class="">HostAliases is an optional list of hosts and IPs that will be injected into the pod&#8217;s hosts file if specified. This is only valid for non-hostNetwork pods.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#hostalias-v1-core">corev1.HostAlias</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#hostalias-v1-core">corev1.HostAlias</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1747,7 +1747,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 </tr>
 <tr>
 <td class=""><code>subdomain</code></td>
-<td class="">Subdomain, if specified, the fully qualified Pod hostname will be \"&lt;hostname&gt;.&lt;subdomain&gt;.&lt;pod namespace&gt;.svc.&lt;cluster domain&gt;\". If not specified, the pod will not have a domain name at all.</td>
+<td class="">Subdomain, if specified, the fully qualified Pod hostname will be "&lt;hostname&gt;.&lt;subdomain&gt;.&lt;pod namespace&gt;.svc.&lt;cluster domain&gt;". If not specified, the pod will not have a domain name at all.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -1782,20 +1782,20 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tbody>
 <tr>
 <td class=""><code>mode</code></td>
-<td class="">The persistence mode to use. Valid choices are \"on-demand\", \"active\", \"active-async\". This field will set the coherence.distributed.persistence-mode System property to \"default-\" + Mode.</td>
+<td class="">The persistence mode to use. Valid choices are "on-demand", "active", "active-async". This field will set the coherence.distributed.persistence-mode System property to "default-" + Mode.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>persistentVolumeClaim</code></td>
 <td class="">PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>volume</code></td>
 <td class="">Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1836,13 +1836,13 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>persistentVolumeClaim</code></td>
 <td class="">PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>volume</code></td>
 <td class="">Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1883,7 +1883,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>spec</code></td>
 <td class="">Spec defines the desired characteristics of a volume requested by a pod author. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims">https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims</a></td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1977,7 +1977,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>options</code></td>
 <td class="">A list of DNS resolver options. This will be merged with the base options generated from DNSPolicy. Duplicated entries will be removed. Resolution options given in Options will override those that appear in the base DNSPolicy.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#poddnsconfigoption-v1-core">corev1.PodDNSConfigOption</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#poddnsconfigoption-v1-core">corev1.PodDNSConfigOption</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2094,19 +2094,19 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>exec</code></td>
 <td class="">One and only one of the following should be specified. Exec specifies the action to take.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#execaction-v1-core">corev1.ExecAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#execaction-v1-core">corev1.ExecAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>httpGet</code></td>
 <td class="">HTTPGet specifies the http request to perform.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>tcpSocket</code></td>
 <td class="">TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2141,19 +2141,19 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>exec</code></td>
 <td class="">One and only one of the following should be specified. Exec specifies the action to take.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#execaction-v1-core">corev1.ExecAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#execaction-v1-core">corev1.ExecAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>httpGet</code></td>
 <td class="">HTTPGet specifies the http request to perform.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>tcpSocket</code></td>
 <td class="">TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2311,7 +2311,8 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 </tr>
 <tr>
 <td class=""><code>secrets</code></td>
-<td class="">Secrets is the name of the k8s secrets containing the Java key stores and password files.<br>
+<td class="">Secrets is the name of the k8s secret containing the Java key stores and password files.<br>
+  The secret should be in the same namespace as the Coherence resource. +<br>
   This value MUST be provided if SSL is enabled on the Coherence management over REST endpoint.<br></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
@@ -2498,26 +2499,26 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>subPath</code></td>
-<td class="">Path within the volume from which the container&#8217;s volume should be mounted. Defaults to \"\" (volume&#8217;s root).</td>
+<td class="">Path within the volume from which the container&#8217;s volume should be mounted. Defaults to "" (volume&#8217;s root).</td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>mountPropagation</code></td>
 <td class="">mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#mountpropagationmode-v1-core">corev1.MountPropagationMode</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#mountpropagationmode-v1-core">corev1.MountPropagationMode</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>subPathExpr</code></td>
-<td class="">Expanded path within the volume from which the container&#8217;s volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container&#8217;s environment. Defaults to \"\" (volume&#8217;s root). SubPathExpr and SubPath are mutually exclusive.</td>
+<td class="">Expanded path within the volume from which the container&#8217;s volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container&#8217;s environment. Defaults to "" (volume&#8217;s root). SubPathExpr and SubPath are mutually exclusive.</td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>items</code></td>
 <td class="">If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the Secret, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2642,7 +2643,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>bearerTokenSecret</code></td>
 <td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2736,8 +2737,8 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>type</code></td>
-<td class="">Kind is the K8s service type (typically ClusterIP or LoadBalancer) The default is \"ClusterIP\".</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#servicetype-v1-core">corev1.ServiceType</a></code></td>
+<td class="">Kind is the K8s service type (typically ClusterIP or LoadBalancer) The default is "ClusterIP".</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#servicetype(*string)-v1-core">corev1.ServiceType(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2748,15 +2749,15 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>clusterIP</code></td>
-<td class="">clusterIP is the IP address of the service and is usually assigned randomly by the master. If an address is specified manually and is not in use by others, it will be allocated to the service; otherwise, creation of the service will fail. This field can not be changed through updates. Valid values are \"None\", empty string (\"\"), or a valid IP address. \"None\" can be specified for headless services when proxying is not required. Only applies to types ClusterIP, NodePort, and LoadBalancer. Ignored if type is ExternalName. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
+<td class="">clusterIP is the IP address of the service and is usually assigned randomly by the master. If an address is specified manually and is not in use by others, it will be allocated to the service; otherwise, creation of the service will fail. This field can not be changed through updates. Valid values are "None", empty string (""), or a valid IP address. "None" can be specified for headless services when proxying is not required. Only applies to types ClusterIP, NodePort, and LoadBalancer. Ignored if type is ExternalName. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>clusterIPs</code></td>
-<td class="">ClusterIPs is a list of IP addresses assigned to this service, and are usually assigned randomly.  If an address is specified manually, is in-range (as per system configuration), and is not in use, it will be allocated to the service; otherwise creation of the service will fail. This field may not be changed through updates unless the type field is also being changed to ExternalName (which requires this field to be empty) or the type field is being changed from ExternalName (in which case this field may optionally be specified, as describe above).  Valid values are \"None\", empty string (\"\"), or a valid IP address.  Setting this to \"None\" makes a \"headless service\" (no virtual IP), which is useful when direct endpoint connections are preferred and proxying is not required.  Only applies to types ClusterIP, NodePort, and LoadBalancer. If this field is specified when creating a Service of type ExternalName, creation will fail. This field will be wiped when updating a Service to type ExternalName.  If this field is not specified, it will be initialized from the clusterIP field.  If this field is specified, clients must ensure that clusterIPs[0] and clusterIP have the same value.<br>
+<td class="">ClusterIPs is a list of IP addresses assigned to this service, and are usually assigned randomly.  If an address is specified manually, is in-range (as per system configuration), and is not in use, it will be allocated to the service; otherwise creation of the service will fail. This field may not be changed through updates unless the type field is also being changed to ExternalName (which requires this field to be empty) or the type field is being changed from ExternalName (in which case this field may optionally be specified, as describe above).  Valid values are "None", empty string (""), or a valid IP address.  Setting this to "None" makes a "headless service" (no virtual IP), which is useful when direct endpoint connections are preferred and proxying is not required.  Only applies to types ClusterIP, NodePort, and LoadBalancer. If this field is specified when creating a Service of type ExternalName, creation will fail. This field will be wiped when updating a Service to type ExternalName.  If this field is not specified, it will be initialized from the clusterIP field.  If this field is specified, clients must ensure that clusterIPs[0] and clusterIP have the same value.<br>
 <br>
-Unless the \"IPv6DualStack\" feature gate is enabled, this field is limited to one value, which must be the same as the clusterIP field.  If the feature gate is enabled, this field may hold a maximum of two entries (dual-stack IPs, in either order).  These IPs must correspond to the values of the ipFamilies field. Both clusterIPs and ipFamilies are governed by the ipFamilyPolicy field. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
+Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one value, which must be the same as the clusterIP field.  If the feature gate is enabled, this field may hold a maximum of two entries (dual-stack IPs, in either order).  These IPs must correspond to the values of the ipFamilies field. Both clusterIPs and ipFamilies are governed by the ipFamilyPolicy field. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
@@ -2780,13 +2781,13 @@ Unless the \"IPv6DualStack\" feature gate is enabled, this field is limited to o
 </tr>
 <tr>
 <td class=""><code>sessionAffinity</code></td>
-<td class="">Supports \"ClientIP\" and \"None\". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#serviceaffinity-v1-core">corev1.ServiceAffinity</a></code></td>
+<td class="">Supports "ClientIP" and "None". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#serviceaffinity(*string)-v1-core">corev1.ServiceAffinity(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>loadBalancerSourceRanges</code></td>
-<td class="">If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature.\" More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/">https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/</a></td>
+<td class="">If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature." More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/">https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/</a></td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
@@ -2798,8 +2799,8 @@ Unless the \"IPv6DualStack\" feature gate is enabled, this field is limited to o
 </tr>
 <tr>
 <td class=""><code>externalTrafficPolicy</code></td>
-<td class="">externalTrafficPolicy denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints. \"Local\" preserves the client source IP and avoids a second hop for LoadBalancer and Nodeport type services, but risks potentially imbalanced traffic spreading. \"Cluster\" obscures the client source IP and may cause a second hop to another node, but should have good overall load-spreading.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#serviceexternaltrafficpolicytype-v1-core">corev1.ServiceExternalTrafficPolicyType</a></code></td>
+<td class="">externalTrafficPolicy denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints. "Local" preserves the client source IP and avoids a second hop for LoadBalancer and Nodeport type services, but risks potentially imbalanced traffic spreading. "Cluster" obscures the client source IP and may cause a second hop to another node, but should have good overall load-spreading.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#serviceexternaltrafficpolicytype(*string)-v1-core">corev1.ServiceExternalTrafficPolicyType(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2817,26 +2818,26 @@ Unless the \"IPv6DualStack\" feature gate is enabled, this field is limited to o
 <tr>
 <td class=""><code>sessionAffinityConfig</code></td>
 <td class="">sessionAffinityConfig contains the configurations of session affinity.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#sessionaffinityconfig-v1-core">corev1.SessionAffinityConfig</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#sessionaffinityconfig-v1-core">corev1.SessionAffinityConfig</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>ipFamilies</code></td>
-<td class="">IPFamilies is a list of IP families (e.g. IPv4, IPv6) assigned to this service, and is gated by the \"IPv6DualStack\" feature gate.  This field is usually assigned automatically based on cluster configuration and the ipFamilyPolicy field. If this field is specified manually, the requested family is available in the cluster, and ipFamilyPolicy allows it, it will be used; otherwise creation of the service will fail.  This field is conditionally mutable: it allows for adding or removing a secondary IP family, but it does not allow changing the primary IP family of the Service.  Valid values are \"IPv4\" and \"IPv6\".  This field only applies to Services of types ClusterIP, NodePort, and LoadBalancer, and does apply to \"headless\" services.  This field will be wiped when updating a Service to type ExternalName.<br>
+<td class="">IPFamilies is a list of IP families (e.g. IPv4, IPv6) assigned to this service, and is gated by the "IPv6DualStack" feature gate.  This field is usually assigned automatically based on cluster configuration and the ipFamilyPolicy field. If this field is specified manually, the requested family is available in the cluster, and ipFamilyPolicy allows it, it will be used; otherwise creation of the service will fail.  This field is conditionally mutable: it allows for adding or removing a secondary IP family, but it does not allow changing the primary IP family of the Service.  Valid values are "IPv4" and "IPv6".  This field only applies to Services of types ClusterIP, NodePort, and LoadBalancer, and does apply to "headless" services.  This field will be wiped when updating a Service to type ExternalName.<br>
 <br>
 This field may hold a maximum of two entries (dual-stack families, in either order).  These families must correspond to the values of the clusterIPs field, if specified. Both clusterIPs and ipFamilies are governed by the ipFamilyPolicy field.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#ipfamily-v1-core">corev1.IPFamily</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#ipfamily(*string)-v1-core">corev1.IPFamily(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>ipFamilyPolicy</code></td>
-<td class="">IPFamilyPolicy represents the dual-stack-ness requested or required by this Service, and is gated by the \"IPv6DualStack\" feature gate.  If there is no value provided, then this field will be set to SingleStack. Services can be \"SingleStack\" (a single IP family), \"PreferDualStack\" (two IP families on dual-stack configured clusters or a single IP family on single-stack clusters), or \"RequireDualStack\" (two IP families on dual-stack configured clusters, otherwise fail). The ipFamilies and clusterIPs fields depend on the value of this field.  This field will be wiped when updating a service to type ExternalName.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#ipfamilypolicytype-v1-core">corev1.IPFamilyPolicyType</a></code></td>
+<td class="">IPFamilyPolicy represents the dual-stack-ness requested or required by this Service, and is gated by the "IPv6DualStack" feature gate.  If there is no value provided, then this field will be set to SingleStack. Services can be "SingleStack" (a single IP family), "PreferDualStack" (two IP families on dual-stack configured clusters or a single IP family on single-stack clusters), or "RequireDualStack" (two IP families on dual-stack configured clusters, otherwise fail). The ipFamilies and clusterIPs fields depend on the value of this field.  This field will be wiped when updating a service to type ExternalName.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#ipfamilypolicytype(*string)-v1-core">corev1.IPFamilyPolicyType(*string)</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>allocateLoadBalancerNodePorts</code></td>
-<td class="">allocateLoadBalancerNodePorts defines if NodePorts will be automatically allocated for services with type LoadBalancer.  Default is \"true\". It may be set to \"false\" if the cluster load-balancer does not rely on NodePorts. allocateLoadBalancerNodePorts may only be set for services with type LoadBalancer and will be cleared if the type is changed to any other type. This field is alpha-level and is only honored by servers that enable the ServiceLBNodePortControl feature.</td>
+<td class="">allocateLoadBalancerNodePorts defines if NodePorts will be automatically allocated for services with type LoadBalancer.  Default is "true". It may be set to "false" if the cluster load-balancer does not rely on NodePorts. allocateLoadBalancerNodePorts may only be set for services with type LoadBalancer and will be cleared if the type is changed to any other type. This field is alpha-level and is only honored by servers that enable the ServiceLBNodePortControl feature.</td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
@@ -2972,7 +2973,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <tr>
 <td class=""><code>metadata</code></td>
 <td class="">&#160;</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3019,7 +3020,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <tr>
 <td class=""><code>metadata</code></td>
 <td class="">&#160;</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
