@@ -46,7 +46,7 @@ These are all the types and fields that are used in the Coherence CRD.
 
 TIP: This document was generated from comments in the Go structs in the pkg/api/ directory.`
 
-	k8sLink = "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#"
+	k8sLink = "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#"
 )
 
 var (
@@ -223,8 +223,8 @@ func fmtRawDoc(rawDoc string) string {
 	}
 
 	postDoc := strings.TrimRight(buffer.String(), "\n")
-	postDoc = strings.Replace(postDoc, "\\\"", "\"", -1) // replace user's \" to "
-	postDoc = strings.Replace(postDoc, "\"", "\\\"", -1) // Escape "
+	//postDoc = strings.Replace(postDoc, "\\\"", "\"", -1) // replace user's \" to "
+	//postDoc = strings.Replace(postDoc, "\"", "\\\"", -1) // Escape "
 	postDoc = strings.Replace(postDoc, "\n", " +\n", -1)
 	postDoc = strings.Replace(postDoc, "\t", "&#160;&#160;&#160;&#160;", -1)
 	postDoc = strings.Replace(postDoc, "|", "\\|", -1)
@@ -266,6 +266,24 @@ func toLink(typeName string) string {
 	}
 
 	switch {
+	case typeName == "corev1.IPFamily":
+		return typeName + "(*string)"
+	case typeName == "corev1.IPFamilyPolicyType":
+		return typeName + "(*string)"
+	case typeName == "corev1.PullPolicy":
+		return typeName + "(*string)"
+	case typeName == "corev1.Protocol":
+		return typeName + "(*string)"
+	case typeName == "corev1.ServiceAffinity":
+		return typeName + "(*string)"
+	case typeName == "corev1.ServiceExternalTrafficPolicyType":
+		return typeName + "(*string)"
+	case typeName == "corev1.ServiceType":
+		return typeName + "(*string)"
+	case typeName == "intstr.IntOrString":
+		return "intstr.IntOrString (*int or *string)"
+	case strings.HasPrefix(typeName, "batchv1."):
+		return fmt.Sprintf("%s%s-v1-batch[%s]", k8sLink, strings.ToLower(typeName[7:]), escapeTypeName(typeName))
 	case strings.HasPrefix(typeName, "corev1."):
 		return fmt.Sprintf("%s%s-v1-core[%s]", k8sLink, strings.ToLower(typeName[7:]), escapeTypeName(typeName))
 	case strings.HasPrefix(typeName, "metav1."):

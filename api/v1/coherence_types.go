@@ -525,6 +525,7 @@ type JVMSpec struct {
 	// Set JVM garbage collector options.
 	// +optional
 	Gc *JvmGarbageCollectorSpec `json:"gc,omitempty"`
+	// DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc.
 	// +optional
 	DiagnosticsVolume *corev1.VolumeSource `json:"diagnosticsVolume,omitempty"`
 	// Configure the JVM memory options.
@@ -783,7 +784,8 @@ type SSLSpec struct {
 	// over REST endpoint, the default is false (disabled).
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
-	// Secrets is the name of the k8s secrets containing the Java key stores and password files.
+	// Secrets is the name of the k8s secret containing the Java key stores and password files.
+	//   The secret should be in the same namespace as the Coherence resource.
 	//   This value MUST be provided if SSL is enabled on the Coherence management over REST endpoint.
 	// +optional
 	Secrets *string `json:"secrets,omitempty"`
