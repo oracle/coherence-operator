@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -15,6 +15,8 @@ This page will be updated and maintained over time to include common issues we s
 
 == Contents
 
+* <<no-operator,I Uninstalled the Operator and Cannot Delete the Coherence Clusters>>
+
 * <<#restart,Why Does the Operator Pod Restart>>
 
 * <<#ready,Why are the Coherence Pods not reaching ready>>
@@ -28,6 +30,29 @@ This page will be updated and maintained over time to include common issues we s
 * <<dashboards,My Grafana Dashboards do not display any metrics>>
 
 == Issues
+
+[#no-operator]
+=== I Uninstalled the Operator and Cannot Delete the Coherence Clusters
+
+The `Coherence` resources managed by the Operator are marked in k8s as being owned by the Operator, and have finalizers to stop them being deleted. In normal operation the Operator will remove the finalizer when it deletes a `Coherence` cluster. The Operator also installs a validating and mutating web-hook, which will also stop k8s allowing mutations and deletions to a `Coherence` resource if the Coherence Operator is not running.
+
+If the Operator has been uninstalled, first remove the two web-hooks.
+
+[source,bash]
+----
+kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration
+kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration
+----
+
+Now patch and delete each Coherence resource to delete its finalizers using the command below and replacing `<NAMESPACE>` with the correct namespace the `Coherence` resource is in and `<COHERENCE_RESOURCE_NAME>` with the
+`Coherence` resource name.
+
+[source,bash]
+----
+kubectl -n <NAMESPACE> patch coherence/<COHERENCE_RESOURCE_NAME> -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl -n <NAMESPACE> delete coherence/<COHERENCE_RESOURCE_NAME>
+----
+
 
 [#restart]
 === Why Does the Operator Pod Restart After Installation
