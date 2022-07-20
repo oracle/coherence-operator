@@ -11,6 +11,10 @@ This page will be updated and maintained over time to include common issues we s
 <div class="section">
 <ul class="ulist">
 <li>
+<p><router-link to="#no-operator" @click.native="this.scrollFix('#no-operator')">I Uninstalled the Operator and Cannot Delete the Coherence Clusters</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#restart" @click.native="this.scrollFix('#restart')">Why Does the Operator Pod Restart</router-link></p>
 
 </li>
@@ -39,6 +43,29 @@ This page will be updated and maintained over time to include common issues we s
 
 <h2 id="_issues">Issues</h2>
 <div class="section">
+
+<h3 id="no-operator">I Uninstalled the Operator and Cannot Delete the Coherence Clusters</h3>
+<div class="section">
+<p>The <code>Coherence</code> resources managed by the Operator are marked in k8s as being owned by the Operator, and have finalizers to stop them being deleted. In normal operation the Operator will remove the finalizer when it deletes a <code>Coherence</code> cluster. The Operator also installs a validating and mutating web-hook, which will also stop k8s allowing mutations and deletions to a <code>Coherence</code> resource if the Coherence Operator is not running.</p>
+
+<p>If the Operator has been uninstalled, first remove the two web-hooks.</p>
+
+<markup
+lang="bash"
+
+>kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration
+kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration</markup>
+
+<p>Now patch and delete each Coherence resource to delete its finalizers using the command below and replacing <code>&lt;NAMESPACE&gt;</code> with the correct namespace the <code>Coherence</code> resource is in and <code>&lt;COHERENCE_RESOURCE_NAME&gt;</code> with the
+<code>Coherence</code> resource name.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n &lt;NAMESPACE&gt; patch coherence/&lt;COHERENCE_RESOURCE_NAME&gt; -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl -n &lt;NAMESPACE&gt; delete coherence/&lt;COHERENCE_RESOURCE_NAME&gt;</markup>
+
+</div>
 
 <h3 id="restart">Why Does the Operator Pod Restart After Installation</h3>
 <div class="section">
