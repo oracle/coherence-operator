@@ -19,17 +19,24 @@ image:GitHub-Mark-32px.png[] The complete source code for the examples is in the
 [PILLARS]
 ====
 [CARD]
+.Simple Coherence Image using JIB
+[link=examples/015_simple_image/README.adoc]
+--
+Building a simple Coherence image with https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] using Maven or Gradle.
+--
+
+[CARD]
+.Simple Coherence Image using a Dockerfile
+[link=examples/016_simple_docker_image/README.adoc]
+--
+Building a simple Coherence image with a Dockerfile, that works out of the box with the Operator.
+--
+
+[CARD]
 .Hello World
 [link=examples/020_hello_world/README.adoc]
 --
 Deploying the most basic Coherence cluster using the Operator.
---
-
-[CARD]
-.Simple Coherence Image
-[link=examples/015_simple_image/README.adoc]
---
-Building a simple Coherence image with JIB using Maven or Gradle.
 --
 ====
 

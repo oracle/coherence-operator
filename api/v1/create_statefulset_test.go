@@ -455,40 +455,6 @@ func TestCreateStatefulSetWithEnableServiceLinksTrue(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithOverheadEmpty(t *testing.T) {
-	spec := coh.CoherenceResourceSpec{
-		Overhead: corev1.ResourceList{},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.Overhead = corev1.ResourceList{}
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithOverhead(t *testing.T) {
-	qty, _ := resource.ParseQuantity("1500m")
-
-	overhead := corev1.ResourceList{}
-	overhead[corev1.ResourceCPU] = qty
-	spec := coh.CoherenceResourceSpec{
-		Overhead: overhead,
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.Overhead = overhead
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
 func TestCreateStatefulSetWithPreemptionPolicy(t *testing.T) {
 	policy := corev1.PreemptNever
 	spec := coh.CoherenceResourceSpec{
