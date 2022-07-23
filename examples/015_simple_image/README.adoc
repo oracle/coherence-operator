@@ -5,9 +5,9 @@
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
-= Build a Coherence Server Image
+= Example Coherence Image using JIB
 
-== Example Coherence Server Image
+== Example Coherence Image using JIB
 
 This example shows how to build a simple Coherence server image using
 https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] with either Maven or Gradle.
@@ -27,7 +27,7 @@ image:GitHub-Mark-32px.png[] The complete source code for this example is in the
 
 To build a Coherence application there will obviously be at a minimum a dependency on `coherence.jar`.
 Optionally we can also add dependencies on other Coherence modules.
-In this example we're going to add management over REST to the application by adding a dependency on `coherence-management`.
+In this example we're going to add json support to the application by adding a dependency on `coherence-json`.
 
 In the example we use the `coherence-bom` which ensures that we have consistent use of other Coherence modules.
 In the `pom.xml` we have a `dependencyManagement` section.
@@ -55,7 +55,7 @@ dependencies {
     implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
 ----
 
-We can then add the `coherence` and `coherence-management` modules as dependencies
+We can then add the `coherence` and `coherence-json` modules as dependencies
 
 [source,xml]
 .pom.xml
@@ -67,7 +67,7 @@ We can then add the `coherence` and `coherence-management` modules as dependenci
         </dependency>
         <dependency>
             <groupId>com.oracle.coherence.ce</groupId>
-            <artifactId>coherence-management</artifactId>
+            <artifactId>coherence-json</artifactId>
         </dependency>
     </dependencies>
 ----
@@ -80,7 +80,7 @@ dependencies {
     implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
 
     implementation "com.oracle.coherence.ce:coherence"
-    implementation "com.oracle.coherence.ce:coherence-management"
+    implementation "com.oracle.coherence.ce:coherence-json"
 }
 ----
 

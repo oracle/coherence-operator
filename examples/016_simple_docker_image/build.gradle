@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+	id 'java'
+}
+
+group = 'com.oracle.coherence.examples'
+version = '1.0.0'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.1")
+
+	implementation "com.oracle.coherence.ce:coherence"
+	implementation "com.oracle.coherence.ce:coherence-json"
+	implementation "com.oracle.coherence.ce:coherence-grpc-proxy"
+}
+
+// Copy the runtime dependencies to build/docker/app/libs
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into "$buildDir/docker/app/libs"
+    configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.each {
+        rename "${it.artifact.name}-${it.artifactId.componentIdentifier.version}", "${it.artifact.name}"
+    }
+}
+
+// Copy any compiled classes to build/docker/app/classes
+task copyClasses(type: Copy) {
+    dependsOn classes
+    from "$buildDir/classes/java/main"
+    into "$buildDir/docker/app/classes"
+}
+
+// Copy the contents of src/docker to build/docker
+task copyDocker(type: Copy) {
+    from "src/docker"
+    into "$buildDir/docker"
+}
+
+// Execute all the tasks to copy artifacts to build.docker
+task assembleImage {
+    dependsOn 'copyDependencies', 'copyClasses', 'copyDocker'
+}
+
+// Run the docker build command
+task buildImage(type: Exec) {
+    dependsOn 'assembleImage'
+    workingDir "$buildDir/docker"
+    executable "docker"
+    args "build", "-t", "$project.name:latest", "."
+}

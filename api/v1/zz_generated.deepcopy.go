@@ -481,13 +481,6 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.Overhead != nil {
-		in, out := &in.Overhead, &out.Overhead
-		*out = make(corev1.ResourceList, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val.DeepCopy()
-		}
-	}
 	if in.PreemptionPolicy != nil {
 		in, out := &in.PreemptionPolicy, &out.PreemptionPolicy
 		*out = new(corev1.PreemptionPolicy)

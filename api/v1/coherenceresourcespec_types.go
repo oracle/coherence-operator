@@ -311,15 +311,6 @@ type CoherenceResourceSpec struct {
 	// Optional: Defaults to true.
 	// +optional
 	EnableServiceLinks *bool `json:"enableServiceLinks,omitempty"`
-	// Overhead represents the resource overhead associated with running a pod for a given RuntimeClass.
-	// This field will be autopopulated at admission time by the RuntimeClass admission controller. If
-	// the RuntimeClass admission controller is enabled, overhead must not be set in Pod create requests.
-	// The RuntimeClass admission controller will reject Pod create requests which have the overhead already
-	// set. If RuntimeClass is configured and selected in the PodSpec, Overhead will be set to the value
-	// defined in the corresponding RuntimeClass, otherwise it will remain unset and treated as zero.
-	// More info: https://git.k8s.io/enhancements/keps/sig-node/688-pod-overhead/README.md
-	// +optional
-	Overhead corev1.ResourceList `json:"overhead,omitempty" protobuf:"bytes,32,opt,name=overhead"`
 	// PreemptionPolicy is the Policy for preempting pods with lower priority.
 	// One of Never, PreemptLowerPriority.
 	// Defaults to PreemptLowerPriority if unset.
@@ -795,7 +786,6 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				EnableServiceLinks:           in.EnableServiceLinks,
 				HostIPC:                      notNilBool(in.HostIPC),
 				ImagePullSecrets:             in.GetImagePullSecrets(),
-				Overhead:                     in.Overhead,
 				PreemptionPolicy:             in.PreemptionPolicy,
 				PriorityClassName:            notNilString(in.PriorityClassName),
 				NodeSelector:                 in.NodeSelector,

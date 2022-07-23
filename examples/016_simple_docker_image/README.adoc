@@ -1,0 +1,365 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= Example Coherence Image using a Dockerfile
+
+== Example Coherence Image using a Dockerfile
+
+This example shows how to build a simple Coherence server image using a `Dockerfile`.
+This image is built so that ot works out of the box with the Operator, with no additional configuration.
+This is an alternative to the <<examples/015_simple_image/README.adoc,Coherence Image using JIB>> example.
+There are many build tools and plugins for Maven and Gradle that are supposed to make building images easy.
+Sometimes though, a simple `Dockerfile` approach is required.
+
+A typical Coherence application image will still need to pull together various Coherence dependencies to add to the image.
+This simple application does not actually contain any code, a real application would likely contain code and other resources.
+
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/016_simple_docker_image[Coherence Operator GitHub] repository.
+====
+
+
+== The Dockerfile
+
+The `Dockerfile` for the example is shown below:
+
+[source]
+.src/docker/Dockerfile
+----
+FROM gcr.io/distroless/java11
+
+# Configure the image's health check command
+# Health checks will only work with Coherence 22.06 and later
+HEALTHCHECK  --start-period=10s --interval=30s \
+    CMD ["java", \
+    "-cp", "/app/libs/coherence.jar", \
+    "com.tangosol.util.HealthCheckClient", \
+    "http://127.0.0.1:6676/ready", \
+    "||", "exit", "1"]
+
+# Expose any default ports
+# The default Coherence Extend port
+EXPOSE 20000
+# The default Coherence gRPC port
+EXPOSE 1408
+# The default Coherence metrics port
+EXPOSE 9612
+# The default Coherence health port
+EXPOSE 6676
+
+# Set the entry point to be the Java command to run
+ENTRYPOINT ["java", "-cp", "/app/classes:/app/libs/*", "com.tangosol.net.Coherence"]
+
+# Set any environment variables
+# Set the health check port to a fixed value (corresponding to the command above)
+ENV COHERENCE_HEALTH_HTTP_PORT=6676
+# Fix the Extend Proxy to listen on port 20000
+ENV COHERENCE_EXTEND_PORT=20000
+# Enable Coherence metics
+ENV COHERENCE_METRICS_HTTP_ENABLED=true
+# Set the Coherence log level to debug logging
+ENV COHERENCE_LOG_LEVEL=9
+# Effectively disabled multicast cluster discovery, which does not work in containers
+ENV COHERENCE_TTL=0
+
+# Copy all the application files into the /app directory in the image
+# This is the default structure supported by the Coherence Operator
+COPY app app
+----
+
+*Base Image*
+
+The base image for this example is a distroless Java 11 image `gcr.io/distroless/java11`
+
+*Health Check*
+
+The image is configured with a health check that uses the built-in Coherence health check on port 6676.
+
+*Expose Ports*
+
+A number of default Coherence ports are exposed.
+
+*Entrypoint*
+
+The image entry point will run `com.tangosol.net.Coherence` to run a Coherence storage enabled server.
+The classpath is set to `/app/classes:/app/libs/*`. This is the same classpath that the JIB plugin would add artifacts to and is also supported out of the box by the Coherence operator.
+
+*Environment Variables*
+
+A number of environment variables are set to configure Coherence.
+These values could have been set as system properties in the entry point, but using environment variables is a simpler option when running containers as they can easily be overridden at deploy time.
+
+*Copy the Image Artifacts*
+
+The Maven and Gradle build will copy all the classes and dependencies into a directory named `app/` in the same directory as the `Dockerfile`.
+Using `COPY app app` will copy all the files into the image.
+
+
+== Assemble the Image Directory
+
+The next step is to assemble all the artifacts required to build the image.
+Looking at the `Dockerfile` above, this means copying any dependencies and other files into a directory named `app/` in the same directory that the `Dockerfile` is in.
+This example contains both a Maven `pom.xml` file and Gradle build files, that show how to use these tools to gather all the files required for the image.
+
+There are other build tools such as `make` or `ant` or just plain scripts, but as the task involves pulling together all the Coherence jar files from Maven central, it is simplest to use Maven or Gradle.
+
+To build a Coherence application there will obviously be at a minimum a dependency on `coherence.jar`.
+Optionally we can also add dependencies on other Coherence modules and other dependencies, for example Coherence coul dbe configured to use SLF4J for logging.
+In this example we're going to add json support to the application by adding a dependency on `coherence-json` and `coherence-grpc-proxy`.
+
+Jump to the relevant section, depending on the build tool being used:
+
+* <<maven,Using Maven>>
+* <<gradle,Using Gradle>>
+
+[#maven]
+=== Using Maven
+
+To assemble the image artifacts using Maven, everything is configured in the Maven `pom.xml` file.
+The Maven build will pull all the artifacts required in the image, including the `Dockerfile` into a directory under `target\docker`.
+
+==== Adding Dependencies
+
+In the example the `coherence-bom` is added to the `<dependencyManagement>` section as an import, to ensure consistent versioning of other Coherence modules.
+
+In the `pom.xml` we have a `dependencyManagement` section.
+
+[source,xml]
+.pom.xml
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence-bom</artifactId>
+            <version>${coherence.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+
+We can then add the `coherence` `coherence-json` and `coherence-grpc-proxy` modules as dependencies
+
+[source,xml]
+.pom.xml
+----
+    <dependencies>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.coherence.ce</groupId>
+            <artifactId>coherence-grpc-proxy</artifactId>
+        </dependency>
+    </dependencies>
+----
+
+==== Assembling the Image Artifacts
+
+This example will use the Maven Assembly Plugin to gather all the dependencies and other files together into the `target/docker` directory. The assembly plugin is configured in the `pom.xml` file.
+
+The assembly plugin is configured to use the `src/assembly/image-assembly.xml` descriptor file to determine what to assemble. The `<finalName>` configuration element is set to `docker` so all the files will be assembled into a directory named `docker/` under the `target/` directory.
+The assembly plugin execution is bound to the `package` build phase.
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <version>${maven.assembly.plugin.version}</version>
+    <executions>
+        <execution>
+            <id>prepare-image</id>
+            <phase>package</phase>
+            <goals>
+                <goal>single</goal>
+            </goals>
+            <configuration>
+                <finalName>docker</finalName>
+                <appendAssemblyId>false</appendAssemblyId>
+                <descriptors>
+                    <descriptor>${project.basedir}/src/assembly/image-assembly.xml</descriptor>
+                </descriptors>
+                <attach>false</attach>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+The `image-assembly.xml` descriptor file is shown below, and configures the following:
+
+* The `<format>dir</format>` element tells the assembly plugin to assemble all the artifacts into a directory.
+* There are two `<fileSets>` configured:
+** The first copies any class files in `target/classes` to `app/classes` (which will actually be `target/docker/app/classes`)
+** The second copies all files under `src/docker` (i.e. the `Dockerfile`) into `target/docker`
+* The `<dependencySets>` configuration copies all the project dependencies (including transitive dependencies) to the `app/libs` directory (actually the `target/docker/app/libs` directory). Any version information will be stripped from the files, so `coherence-22.06.1.jar` would become `coherence.jar`.
+
+[source,xml]
+.src/assembly/image-assembly.xml
+----
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+  <id>image</id>
+  <formats>
+    <format>dir</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+    <!-- copy the module's compiled classes -->
+    <fileSet>
+      <directory>target/classes</directory>
+      <outputDirectory>app/classes</outputDirectory>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+    <!-- copy the Dockerfile -->
+    <fileSet>
+      <directory>${project.basedir}/src/docker</directory>
+      <outputDirectory/>
+      <fileMode>755</fileMode>
+    </fileSet>
+  </fileSets>
+
+  <!-- copy the application dependencies -->
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>app/libs</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
+      <unpack>false</unpack>
+      <useProjectArtifact>false</useProjectArtifact>
+      <!-- strip the version from the jar files -->
+      <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+  </dependencySets>
+</assembly>
+----
+
+Running the following command will pull all the required image artifacts and `Dockerfile` into the `target/docker` directory:
+
+[source,bash]
+----
+./mvnw package
+----
+
+
+[#gradle]
+=== Using Gradle
+
+To assemble the image artifacts using Maven, everything is configured in the Maven `build.gradle` file.
+The Gradle build will pull all the artifacts required in the image, including the `Dockerfile` into a directory under `build\docker`.
+
+==== Adding Dependencies
+
+In the example the `coherence-bom` is added to the `<dependencyManagement>` section as an import, to ensure consistent versioning of other Coherence modules.
+
+In the `build.gradle` file we add the bom as a platform dependency and then add dependencies on `coherence` and `coherence-json`.
+
+[source,groovy]
+.build.gradle
+----
+dependencies {
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.1")
+
+    implementation "com.oracle.coherence.ce:coherence"
+    implementation "com.oracle.coherence.ce:coherence-json"
+    implementation "com.oracle.coherence.ce:coherence-grpc-proxy"
+}
+----
+
+==== Assembling the Image Artifacts
+
+To assemble all the image artifacts into the `build/docker` directory, the Gradle copy task can be used.
+There will be multiple copy tasks to copy each type of artifact, the dependencies, any compile classes, and the `Dockerfile`.
+
+The following task named `copyDependencies` is added to `build.gradle` to copy the dependencies. This task has additional configuration to rename the jar files to strip off any version.
+
+[source,groovy]
+.build.gradle
+----
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into "$buildDir/docker/app/libs"
+    configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.each {
+        rename "${it.artifact.name}-${it.artifactId.componentIdentifier.version}", "${it.artifact.name}"
+    }
+}
+----
+
+The following task named `copyClasses` copies any compiled classes (although this example does not actually have any).
+
+[source,groovy]
+.build.gradle
+----
+task copyClasses(type: Copy) {
+    dependsOn classes
+    from "$buildDir/classes/java/main"
+    into "$buildDir/docker/app/classes"
+}
+----
+
+The final copy task named `copyDocker` copies the contents of the `src/docker` directory:
+
+[source,groovy]
+.build.gradle
+----
+task copyDocker(type: Copy) {
+    from "src/docker"
+    into "$buildDir/docker"
+}
+----
+
+To be able to run the image assembly as a single command, an empty task named `` is created that depends on all the copy tasks.
+
+Running the following command will pull all the required image artifacts and `Dockerfile` into the `build/docker` directory:
+
+[source,bash]
+----
+./gradlew assembleImage
+----
+
+
+== Build the Image
+
+After running the Maven or Gradle commands to assemble the image artifacts, Docker can be used to actually build the image from the relevant `docker/` directory.
+
+Using Maven:
+
+[source,bash]
+----
+cd target/docker
+docker build -t simple-coherence-server:1.0.0 .
+----
+
+Using Gradle:
+
+[source,bash]
+----
+cd build/docker
+docker build -t simple-coherence-server:1.0.0 .
+----
+
+The command above will create an image named `simple-coherence-server:1.0.0`.
+Listing the local images should show the new images, similar to the output below:
+
+[source,bash]
+----
+$ docker images | grep simple
+simple-coherence-server   1.0.0   1613cd3b894e   51 years ago  227MB
+----
+
