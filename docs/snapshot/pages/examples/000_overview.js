@@ -16,6 +16,32 @@
 <v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
+<router-link to="/examples/015_simple_image/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Simple Coherence Image using JIB</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Building a simple Coherence image with <a id="" title="" target="_blank" href="https://github.com/GoogleContainerTools/jib/blob/master/README.md">JIB</a> using Maven or Gradle.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/016_simple_docker_image/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Simple Coherence Image using a Dockerfile</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Building a simple Coherence image with a Dockerfile, that works out of the box with the Operator.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
 <router-link to="/examples/020_hello_world/README"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
@@ -24,19 +50,6 @@
 <v-card-text class="caption">
 <p></p>
 <p>Deploying the most basic Coherence cluster using the Operator.</p>
-</v-card-text>
-</v-card>
-</v-flex>
-<v-flex xs12 sm4 lg3>
-<v-card>
-<router-link to="/examples/015_simple_image/README"><div class="card__link-hover"/>
-</router-link>
-<v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">Simple Coherence Image</span>
-</v-card-title>
-<v-card-text class="caption">
-<p></p>
-<p>Building a simple Coherence image with JIB using Maven or Gradle.</p>
 </v-card-text>
 </v-card>
 </v-flex>

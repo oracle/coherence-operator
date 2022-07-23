@@ -938,8 +938,8 @@ function createRoutes(){
         {
             path: '/examples/015_simple_image/README',
             meta: {
-                h1: 'Build a Coherence Server Image',
-                title: 'Build a Coherence Server Image',
+                h1: 'Example Coherence Image using JIB',
+                title: 'Example Coherence Image using JIB',
                 h1Prefix: null,
                 description: null,
                 keywords: null,
@@ -947,6 +947,19 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('examples-015_simple_image-README', '/examples/015_simple_image/README', {})
+        },
+        {
+            path: '/examples/016_simple_docker_image/README',
+            meta: {
+                h1: 'Example Coherence Image using a Dockerfile',
+                title: 'Example Coherence Image using a Dockerfile',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-016_simple_docker_image-README', '/examples/016_simple_docker_image/README', {})
         },
         {
             path: '/examples/020_hello_world/README',
@@ -1379,7 +1392,8 @@ function createNav(){
             group: '/examples',
             items: [
                 { href: '/examples/000_overview', title: 'Overview' },
-                { href: '/examples/015_simple_image/README', title: 'Build a Coherence Server Image' },
+                { href: '/examples/015_simple_image/README', title: 'Example Coherence Image using JIB' },
+                { href: '/examples/016_simple_docker_image/README', title: 'Example Coherence Image using a Dockerfile' },
                 { href: '/examples/020_hello_world/README', title: 'A \"Hello World\" Operator Example' },
                 { href: '/examples/021_deployment/README', title: 'Coherence Deployment Example' },
                 { href: '/examples/090_tls/README', title: 'Secure Coherence Using TLS' },

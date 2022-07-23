@@ -1,6 +1,6 @@
 <doc-view>
 
-<h2 id="_example_coherence_server_image">Example Coherence Server Image</h2>
+<h2 id="_example_coherence_image_using_jib">Example Coherence Image using JIB</h2>
 <div class="section">
 <p>This example shows how to build a simple Coherence server image using
 <a id="" title="" target="_blank" href="https://github.com/GoogleContainerTools/jib/blob/master/README.md">JIB</a> with either Maven or Gradle.
@@ -22,7 +22,7 @@ When building with Gradle the project uses the <a id="" title="" target="_blank"
 <div class="section">
 <p>To build a Coherence application there will obviously be at a minimum a dependency on <code>coherence.jar</code>.
 Optionally we can also add dependencies on other Coherence modules.
-In this example we&#8217;re going to add management over REST to the application by adding a dependency on <code>coherence-management</code>.</p>
+In this example we&#8217;re going to add json support to the application by adding a dependency on <code>coherence-json</code>.</p>
 
 <p>In the example we use the <code>coherence-bom</code> which ensures that we have consistent use of other Coherence modules.
 In the <code>pom.xml</code> we have a <code>dependencyManagement</code> section.</p>
@@ -50,7 +50,7 @@ title="build.gradle"
 >dependencies {
     implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")</markup>
 
-<p>We can then add the <code>coherence</code> and <code>coherence-management</code> modules as dependencies</p>
+<p>We can then add the <code>coherence</code> and <code>coherence-json</code> modules as dependencies</p>
 
 <markup
 lang="xml"
@@ -62,7 +62,7 @@ title="pom.xml"
         &lt;/dependency&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
-            &lt;artifactId&gt;coherence-management&lt;/artifactId&gt;
+            &lt;artifactId&gt;coherence-json&lt;/artifactId&gt;
         &lt;/dependency&gt;
     &lt;/dependencies&gt;</markup>
 
@@ -75,7 +75,7 @@ title="build.gradle"
     implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
 
     implementation "com.oracle.coherence.ce:coherence"
-    implementation "com.oracle.coherence.ce:coherence-management"
+    implementation "com.oracle.coherence.ce:coherence-json"
 }</markup>
 
 </div>
