@@ -20,7 +20,7 @@ This simple application does not actually contain any code, a real application w
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/015_simple_image[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}015_simple_image[Coherence Operator GitHub] repository.
 ====
 
 === Add Dependencies
@@ -52,7 +52,7 @@ In the `build.gradle` file we add the bom as a platform dependency.
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.1")
 ----
 
 We can then add the `coherence` and `coherence-json` modules as dependencies
@@ -77,7 +77,7 @@ In the `build.gradle` file we add the bom as a platform dependency.
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.1")
 
     implementation "com.oracle.coherence.ce:coherence"
     implementation "com.oracle.coherence.ce:coherence-json"

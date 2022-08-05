@@ -16,6 +16,9 @@ java/operator-test-helidon/target
 java/operator-test-spring/target
 java/target
 
+# Gradle
+.gradle
+
 # Operator-SDK build output
 build/
 _output/

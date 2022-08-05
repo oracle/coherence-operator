@@ -1,0 +1,540 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2022, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+= Coherence Extend Clients
+
+== Coherence Extend Clients
+
+Coherence*Extend is the mechanism used by remote Coherence client applications to connect to a Coherence cluster.
+Coherence*Extend includes support for native Coherence clients (Java, C++, and .NET) and non-native Coherence clients (REST and Memcached).
+Coherence*Extend can be used to connect clients to Coherence clusters running in Kubernetes.
+There are two scenarios, the client could also be in kubernetes, or the client could be external connecting via a service or some other form of ingress.
+There are different ways to configure the client in these scenarios.
+
+These examples are not going to cover all the possible use-cases for Extend, the examples are specifically about different ways to connect a client to a Coherence cluster running inside kubernetes.
+Extend is extensively documented in the https://{commercial-docs-base-url}/develop-remote-clients/getting-started.html[official Coherence documentation].
+
+=== Prerequisites
+
+==== Server Image
+
+To show Extend working the example will require a Coherence cluster to connect to.
+For the server the example will use the image built in the <<examples/015_simple_image/README.adoc,Build a Coherence Server Image using JIB>> example (or could also use the <<examples/016_simple_docker_image/README.adoc,Build a Coherence Server Image using a Dockerfile>> example.
+If you have not already done so, you should build the image from that example, so it is available to deploy to your Kubernetes cluster.
+
+==== Install the Operator
+
+If you have not already done so, you need to install the Coherence Operator.
+There are a few simple ways to do this as described in the <<docs/installation/01_installation.adoc,Installation Guide>>
+
+
+== The Client Application
+
+To demonstrate different configurations and connectivity we need a simple Extend client application.
+
+[TIP]
+====
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}025_extend_client[Coherence Operator GitHub] repository.
+====
+
+As the client application only needs to demonstrate connectivity to Coherence using different configurations it is not going to do very much.
+There is a single class with a `main` method. In the `main` method the code obtains a `NamedMap` from Coherence via Extend and does some simple put and get operations. If these all function correctly the application exits with an exit code of zero. If there is an exception, the stack trace is printed and the application exits with an exit code of 1.
+
+There are also some different cache configuration files for the different ways to configure Extend, these are covered in the relevant examples below.
+
+== Building the Client Image
+
+The client application is both a Maven and Gradle project, so you can use whichever you are comfortable with.
+The only dependency the client application needs is `coherence.jar`.
+
+=== Using the Maven or Gradle JIB Plugin
+
+The image can be built using the JIB plugin with either Maven or Gradle, as described below.
+
+Using Maven we run:
+[source,bash]
+----
+./mvnw compile jib:dockerBuild
+----
+
+Using Gradle we run:
+[source,bash]
+----
+./gradlew compileJava jibDockerBuild
+----
+
+The command above will create an image named `simple-extend-client` with two tags, `latest` and `1.0.0`.
+Listing the local images should show the new images.
+
+[source,bash]
+----
+$ docker images | grep simple
+simple-extend-client   1.0.0   1613cd3b894e   51 years ago  220MB
+simple-extend-client   latest  1613cd3b894e   51 years ago  220MB
+----
+
+=== Using a Dockerfile
+
+Alternatively, if you cannot use the JIB plugin in your environment, the client image can be built using a simple Dockerfile and `docker build` command. We will still use Maven or Gradle to pull all the required dependencies together.
+
+Using Maven we run:
+
+[source,bash]
+----
+./mvnw package
+docker build -t simple-extend-client:1.0.0 -t simple-extend-client:latest target/docker
+----
+
+Using Gradle we run:
+
+[source,bash]
+----
+./gradlew assembleImage
+docker build -t simple-extend-client:1.0.0 -t simple-extend-client:latest build/docker
+----
+
+Again, the build should result in the Extend client images
+
+The command above will create an image named `simple-extend-client` with two tags, `latest` and `1.0.0`.
+Listing the local images should show the new images.
+
+[source,bash]
+----
+$ docker images | grep simple
+simple-extend-client   1.0.0   1613cd3b894e   2 minutes ago  220MB
+simple-extend-client   latest  1613cd3b894e   2 minutes ago  220MB
+----
+
+
+If we tried to run the application or image at this point it would fail with an exception as there is no cluster to connect to.
+
+
+== Extend Inside Kubernetes Using the Coherence NameService
+
+If the Extend client is going to run inside Kubernetes then we have a number of choices for configuration.
+In this section we are going to use the simplest way to configure Extend in Coherence, which is to use the Coherence NameService.
+In this configuration we do not need to specify any ports, the Extend proxy in the server cluster will bind to an ephemeral port.
+The Extend client will then use the Coherence NameService to find the addresses and ports that the Extend proxy is listening on.
+
+=== Proxy Server Configuration
+
+The default cache configuration file, built into `coherence.jar` configures an Extend proxy that binds to an ephemeral port.
+The proxy-scheme configuration looks like this:
+
+[source,xml]
+.coherence-cache-config.xml
+----
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <autostart system-property="coherence.proxy.enabled">true</autostart>
+    </proxy-scheme>
+----
+
+That is all that is required in a cache configuration file to create a proxy service that will bind to an ephemeral port.
+The proxy is enabled by default, but could be disabled by setting the system property `coherence.proxy.enabled` to false.
+
+=== Deploy the Server
+
+To run the NameService examples below the server needs to be deployed.
+The example includes a `manifests/` directory containing Kubernetes yaml files used by the example.
+
+For the NameService examples below the server will use the default cache configuration file from `coherence.jar` which has the `Proxy` service configured above. The yaml to deploy the server cluster is in the `manifests/default-server.yaml` file.
+
+[source,yaml]
+.manifests/default-server.yaml
+----
+include::manifests/default-server.yaml[]
+----
+
+The yaml above will deploy a three member cluster configured to use the default `coherence-cache-config.xml` configuration file.
+
+There are no additional ports exposed in the configuration. The Extend proxy will be listening on an ephemeral port, so we have no idea what that port will be.
+
+We can deploy the server into the default namespace in kubernetes with the following command:
+[source,bash]
+----
+kubectl apply -f manifests/default-server.yaml
+----
+
+We can list the resources created by the Operator.
+[source,bash]
+----
+kubectl get all
+----
+
+Which should display something like this:
+[source,bash]
+----
+NAME            READY   STATUS    RESTARTS   AGE
+pod/storage-0   1/1     Running   0          81s
+pod/storage-1   1/1     Running   0          81s
+pod/storage-2   1/1     Running   0          81s
+
+NAME                    TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/storage-sts     ClusterIP   None         <none>        7/TCP     81s
+service/storage-wka     ClusterIP   None         <none>        7/TCP     81s
+
+NAME                       READY   AGE
+statefulset.apps/storage   3/3     81s
+----
+* We can see that the Operator has created a `StatefulSet`, with three `Pods` and there are two `Services`.
+* The `storage-sts` service is the headless service required for the `StatefulSet`.
+* The `storage-wka` service is the headless service that Coherence will use for well known address cluster discovery.
+
+
+=== Minimal Extend Client Configuration
+
+The configuration required for the Extend client is equally minimal.
+The example source code includes a configuration file named `src/main/resources/minimal-client-cache-config.xml` that can be used to connect to the proxy configured above.
+
+[source,xml]
+.src/main/resources/minimal-client-cache-config.xml
+----
+<?xml version="1.0"?>
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>                        <1>
+      <cache-name>*</cache-name>
+      <scheme-name>remote</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>remote</scheme-name>                 <2>
+      <service-name>RemoteService</service-name>        <3>
+      <proxy-service-name>Proxy</proxy-service-name>    <4>
+    </remote-cache-scheme>
+  </caching-schemes>
+</cache-config>
+----
+
+<1> There is a single `cache-mapping` that maps all cache names to the scheme named `remote`.
+<2> The `remote-scheme` is named `remote`.
+<3> The `remote-scheme` has a service name of `RemoteService`.
+<4> The remote service will connect to a proxy service on the server that is named `Proxy`, this must correspond to the name of the proxy service in our server cache configuration file.
+
+==== Deploy the Client
+
+The simplest way to run the Extend client in Kubernetes is as a `Job`. The client just connects to a cache and does a `put`, then exits, so a `Job` is ideal for this type of process. The example contains yaml to create a Job `manifests/minimal-job.yaml` that looks like this:
+
+[source,yaml]
+.manifests/minimal-job.yaml
+----
+include::manifests/minimal-job.yaml[]
+----
+
+To be able to run the client we need to set in three pieces of information.
+
+* The name of the cache configuration file. We set this using the `COHERENCE_CACHE_CONFIG` environment variable, and set the value to `minimal-client-cache-config.xml`, which is the configuration file we're using in this example.
+* The client needs to be able to discover the storage Pods to connect to. Just like the server cluster uses well known addresses to discover a cluster, the client can do the same. We set the `COHERENCE_WKA` environment variable to the name of the WKA service created for the server when we deployed it above, in this case it is `storage-wka`.
+* Finally, we set the name of the Coherence cluster the client will connect to. When we deployed the server we did not specify a name, so the default cluster name will be the same as the `Coherence` resource name, in this case `storage`. So we set the `COHERENCE_CLUSTER` environment variable to `storage`.
+
+The client `Job` can be deployed into the default namespace in Kubernetes with the following command:
+
+[source,bash]
+----
+kubectl apply -f manifests/minimal-job.yaml
+----
+
+The `Jobs` deployed can then be listed
+[source,bash]
+----
+kubectl get job
+----
+
+Which should display something like this:
+[source,bash]
+----
+NAME            COMPLETIONS   DURATION   AGE
+extend-client   1/1           4s         5s
+----
+
+The `Job` above completed very quickly, which we would expect as it is just doing a trivial put to a cache.
+
+We can list the `Pods` created for the `Job` and then look at the log from the client.
+All `Pods` associated to a `Job` have a label in the form `job-name: <name-of-job>`, so in our case the label will be `job-name: extend-client`.
+We can use this with `kubectl` to list `Pods` associated to the `Job`. If the `Job` ran successfully there should be only one `Pod`. If the `Job` failed and has a restart policy, or was restarted by Kubernetes for other reasons there could be multiple `Pods`. In this case we expect a single successful `Pod`.
+
+[source,bash]
+----
+kubectl get pod -l job-name=extend-client
+----
+[source,bash]
+----
+NAME                  READY   STATUS      RESTARTS   AGE
+extend-client-k7wfq   0/1     Completed   0          4m24s
+----
+
+If we look at the log for the `Pod` we should see the last line printed to `System.out` by the client:
+[source,bash]
+----
+kubectl logs extend-client-k7wfq
+----
+The last line of the log will be something like this:
+[source,bash]
+----
+Put key=key-1 value=0.9332279895860512 previous=null
+----
+The values will be different as we put different random values each time the client runs.
+The previous value was `null` in this case as we have not run any other client with this cluster. If we re-ran the client `Job` the previous value would be displayed as the cache on the server now has data in it.
+
+*Clean-Up*
+
+We have shown a simple Extend client running in Kubernetes, connecting to a Coherence cluster using the NameService.
+We can now delete the `Job` using `kubectl`.
+[source,bash]
+----
+kubectl delete job extend-client
+----
+
+We can also delete the server.
+[source,bash]
+----
+kubectl delete -f manifests/default-server.yaml
+----
+
+=== Deploy the Client to a Different Namespace
+
+In the first example we deployed the client to the same namespace as the server.
+If we wanted to deploy the client to a different namespace we would need to ensure the fully qualified name of the WKA service is used when setting the `COHERENCE_WKA` environment variable. The Coherence cluster is deployed into the `default` namespace so the fully qualified WKA service name is `storage-wka.default.svc`, or we could also use `storage-wka.default.svc.cluster.local`.
+
+[source,yaml]
+.manifests/minimal-job.yaml
+----
+include::manifests/minimal-other-namespace-job.yaml[]
+----
+
+We can deploy this client `Job` into a different namespace than the cluster is deployed into:
+[source,bash]
+----
+kubectl create ns coherence-test
+kubectl apply -f manifests/minimal-other-namespace-job.yaml -n coherence-test
+----
+
+We should see the `Job` complete successfully.
+
+== Extend Clients External to Kubernetes
+
+The NameService example above will only work if the client is running inside the same Kubernetes cluster as the server.
+When the client uses the Coherence NameService to look up the addresses of the Extend proxy service, the cluster only knows its internal IP addresses. If a client external to Kubernetes tried to use the NameService the addresses returned would be unreachable, as they are internal to the Kubernetes cluster.
+
+To connect external Extend clients, the proxy must be bound to known ports and those ports exposed to the client via some form of service or ingress.
+
+=== Proxy Server Configuration
+
+The Extend proxy service on the server must be configured to have a fixed port, so there is a little more configuration than previously.
+
+The example server image contains a Coherence configuration file named `test-cache-config.xml`, which contains an Extend proxy configured to bind to all host addresses (`0.0.0.0`) on port 20000.
+
+[source,xml]
+.test-cache-config.xml
+----
+<proxy-scheme>
+  <service-name>Proxy</service-name>
+  <acceptor-config>
+    <tcp-acceptor>
+      <local-address>
+        <!-- The proxy will listen on all local addresses -->
+        <address>0.0.0.0</address>
+        <port>20000</port>
+      </local-address>
+    </tcp-acceptor>
+  </acceptor-config>
+  <autostart>true</autostart>
+</proxy-scheme>
+----
+
+=== Deploy the Server
+
+The example contains a yaml file that can be used to deploy a Coherence server with the fixed proxy address, as shown above.
+
+[source,yaml]
+.manifests/fixed-port-server.yaml
+----
+include::manifests/fixed-port-server.yaml[]
+----
+
+The yaml above will deploy a three member cluster configured to use the default `test-cache-config.xml` configuration file and expose the Extend port  via a service.
+
+The server can be deployed with the following command.
+[source,bash]
+----
+kubectl apply -f manifests/fixed-port-server.yaml
+----
+
+The resources created by the Coherence Operator can be listed:
+[source,bash]
+----
+kubectl get all
+----
+[source,bash]
+----
+NAME            READY   STATUS    RESTARTS   AGE
+pod/storage-0   1/1     Running   0          61s
+pod/storage-1   1/1     Running   0          61s
+pod/storage-2   1/1     Running   0          61s
+
+NAME                     TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/storage-extend   ClusterIP   10.101.99.24   <none>        20000/TCP   61s
+service/storage-sts      ClusterIP   None           <none>        7/TCP       61s
+service/storage-wka      ClusterIP   None           <none>        7/TCP       61s
+
+NAME                       READY   AGE
+statefulset.apps/storage   3/3     61s
+----
+
+As well as the `Pods` and `Services` created in the previous example, there is now a `Service` named `storage-extend`, which exposes the Extend port.
+
+=== Configure the Extend Client
+
+An external client needs to be configured with a remote scheme that connects to a known address and port.
+The example contains a cache configuration file named `src/main/resources/fixed-address-cache-config.xml` that has this configuration.
+
+[source,xml]
+.src/main/resources/fixed-address-cache-config.xml
+----
+<remote-cache-scheme>
+  <scheme-name>remote</scheme-name>
+  <service-name>RemoteCache</service-name>
+  <proxy-service-name>Proxy</proxy-service-name>
+  <initiator-config>
+    <tcp-initiator>
+      <remote-addresses>
+        <socket-address>
+            <!-- the 127.0.0.1 loop back address will only work in local dev testing -->
+            <address system-property="coherence.extend.address">127.0.0.1</address>
+            <port system-property="coherence.extend.port">20000</port>
+        </socket-address>
+      </remote-addresses>
+    </tcp-initiator>
+  </initiator-config>
+</remote-cache-scheme>
+----
+
+When the client runs using the configuration above it will attempt to connect to an Extend proxy on `127.0.0.1:20000`.
+The address to connect to can be overridden by setting the `coherence.extend.address` system property.
+The port to connect to can be overridden by setting the `coherence.extend.port` system property.
+
+
+=== Run the Extend Client
+
+This example assumes that you are running Kubernetes on a development machine, for example with `KinD`, of `Minikube` or in Docker, etc.
+In this case the `Service` created is of type `ClusterIP`, so it is not actually exposed outside of Kubernetes as most development Kubernetes clusters do not support services of type `LoadBalancer`.
+
+This means that to test the external client we will need to use port forwarding.
+In a console start the port forwarder using `kubectl` as follows
+[source,bash]
+----
+kubectl port-forward svc/storage-extend 20000:20000
+----
+
+The example client can not connect to the Extend proxy via the host machine on port `20000`.
+
+The simplest way to run the Extend client locally is to use either Maven or Gradle.
+The Maven `pom.xml` file uses the Maven Exec plugin to run the client.
+The Gradle `build.gradle` file configures a run task to execute the client.
+
+With Maven:
+[source,bash]
+----
+./mvnw compile exec:java
+----
+
+With Gradle:
+[source,bash]
+----
+./gradlew runClient
+----
+
+Both of the above commands run successfully and the final line of output should be the line printed by the client showing the result of the put.
+[source,bash]
+----
+Put key=key-1 value=0.5274436018741687 previous=null
+----
+
+*Clean-up*
+
+We can now delete the server.
+[source,bash]
+----
+kubectl delete -f manifests/fixed-port-server.yaml
+----
+
+== Mixing Internal and External Extend Clients
+
+The example server configuration used for connecting external clients can also be used for internal Extend clients, which is useful for use-cases where some clients are inside Kubernetes and some outside.
+An Extend client running inside Kubernetes then has the choice of using the NameService configuration from the first example, or using the fixed address and port configuration of the second example.
+
+If an internal Extend client is configured to use a fixed address then the host name of the proxy can be set to the service used to expose the server's extend port.
+
+For example, if the client's cache configuration file contains a remote scheme like the external example above:
+
+[source,xml]
+.src/main/resources/fixed-address-cache-config.xml
+----
+<remote-cache-scheme>
+  <scheme-name>remote</scheme-name>
+  <service-name>RemoteCache</service-name>
+  <proxy-service-name>Proxy</proxy-service-name>
+  <initiator-config>
+    <tcp-initiator>
+      <remote-addresses>
+        <socket-address>
+            <!-- the 127.0.0.1 loopback address will only work in local dev testing -->
+            <address system-property="coherence.extend.address">127.0.0.1</address>
+            <port system-property="coherence.extend.port">20000</port>
+        </socket-address>
+      </remote-addresses>
+    </tcp-initiator>
+  </initiator-config>
+</remote-cache-scheme>
+----
+
+The client would be run with the `coherence.extend.address` system property, (or `COHERENCE_EXTEND_ADDRESS` environment variable) set to the fully qualified name of the Extend service, in the case of our example server running in the default namespace, this would be `-Dcoherence.extend.address=storage-extend.default.svc.cluster.local`
+
+
+== External Client in the Real World
+
+The example above used port-forward to connect the external Extend client to the cluster.
+This showed how to configure the client and server but is not how a real world application would work.
+In a real deployment the server would typically be deployed with the Extend service behind a load balancer or some other form of ingress, such as Istio. The Extend client would then be configured to connect to the external ingress address and port.
+Some ingress, such as Istio, can also be configured to add TLS security, which Extend will work with.
+
+[TIP]
+====
+There is an open source project named https://metallb.universe.tf[MetalLB] that can easily be deployed into development environment Kubernetes clusters and provides support for load balancer services. This is a simple way to test and try out load balancers in development Kubernetes.
+
+If MetalLB was installed (or your cluster supports LoadBalancer services) the yaml for deploying the cluster can be altered to make the Extend service a load balancer.
+[source,yaml]
+.manifests/fixed-port-lb-server.yaml
+----
+include::manifests/fixed-port-lb-server.yaml[]
+----
+
+This can be deployed using:
+[source,bash]
+----
+kubectl apply -f manifests/fixed-port-lb-server.yaml
+----
+
+Now if we look at the Extend service, we see it is a load balancer
+[source,bash]
+----
+kubectl get svc storage-extend
+----
+[source,bash]
+----
+NAME             TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+storage-extend   LoadBalancer   10.110.84.229   127.0.0.240   20000:30710/TCP   2m20s
+----
+
+Exactly how you connect to the MetalLB load balancer, and on which address, varies depending on where your Kubernetes cluster is running.
+====
+

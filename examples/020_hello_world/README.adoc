@@ -13,7 +13,7 @@ This is the most basic example of how to deploy a simple Coherence cluster to Ku
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/020_hello_world[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}020_hello_world[Coherence Operator GitHub] repository.
 ====
 
 === Install the Operator

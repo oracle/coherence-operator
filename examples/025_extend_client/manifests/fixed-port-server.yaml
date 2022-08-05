@@ -1,0 +1,13 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  image: simple-coherence:1.0.0
+  replicas: 3
+  coherence:
+    cacheConfig: test-cache-config.xml
+  ports:
+    - name: extend
+      port: 20000
+

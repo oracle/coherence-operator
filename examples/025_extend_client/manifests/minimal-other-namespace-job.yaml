@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: extend-client
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: client
+          image: simple-extend-client:1.0.0
+          env:
+            - name: COHERENCE_CACHE_CONFIG
+              value: minimal-client-cache-config.xml
+            - name: COHERENCE_WKA
+              value: storage-wka.default.svc.cluster.local
+            - name: COHERENCE_CLUSTER
+              value: storage

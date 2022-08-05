@@ -13,7 +13,7 @@ This example shows how to deploy a simple Coherence cluster in Kubernetes manual
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/01_simple_server[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}no-operator/01_simple_server[Coherence Operator GitHub] repository.
 ====
 
 *Prerequisites*
