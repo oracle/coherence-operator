@@ -3,7 +3,7 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
-FROM gcr.io/distroless/java11
+FROM gcr.io/distroless/java11-debian11
 
 # Set the entry point to be the Java command to run
 ENTRYPOINT ["java", "-cp", "/app/classes:/app/libs/*", "com.oracle.coherence.examples.extend.Main"]
