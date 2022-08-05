@@ -135,7 +135,7 @@ title="pom.xml"
     &lt;version&gt;${version.plugin.jib}&lt;/version&gt;
     &lt;configuration&gt;
         &lt;from&gt;
-            &lt;image&gt;gcr.io/distroless/java11&lt;/image&gt;    <span class="conum" data-value="1" />
+            &lt;image&gt;gcr.io/distroless/java11-debian11&lt;/image&gt;    <span class="conum" data-value="1" />
         &lt;/from&gt;
         &lt;to&gt;
             &lt;image&gt;${project.artifactId}&lt;/image&gt;        <span class="conum" data-value="2" />
@@ -152,7 +152,7 @@ title="pom.xml"
 &lt;/plugin&gt;</markup>
 
 <ul class="colist">
-<li data-value="1">The base image will be <code>gcr.io/distroless/java11</code></li>
+<li data-value="1">The base image will be <code>gcr.io/distroless/java11-debian11</code></li>
 <li data-value="2">The image name is set to the Maven module name using the property <code>${project.artifactId}</code></li>
 <li data-value="3">There will be two tags for the image, <code>latest</code> and the project version taken from the <code>${project.version}</code> property.</li>
 <li data-value="4">The main class to use when the image is run is set to <code>com.tangosol.net.Coherence</code></li>
@@ -169,7 +169,7 @@ lang="groovy"
 title="build.gradle"
 >jib {
   from {
-    image = 'gcr.io/distroless/java11'    <span class="conum" data-value="1" />
+    image = 'gcr.io/distroless/java11-debian11'    <span class="conum" data-value="1" />
   }
   to {
     image = "${project.name}"              <span class="conum" data-value="2" />
@@ -182,7 +182,7 @@ title="build.gradle"
 }</markup>
 
 <ul class="colist">
-<li data-value="1">The base image will be <code>gcr.io/distroless/java11</code></li>
+<li data-value="1">The base image will be <code>gcr.io/distroless/java11-debian11</code></li>
 <li data-value="2">The image name is set to the Maven module name using the property <code>${project.artifactId}</code></li>
 <li data-value="3">There will be two tags for the image, <code>latest</code> and the project version taken from the <code>${project.version}</code> property.</li>
 <li data-value="4">The main class to use when the image is run is set to <code>com.tangosol.net.Coherence</code></li>

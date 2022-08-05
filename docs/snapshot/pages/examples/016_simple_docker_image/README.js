@@ -26,7 +26,7 @@ This simple application does not actually contain any code, a real application w
 <markup
 
 title="src/docker/Dockerfile"
->FROM gcr.io/distroless/java11
+>FROM gcr.io/distroless/java11-debian11
 
 # Configure the image's health check command
 # Health checks will only work with Coherence 22.06 and later
@@ -68,7 +68,7 @@ COPY app app</markup>
 
 <p><strong>Base Image</strong></p>
 
-<p>The base image for this example is a distroless Java 11 image <code>gcr.io/distroless/java11</code></p>
+<p>The base image for this example is a distroless Java 11 image <code>gcr.io/distroless/java11-debian11</code></p>
 
 <p><strong>Health Check</strong></p>
 
