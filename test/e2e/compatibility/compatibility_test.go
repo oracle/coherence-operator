@@ -8,6 +8,7 @@ package compatibility
 
 import (
 	"context"
+	"fmt"
 	. "github.com/onsi/gomega"
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
@@ -66,6 +67,11 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the StatefulSet has not been updated
+	if stsAfter.Generation != stsBefore.Generation {
+		// The test has failed, so we're dumping out some debug info
+		dir := fmt.Sprint("compatibility-%s", version)
+		helper.DumpState(testContext, dir, t.Name())
+	}
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
 
 	// scale up to make sure that the Operator can still manage the Coherence cluster
