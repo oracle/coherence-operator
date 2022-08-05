@@ -460,8 +460,8 @@ build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator util
 build-test-base: export ARTIFACT_DIR        := $(CURRDIR)/java/coherence-operator
 build-test-base: export VERSION             := $(VERSION)
 build-test-base: export IMAGE_NAME          := $(TEST_BASE_IMAGE)
-build-test-base: export AMD_BASE_IMAGE      := gcr.io/distroless/java11
-build-test-base: export ARM_BASE_IMAGE      := gcr.io/distroless/java11
+build-test-base: export AMD_BASE_IMAGE      := gcr.io/distroless/java11-debian11
+build-test-base: export ARM_BASE_IMAGE      := gcr.io/distroless/java11-debian11
 build-test-base: export PROJECT_URL         := $(PROJECT_URL)
 build-test-base: export PROJECT_VENDOR      := Oracle
 build-test-base: export PROJECT_DESCRIPTION := Oracle Coherence base test image

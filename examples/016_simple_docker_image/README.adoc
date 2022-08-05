@@ -31,7 +31,7 @@ The `Dockerfile` for the example is shown below:
 [source]
 .src/docker/Dockerfile
 ----
-FROM gcr.io/distroless/java11
+FROM gcr.io/distroless/java11-debian11
 
 # Configure the image's health check command
 # Health checks will only work with Coherence 22.06 and later
@@ -74,7 +74,7 @@ COPY app app
 
 *Base Image*
 
-The base image for this example is a distroless Java 11 image `gcr.io/distroless/java11`
+The base image for this example is a distroless Java 11 image `gcr.io/distroless/java11-debian11`
 
 *Health Check*
 

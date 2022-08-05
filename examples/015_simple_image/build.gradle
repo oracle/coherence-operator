@@ -28,7 +28,7 @@ dependencies {
 
 jib {
   from {
-    image = 'gcr.io/distroless/java11'
+    image = 'gcr.io/distroless/java11-debian11'
   }
   to {
     image = "${project.name}"
