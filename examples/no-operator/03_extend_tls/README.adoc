@@ -14,7 +14,7 @@ This example expands on the `StatefulSet` used in the first simple deployment ex
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/03_extend_tls[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}no-operator/03_extend_tls[Coherence Operator GitHub] repository.
 ====
 
 *Prerequisites*

@@ -6,7 +6,7 @@ This example shows how to use the Kubernetes Horizontal Pod Autoscaler to scale 
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/200_autoscaler[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}200_autoscaler[Coherence Operator GitHub] repository.
 ====
 
 == How Does the Horizontal Pod autoscaler Work

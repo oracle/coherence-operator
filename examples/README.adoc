@@ -13,7 +13,7 @@ There are a number of examples which show you how to build and deploy applicatio
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://github.com/oracle/coherence-operator/tree/master/examples/[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://{examples-source}[Coherence Operator GitHub] repository.
 ====
 
 [PILLARS]
@@ -22,7 +22,7 @@ image:GitHub-Mark-32px.png[] The complete source code for the examples is in the
 .Simple Coherence Image using JIB
 [link=examples/015_simple_image/README.adoc]
 --
-Building a simple Coherence image with https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] using Maven or Gradle.
+Building a simple Coherence server image with https://github.com/GoogleContainerTools/jib/blob/master/README.md[JIB] using Maven or Gradle.
 --
 
 [CARD]
@@ -43,10 +43,17 @@ Deploying the most basic Coherence cluster using the Operator.
 [PILLARS]
 ====
 [CARD]
-.Deployment
-[link=examples/021_deployment/README.adoc]
+.Coherence*Extend Clients
+[link=examples/025_extend_client/README.adoc]
 --
-This example showcases how to deploy Coherence applications using the Coherence Operator.
+An example demonstrating various ways to configure and use Coherence*Extend with Kubernetes.
+--
+
+[CARD]
+.Deployment
+[link=examples/020_deployment/README.adoc]
+--
+This example shows how to deploy Coherence applications using the Coherence Operator.
 --
 
 [CARD]

@@ -16,6 +16,8 @@ engine:
       coherence-image: "${coherence.image}"
       operator-utils-image: "${operator.utils.image}"
       guides-dir: "${project.basedir}/../examples/guides"
+      commercial-docs-base-url: "docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206"
+      examples-source: "github.com/oracle/coherence-operator/tree/master/examples/"
 assets:
   - target: "/"
     includes:

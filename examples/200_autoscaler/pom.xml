@@ -20,7 +20,7 @@
     <maven.compiler.target>11</maven.compiler.target>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>22.06</coherence.version>
+    <coherence.version>22.06.1</coherence.version>
 
     <jib.version>3.1.4</jib.version>
 
@@ -44,7 +44,7 @@
   <build>
    <plugins>
      <!--
-     The JIB plugin builds the Docker image for the application.
+     The JIB plugin builds the Docker image for the application
      -->
      <plugin>
        <groupId>com.google.cloud.tools</groupId>
