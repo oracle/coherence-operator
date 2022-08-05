@@ -44,7 +44,7 @@
   <build>
    <plugins>
      <!--
-     The JIB plugin builds the Docker image for the application.
+     The JIB plugin builds the Docker image for the application
      -->
      <plugin>
        <groupId>com.google.cloud.tools</groupId>
