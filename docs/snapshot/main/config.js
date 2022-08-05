@@ -988,6 +988,19 @@ function createRoutes(){
             component: loadPage('examples-021_deployment-README', '/examples/021_deployment/README', {})
         },
         {
+            path: '/examples/025_extend_client/README',
+            meta: {
+                h1: 'Coherence Extend Clients',
+                title: 'Coherence Extend Clients',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-025_extend_client-README', '/examples/025_extend_client/README', {})
+        },
+        {
             path: '/examples/090_tls/README',
             meta: {
                 h1: 'Secure Coherence Using TLS',
@@ -1396,6 +1409,7 @@ function createNav(){
                 { href: '/examples/016_simple_docker_image/README', title: 'Example Coherence Image using a Dockerfile' },
                 { href: '/examples/020_hello_world/README', title: 'A \"Hello World\" Operator Example' },
                 { href: '/examples/021_deployment/README', title: 'Coherence Deployment Example' },
+                { href: '/examples/025_extend_client/README', title: 'Coherence Extend Clients' },
                 { href: '/examples/090_tls/README', title: 'Secure Coherence Using TLS' },
                 { href: '/examples/095_network_policies/README', title: 'Using Network Policies' },
                 { href: '/examples/100_federation/README', title: 'Coherence Federation' },

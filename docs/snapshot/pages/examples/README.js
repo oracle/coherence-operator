@@ -23,7 +23,7 @@
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>Building a simple Coherence image with <a id="" title="" target="_blank" href="https://github.com/GoogleContainerTools/jib/blob/master/README.md">JIB</a> using Maven or Gradle.</p>
+<p>Building a simple Coherence server image with <a id="" title="" target="_blank" href="https://github.com/GoogleContainerTools/jib/blob/master/README.md">JIB</a> using Maven or Gradle.</p>
 </v-card-text>
 </v-card>
 </v-flex>
@@ -63,14 +63,27 @@
 <v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="/examples/021_deployment/README"><div class="card__link-hover"/>
+<router-link to="/examples/025_extend_client/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Coherence*Extend Clients</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>An example demonstrating various ways to configure and use Coherence*Extend with Kubernetes.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="#examples/020_deployment/README.adoc" @click.native="this.scrollFix('#examples/020_deployment/README.adoc')"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
 <span style="text-align:center">Deployment</span>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>This example showcases how to deploy Coherence applications using the Coherence Operator.</p>
+<p>This example shows how to deploy Coherence applications using the Coherence Operator.</p>
 </v-card-text>
 </v-card>
 </v-flex>
