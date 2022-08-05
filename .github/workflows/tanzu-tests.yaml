@@ -101,8 +101,8 @@ jobs:
       shell: bash
       run: |
         docker pull gcr.io/distroless/java
-        docker pull gcr.io/distroless/java11
-        docker pull gcr.io/distroless/java17
+        docker pull gcr.io/distroless/java11-debian11
+        docker pull gcr.io/distroless/java17-debian11
 
     - name: Build
       shell: bash

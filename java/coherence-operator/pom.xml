@@ -26,8 +26,8 @@
         <docker.registry>ghcr.io/oracle</docker.registry>
         <image.name>${docker.registry}/coherence-operator-test-base:${project.version}</image.name>
         <image.arch>amd64</image.arch>
-        <base.image.name.amd>gcr.io/distroless/java11</base.image.name.amd>
-        <base.image.name.arm>gcr.io/distroless/java11</base.image.name.arm>
+        <base.image.name.amd>gcr.io/distroless/java11-debian11</base.image.name.amd>
+        <base.image.name.arm>gcr.io/distroless/java11-debian11</base.image.name.arm>
     </properties>
 
     <dependencies>
