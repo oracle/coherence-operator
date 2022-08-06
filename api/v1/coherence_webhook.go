@@ -70,11 +70,6 @@ func (in *Coherence) Default() {
 			}
 		}
 
-		// apply a label with the hash of the spec
-		if hash, applied := EnsureHashLabel(in); applied {
-			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
-		}
-
 		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
 		in.Spec.EnsureCoherenceImage(&coherenceImage)
@@ -89,10 +84,15 @@ func (in *Coherence) Default() {
 	} else {
 		logger.Info("Updating defaults for existing resource")
 		// this is an update
-		// apply a label with the hash of the spec
-		if hash, applied := EnsureHashLabel(in); applied {
-			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
-		}
+	}
+
+	// this version has fixed the hash issues where default image names were not included
+	in.Annotations[AnnotationHashIncludesImages] = "true"
+
+	// apply a label with the hash of the spec - ths must be the last action here to make sure that
+	// any modifications are included in the hash
+	if hash, applied := EnsureHashLabel(in); applied {
+		logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 	}
 }
 

@@ -185,7 +185,15 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	var desiredResources coh.Resources
 
 	storeHash, found := storage.GetHash()
-	if !found || storeHash != hash || deployment.Status.Phase != coh.ConditionTypeReady {
+	hashDiff := storeHash != hash
+	if hashDiff {
+		if _, present := deployment.Annotations[coh.AnnotationHashIncludesImages]; !present {
+			// check whether the diff is due to the image names - this is due to a previous bug
+			hashDiff, hash = checkHashDiff(deployment, storeHash, hash)
+		}
+	}
+
+	if !found || hashDiff || deployment.Status.Phase != coh.ConditionTypeReady {
 		// Storage state was saved with no hash or a different hash so is not in the desired state
 		// or the Coherence resource is not in the Ready state
 		// Create the desired resources the deployment
@@ -436,4 +444,15 @@ func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client
 	}
 
 	return err
+}
+
+func checkHashDiff(deployment *coh.Coherence, storeHash string, hash string) (bool, string) {
+	spec := deployment.Spec.DeepCopy()
+	spec.Image = nil
+	spec.CoherenceUtils.Image = nil
+	newHash := coh.ComputeHash(spec, nil)
+	if newHash == storeHash {
+		return false, storeHash
+	}
+	return true, hash
 }
