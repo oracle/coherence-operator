@@ -449,7 +449,8 @@ func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client
 func checkHashDiff(deployment *coh.Coherence, storeHash string, hash string) (bool, string) {
 	spec := deployment.Spec.DeepCopy()
 	spec.Image = nil
-	spec.CoherenceUtils.Image = nil
+	spec.ImagePullPolicy = nil
+	spec.CoherenceUtils = nil
 	newHash := coh.ComputeHash(spec, nil)
 	if newHash == storeHash {
 		return false, storeHash
