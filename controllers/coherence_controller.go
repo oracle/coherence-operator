@@ -235,6 +235,12 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return reconcile.Result{}, err
 	}
 
+	// Ensure the version annotation is present (it should have been added by the web-hook, so this should be a no-op.
+	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
+	if applied, err := in.ensureVersionAnnotationApplied(ctx, deployment); applied || err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
+
 	// process the secondary resources in the order they should be created
 	var failures []Failure
 	for _, rec := range in.reconcilers {
@@ -351,6 +357,33 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with hash", c.Namespace, c.Name)
+		}
+		return applied, nil
+	}
+	return false, nil
+}
+
+// ensureVersionAnnotationApplied ensures that the version annotation is present in the Coherence resource, patching it if required
+func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
+	currentVersion := ""
+	annotations := c.GetAnnotations()
+	if len(annotations) > 0 {
+		currentVersion = annotations[coh.AnnotationOperatorVersion]
+	}
+
+	// Re-fetch the Coherence resource to ensure we have the most recent copy
+	latest := &coh.Coherence{}
+	c.DeepCopyInto(latest)
+	version := operator.GetVersion()
+
+	if currentVersion != version {
+		callback := func() {
+			in.Log.Info(fmt.Sprintf("Applied %s annotation", coh.AnnotationOperatorVersion))
+		}
+
+		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with version annotation", c.Namespace, c.Name)
 		}
 		return applied, nil
 	}
