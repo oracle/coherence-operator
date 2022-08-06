@@ -40,9 +40,6 @@ func TestCompatibility(t *testing.T) {
 	d, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	dir := fmt.Sprintf("%s-%s-before", t.Name(), version)
-	helper.DumpState(testContext, ns, dir)
-
 	err = nil
 	for i := 0; i < 10; i++ {
 		err = testContext.Client.Create(context.TODO(), &d)
@@ -55,6 +52,10 @@ func TestCompatibility(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 	stsBefore := assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
+
+	// dump the before upgrade state
+	dir := fmt.Sprintf("%s-%s-before", t.Name(), version)
+	helper.DumpState(testContext, ns, dir)
 
 	// Upgrade to this version
 	t.Logf("Helm upgrade to current Operator version\n")
@@ -69,12 +70,11 @@ func TestCompatibility(t *testing.T) {
 	err = testContext.Client.Get(context.TODO(), types.NamespacedName{Namespace: ns, Name: stsBefore.Name}, stsAfter)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	// dump the after upgrade state
+	dir = fmt.Sprintf("%s-%s-after", t.Name(), version)
+	helper.DumpState(testContext, ns, dir)
+
 	// assert that the StatefulSet has not been updated
-	if stsAfter.Generation != stsBefore.Generation {
-		// The test has failed, so we're dumping out some debug info
-		dir := fmt.Sprintf("%s-%s-after", t.Name(), version)
-		helper.DumpState(testContext, ns, dir)
-	}
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
 
 	// scale up to make sure that the Operator can still manage the Coherence cluster

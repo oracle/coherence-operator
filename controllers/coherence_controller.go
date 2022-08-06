@@ -326,7 +326,7 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 
 	if currentHash != hash {
 		callback := func() {
-			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "hash", hash)
+			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "newHash", hash, "currentHash", currentHash)
 		}
 
 		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
