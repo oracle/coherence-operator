@@ -40,6 +40,9 @@ func TestCompatibility(t *testing.T) {
 	d, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
+	dir := fmt.Sprintf("%s-%s-before", t.Name(), version)
+	helper.DumpState(testContext, ns, dir)
+
 	err = nil
 	for i := 0; i < 10; i++ {
 		err = testContext.Client.Create(context.TODO(), &d)
@@ -69,8 +72,8 @@ func TestCompatibility(t *testing.T) {
 	// assert that the StatefulSet has not been updated
 	if stsAfter.Generation != stsBefore.Generation {
 		// The test has failed, so we're dumping out some debug info
-		dir := fmt.Sprintf("compatibility-%s", version)
-		helper.DumpState(testContext, dir, t.Name())
+		dir := fmt.Sprintf("%s-%s-after", t.Name(), version)
+		helper.DumpState(testContext, ns, dir)
 	}
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
 
