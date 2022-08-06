@@ -131,8 +131,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// The request is an add or update
 
-	// Ensure the hash label is present (it should have been added by the web-hook but may not have been if the
-	// Coherence resource was added when the Operator was uninstalled).
+	// Ensure the hash label is present (it should have been added by the web-hook, so this should be a no-op.
+	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
 	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
 		return ctrl.Result{Requeue: true}, err
 	}
@@ -185,15 +185,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	var desiredResources coh.Resources
 
 	storeHash, found := storage.GetHash()
-	hashDiff := storeHash != hash
-	if hashDiff {
-		if _, present := deployment.Annotations[coh.AnnotationHashIncludesImages]; !present {
-			// check whether the diff is due to the image names - this is due to a previous bug
-			hashDiff, hash = checkHashDiff(deployment, storeHash, hash)
-		}
-	}
-
-	if !found || hashDiff || deployment.Status.Phase != coh.ConditionTypeReady {
+	if !found || storeHash != hash || deployment.Status.Phase != coh.ConditionTypeReady {
 		// Storage state was saved with no hash or a different hash so is not in the desired state
 		// or the Coherence resource is not in the Ready state
 		// Create the desired resources the deployment
@@ -333,6 +325,23 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
+		if currentHash != "" {
+			// The "currentHash" is not "", so it must have been processed by the Operator (could have been a previous version).
+			// There was a bug prior to 3.2.7 where the hash was calculated at the wrong point in the defaulting web-hook,
+			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
+			if _, exists := c.Annotations[coh.AnnotationOperatorVersion]; !exists {
+				// the AnnotationOperatorVersion annotation was added in the 3.2.7 web-hook, so if it is missing
+				// the Coherence resource was added or updated prior to 3.2.7
+				// In this case we just ignore the difference in hash.
+				// There is an edge case where the Coherence resource could have legitimately been updated whilst
+				// the Operator and web-hooks were uninstalled. In that case we would ignore the update until another
+				// update is made. The simplest way for the customer to work around this is to add the
+				// AnnotationOperatorVersion annotation with some value, which will then be overwritten by the web-hook
+				// and the Coherence resource will be correctly processes.
+				return false, nil
+			}
+		}
+
 		callback := func() {
 			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "newHash", hash, "currentHash", currentHash)
 		}
@@ -444,16 +453,4 @@ func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client
 	}
 
 	return err
-}
-
-func checkHashDiff(deployment *coh.Coherence, storeHash string, hash string) (bool, string) {
-	spec := deployment.Spec.DeepCopy()
-	spec.Image = nil
-	spec.ImagePullPolicy = nil
-	spec.CoherenceUtils = nil
-	newHash := coh.ComputeHash(spec, nil)
-	if newHash == storeHash {
-		return false, storeHash
-	}
-	return true, hash
 }

@@ -83,11 +83,11 @@ func (in *Coherence) Default() {
 		// this is an update
 	}
 
-	// this version has fixed the hash issues where default image names were not included
-	in.addAnnotation(AnnotationHashIncludesImages, "true")
+	// apply the Operator version annotation
+	in.addAnnotation(AnnotationOperatorVersion, operator.GetVersion())
 
 	// apply a label with the hash of the spec - ths must be the last action here to make sure that
-	// any modifications are included in the hash
+	// any modifications to the spec field are included in the hash
 	if hash, applied := EnsureHashLabel(in); applied {
 		logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 	}
