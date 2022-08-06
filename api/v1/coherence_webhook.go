@@ -77,22 +77,28 @@ func (in *Coherence) Default() {
 		in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
 
 		// Set the features supported by this version
-		if in.Annotations == nil {
-			in.Annotations = make(map[string]string)
-		}
-		in.Annotations[AnnotationFeatureSuspend] = "true"
+		in.addAnnotation(AnnotationFeatureSuspend, "true")
 	} else {
 		logger.Info("Updating defaults for existing resource")
 		// this is an update
 	}
 
 	// this version has fixed the hash issues where default image names were not included
-	in.Annotations[AnnotationHashIncludesImages] = "true"
+	in.addAnnotation(AnnotationHashIncludesImages, "true")
 
 	// apply a label with the hash of the spec - ths must be the last action here to make sure that
 	// any modifications are included in the hash
 	if hash, applied := EnsureHashLabel(in); applied {
 		logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
+	}
+}
+
+func (in *Coherence) addAnnotation(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		in.Annotations[key] = value
 	}
 }
 
