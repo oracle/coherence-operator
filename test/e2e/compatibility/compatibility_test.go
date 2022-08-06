@@ -69,7 +69,7 @@ func TestCompatibility(t *testing.T) {
 	// assert that the StatefulSet has not been updated
 	if stsAfter.Generation != stsBefore.Generation {
 		// The test has failed, so we're dumping out some debug info
-		dir := fmt.Sprint("compatibility-%s", version)
+		dir := fmt.Sprintf("compatibility-%s", version)
 		helper.DumpState(testContext, dir, t.Name())
 	}
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
