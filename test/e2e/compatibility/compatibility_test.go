@@ -65,7 +65,7 @@ func TestCompatibility(t *testing.T) {
 	t.Logf("Upgraded to current Operator version - waiting for reconcile...\n")
 	time.Sleep(2 * time.Minute)
 
-	// Get the current state fo the StatefulSet
+	// Get the current state of the StatefulSet
 	stsAfter := &appsv1.StatefulSet{}
 	err = testContext.Client.Get(context.TODO(), types.NamespacedName{Namespace: ns, Name: stsBefore.Name}, stsAfter)
 	g.Expect(err).NotTo(HaveOccurred())

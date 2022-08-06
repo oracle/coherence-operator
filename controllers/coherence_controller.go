@@ -192,6 +192,25 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		if desiredResources, err = deployment.Spec.CreateKubernetesResources(deployment); err != nil {
 			return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 		}
+
+		if found {
+			// The "storeHash" is not "", so it must have been processed by the Operator (could have been a previous version).
+			// There was a bug prior to 3.2.7 where the hash was calculated at the wrong point in the defaulting web-hook,
+			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
+			if _, exists := deployment.Annotations[coh.AnnotationOperatorVersion]; !exists {
+				// the AnnotationOperatorVersion annotation was added in the 3.2.7 web-hook, so if it is missing
+				// the Coherence resource was added or updated prior to 3.2.7
+				// In this case we just ignore the difference in hash.
+				// There is an edge case where the Coherence resource could have legitimately been updated whilst
+				// the Operator and web-hooks were uninstalled. In that case we would ignore the update until another
+				// update is made. The simplest way for the customer to work around this is to add the
+				// AnnotationOperatorVersion annotation with some value, which will then be overwritten by the web-hook
+				// and the Coherence resource will be correctly processes.
+				desiredResources = storage.GetLatest()
+				log.Info("Ignoring hash difference for pre-3.2.7 resource", "hash", hash, "store", storeHash)
+			}
+		}
+
 	} else {
 		// storage state was saved with the current hash so is already in the desired state
 		desiredResources = storage.GetLatest()
@@ -325,23 +344,6 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
-		if currentHash != "" {
-			// The "currentHash" is not "", so it must have been processed by the Operator (could have been a previous version).
-			// There was a bug prior to 3.2.7 where the hash was calculated at the wrong point in the defaulting web-hook,
-			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
-			if _, exists := c.Annotations[coh.AnnotationOperatorVersion]; !exists {
-				// the AnnotationOperatorVersion annotation was added in the 3.2.7 web-hook, so if it is missing
-				// the Coherence resource was added or updated prior to 3.2.7
-				// In this case we just ignore the difference in hash.
-				// There is an edge case where the Coherence resource could have legitimately been updated whilst
-				// the Operator and web-hooks were uninstalled. In that case we would ignore the update until another
-				// update is made. The simplest way for the customer to work around this is to add the
-				// AnnotationOperatorVersion annotation with some value, which will then be overwritten by the web-hook
-				// and the Coherence resource will be correctly processes.
-				return false, nil
-			}
-		}
-
 		callback := func() {
 			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "newHash", hash, "currentHash", currentHash)
 		}
