@@ -8,6 +8,7 @@ package compatibility
 
 import (
 	"context"
+	"fmt"
 	. "github.com/onsi/gomega"
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
@@ -52,6 +53,10 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	stsBefore := assertDeploymentEventuallyInDesiredState(t, d, d.GetReplicas())
 
+	// dump the before upgrade state
+	dir := fmt.Sprintf("%s-%s-before", t.Name(), version)
+	helper.DumpState(testContext, ns, dir)
+
 	// Upgrade to this version
 	t.Logf("Helm upgrade to current Operator version\n")
 	UpgradeToCurrentVersion(g, ns, name)
@@ -60,10 +65,14 @@ func TestCompatibility(t *testing.T) {
 	t.Logf("Upgraded to current Operator version - waiting for reconcile...\n")
 	time.Sleep(2 * time.Minute)
 
-	// Get the current state fo the StatefulSet
+	// Get the current state of the StatefulSet
 	stsAfter := &appsv1.StatefulSet{}
 	err = testContext.Client.Get(context.TODO(), types.NamespacedName{Namespace: ns, Name: stsBefore.Name}, stsAfter)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	// dump the after upgrade state
+	dir = fmt.Sprintf("%s-%s-after", t.Name(), version)
+	helper.DumpState(testContext, ns, dir)
 
 	// assert that the StatefulSet has not been updated
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))

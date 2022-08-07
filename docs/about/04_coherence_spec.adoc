@@ -87,7 +87,7 @@ m| job | or this is the spec of a Job to create when the StatefulSet becomes rea
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| spec | Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource so it gets deleted when the Coherence resource is deleted. m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#.jobspec-v1-batch[batchv1.JobSpec] | true
+m| spec | Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource, so it gets deleted when the Coherence resource is deleted. m| https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#.jobspec-v1-batch[batchv1.JobSpec] | true
 m| labels | Labels are the extra labels to add to the Job. m| map[string]string | false
 m| annotations | Annotations to add to the Job. m| map[string]string | false
 |===
@@ -108,30 +108,30 @@ m| replicas | The desired number of cluster members of this deployment. This is 
 m| cluster | The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource's name will be used as the cluster name. m| &#42;string | false
 m| role | The name of the role that this deployment represents in a Coherence cluster. This value will be used to set the Coherence role property for all members of this role m| string | false
 m| appLabel | An optional app label to apply to resources created for this deployment. This is useful for example to apply an app label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
-m| versionLabel | An optional version label to apply to resources created for this deployment. This is useful for example to apply an version label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
+m| versionLabel | An optional version label to apply to resources created for this deployment. This is useful for example to apply a version label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
 m| coherence | The optional settings specific to Coherence functionality. m| &#42;<<CoherenceSpec,CoherenceSpec>> | false
 m| application | The optional application specific settings. m| &#42;<<ApplicationSpec,ApplicationSpec>> | false
 m| jvm | The JVM specific options m| &#42;<<JVMSpec,JVMSpec>> | false
 m| ports | Ports specifies additional port mappings for the Pod and additional Services for those ports. m| []<<NamedPortSpec,NamedPortSpec>> | false
 m| scaling | The configuration to control safe scaling. m| &#42;<<ScalingSpec,ScalingSpec>> | false
 m| suspendProbe | The configuration of the probe used to signal that services must be suspended before a deployment is stopped. m| &#42;<<Probe,Probe>> | false
-m| suspendServicesOnShutdown | A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shutdown cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true. m| &#42;bool | false
+m| suspendServicesOnShutdown | A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shut down cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true. m| &#42;bool | false
 m| resumeServicesOnStartup | ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when the Coherence container is started. This only applies to storage enabled distributed cache services. This ensures that services that are suspended due to the shutdown of a storage tier, but those services are still running (albeit suspended) in other storage disabled deployments, will be resumed when storage comes back. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state. The default value if not specified is true. m| &#42;bool | false
 m| autoResumeServices | AutoResumeServices is a map of Coherence service names to allow more fine-grained control over which services may be auto-resumed by the operator when a Coherence Pod starts. The key to the map is the name of the Coherence service. This should be the fully qualified name if scoped services are being used in Coherence. The value is a bool, set to `true` to allow the service to be auto-resumed or `false` to not allow the service to be auto-resumed. Adding service names to this list will override any value set in `ResumeServicesOnStartup`, so if the `ResumeServicesOnStartup` field is `false` but there are service names in the `AutoResumeServices`, mapped to `true`, those services will still be resumed. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state. m| map[string]bool | false
 m| suspendServiceTimeout | SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds) m| &#42;int | false
 m| startQuorum | StartQuorum controls the start-up order of this Coherence resource in relation to other Coherence resources. m| []<<StartQuorum,StartQuorum>> | false
 m| env | Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envvar-v1-core[corev1.EnvVar] | false
 m| labels | The extra labels to add to the all the Pods in this deployment. Labels here will add to or override those defined for the cluster. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
-m| annotations | Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this: +
+m| annotations | Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this "annotations:" key. For example if we wanted to include annotations for Prometheus it would look like this: +
  +
 annotations: +
   prometheus.io/scrape: "true" + +
   prometheus.io/port: "2408" + m| map[string]string | false
 m| initContainers | List of additional initialization containers to add to the deployment's Pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core[corev1.Container] | false
 m| sideCars | List of additional side-car containers to add to the deployment's Pod. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core[corev1.Container] | false
-m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
+m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all the containers and init-containers in the Pod. +
 see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
-m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all of the containers and init-containers in the Pod. +
+m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all the containers and init-containers in the Pod. +
 see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
 m| volumes | Volumes defines extra volume mappings that will be added to the Coherence Pod. +
   The content of this yaml should match the normal k8s volumes section of a Pod definition + +
@@ -146,15 +146,12 @@ m| startupProbe | The startup probe config to be used for the Pods in this deplo
 m| readinessGates | ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness. See: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podreadinessgate-v1-core[corev1.PodReadinessGate] | false
 m| resources | Resources is the optional resource requests and limits for the containers +
  ref: http://kubernetes.io/docs/user-guide/compute-resources/ + +
- +
-By default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is <= 32 or the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero so that there is no hard-limit applied. +
- +
-No default memory limits are applied. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core[corev1.ResourceRequirements] | false
+The Coherence operator does not apply any default resources. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core[corev1.ResourceRequirements] | false
 m| affinity | Affinity controls Pod scheduling preferences. +
   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity + m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#affinity-v1-core[corev1.Affinity] | false
 m| nodeSelector | NodeSelector is the Node labels for pod assignment +
   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector + m| map[string]string | false
-m| tolerations | Tolerations is for nodes that have taints on them. +
+m| tolerations | Tolerations for nodes that have taints on them. +
   Useful if you want to dedicate nodes to just run the coherence container + +
 For example: +
   tolerations: + +
@@ -164,17 +161,17 @@ For example: +
     effect: "NoSchedule" + +
  +
   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ + m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#toleration-v1-core[corev1.Toleration] | false
-m| securityContext | SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podsecuritycontext-v1-core[corev1.PodSecurityContext] | false
+m| securityContext | SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podsecuritycontext-v1-core[corev1.PodSecurityContext] | false
 m| containerSecurityContext | ContainerSecurityContext is the SecurityContext that will be added to the Coherence container in each Pod in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#securitycontext-v1-core[corev1.SecurityContext] | false
-m| shareProcessNamespace | Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
+m| shareProcessNamespace | Share a single process namespace between all the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
 m| hostIPC | Use the host's ipc namespace. Optional: Default to false. m| &#42;bool | false
 m| network | Configure various networks and DNS settings for Pods in this rolw. m| &#42;<<NetworkSpec,NetworkSpec>> | false
 m| coherenceUtils | The configuration for the Coherence utils image m| &#42;<<ImageSpec,ImageSpec>> | false
 m| serviceAccountName | The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec. m| string | false
 m| automountServiceAccountToken | Whether to auto-mount the Kubernetes API credentials for a service account m| &#42;bool | false
 m| operatorRequestTimeout | The timeout to apply to REST requests made back to the Operator from Coherence Pods. These requests are typically to obtain site and rack information for the Pod. m| &#42;int32 | false
-m| haBeforeUpdate | Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to false to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment. m| &#42;bool | false
-m| actions | Actions to execute once all of the Pods are ready after an initial deployment m| []<<Action,Action>> | false
+m| haBeforeUpdate | Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment. m| &#42;bool | false
+m| actions | Actions to execute once all the Pods are ready after an initial deployment m| []<<Action,Action>> | false
 m| activeDeadlineSeconds | ActiveDeadlineSeconds is the optional duration in seconds the pod may be active on the node relative to StartTime before the system will actively try to mark it failed and kill associated containers. Value must be a positive integer. m| &#42;int64 | false
 m| enableServiceLinks | EnableServiceLinks indicates whether information about services should be injected into pod's environment variables, matching the syntax of Docker links. Optional: Defaults to true. m| &#42;bool | false
 m| preemptionPolicy | PreemptionPolicy is the Policy for preempting pods with lower priority. One of Never, PreemptLowerPriority. Defaults to PreemptLowerPriority if unset. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#preemptionpolicy-v1-core[corev1.PreemptionPolicy] | false
