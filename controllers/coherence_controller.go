@@ -194,7 +194,6 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 
 		if found {
-
 			// The "storeHash" is not "", so it must have been processed by the Operator (could have been a previous version).
 			// There was a bug prior to 3.2.8 where the hash was calculated at the wrong point in the defaulting web-hook,
 			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
@@ -355,6 +354,11 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 			// This would cause the hashes to be different here, when in fact they should not be
 			// If the Coherence resource being processes has no version annotation, or a version
 			// prior to 3.2.8 then we return as if the hashes matched
+			if labels == nil {
+				labels = make(map[string]string)
+			}
+			labels[coh.LabelCoherenceHash] = hash
+			c.SetLabels(labels)
 			return false, nil
 		}
 		callback := func() {
@@ -373,21 +377,20 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 // ensureVersionAnnotationApplied ensures that the version annotation is present in the Coherence resource, patching it if required
 func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
 	currentVersion, _ := c.GetVersionAnnotation()
+	operatorVersion := operator.GetVersion()
 
-	version := operator.GetVersion()
-
-	if currentVersion != version {
+	if currentVersion != operatorVersion {
 		// make a copy of the Coherence resource to use in the three-way patch
 		latest := c.DeepCopy()
-		latest.AddAnnotation(coh.AnnotationOperatorVersion, version)
+		latest.AddAnnotation(coh.AnnotationOperatorVersion, operatorVersion)
 
 		callback := func() {
-			in.Log.Info(fmt.Sprintf("Applied %s annotation", coh.AnnotationOperatorVersion))
+			in.Log.Info(fmt.Sprintf("Applied %s annotation", coh.AnnotationOperatorVersion), "value", operatorVersion)
 		}
 
 		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
 		if err != nil {
-			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with version annotation", c.Namespace, c.Name)
+			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with operatorVersion annotation", c.Namespace, c.Name)
 		}
 		return applied, nil
 	}
