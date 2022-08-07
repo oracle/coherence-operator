@@ -167,7 +167,6 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 				Protocol:      "TCP",
 			},
 		},
-		Resources:      spec.CreateDefaultResources(),
 		ReadinessProbe: spec.UpdateDefaultReadinessProbeAction(spec.CreateDefaultReadinessProbe()),
 		LivenessProbe:  spec.UpdateDefaultLivenessProbeAction(spec.CreateDefaultLivenessProbe()),
 		VolumeMounts: []corev1.VolumeMount{

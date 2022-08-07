@@ -70,11 +70,6 @@ func (in *Coherence) Default() {
 			}
 		}
 
-		// apply a label with the hash of the spec
-		if hash, applied := EnsureHashLabel(in); applied {
-			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
-		}
-
 		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
 		in.Spec.EnsureCoherenceImage(&coherenceImage)
@@ -82,17 +77,28 @@ func (in *Coherence) Default() {
 		in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
 
 		// Set the features supported by this version
-		if in.Annotations == nil {
-			in.Annotations = make(map[string]string)
-		}
-		in.Annotations[AnnotationFeatureSuspend] = "true"
+		in.AddAnnotation(AnnotationFeatureSuspend, "true")
 	} else {
 		logger.Info("Updating defaults for existing resource")
 		// this is an update
-		// apply a label with the hash of the spec
-		if hash, applied := EnsureHashLabel(in); applied {
-			logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
+	}
+
+	// apply the Operator version annotation
+	in.AddAnnotation(AnnotationOperatorVersion, operator.GetVersion())
+
+	// apply a label with the hash of the spec - ths must be the last action here to make sure that
+	// any modifications to the spec field are included in the hash
+	if hash, applied := EnsureHashLabel(in); applied {
+		logger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
+	}
+}
+
+func (in *Coherence) AddAnnotation(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
 		}
+		in.Annotations[key] = value
 	}
 }
 

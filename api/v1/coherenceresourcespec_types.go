@@ -14,7 +14,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
@@ -70,7 +69,7 @@ type CoherenceResourceSpec struct {
 	// +optional
 	AppLabel *string `json:"appLabel,omitempty"`
 	// An optional version label to apply to resources created for this deployment.
-	// This is useful for example to apply an version label for use by Istio.
+	// This is useful for example to apply a version label for use by Istio.
 	// This field follows standard Kubernetes label syntax.
 	// +optional
 	VersionLabel *string `json:"versionLabel,omitempty"`
@@ -98,7 +97,7 @@ type CoherenceResourceSpec struct {
 	// A flag controlling whether storage enabled cache services in this deployment
 	// will be suspended before the deployment is shutdown or scaled to zero.
 	// The action of suspending storage enabled services when the whole deployment is being
-	// stopped ensures that cache services with persistence enabled will shutdown cleanly
+	// stopped ensures that cache services with persistence enabled will shut down cleanly
 	// without the possibility of Coherence trying to recover and re-balance partitions
 	// as Pods are stopped.
 	// The default value if not specified is true.
@@ -148,7 +147,7 @@ type CoherenceResourceSpec struct {
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations are free-form yaml that will be added to the store release as annotations
-	// Any annotations should be placed BELOW this annotations: key. For example if we wanted to
+	// Any annotations should be placed BELOW this "annotations:" key. For example if we wanted to
 	// include annotations for Prometheus it would look like this:
 	//
 	// annotations:
@@ -167,14 +166,14 @@ type CoherenceResourceSpec struct {
 	SideCars []corev1.Container `json:"sideCars,omitempty"`
 	// A list of ConfigMaps to add as volumes.
 	// Each entry in the list will be added as a ConfigMap Volume to the deployment's
-	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
+	// Pods and as a VolumeMount to all the containers and init-containers in the Pod.
 	// +coh:doc=misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes
 	// +listType=map
 	// +listMapKey=name
 	ConfigMapVolumes []ConfigMapVolumeSpec `json:"configMapVolumes,omitempty"`
 	// A list of Secrets to add as volumes.
 	// Each entry in the list will be added as a Secret Volume to the deployment's
-	// Pods and as a VolumeMount to all of the containers and init-containers in the Pod.
+	// Pods and as a VolumeMount to all the containers and init-containers in the Pod.
 	// +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
 	// +listType=map
 	// +listMapKey=name
@@ -222,16 +221,7 @@ type CoherenceResourceSpec struct {
 	ReadinessGates []corev1.PodReadinessGate `json:"readinessGates,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
 	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
-	//
-	// By default the cpu requests is set to zero and the cpu limit set to 32. This
-	// is because it appears that K8s defaults cpu to one and since Java 10 the JVM
-	// now correctly picks up cgroup cpu limits then the JVM will only see one cpu.
-	// By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that
-	// the JVM will see the either the number of cpus on the host if this is <= 32 or
-	// the JVM will see 32 cpus if the host has > 32 cpus. The limit is set to zero
-	// so that there is no hard-limit applied.
-	//
-	// No default memory limits are applied.
+	// The Coherence operator does not apply any default resources.
 	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Affinity controls Pod scheduling preferences.
@@ -242,7 +232,7 @@ type CoherenceResourceSpec struct {
 	//   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// Tolerations is for nodes that have taints on them.
+	// Tolerations for nodes that have taints on them.
 	//   Useful if you want to dedicate nodes to just run the coherence container
 	// For example:
 	//   tolerations:
@@ -256,7 +246,7 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=key
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
-	// SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment.
+	// SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment.
 	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 	// +optional
 	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
@@ -265,7 +255,7 @@ type CoherenceResourceSpec struct {
 	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 	// +optional
 	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
-	// Share a single process namespace between all of the containers in a pod. When this is set containers will
+	// Share a single process namespace between all the containers in a pod. When this is set containers will
 	// be able to view and signal processes from other containers in the same pod, and the first process in each
 	// container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set.
 	// Optional: Default to false.
@@ -293,12 +283,12 @@ type CoherenceResourceSpec struct {
 	// +optional
 	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
 	// Whether to perform a StatusHA test on the cluster before performing an update or deletion.
-	// This field can be set to false to force through an update even when a Coherence deployment is in
+	// This field can be set to "false" to force through an update even when a Coherence deployment is in
 	// an unstable state.
 	// The default is true, to always check for StatusHA before updating a Coherence deployment.
 	// +optional
 	HABeforeUpdate *bool `json:"haBeforeUpdate,omitempty"`
-	// Actions to execute once all of the Pods are ready after an initial deployment
+	// Actions to execute once all the Pods are ready after an initial deployment
 	// +optional
 	Actions []Action `json:"actions,omitempty"`
 	// ActiveDeadlineSeconds is the optional duration in seconds the pod may be active on the node relative to
@@ -377,7 +367,7 @@ type ActionJob struct {
 	// Spec will be used to create a Job, the name is the
 	// Coherence deployment name + "-" + the action name
 	// The Job will be fire and forget, we do not monitor it in the Operator.
-	// We set its owner to be the Coherence resource so it gets deleted when
+	// We set its owner to be the Coherence resource, so it gets deleted when
 	// the Coherence resource is deleted.
 	Spec batchv1.JobSpec `json:"spec"`
 	// Labels are the extra labels to add to the Job.
@@ -643,7 +633,8 @@ func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []
 	return resources
 }
 
-// CreatePodSelectorLabels creates the selector that can be used to match this deployments Pods, for example by Services or StatefulSets.
+// CreatePodSelectorLabels creates the selector that can be used to match this deployment's Pods,
+// for example by Services or StatefulSets.
 func (in *CoherenceResourceSpec) CreatePodSelectorLabels(deployment *Coherence) map[string]string {
 	selector := deployment.CreateCommonLabels()
 	selector[LabelComponent] = LabelComponentCoherencePod
@@ -911,9 +902,6 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence)
 	if in.Resources != nil {
 		// set the container resources if specified
 		c.Resources = *in.Resources
-	} else {
-		// No resources specified so default to 32 cores
-		c.Resources = in.CreateDefaultResources()
 	}
 
 	c.ReadinessProbe = in.CreateDefaultReadinessProbe()
@@ -1039,18 +1027,6 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 	}
 
 	return env
-}
-
-// CreateDefaultResources creates the default Container resources.
-func (in *CoherenceResourceSpec) CreateDefaultResources() corev1.ResourceRequirements {
-	return corev1.ResourceRequirements{
-		Limits: map[corev1.ResourceName]resource.Quantity{
-			corev1.ResourceCPU: resource.MustParse("32"),
-		},
-		Requests: map[corev1.ResourceName]resource.Quantity{
-			corev1.ResourceCPU: resource.MustParse("0"),
-		},
-	}
 }
 
 // CreateDefaultReadinessProbe creates the default readiness probe.
