@@ -262,7 +262,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tbody>
 <tr>
 <td class=""><code>spec</code></td>
-<td class="">Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource so it gets deleted when the Coherence resource is deleted.</td>
+<td class="">Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource, so it gets deleted when the Coherence resource is deleted.</td>
 <td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#.jobspec-v1-batch">batchv1.JobSpec</a></code></td>
 <td class="">true</td>
 </tr>
@@ -351,7 +351,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 </tr>
 <tr>
 <td class=""><code>versionLabel</code></td>
-<td class="">An optional version label to apply to resources created for this deployment. This is useful for example to apply an version label for use by Istio. This field follows standard Kubernetes label syntax.</td>
+<td class="">An optional version label to apply to resources created for this deployment. This is useful for example to apply a version label for use by Istio. This field follows standard Kubernetes label syntax.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -393,7 +393,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 </tr>
 <tr>
 <td class=""><code>suspendServicesOnShutdown</code></td>
-<td class="">A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shutdown cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true.</td>
+<td class="">A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shut down cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true.</td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
@@ -435,7 +435,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 </tr>
 <tr>
 <td class=""><code>annotations</code></td>
-<td class="">Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this annotations: key. For example if we wanted to include annotations for Prometheus it would look like this:<br>
+<td class="">Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this "annotations:" key. For example if we wanted to include annotations for Prometheus it would look like this:<br>
 <br>
 annotations:<br>
   prometheus.io/scrape: "true" +<br>
@@ -457,14 +457,14 @@ annotations:<br>
 </tr>
 <tr>
 <td class=""><code>configMapVolumes</code></td>
-<td class="">A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment&#8217;s Pods and as a VolumeMount to all of the containers and init-containers in the Pod.<br>
+<td class="">A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment&#8217;s Pods and as a VolumeMount to all the containers and init-containers in the Pod.<br>
 see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.native="this.scrollFix('#misc_pod_settings/050_configmap_volumes.adoc')">Add ConfigMap Volumes</router-link></td>
 <td class=""><code>[]<router-link to="#_configmapvolumespec" @click.native="this.scrollFix('#_configmapvolumespec')">ConfigMapVolumeSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>secretVolumes</code></td>
-<td class="">A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment&#8217;s Pods and as a VolumeMount to all of the containers and init-containers in the Pod.<br>
+<td class="">A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment&#8217;s Pods and as a VolumeMount to all the containers and init-containers in the Pod.<br>
 see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native="this.scrollFix('#misc_pod_settings/020_secret_volumes.adoc')">Add Secret Volumes</router-link></td>
 <td class=""><code>[]<router-link to="#_secretvolumespec" @click.native="this.scrollFix('#_secretvolumespec')">SecretVolumeSpec</router-link></code></td>
 <td class="">false</td>
@@ -524,10 +524,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <td class=""><code>resources</code></td>
 <td class="">Resources is the optional resource requests and limits for the containers<br>
  ref: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/compute-resources/">http://kubernetes.io/docs/user-guide/compute-resources/</a> +<br>
-<br>
-By default the cpu requests is set to zero and the cpu limit set to 32. This is because it appears that K8s defaults cpu to one and since Java 10 the JVM now correctly picks up cgroup cpu limits then the JVM will only see one cpu. By setting resources.requests.cpu=0 and resources.limits.cpu=32 it ensures that the JVM will see the either the number of cpus on the host if this is &#8656; 32 or the JVM will see 32 cpus if the host has &gt; 32 cpus. The limit is set to zero so that there is no hard-limit applied.<br>
-<br>
-No default memory limits are applied.</td>
+The Coherence operator does not apply any default resources.</td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
 <td class="">false</td>
 </tr>
@@ -547,7 +544,7 @@ No default memory limits are applied.</td>
 </tr>
 <tr>
 <td class=""><code>tolerations</code></td>
-<td class="">Tolerations is for nodes that have taints on them.<br>
+<td class="">Tolerations for nodes that have taints on them.<br>
   Useful if you want to dedicate nodes to just run the coherence container +<br>
 For example:<br>
   tolerations: +<br>
@@ -562,7 +559,7 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>securityContext</code></td>
-<td class="">SecurityContext is the PodSecurityContext that will be added to all of the Pods in this deployment. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</a></td>
+<td class="">SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</a></td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podsecuritycontext-v1-core">corev1.PodSecurityContext</a></code></td>
 <td class="">false</td>
 </tr>
@@ -574,7 +571,7 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>shareProcessNamespace</code></td>
-<td class="">Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false.</td>
+<td class="">Share a single process namespace between all the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false.</td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
@@ -616,13 +613,13 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>haBeforeUpdate</code></td>
-<td class="">Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to false to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment.</td>
+<td class="">Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment.</td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>actions</code></td>
-<td class="">Actions to execute once all of the Pods are ready after an initial deployment</td>
+<td class="">Actions to execute once all the Pods are ready after an initial deployment</td>
 <td class=""><code>[]<router-link to="#_action" @click.native="this.scrollFix('#_action')">Action</router-link></code></td>
 <td class="">false</td>
 </tr>
