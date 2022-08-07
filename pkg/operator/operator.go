@@ -77,7 +77,7 @@ const (
 var setupLog = ctrl.Log.WithName("setup")
 
 var (
-	operatorVersion   = "unknown"
+	operatorVersion   = "999.0.0"
 	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 	DefaultRackLabels = []string{LabelOciNodeFaultDomain, corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 )

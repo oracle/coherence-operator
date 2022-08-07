@@ -92,6 +92,7 @@ func Reconcile(t *testing.T, d coh.Coherence) ([]runtime.Object, *fakes.FakeMana
 	g := NewGomegaWithT(t)
 
 	_, _ = coh.EnsureHashLabel(&d)
+	d.AddAnnotation(coh.AnnotationOperatorVersion, operator.GetVersion())
 
 	chain, err := NewFakeReconcileChain()
 	g.Expect(err).NotTo(HaveOccurred())
