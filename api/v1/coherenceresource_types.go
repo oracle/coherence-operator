@@ -9,6 +9,7 @@ package v1
 import (
 	"fmt"
 	"github.com/operator-framework/operator-lib/status"
+	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -204,6 +205,27 @@ func (in *Coherence) GetWKA() string {
 		return ""
 	}
 	return in.Spec.Coherence.GetWKA(in)
+}
+
+// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
+// if the version annotation is present. If the version annotation is not present this method
+// returns empty string and false.
+func (in *Coherence) GetVersionAnnotation() (string, bool) {
+	if in == nil || in.Annotations == nil {
+		return "", false
+	}
+	version, found := in.Annotations[AnnotationOperatorVersion]
+	return version, found
+}
+
+// IsBeforeVersion returns true if this Coherence resource Operator version annotation value is
+// before the specified version, or is not set.
+// The version parameter must be a valid SemVer value.
+func (in *Coherence) IsBeforeVersion(version string) bool {
+	if actual, found := in.GetVersionAnnotation(); found {
+		return semver.Compare(actual, version) < 0
+	}
+	return true
 }
 
 // ----- CoherenceList type ------------------------------------------------------------------------

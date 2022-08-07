@@ -16,6 +16,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
+	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	k8s.io/api v0.24.0
 	k8s.io/apiextensions-apiserver v0.24.0

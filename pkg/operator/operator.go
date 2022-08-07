@@ -330,7 +330,14 @@ func DetectKubernetesVersion(cs clients.ClientSet) (*version.Version, error) {
 	return version.ParseSemantic(sv.GitVersion)
 }
 
+// GetVersion returns the Operator version.
+// The Operator version is injected at compile time.
+// In development environments, for example running in an IDE where the version has not been injected
+// the version 999.0.0 will be returned
 func GetVersion() string {
+	if operatorVersion == "" {
+		return "999.0.0"
+	}
 	return operatorVersion
 }
 

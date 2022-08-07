@@ -77,14 +77,14 @@ func (in *Coherence) Default() {
 		in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
 
 		// Set the features supported by this version
-		in.addAnnotation(AnnotationFeatureSuspend, "true")
+		in.AddAnnotation(AnnotationFeatureSuspend, "true")
 	} else {
 		logger.Info("Updating defaults for existing resource")
 		// this is an update
 	}
 
 	// apply the Operator version annotation
-	in.addAnnotation(AnnotationOperatorVersion, operator.GetVersion())
+	in.AddAnnotation(AnnotationOperatorVersion, operator.GetVersion())
 
 	// apply a label with the hash of the spec - ths must be the last action here to make sure that
 	// any modifications to the spec field are included in the hash
@@ -93,7 +93,7 @@ func (in *Coherence) Default() {
 	}
 }
 
-func (in *Coherence) addAnnotation(key, value string) {
+func (in *Coherence) AddAnnotation(key, value string) {
 	if in != nil {
 		if in.Annotations == nil {
 			in.Annotations = make(map[string]string)

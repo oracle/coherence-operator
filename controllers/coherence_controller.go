@@ -131,7 +131,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// The request is an add or update
 
-	// Ensure the hash label is present (it should have been added by the web-hook, so this should be a no-op.
+	// Ensure the hash label is present (it should have been added by the web-hook, so this should be a no-op).
 	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
 	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
 		return ctrl.Result{Requeue: true}, err
@@ -194,12 +194,13 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 
 		if found {
+
 			// The "storeHash" is not "", so it must have been processed by the Operator (could have been a previous version).
-			// There was a bug prior to 3.2.7 where the hash was calculated at the wrong point in the defaulting web-hook,
+			// There was a bug prior to 3.2.8 where the hash was calculated at the wrong point in the defaulting web-hook,
 			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
-			if _, exists := deployment.Annotations[coh.AnnotationOperatorVersion]; !exists {
-				// the AnnotationOperatorVersion annotation was added in the 3.2.7 web-hook, so if it is missing
-				// the Coherence resource was added or updated prior to 3.2.7
+			if deployment.IsBeforeVersion("3.2.8") {
+				// the AnnotationOperatorVersion annotation was added in the 3.2.8 web-hook, so if it is missing
+				// the Coherence resource was added or updated prior to 3.2.8
 				// In this case we just ignore the difference in hash.
 				// There is an edge case where the Coherence resource could have legitimately been updated whilst
 				// the Operator and web-hooks were uninstalled. In that case we would ignore the update until another
@@ -207,10 +208,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 				// AnnotationOperatorVersion annotation with some value, which will then be overwritten by the web-hook
 				// and the Coherence resource will be correctly processes.
 				desiredResources = storage.GetLatest()
-				log.Info("Ignoring hash difference for pre-3.2.7 resource", "hash", hash, "store", storeHash)
+				log.Info("Ignoring hash difference for pre-3.2.8 resource", "hash", hash, "store", storeHash)
 			}
 		}
-
 	} else {
 		// storage state was saved with the current hash so is already in the desired state
 		desiredResources = storage.GetLatest()
@@ -235,7 +235,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return reconcile.Result{}, err
 	}
 
-	// Ensure the version annotation is present (it should have been added by the web-hook, so this should be a no-op.
+	// Ensure the version annotation is present (it should have been added by the web-hook, so this should be a no-op).
 	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
 	if applied, err := in.ensureVersionAnnotationApplied(ctx, deployment); applied || err != nil {
 		return ctrl.Result{Requeue: true}, err
@@ -350,6 +350,13 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
+		if c.IsBeforeVersion("3.2.8") {
+			// Before 3.2.8 there was a bug calculating the has in the defaulting web-hook
+			// This would cause the hashes to be different here, when in fact they should not be
+			// If the Coherence resource being processes has no version annotation, or a version
+			// prior to 3.2.8 then we return as if the hashes matched
+			return false, nil
+		}
 		callback := func() {
 			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "newHash", hash, "currentHash", currentHash)
 		}
@@ -365,18 +372,15 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 
 // ensureVersionAnnotationApplied ensures that the version annotation is present in the Coherence resource, patching it if required
 func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	currentVersion := ""
-	annotations := c.GetAnnotations()
-	if len(annotations) > 0 {
-		currentVersion = annotations[coh.AnnotationOperatorVersion]
-	}
+	currentVersion, _ := c.GetVersionAnnotation()
 
-	// Re-fetch the Coherence resource to ensure we have the most recent copy
-	latest := &coh.Coherence{}
-	c.DeepCopyInto(latest)
 	version := operator.GetVersion()
 
 	if currentVersion != version {
+		// make a copy of the Coherence resource to use in the three-way patch
+		latest := c.DeepCopy()
+		latest.AddAnnotation(coh.AnnotationOperatorVersion, version)
+
 		callback := func() {
 			in.Log.Info(fmt.Sprintf("Applied %s annotation", coh.AnnotationOperatorVersion))
 		}
