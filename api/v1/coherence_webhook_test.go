@@ -191,7 +191,7 @@ func TestCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 func TestUtilsImageIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	viper.Set(operator.FlagUtilsImage, "foo")
+	viper.Set(operator.FlagOperatorImage, "foo")
 
 	c := coh.Coherence{}
 	c.Default()
@@ -203,7 +203,7 @@ func TestUtilsImageIsSet(t *testing.T) {
 func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	viper.Set(operator.FlagUtilsImage, "foo")
+	viper.Set(operator.FlagOperatorImage, "foo")
 	image := "bar"
 	c := coh.Coherence{
 		Spec: coh.CoherenceResourceSpec{

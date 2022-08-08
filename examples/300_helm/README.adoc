@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -183,8 +183,8 @@ The Coherence Operator has two images, the Operator itself and a second image co
 The following commands will pull the Operator utils image and run it to display the help fot eh status command:
 [source,bash,,subs="attributes"]
 ----
-docker pull {operator-utils-image}
-docker run -it --rm {operator-utils-image} status -h
+docker pull {operator-image}
+docker run -it --rm {operator-image} status -h
 ----
 
 By creating a K8s Job that runs the status command we can query the Operator for the status of the Coherence resource we installed from the Helm chart. Of course, we could have written something similar that used kubectl in the Job or similar to query k8s for the state of the Coherence resource, but this becomes more complex in RBAC enabled cluster. Querying the simple REST endpoint of the Coherence Operator does not require RBAC rules for the Job to execute.

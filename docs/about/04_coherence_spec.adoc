@@ -166,7 +166,7 @@ m| containerSecurityContext | ContainerSecurityContext is the SecurityContext th
 m| shareProcessNamespace | Share a single process namespace between all the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
 m| hostIPC | Use the host's ipc namespace. Optional: Default to false. m| &#42;bool | false
 m| network | Configure various networks and DNS settings for Pods in this rolw. m| &#42;<<NetworkSpec,NetworkSpec>> | false
-m| coherenceUtils | The configuration for the Coherence utils image m| &#42;<<ImageSpec,ImageSpec>> | false
+m| coherenceUtils | The configuration for the Coherence operator image name m| &#42;<<ImageSpec,ImageSpec>> | false
 m| serviceAccountName | The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec. m| string | false
 m| automountServiceAccountToken | Whether to auto-mount the Kubernetes API credentials for a service account m| &#42;bool | false
 m| operatorRequestTimeout | The timeout to apply to REST requests made back to the Operator from Coherence Pods. These requests are typically to obtain site and rack information for the Pod. m| &#42;int32 | false

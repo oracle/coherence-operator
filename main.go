@@ -267,7 +267,7 @@ func printVersion() {
 	opLog.Info(fmt.Sprintf("Operator Built By: %s", Author))
 	opLog.Info(fmt.Sprintf("Operator Git Commit: %s", Commit))
 	opLog.Info(fmt.Sprintf("Operator Coherence Image: %s", viper.GetString(operator.FlagCoherenceImage)))
-	opLog.Info(fmt.Sprintf("Operator Utils Image: %s", viper.GetString(operator.FlagUtilsImage)))
+	opLog.Info(fmt.Sprintf("Operator Image: %s", viper.GetString(operator.FlagOperatorImage)))
 	opLog.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	opLog.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 }

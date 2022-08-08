@@ -120,7 +120,7 @@ spec:
           value: {{ .Values.rackLabel | quote }}
         - name: SITE_LABEL
           value: {{ .Values.siteLabel | quote }}
-        - name: UTILS_IMAGE
+        - name: OPERATOR_IMAGE
           value: {{ .Values.defaultCoherenceUtilsImage | quote }}
         - name: WATCH_NAMESPACE
 {{- if .Values.clusterRoles }}

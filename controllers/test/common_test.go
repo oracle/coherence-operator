@@ -31,7 +31,7 @@ import (
 
 const (
 	testCoherenceImage = "oracle/coherence-ce:1.2.3"
-	testUtilsImage     = "oracle/operator:1.2.3-utils"
+	testOperatorImage  = "oracle/operator:1.2.3"
 )
 
 func FindContainer(name string, sts *appsv1.StatefulSet) (corev1.Container, bool) {
@@ -135,7 +135,7 @@ func NewFakeReconcileChain() (FakeReconcileChain, error) {
 	}
 
 	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
-	viper.Set(operator.FlagUtilsImage, testUtilsImage)
+	viper.Set(operator.FlagOperatorImage, testOperatorImage)
 
 	r := &cc.CoherenceReconciler{
 		Log: ctrl.Log.WithName("controllers").WithName("Coherence"),

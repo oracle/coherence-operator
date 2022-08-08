@@ -28,7 +28,7 @@ import (
 
 const (
 	testCoherenceImage = "oracle/coherence-ce:1.2.3"
-	testUtilsImage     = "oracle/operator:1.2.3-utils"
+	testOperatorImage  = "oracle/operator:1.2.3"
 )
 
 // Returns a pointer to an int32
@@ -271,11 +271,11 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 		cohContainer.Image = *cohImage
 	}
 
-	// The Utils Init-Container
-	utilsContainer := corev1.Container{
-		Name:    coh.ContainerNameUtils,
-		Image:   testUtilsImage,
-		Command: []string{coh.UtilsInitCommand, coh.RunnerInit},
+	// The Operator Init-Container
+	initContainer := corev1.Container{
+		Name:    coh.ContainerNameOperatorInit,
+		Image:   testOperatorImage,
+		Command: []string{coh.RunnerInitCommand, coh.RunnerInit},
 		Env: []corev1.EnvVar{
 			{
 				Name:  "COH_CLUSTER_NAME",
@@ -300,8 +300,8 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 		},
 	}
 
-	if utilsImage := spec.GetCoherenceUtilsImage(); utilsImage != nil {
-		utilsContainer.Image = *utilsImage
+	if operatorImage := spec.GetCoherenceOperatorImage(); operatorImage != nil {
+		initContainer.Image = *operatorImage
 	}
 
 	// The StatefulSet
@@ -324,7 +324,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					InitContainers: []corev1.Container{utilsContainer},
+					InitContainers: []corev1.Container{initContainer},
 					Containers:     []corev1.Container{cohContainer},
 					Volumes: []corev1.Volume{
 						{
@@ -471,7 +471,7 @@ func createTestDeployment(spec coh.CoherenceResourceSpec) *coh.Coherence {
 
 func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpected *appsv1.StatefulSet) {
 	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
-	viper.Set(operator.FlagUtilsImage, testUtilsImage)
+	viper.Set(operator.FlagOperatorImage, testOperatorImage)
 
 	res := deployment.Spec.CreateStatefulSet(deployment)
 	assertStatefulSet(t, res, stsExpected)

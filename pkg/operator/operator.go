@@ -62,7 +62,7 @@ const (
 	FlagServicePort           = "service-port"
 	FlagSiteLabel             = "site-label"
 	FlagSkipServiceSuspend    = "skip-service-suspend"
-	FlagUtilsImage            = "utils-image"
+	FlagOperatorImage         = "operator-image"
 	FlagValidatingWebhookName = "validating-webhook-name"
 	FlagWebhookCertDir        = "webhook-cert-dir"
 	FlagWebhookSecret         = "webhook-secret"
@@ -187,9 +187,9 @@ func SetupFlags(cmd *cobra.Command) {
 			"This option is rarely set to false outside of testing.",
 	)
 	cmd.Flags().String(
-		FlagUtilsImage,
+		FlagOperatorImage,
 		"",
-		"The default Coherence Operator utils image to use if none is specified.",
+		"The default Coherence Operator image to use if none is specified.",
 	)
 	cmd.Flags().String(
 		FlagValidatingWebhookName,
@@ -246,8 +246,8 @@ func GetDefaultCoherenceImage() string {
 	return viper.GetString(FlagCoherenceImage)
 }
 
-func GetDefaultUtilsImage() string {
-	return viper.GetString(FlagUtilsImage)
+func GetDefaultOperatorImage() string {
+	return viper.GetString(FlagOperatorImage)
 }
 
 func GetRestHost() string {

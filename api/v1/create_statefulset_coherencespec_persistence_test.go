@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -110,9 +110,9 @@ func TestCreateStatefulSetWithPersistenceVolume(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNamePersistence,
 		MountPath: coh.VolumeMountPathPersistence,
@@ -162,9 +162,9 @@ func TestCreateStatefulSetWithPersistencePVC(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNamePersistence,
 		MountPath: coh.VolumeMountPathPersistence,
@@ -225,9 +225,9 @@ func TestCreateStatefulSetWithPersistenceVolumeAndPVC(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNamePersistence,
 		MountPath: coh.VolumeMountPathPersistence,
@@ -269,9 +269,9 @@ func TestCreateStatefulSetWithPersistenceSnapshotVolume(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNameSnapshots,
 		MountPath: coh.VolumeMountPathSnapshots,
@@ -321,9 +321,9 @@ func TestCreateStatefulSetWithPersistenceSnapshotPVC(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNameSnapshots,
 		MountPath: coh.VolumeMountPathSnapshots,
@@ -383,9 +383,9 @@ func TestCreateStatefulSetWithPersistenceSnapshotVolumeAndPVC(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNameSnapshots,
 		MountPath: coh.VolumeMountPathSnapshots,
@@ -433,11 +433,11 @@ func TestCreateStatefulSetWithPersistenceAndSnapshotVolume(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts,
 		corev1.VolumeMount{Name: coh.VolumeNamePersistence, MountPath: coh.VolumeMountPathPersistence},
 		corev1.VolumeMount{Name: coh.VolumeNameSnapshots, MountPath: coh.VolumeMountPathSnapshots})
@@ -498,11 +498,11 @@ func TestCreateStatefulSetWithPersistenceAndSnapshotPVC(t *testing.T) {
 
 	// Add the expected environment variables
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVars(stsExpected, coh.ContainerNameUtils, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVars(stsExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
-	// add the expected volume mount to the utils container
+	// add the expected volume mount to the Operator init-container
 	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts,
 		corev1.VolumeMount{Name: coh.VolumeNamePersistence, MountPath: coh.VolumeMountPathPersistence},
 		corev1.VolumeMount{Name: coh.VolumeNameSnapshots, MountPath: coh.VolumeMountPathSnapshots})

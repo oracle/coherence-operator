@@ -326,7 +326,7 @@ func TestCreateStatefulSetWithContainerSecurityContext(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	// Add the expected security context to both the utils init-container and the Coherence container
+	// Add the expected security context to both the init-container and the Coherence container
 	stsExpected.Spec.Template.Spec.InitContainers[0].SecurityContext = &ctx
 	stsExpected.Spec.Template.Spec.Containers[0].SecurityContext = &ctx
 

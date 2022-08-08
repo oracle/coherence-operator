@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -39,7 +39,7 @@ func TestCreateStatefulSetWithCoherenceUtilsWithImage(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	// Set the expected utils image name
+	// Set the expected Operator image name
 	stsExpected.Spec.Template.Spec.InitContainers[0].Image = "utils:1.0"
 
 	// assert that the StatefulSet is as expected
@@ -58,7 +58,7 @@ func TestCreateStatefulSetWithCoherenceUtilsWithImagePullPolicy(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	// Set the expected utils image pull policy
+	// Set the expected Operator image pull policy
 	stsExpected.Spec.Template.Spec.InitContainers[0].ImagePullPolicy = policy
 
 	// assert that the StatefulSet is as expected

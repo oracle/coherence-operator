@@ -60,10 +60,9 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 == Coherence Operator Images
 
-The Coherence Operator uses two images, the Operator itself and a utilities image that runs as an init-container in the Coherence cluster Pods.
+The Coherence Operator uses a single images, the Operator also runs as an init-container in the Coherence cluster Pods.
 
 * `{operator-image}` - The Operator image.
-* `{operator-utils-image}` - The Operator Utilities image.
 
 If no image is specified in the `Coherence` yaml, then the default Coherence image will also be used,
 
@@ -339,11 +338,11 @@ that you are using for the Operator, for example if you have the images in a cus
 cd ./manager && kustomize edit set image controller=myregistry/coherence-operator:3.2.8
 ----
 
-Change the name of the Operator utilities image by running the command below, changing the image name to the registry and image name
+Change the name of the Operator image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image
 [source,bash]
 ----
-cd ./manager && kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=myregistry/coherence-operator-utils:3.2.8
+cd ./manager && kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.2.8
 ----
 
 Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
