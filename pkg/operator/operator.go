@@ -376,3 +376,22 @@ func GetVersion() string {
 func SetVersion(v string) {
 	operatorVersion = v
 }
+
+// GetWatchNamespace returns the Namespace(s) the operator should be watching for changes
+func GetWatchNamespace() []string {
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+	var watches []string
+
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found || ns == "" || strings.TrimSpace(ns) == "" {
+		return watches
+	}
+
+	for _, s := range strings.Split(ns, ",") {
+		watches = append(watches, strings.TrimSpace(s))
+	}
+	return watches
+}

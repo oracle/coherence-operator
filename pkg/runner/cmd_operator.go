@@ -29,7 +29,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"strings"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -98,7 +97,7 @@ func execute() error {
 	}
 
 	// Determine the Operator scope...
-	watchNamespaces := getWatchNamespace()
+	watchNamespaces := operator.GetWatchNamespace()
 	switch len(watchNamespaces) {
 	case 0:
 		// Watching all namespaces
@@ -202,23 +201,4 @@ func initialiseOperator(ctx context.Context, v *version.Version, cl client.Clien
 			os.Exit(1)
 		}
 	}
-}
-
-// getWatchNamespace returns the Namespace(s) the operator should be watching for changes
-func getWatchNamespace() []string {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch.
-	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-	var watches []string
-
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found || ns == "" || strings.TrimSpace(ns) == "" {
-		return watches
-	}
-
-	for _, s := range strings.Split(ns, ",") {
-		watches = append(watches, strings.TrimSpace(s))
-	}
-	return watches
 }
