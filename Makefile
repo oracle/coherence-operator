@@ -38,7 +38,7 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION ?= 21.12.4
 # The default Coherence image the Operator will run if no image is specified
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:22.06.1
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:$(COHERENCE_VERSION)
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.

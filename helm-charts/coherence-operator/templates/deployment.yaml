@@ -88,7 +88,7 @@ spec:
     spec:
       serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}
       containers:
-      - name: /files/runner
+      - name: manager
         args:
         - operator
         - --enable-leader-election
@@ -97,7 +97,7 @@ spec:
         - --install-crd=false
 {{- end }}
         command:
-        - /manager
+        - "/files/runner"
         env:
         - name: OPERATOR_NAMESPACE
           valueFrom:
