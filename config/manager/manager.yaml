@@ -44,8 +44,9 @@ spec:
           name: health
           protocol: TCP
         command:
-          - /manager
+          - /files/runner
         args:
+          - operator
           - --enable-leader-election
         envFrom:
           - configMapRef:

@@ -47,7 +47,6 @@ func nodeCommand() *cobra.Command {
 		log.Error(err, "could not obtain working directory")
 	}
 
-	fmt.Println(path) // for example /home/user
 	flagSet := cmd.Flags()
 	flagSet.String(ArgNode, "", "The name of the Kubernetes node to obtain labels for")
 	flagSet.String(ArgDir, path, "The directory to write the label files to")

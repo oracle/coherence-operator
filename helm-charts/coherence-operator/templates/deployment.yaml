@@ -88,8 +88,9 @@ spec:
     spec:
       serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}
       containers:
-      - name: manager
+      - name: /files/runner
         args:
+        - operator
         - --enable-leader-election
 {{- if (eq .Values.clusterRoles false) }}
         - --enable-webhook=false

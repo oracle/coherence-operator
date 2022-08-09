@@ -35,8 +35,10 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
+# The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION ?= 21.12.4
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:$(COHERENCE_VERSION)
+# The default Coherence image the Operator will run if no image is specified
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:22.06.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -403,16 +405,6 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-operator
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator Utils Docker image
-# ----------------------------------------------------------------------------------------------------------------------
-#.PHONY: build-utils
-#build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator utils image
-#	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
-#	docker build --no-cache --build-arg target=amd64 -t $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)-amd64 java/coherence-operator/target/docker
-#	docker build --no-cache --build-arg target=arm64 -t $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)-arm64 java/coherence-operator/target/docker
-#	docker tag $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)-$(IMAGE_ARCH) $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)
 
 $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner build-mvn
 	docker build --no-cache --build-arg version=$(VERSION) \

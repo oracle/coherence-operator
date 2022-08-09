@@ -8,10 +8,12 @@
 package operator
 
 import (
+	"flag"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/version"
@@ -53,6 +55,9 @@ const (
 	FlagDevMode               = "coherence-dev-mode"
 	FlagCRD                   = "install-crd"
 	FlagEnableWebhook         = "enable-webhook"
+	FlagHealthAddress         = "health-addr"
+	FlagLeaderElection        = "enable-leader-election"
+	FlagMetricsAddress        = "metrics-addr"
 	FlagMutatingWebhookName   = "mutating-webhook-name"
 	FlagOperatorNamespace     = "operator-namespace"
 	FlagRackLabel             = "rack-label"
@@ -81,6 +86,33 @@ var (
 	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 	DefaultRackLabels = []string{LabelOciNodeFaultDomain, corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 )
+
+func SetupOperatorManagerFlags(cmd *cobra.Command) {
+	flags := cmd.Flags()
+	flags.String(FlagMetricsAddress, ":8080", "The address the metric endpoint binds to.")
+	flags.String(FlagHealthAddress, ":8088", "The address the health endpoint binds to.")
+	flags.Bool(FlagLeaderElection, false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+
+	SetupFlags(cmd)
+
+	// Add flags registered by imported packages (e.g. glog and controller-runtime)
+	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
+	flagSet.AddGoFlagSet(flag.CommandLine)
+	if err := viper.BindPFlags(flagSet); err != nil {
+		setupLog.Error(err, "binding flags")
+		os.Exit(1)
+	}
+
+	// Validate the command line flags and environment variables
+	if err := ValidateFlags(); err != nil {
+		fmt.Println(err.Error())
+		_ = cmd.Help()
+		os.Exit(1)
+	}
+
+}
 
 func SetupFlags(cmd *cobra.Command) {
 	f, err := data.Assets.Open("assets/config.json")
