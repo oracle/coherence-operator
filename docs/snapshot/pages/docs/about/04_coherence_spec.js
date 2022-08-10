@@ -589,7 +589,7 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>coherenceUtils</code></td>
-<td class="">The configuration for the Coherence utils image</td>
+<td class="">The configuration for the Coherence operator image name</td>
 <td class=""><code>&#42;<router-link to="#_imagespec" @click.native="this.scrollFix('#_imagespec')">ImageSpec</router-link></code></td>
 <td class="">false</td>
 </tr>

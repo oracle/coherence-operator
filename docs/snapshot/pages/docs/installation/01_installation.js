@@ -103,15 +103,11 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <h2 id="_coherence_operator_images">Coherence Operator Images</h2>
 <div class="section">
-<p>The Coherence Operator uses two images, the Operator itself and a utilities image that runs as an init-container in the Coherence cluster Pods.</p>
+<p>The Coherence Operator uses a single images, the Operator also runs as an init-container in the Coherence cluster Pods.</p>
 
 <ul class="ulist">
 <li>
 <p><code>ghcr.io/oracle/coherence-operator:3.2.8</code> - The Operator image.</p>
-
-</li>
-<li>
-<p><code>ghcr.io/oracle/coherence-operator-utils:3.2.8</code> - The Operator Utilities image.</p>
 
 </li>
 </ul>
@@ -438,13 +434,13 @@ lang="bash"
 
 >cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.2.8</markup>
 
-<p>Change the name of the Operator utilities image by running the command below, changing the image name to the registry and image name
+<p>Change the name of the Operator image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image</p>
 
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal UTILS_IMAGE=myregistry/coherence-operator-utils:3.2.8</markup>
+>cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.2.8</markup>
 
 <p>Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
 does not need to change.</p>
