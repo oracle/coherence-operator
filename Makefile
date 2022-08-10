@@ -406,7 +406,7 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 .PHONY: build-operator
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
-$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner build-mvn
+$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
@@ -421,7 +421,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner build-
 	touch $(BUILD_TARGETS)/build-operator
 
 .PHONY: build-operator-debug
-build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug $(BUILD_BIN)/linux/amd64/runner-debug build-mvn ## Build the Coherence Operator image with the Delve debugger
+build-operator-debug: $(BUILD_BIN)/linux/amd64/runner-debug build-mvn ## Build the Coherence Operator image with the Delve debugger
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_IMAGE_DELVE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
@@ -432,10 +432,6 @@ build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug $(BUILD_BIN)/linux/
 
 build-delve-image: ## Build the Coherence Operator Delve debugger base image
 	docker build -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) debug
-
-$(BUILD_BIN)/linux/amd64/manager-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/manager-debug main.go
-	chmod +x $(BUILD_BIN)/linux/amd64/manager-debug
 
 $(BUILD_BIN)/linux/amd64/runner-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/runner-debug ./runner
@@ -479,16 +475,6 @@ build-client-image: ## Build the test client image
 build-all-images: $(BUILD_TARGETS)/build-operator build-test-images build-compatibility-image ## Build all images (including tests)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Build the operator linux binary
-# ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
-	mkdir -p $(BUILD_BIN)/linux/amd64 || true
-	cp -f $(BUILD_BIN)/manager $(BUILD_BIN)/linux/amd64/manager
-	mkdir -p $(BUILD_BIN)/linux/arm64 || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/manager main.go
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: ensure-sdk
@@ -502,8 +488,7 @@ ensure-sdk:
 .PHONY: build-runner
 build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
-$(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
-	@echo "Building Operator Runner"
+$(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/runner ./runner
 	mkdir -p $(BUILD_BIN)/linux/amd64 || true
 	cp -f $(BUILD_BIN)/runner $(BUILD_BIN)/linux/amd64/runner
@@ -712,7 +697,7 @@ copyright:  ## Check copyright headers
 # ----------------------------------------------------------------------------------------------------------------------
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: create-namespace ## run the Operator locally
-	go run -ldflags "$(LDFLAGS)" ./main.go --skip-service-suspend=true --coherence-dev-mode=true \
+	go run -ldflags "$(LDFLAGS)" ./runner/main.go operator --skip-service-suspend=true --coherence-dev-mode=true \
 		--cert-type=self-signed --webhook-service=host.docker.internal \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
