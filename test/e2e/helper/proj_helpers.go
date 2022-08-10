@@ -36,8 +36,6 @@ const (
 	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
 	// OperatorImageEnv is environment variable holding the name of the Operator image.
 	OperatorImageEnv = "OPERATOR_IMAGE"
-	// UtilsImageEnv is environment variable holding the name of the Operator utils image.
-	UtilsImageEnv = "UTILS_IMAGE"
 	// ClientImageEnv is environment variable holding the name of the client test image.
 	ClientImageEnv = "TEST_APPLICATION_IMAGE_CLIENT"
 	// CohCompatibilityImageEnv is environment variable holding the name of the compatibility test image.
@@ -82,11 +80,6 @@ func ensureEnvVar(key, value string) {
 // GetOperatorImage returns the name of the Operator image.
 func GetOperatorImage() string {
 	return os.Getenv(OperatorImageEnv)
-}
-
-// GetUtilsImage returns the name of the Operator utils image.
-func GetUtilsImage() string {
-	return os.Getenv(UtilsImageEnv)
 }
 
 // GetClientImage returns the name of the client test image

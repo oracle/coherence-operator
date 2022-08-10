@@ -43,7 +43,10 @@ spec:
         - containerPort: 8088
           name: health
           protocol: TCP
+        command:
+          - /files/runner
         args:
+          - operator
           - --enable-leader-election
         envFrom:
           - configMapRef:

@@ -169,7 +169,7 @@ func createHelmCommand(args ...string) (*exec.Cmd, error) {
 
 	argList := []string{"install",
 		"--set", "image=" + helper.GetOperatorImage(),
-		"--set", "defaultCoherenceUtilsImage=" + helper.GetUtilsImage()}
+		"--set", "defaultCoherenceUtilsImage=" + helper.GetOperatorImage()}
 
 	argList = append(argList, args...)
 

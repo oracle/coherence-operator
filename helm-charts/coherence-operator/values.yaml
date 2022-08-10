@@ -9,9 +9,9 @@ image: "${OPERATOR_IMAGE}"
 # resource does not specify an image name.
 defaultCoherenceImage: "${COHERENCE_IMAGE}"
 
-# defaultCoherenceUtilsImage is the Coherence Operator utils image that will be used when running
+# defaultCoherenceUtilsImage is the Coherence Operator image that will be used when running
 # Coherence Pods. This image version should typically match the Operator version.
-defaultCoherenceUtilsImage: "${UTILS_IMAGE}"
+defaultCoherenceUtilsImage: "${OPERATOR_IMAGE}"
 
 # watchNamespaces is the comma delimited list of namespaces that the operator should
 # manage Coherence resources in. The default is to manage all namespaces.

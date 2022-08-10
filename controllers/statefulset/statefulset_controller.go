@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -181,7 +181,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	var updated *coh.Coherence
 	if err == nil {
 		if updated, err = in.UpdateDeploymentStatus(ctx, request); err == nil {
-			if updated.Status.Phase == coh.ConditionTypeReady && !updated.Status.ActionsExecuted && deployment.GetReplicas() != 0  {
+			if updated.Status.Phase == coh.ConditionTypeReady && !updated.Status.ActionsExecuted && deployment.GetReplicas() != 0 {
 				in.execActions(ctx, stsCurrent, deployment)
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, true)
 			}
@@ -266,10 +266,10 @@ func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh
 			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:      actionJob.Labels,
-			Annotations: actionJob.Annotations,
+			Labels:       actionJob.Labels,
+			Annotations:  actionJob.Annotations,
 			GenerateName: generateName,
-			Namespace: deployment.GetNamespace(),
+			Namespace:    deployment.GetNamespace(),
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         deployment.APIVersion,
@@ -483,12 +483,12 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		in.setCoherenceImage(current, cohImage)
 	}
 
-	// ensure the utils image is present so that we do not patch on a Coherence resource
+	// ensure the Operator image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
 	if deployment.Spec.CoherenceUtils == nil || deployment.Spec.CoherenceUtils.Image == nil {
-		utilsImage := in.getUtilsImage(desired)
-		in.setUtilsImage(original, utilsImage)
-		in.setUtilsImage(current, utilsImage)
+		operatorImage := in.getOperatorImage(desired)
+		in.setOperatorImage(original, operatorImage)
+		in.setOperatorImage(current, operatorImage)
 	}
 
 	// a callback function that the 3-way patch method will call just before it applies a patch
@@ -594,20 +594,20 @@ func (in *ReconcileStatefulSet) sortEnvForContainer(c *corev1.Container) {
 	})
 }
 
-func (in *ReconcileStatefulSet) getUtilsImage(sts *appsv1.StatefulSet) string {
+func (in *ReconcileStatefulSet) getOperatorImage(sts *appsv1.StatefulSet) string {
 	for i := range sts.Spec.Template.Spec.InitContainers {
 		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameUtils {
+		if c.Name == coh.ContainerNameOperatorInit {
 			return c.Image
 		}
 	}
 	return ""
 }
 
-func (in *ReconcileStatefulSet) setUtilsImage(sts *appsv1.StatefulSet, image string) {
+func (in *ReconcileStatefulSet) setOperatorImage(sts *appsv1.StatefulSet, image string) {
 	for i := range sts.Spec.Template.Spec.InitContainers {
 		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameUtils {
+		if c.Name == coh.ContainerNameOperatorInit {
 			c.Image = image
 			sts.Spec.Template.Spec.InitContainers[i] = c
 		}
@@ -641,18 +641,18 @@ func (in *ReconcileStatefulSet) blankContainerFields(deployment *coh.Coherence, 
 		// affinity not set by user so do not diff on it
 		sts.Spec.Template.Spec.Affinity = nil
 	}
-	in.blankUtilsContainerFields(sts)
+	in.blankOperatorInitContainerFields(sts)
 	in.blankCoherenceContainerFields(sts)
 }
 
 // Blanks out any fields that may have been set by a previous Operator version.
 // DO NOT blank out anything that the user has control over as they may have
-// updated them so we need to include them in the patch
-func (in *ReconcileStatefulSet) blankUtilsContainerFields(sts *appsv1.StatefulSet) {
+// updated them, so we need to include them in the patch
+func (in *ReconcileStatefulSet) blankOperatorInitContainerFields(sts *appsv1.StatefulSet) {
 	for i := range sts.Spec.Template.Spec.InitContainers {
 		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameUtils {
-			// This is the Utils Container
+		if c.Name == coh.ContainerNameOperatorInit {
+			// This is the Operator init-container
 			// blank out the container command field
 			c.Command = []string{}
 			// set the updated init-container back into the StatefulSet

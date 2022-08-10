@@ -122,6 +122,7 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(statusCommand())
 	rootCmd.AddCommand(readyCommand())
 	rootCmd.AddCommand(nodeCommand())
+	rootCmd.AddCommand(operatorCommand())
 
 	return rootCmd, v
 }
