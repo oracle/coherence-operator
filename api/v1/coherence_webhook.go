@@ -73,8 +73,8 @@ func (in *Coherence) Default() {
 		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
 		in.Spec.EnsureCoherenceImage(&coherenceImage)
-		utilsImage := operator.GetDefaultUtilsImage()
-		in.Spec.EnsureCoherenceUtilsImage(&utilsImage)
+		operatorImage := operator.GetDefaultOperatorImage()
+		in.Spec.EnsureCoherenceOperatorImage(&operatorImage)
 
 		// Set the features supported by this version
 		in.AddAnnotation(AnnotationFeatureSuspend, "true")

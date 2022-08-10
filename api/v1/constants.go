@@ -68,8 +68,8 @@ const (
 
 	// ContainerNameCoherence is the Coherence container name
 	ContainerNameCoherence = "coherence"
-	// ContainerNameUtils is the utils container name
-	ContainerNameUtils = "coherence-k8s-utils"
+	// ContainerNameOperatorInit is the Operator init-container name
+	ContainerNameOperatorInit = "coherence-k8s-utils"
 
 	// VolumeNamePersistence is the name of the persistence volume
 	VolumeNamePersistence = "persistence-volume"
@@ -105,9 +105,9 @@ const (
 	// RunnerCommand is the start command for the runner
 	RunnerCommand = VolumeMountPathUtils + "/runner"
 
-	// UtilsInitCommand is the start command for the utils init container
-	UtilsInitCommand = "/files/runner"
-	// RunnerInit is the command line argument for the utils init container
+	// RunnerInitCommand is the start command for the Operator init-container
+	RunnerInitCommand = "/files/runner"
+	// RunnerInit is the command line argument for the Operator init-container
 	RunnerInit = "init"
 
 	// ServiceMonitorKind is the Prometheus ServiceMonitor resource API Kind

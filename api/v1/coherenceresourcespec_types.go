@@ -267,7 +267,7 @@ type CoherenceResourceSpec struct {
 	// Configure various networks and DNS settings for Pods in this rolw.
 	// +optional
 	Network *NetworkSpec `json:"network,omitempty"`
-	// The configuration for the Coherence utils image
+	// The configuration for the Coherence operator image name
 	// +optional
 	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
 	// The name to use for the service account to use when RBAC is enabled
@@ -416,23 +416,23 @@ func (in *CoherenceResourceSpec) EnsureCoherenceImage(coherenceImage *string) bo
 	return false
 }
 
-// GetCoherenceUtilsImage returns the name of the Operator utils image to use.
-func (in *CoherenceResourceSpec) GetCoherenceUtilsImage() *string {
+// GetCoherenceOperatorImage returns the name of the Operator image to use.
+func (in *CoherenceResourceSpec) GetCoherenceOperatorImage() *string {
 	if in != nil && in.CoherenceUtils != nil {
 		return in.CoherenceUtils.Image
 	}
 	return nil
 }
 
-// EnsureCoherenceUtilsImage ensures that the Coherence Utils image is set for the deployment.
+// EnsureCoherenceOperatorImage ensures that the Coherence Operator image is set for the deployment.
 // This ensures that the image is fixed to either that specified in the cluster spec or to the current default
 // and means that the Helm controller does not upgrade the images if the Operator is upgraded.
-func (in *CoherenceResourceSpec) EnsureCoherenceUtilsImage(utilsImage *string) bool {
+func (in *CoherenceResourceSpec) EnsureCoherenceOperatorImage(imageName *string) bool {
 	if in.CoherenceUtils == nil {
 		in.CoherenceUtils = &ImageSpec{}
 	}
 
-	return in.CoherenceUtils.EnsureImage(utilsImage)
+	return in.CoherenceUtils.EnsureImage(imageName)
 }
 
 // CheckHABeforeUpdate returns true if a StatusHA check should be made before updating a deployment.
@@ -789,7 +789,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 				Tolerations:                  in.Tolerations,
 				TopologySpreadConstraints:    in.TopologySpreadConstraints,
 				InitContainers: []corev1.Container{
-					in.CreateUtilsContainer(deployment),
+					in.CreateOperatorInitContainer(deployment),
 				},
 				Containers: []corev1.Container{cohContainer},
 				Volumes: []corev1.Volume{
@@ -1071,21 +1071,21 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 	return probe
 }
 
-// CreateUtilsContainer creates the Utils init-container spec.
-func (in *CoherenceResourceSpec) CreateUtilsContainer(deployment *Coherence) corev1.Container {
-	var utilsImage string
+// CreateOperatorInitContainer creates the Operator init-container spec.
+func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment *Coherence) corev1.Container {
+	var image string
 	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
-		utilsImage = operator.GetDefaultUtilsImage()
+		image = operator.GetDefaultOperatorImage()
 	} else {
-		utilsImage = *in.CoherenceUtils.Image
+		image = *in.CoherenceUtils.Image
 	}
 
 	vm := in.CreateCommonVolumeMounts()
 
 	c := corev1.Container{
-		Name:    ContainerNameUtils,
-		Image:   utilsImage,
-		Command: []string{UtilsInitCommand, RunnerInit},
+		Name:    ContainerNameOperatorInit,
+		Image:   image,
+		Command: []string{RunnerInitCommand, RunnerInit},
 		Env: []corev1.EnvVar{
 			{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 			{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},

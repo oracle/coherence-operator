@@ -35,7 +35,9 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
+# The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION ?= 21.12.4
+# The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:$(COHERENCE_VERSION)
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
@@ -79,12 +81,10 @@ OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
 OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
-UTILS_IMAGE            ?= $(OPERATOR_IMAGE_REPO)-utils:$(VERSION)
 TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
 # The Operator images to push
 OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
-UTILS_RELEASE_IMAGE     := $(OPERATOR_RELEASE_REPO)-utils:$(VERSION)
 TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO)-test-base:$(VERSION)
 BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO)-bundle:$(VERSION)
 
@@ -259,7 +259,6 @@ TTL_TIMEOUT                        := 1h
 TTL_UUID_FILE                      := $(BUILD_OUTPUT)/ttl-uuid.txt
 TTL_UUID                           := $(shell if [ -f $(TTL_UUID_FILE) ]; then cat $(TTL_UUID_FILE); else uuidgen | tr A-Z a-z > $(TTL_UUID_FILE) && cat $(TTL_UUID_FILE); fi)
 TTL_OPERATOR_IMAGE                 := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME):$(TTL_TIMEOUT)
-TTL_UTILS_IMAGE                    := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-utils:$(TTL_TIMEOUT)
 TTL_PACKAGE_IMAGE                  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-package:$(TTL_TIMEOUT)
 TTL_REPO_IMAGE                     := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-repo:$(TTL_TIMEOUT)
 TTL_APPLICATION_IMAGE              := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test:$(TTL_TIMEOUT)
@@ -377,7 +376,6 @@ $(BUILD_PROPS):
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
-	UTILS_IMAGE=$(UTILS_IMAGE)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	VERSION=$(VERSION)\n\
 	OPERATOR_PACKAGE_IMAGE=$(OPERATOR_PACKAGE_IMAGE)\n" > $(BUILD_PROPS)
@@ -408,30 +406,26 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 .PHONY: build-operator
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator Image
-# ----------------------------------------------------------------------------------------------------------------------
-#   We copy the Dockerfile to $(BUILD_OUTPUT) only so that we can use it as a conditional build dependency in this Makefile
-$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/manager $(BUILD_BIN)/runner
+$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
-		--build-arg utils_image=$(UTILS_IMAGE) \
+		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=amd64 \
 		. -t $(OPERATOR_IMAGE)-amd64
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
-		--build-arg utils_image=$(UTILS_IMAGE) \
+		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=arm64 \
 		. -t $(OPERATOR_IMAGE)-arm64
 	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
 
 .PHONY: build-operator-debug
-build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug ## Build the Coherence Operator image with the Delve debugger
+build-operator-debug: $(BUILD_BIN)/linux/amd64/runner-debug build-mvn ## Build the Coherence Operator image with the Delve debugger
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_IMAGE_DELVE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
-		--build-arg utils_image=$(UTILS_IMAGE) \
+		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=amd64 \
 		-f debug/Dockerfile \
 		. -t $(OPERATOR_IMAGE_DEBUG)
@@ -439,41 +433,15 @@ build-operator-debug: $(BUILD_BIN)/linux/amd64/manager-debug ## Build the Cohere
 build-delve-image: ## Build the Coherence Operator Delve debugger base image
 	docker build -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) debug
 
-$(BUILD_BIN)/linux/amd64/manager-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/manager-debug main.go
-	chmod +x $(BUILD_BIN)/linux/amd64/manager-debug
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator Utils Docker image
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-utils
-build-utils: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence Operator utils image
-	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
-	docker build --no-cache --build-arg target=amd64 -t $(UTILS_IMAGE)-amd64 java/coherence-operator/target/docker
-	docker build --no-cache --build-arg target=arm64 -t $(UTILS_IMAGE)-arm64 java/coherence-operator/target/docker
-	docker tag $(UTILS_IMAGE)-$(IMAGE_ARCH) $(UTILS_IMAGE)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the Operator base test image
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: build-test-base
-build-test-base: export ARTIFACT_DIR        := $(CURRDIR)/java/coherence-operator
-build-test-base: export VERSION             := $(VERSION)
-build-test-base: export IMAGE_NAME          := $(TEST_BASE_IMAGE)
-build-test-base: export AMD_BASE_IMAGE      := gcr.io/distroless/java11-debian11
-build-test-base: export ARM_BASE_IMAGE      := gcr.io/distroless/java11-debian11
-build-test-base: export PROJECT_URL         := $(PROJECT_URL)
-build-test-base: export PROJECT_VENDOR      := Oracle
-build-test-base: export PROJECT_DESCRIPTION := Oracle Coherence base test image
-build-test-base: build-mvn $(BUILD_BIN)/runner  ## Build the Coherence test base image
-	cp -R $(BUILD_BIN)/linux  java/coherence-operator/target/docker
-	$(CURRDIR)/java/coherence-operator/run-buildah.sh BUILD
+$(BUILD_BIN)/linux/amd64/runner-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/runner-debug ./runner
+	chmod +x $(BUILD_BIN)/linux/amd64/runner-debug
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator images without the test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-operator-images
-build-operator-images: $(BUILD_TARGETS)/build-operator build-utils build-test-base ## Build all operator images
+build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
@@ -504,17 +472,7 @@ build-client-image: ## Build the test client image
 # Build all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-all-images
-build-all-images: $(BUILD_TARGETS)/build-operator build-utils build-test-base build-test-images build-compatibility-image ## Build all images (including tests)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build the operator linux binary
-# ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_BIN)/manager: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/manager main.go
-	mkdir -p $(BUILD_BIN)/linux/amd64 || true
-	cp -f $(BUILD_BIN)/manager $(BUILD_BIN)/linux/amd64/manager
-	mkdir -p $(BUILD_BIN)/linux/arm64 || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/manager main.go
+build-all-images: $(BUILD_TARGETS)/build-operator build-test-images build-compatibility-image ## Build all images (including tests)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
@@ -530,8 +488,7 @@ ensure-sdk:
 .PHONY: build-runner
 build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
-$(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS)
-	@echo "Building Operator Runner"
+$(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/runner ./runner
 	mkdir -p $(BUILD_BIN)/linux/amd64 || true
 	cp -f $(BUILD_BIN)/runner $(BUILD_BIN)/linux/amd64/runner
@@ -614,7 +571,7 @@ $(BUILD_OUTPUT)/config.json:
 	@echo "Generating Operator config"
 	@printf "{\n \
 	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
-	  \"utils-image\": \"$(UTILS_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+	  \"operator-image\": \"$(OPERATOR_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
 	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -739,9 +696,8 @@ copyright:  ## Check copyright headers
 # ensure these are killed run "make debug-stop"
 # ----------------------------------------------------------------------------------------------------------------------
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run: export UTILS_IMAGE := $(UTILS_IMAGE)
 run: create-namespace ## run the Operator locally
-	go run -ldflags "$(LDFLAGS)" ./main.go --skip-service-suspend=true --coherence-dev-mode=true \
+	go run -ldflags "$(LDFLAGS)" ./runner/main.go operator --skip-service-suspend=true --coherence-dev-mode=true \
 		--cert-type=self-signed --webhook-service=host.docker.internal \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
@@ -762,7 +718,7 @@ run-clean: reset-namespace run ## run the Operator locally after resetting the n
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-debug
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-debug: export UTILS_IMAGE := $(UTILS_IMAGE)
+run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-debug: create-namespace ## run the Operator locally with Delve debugger
 	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
 		-- --skip-service-suspend=true --coherence-dev-mode=true \
@@ -863,7 +819,7 @@ catalog-push: ## Push an OLM catalog image.
 .PHONY: test-operator
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-test-operator: export UTILS_IMAGE := $(UTILS_IMAGE)
+test-operator: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate gotestsum  ## Run the Operator unit tests
 	@echo "Running operator tests"
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
@@ -910,7 +866,6 @@ e2e-local-test: export VERSION := $(VERSION)
 e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-local-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
@@ -944,7 +899,6 @@ run-e2e-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
 run-e2e-test: export VERSION := $(VERSION)
 run-e2e-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-e2e-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -974,7 +928,6 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
@@ -984,7 +937,6 @@ e2e-client-test: build-operator-images build-client-image reset-namespace create
 # Run the end-to-end Helm chart tests.
 # ----------------------------------------------------------------------------------------------------------------------
 e2e-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-e2e-helm-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
@@ -1028,7 +980,6 @@ run-prometheus-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 run-prometheus-test: export VERSION := $(VERSION)
 run-prometheus-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-prometheus-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-prometheus-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/...
@@ -1072,7 +1023,6 @@ run-elastic-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 run-elastic-test: export VERSION := $(VERSION)
 run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-elastic-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
 run-elastic-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml \
@@ -1102,7 +1052,6 @@ compatibility-test: export COMPATIBLE_VERSION := $(COMPATIBLE_VERSION)
 compatibility-test: export COMPATIBLE_SELECTOR := $(COMPATIBLE_SELECTOR)
 compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-compatibility-test: export UTILS_IMAGE := $(UTILS_IMAGE)
 compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum    ## Run the Operator backwards compatibility tests
 	helm repo add coherence https://oracle.github.io/coherence-operator/charts
@@ -1155,7 +1104,6 @@ run-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
 run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
 run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-certification: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-certification: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-certification: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-certification-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/...
@@ -1204,7 +1152,6 @@ run-coherence-compatibility: export CERTIFICATION_VERSION := $(CERTIFICATION_VER
 run-coherence-compatibility: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
 run-coherence-compatibility: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-coherence-compatibility: export UTILS_IMAGE := $(UTILS_IMAGE)
 run-coherence-compatibility: gotestsum $(BUILD_TARGETS)/generate
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-coherence-compatibility-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/coherence_compatibility/...
@@ -1236,7 +1183,7 @@ install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1262,12 +1209,12 @@ endif
 
 .PHONY: just-deploy
 just-deploy: ## Deploy the Coherence Operator without rebuilding anything
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: deploy-debug
 deploy-debug: prepare-deploy-debug create-namespace kustomize   ## Deploy the Coherence Operator running with Delve
@@ -1301,7 +1248,7 @@ port-forward-debug:  ## Run a port-forward process to forward localhost:2345 to 
 
 .PHONY: prepare-deploy-debug
 prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
-	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
@@ -1320,7 +1267,7 @@ define prepare_deploy
 	mkdir -p $(BUILD_DEPLOY)
 	cp -R config $(BUILD_OUTPUT)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal UTILS_IMAGE=$(3)
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal OPERATOR_IMAGE=$(1)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit set image controller=$(1)
 	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
 endef
@@ -1330,7 +1277,7 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests kustomize  ## Undeploy the Coherence Operator
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE),$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
@@ -1354,7 +1301,7 @@ $(BUILD_MANIFESTS_PKG): kustomize
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
 	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
-	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence",$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
@@ -1522,7 +1469,6 @@ kind-load-coherence:   ## Load the Coherence image into the KinD cluster
 .PHONY: kind-load-operator
 kind-load-operator:   ## Load the Operator images into the KinD cluster
 	kind load docker-image --name $(KIND_CLUSTER) $(OPERATOR_IMAGE) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(UTILS_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load compatibility images into Kind
@@ -1586,7 +1532,7 @@ tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS
 	mkdir -p $(TANZU_PACKAGE_DIR)/config $(TANZU_PACKAGE_DIR)/.imgpkg || true
 	cp -vR tanzu/package/* $(TANZU_PACKAGE_DIR)/config/
 	ls -al $(TANZU_PACKAGE_DIR)/config/
-	$(call prepare_deploy,$(OPERATOR_IMAGE),tanzu-namespace,$(UTILS_IMAGE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),tanzu-namespace)
 
 .PHONY: tanzu-package
 tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
@@ -1598,7 +1544,6 @@ tanzu-package: tanzu-package-internal ## Create the Tanzu package files.
 tanzu-ttl-package: tanzu-package-internal ## Create the Tanzu package files using images from ttl.sh
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(SED) -e 's/tanzu-namespace/#@ data.values.namespace/g' $(TANZU_PACKAGE_DIR)/config/package.yml
-	$(SED) -e 's,$(UTILS_IMAGE),$(TTL_UTILS_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(SED) -e 's,$(OPERATOR_IMAGE),$(TTL_OPERATOR_IMAGE),g' $(TANZU_PACKAGE_DIR)/config/package.yml
 	$(call pushTanzuPackage,$(TTL_PACKAGE_IMAGE))
 
@@ -1757,76 +1702,6 @@ else
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Push the Operator Utils Docker image
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: push-utils-image
-push-utils-image: build-utils
-ifeq ($(UTILS_RELEASE_IMAGE), $(UTILS_IMAGE))
-	@echo "Pushing $(UTILS_IMAGE)-amd64"
-	docker push $(UTILS_IMAGE)-amd64
-	@echo "Pushing $(UTILS_IMAGE)-arm64"
-	docker push $(UTILS_IMAGE)-arm64
-	@echo "Creating $(UTILS_IMAGE) manifest"
-	docker manifest create $(UTILS_IMAGE) \
-		--amend $(UTILS_IMAGE)-amd64 \
-		--amend $(UTILS_IMAGE)-arm64
-	docker manifest annotate $(UTILS_IMAGE) $(UTILS_IMAGE)-arm64 --arch arm64
-	@echo "Pushing $(UTILS_IMAGE) manifest"
-	docker manifest push $(UTILS_IMAGE)
-else
-	@echo "Tagging $(UTILS_IMAGE)-amd64 as $(UTILS_RELEASE_IMAGE)-amd64"
-	docker tag $(UTILS_IMAGE)-amd64 $(UTILS_RELEASE_IMAGE)-amd64
-	@echo "Pushing $(UTILS_RELEASE_IMAGE)-amd64"
-	docker push $(UTILS_RELEASE_IMAGE)-amd64
-	@echo "Tagging $(UTILS_IMAGE)-arm64 as $(UTILS_RELEASE_IMAGE)-arm64"
-	docker tag $(UTILS_IMAGE)-arm64 $(UTILS_RELEASE_IMAGE)-arm64
-	@echo "Pushing $(UTILS_RELEASE_IMAGE)-arm64"
-	docker push $(UTILS_RELEASE_IMAGE)-arm64
-	@echo "Creating $(UTILS_RELEASE_IMAGE) manifest"
-	docker manifest create $(UTILS_RELEASE_IMAGE) \
-		--amend $(UTILS_RELEASE_IMAGE)-amd64 \
-		--amend $(UTILS_RELEASE_IMAGE)-arm64
-	docker manifest annotate $(UTILS_RELEASE_IMAGE) $(UTILS_RELEASE_IMAGE)-arm64 --arch arm64
-	@echo "Pushing $(UTILS_RELEASE_IMAGE) manifest"
-	docker manifest push $(UTILS_RELEASE_IMAGE)
-endif
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Push the test base images
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: push-test-base-images
-push-test-base-images:
-ifeq ($(TEST_BASE_RELEASE_IMAGE), $(TEST_BASE_IMAGE))
-	@echo "Pushing $(TEST_BASE_IMAGE)-amd64"
-	docker push $(TEST_BASE_IMAGE)-amd64
-	@echo "Pushing $(TEST_BASE_IMAGE)-arm64"
-	docker push $(TEST_BASE_IMAGE)-arm64
-	@echo "Creating $(TEST_BASE_IMAGE) manifest"
-	docker manifest create $(TEST_BASE_IMAGE) \
-		--amend $(TEST_BASE_IMAGE)-amd64 \
-		--amend $(TEST_BASE_IMAGE)-arm64
-	docker manifest annotate $(TEST_BASE_IMAGE) $(TEST_BASE_IMAGE)-arm64 --arch arm64
-	@echo "Pushing $(TEST_BASE_IMAGE) manifest"
-	docker manifest push $(TEST_BASE_IMAGE)
-else
-	@echo "Tagging $(TEST_BASE_IMAGE)-amd64 as $(TEST_BASE_RELEASE_IMAGE)-amd64"
-	docker tag $(TEST_BASE_IMAGE)-amd64 $(TEST_BASE_RELEASE_IMAGE)-amd64
-	@echo "Pushing $(TEST_BASE_RELEASE_IMAGE)-amd64"
-	docker push $(TEST_BASE_RELEASE_IMAGE)-amd64
-	@echo "Tagging $(TEST_BASE_IMAGE)-arm64 as $(TEST_BASE_RELEASE_IMAGE)-arm64"
-	docker tag $(TEST_BASE_IMAGE)-arm64 $(TEST_BASE_RELEASE_IMAGE)-arm64
-	@echo "Pushing $(TEST_BASE_RELEASE_IMAGE)-arm64"
-	docker push $(TEST_BASE_RELEASE_IMAGE)-arm64
-	@echo "Creating $(TEST_BASE_RELEASE_IMAGE) manifest"
-	docker manifest create $(TEST_BASE_RELEASE_IMAGE) \
-		--amend $(TEST_BASE_RELEASE_IMAGE)-amd64 \
-		--amend $(TEST_BASE_RELEASE_IMAGE)-arm64
-	docker manifest annotate $(TEST_BASE_RELEASE_IMAGE) $(TEST_BASE_RELEASE_IMAGE)-arm64 --arch arm64
-	@echo "Pushing $(TEST_BASE_RELEASE_IMAGE) manifest"
-	docker manifest push $(TEST_BASE_RELEASE_IMAGE)
-endif
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
@@ -1887,7 +1762,7 @@ push-ttl-compatibility-image:
 # Push all of the Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-all-images
-push-all-images: push-test-images push-test-base-images push-utils-image push-operator-image
+push-all-images: push-test-images push-operator-image
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator images to ttl.sh
@@ -1896,8 +1771,6 @@ push-all-images: push-test-images push-test-base-images push-utils-image push-op
 push-ttl-operator-images:
 	docker tag $(OPERATOR_IMAGE) $(TTL_OPERATOR_IMAGE)
 	docker push $(TTL_OPERATOR_IMAGE)
-	docker tag $(UTILS_IMAGE) $(TTL_UTILS_IMAGE)
-	docker push $(TTL_UTILS_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all the images to ttl.sh
@@ -1909,7 +1782,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the Docker images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-utils-image push-operator-image tanzu-repo
+push-release-images: push-operator-image tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
@@ -2113,7 +1986,6 @@ docs:
 	./mvnw -B -f java install -P docs -pl docs -DskipTests \
 		-Doperator.version=$(VERSION) \
 		-Doperator.image=$(OPERATOR_IMAGE) \
-		-Doperator.utils.image=$(UTILS_IMAGE) \
 		-Dcoherence.image=$(COHERENCE_IMAGE) \
 		$(MAVEN_OPTIONS)
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
