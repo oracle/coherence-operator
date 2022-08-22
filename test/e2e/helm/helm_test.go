@@ -83,9 +83,20 @@ func TestSetReplicas(t *testing.T) {
 	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertSingleReplica)
 }
 
-func TestSetReResources(t *testing.T) {
+func TestSetResources(t *testing.T) {
 	g := NewGomegaWithT(t)
-	cmd, err := createHelmCommand("--set", "replicas=1", "--set", "resources.requests.cpu=250m", "--set", "resources.requests.memory=64Mi", "--set", "resources.limits.cpu=512m", "--set", "resources.limits.memory=128Mi")
+	cmd, err := createHelmCommand("--set", "replicas=1", "--set", "resources.requests.cpu=250m",
+		"--set", "resources.requests.memory=64Mi", "--set", "resources.limits.cpu=512m",
+		"--set", "resources.limits.memory=128Mi")
+	g.Expect(err).NotTo(HaveOccurred())
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertResources)
+}
+
+func TestSetNonRootUser(t *testing.T) {
+	g := NewGomegaWithT(t)
+	cmd, err := createHelmCommand("--set", "securityContext.runAsNonRoot=true",
+		"--set", "securityContext.runAsUser=1000")
+
 	g.Expect(err).NotTo(HaveOccurred())
 	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertResources)
 }
