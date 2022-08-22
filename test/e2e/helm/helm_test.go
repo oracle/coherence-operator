@@ -98,7 +98,7 @@ func TestSetNonRootUser(t *testing.T) {
 		"--set", "securityContext.runAsUser=1000")
 
 	g.Expect(err).NotTo(HaveOccurred())
-	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertResources)
+	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertThreeReplicas)
 }
 
 func AssertResources() error {
