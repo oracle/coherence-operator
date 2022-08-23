@@ -43,6 +43,17 @@ replicas: 3
 imagePullSecrets:
 
 # ---------------------------------------------------------------------------
+# Operator container securityContext
+# This sets the securityContext configuration for the container, for example
+# to run as a non-root user:
+#
+#  securityContext:
+#    runAsNonRoot: true
+#    runAsUser: 1000
+#
+securityContext:
+
+# ---------------------------------------------------------------------------
 # Pod scheduling values
 
 # affinity controls Pod scheduling preferences.

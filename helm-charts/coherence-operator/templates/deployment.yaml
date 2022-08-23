@@ -165,6 +165,10 @@ spec:
         resources:
 {{ toYaml .Values.resources | indent 10 }}
 {{- end }}
+{{- if .Values.securityContext }}
+        securityContext:
+{{ toYaml .Values.securityContext | indent 10 }}
+{{- end }}
 {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
