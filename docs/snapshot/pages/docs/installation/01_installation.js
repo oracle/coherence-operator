@@ -233,8 +233,47 @@ lang="bash"
     coherence \
     coherence/coherence-operator</markup>
 
+</div>
 
-<h4 id="_uninstall_the_coherence_operator_helm_chart">Uninstall the Coherence Operator Helm chart</h4>
+<h3 id="_run_the_operator_as_a_non_root_user">Run the Operator as a Non-Root User</h3>
+<div class="section">
+<p>The Operator container can be configured with a <code>securityContext</code> so that it runs as a non-root user.</p>
+
+<p>This can be done using a values file:</p>
+
+<markup
+lang="yaml"
+title="security-values.yaml"
+>securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000</markup>
+
+<p>Then the <code>security-values.yaml</code> values file above can be used in the Helm install command.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --values security-values.yaml \
+    coherence \
+    coherence/coherence-operator</markup>
+
+<p>Alternatively, the <code>securityContext</code> values can be set on the command line as <code>--set</code> parameters:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set securityContext.runAsNonRoot=true \
+    --set securityContext.runAsUser=1000 \
+    coherence \
+    coherence/coherence-operator</markup>
+
+</div>
+
+<h3 id="_uninstall_the_coherence_operator_helm_chart">Uninstall the Coherence Operator Helm chart</h3>
 <div class="section">
 <p>To uninstall the operator:</p>
 
@@ -243,7 +282,6 @@ lang="bash"
 
 >helm delete coherence-operator --namespace &lt;namespace&gt;</markup>
 
-</div>
 </div>
 </div>
 
