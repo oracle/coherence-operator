@@ -159,6 +159,7 @@ helm install  \
 To change the replica count when installing the Operator using Helm, the `replicas` value can be set.
 
 For example, to change the replica count from 3 to 1, the `--set replicas=1` option can be used.
+
 [source,bash]
 ----
 helm install  \
@@ -168,8 +169,45 @@ helm install  \
     coherence/coherence-operator
 ----
 
+=== Run the Operator as a Non-Root User
 
-==== Uninstall the Coherence Operator Helm chart
+The Operator container can be configured with a `securityContext` so that it runs as a non-root user.
+
+This can be done using a values file:
+
+[source,yaml]
+.security-values.yaml
+----
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+----
+
+Then the `security-values.yaml` values file above can be used in the Helm install command.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --values security-values.yaml \
+    coherence \
+    coherence/coherence-operator
+----
+
+Alternatively, the `securityContext` values can be set on the command line as `--set` parameters:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set securityContext.runAsNonRoot=true \
+    --set securityContext.runAsUser=1000 \
+    coherence \
+    coherence/coherence-operator
+----
+
+
+=== Uninstall the Coherence Operator Helm chart
 
 To uninstall the operator:
 [source,bash]
