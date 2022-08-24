@@ -29,6 +29,8 @@ This page will be updated and maintained over time to include common issues we s
 
 * <<dashboards,My Grafana Dashboards do not display any metrics>>
 
+* <<arm-java8, I'm using Arm64 and Java 8 and the JVM will not start due to using G1GC>>
+
 == Issues
 
 [#no-operator]
@@ -171,3 +173,13 @@ If the metric name has no `vendor` prefix then it is using Micrometer metrics.
 
 See: the <<docs/metrics/030_importing.adoc,Importing Grafana Dashboards>> documentation.
 
+[#arm-java8]
+=== I'm using Arm64 and Java 8 and the JVM will not start due to using G1GC
+If running Kubernetes on ARM processors and using Coherence images built on Java 8 for ARM,
+note that the G1 garbage collector in that version of Java on ARM is marked as experimental.
+
+By default, the Operator configures the Coherence JVM to use G1.
+This will cause errors on Arm64 Java 8 JMS unless the JVM option `-XX:+UnlockExperimentalVMOptions` is
+added in the Coherence resource spec (see <<docs/jvm/030_jvm_args.adoc,Adding Arbitrary JVM Arguments>>).
+Alternatively specify a different garbage collector, ideally on a version of Java this old, use CMS
+(see <<docs/jvm/040_gc.adoc,Garbage Collector Settings>>).
