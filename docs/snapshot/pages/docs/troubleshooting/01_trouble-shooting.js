@@ -38,6 +38,10 @@ This page will be updated and maintained over time to include common issues we s
 <p><router-link to="#dashboards" @click.native="this.scrollFix('#dashboards')">My Grafana Dashboards do not display any metrics</router-link></p>
 
 </li>
+<li>
+<p><router-link to="#arm-java8" @click.native="this.scrollFix('#arm-java8')">I&#8217;m using Arm64 and Java 8 and the JVM will not start due to using G1GC</router-link></p>
+
+</li>
 </ul>
 </div>
 
@@ -191,6 +195,19 @@ Microprofile format.
 If the metric name has no <code>vendor</code> prefix then it is using Micrometer metrics.</p>
 
 <p>See: the <router-link to="/docs/metrics/030_importing">Importing Grafana Dashboards</router-link> documentation.</p>
+
+</div>
+
+<h3 id="arm-java8">I&#8217;m using Arm64 and Java 8 and the JVM will not start due to using G1GC</h3>
+<div class="section">
+<p>If running Kubernetes on ARM processors and using Coherence images built on Java 8 for ARM,
+note that the G1 garbage collector in that version of Java on ARM is marked as experimental.</p>
+
+<p>By default, the Operator configures the Coherence JVM to use G1.
+This will cause errors on Arm64 Java 8 JMS unless the JVM option <code>-XX:+UnlockExperimentalVMOptions</code> is
+added in the Coherence resource spec (see <router-link to="/docs/jvm/030_jvm_args">Adding Arbitrary JVM Arguments</router-link>).
+Alternatively specify a different garbage collector, ideally on a version of Java this old, use CMS
+(see <router-link to="/docs/jvm/040_gc">Garbage Collector Settings</router-link>).</p>
 
 </div>
 </div>

@@ -5,6 +5,17 @@
 <p>The <code>Coherence</code> CRD has fields in the <code>jvm.gc</code> section to allow certain garbage collection parameters to be set.
 These include GC logging, setting the collector to use and arbitrary GC arguments.</p>
 
+<div class="admonition important">
+<p class="admonition-textlabel">Important</p>
+<p ><p>If running Kubernetes on ARM processors and using Coherence images built on Java 8 for ARM,
+note that the G1 garbage collector in that version of Java on ARM is marked as experimental.</p>
+
+<p>By default, the Operator configures the Coherence JVM to use G1.
+This will cause errors on Arm64 Java 8 JMS unless the JVM option <code>-XX:+UnlockExperimentalVMOptions</code> is
+added in the Coherence resource spec.
+Alternatively specify a different garbage collector, ideally on a version of Java this old, use CMS.</p>
+</p>
+</div>
 
 <h3 id="_enable_gc_logging">Enable GC Logging</h3>
 <div class="section">
