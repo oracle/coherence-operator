@@ -38,7 +38,7 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION ?= 21.12.4
 # The default Coherence image the Operator will run if no image is specified
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:$(COHERENCE_VERSION)
+COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:22.06.1
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -357,7 +357,7 @@ ttl-uuid:
 ##@ Build
 
 .PHONY: all
-all: java-client build-all-images helm-chart ## Build all the Coherence Operator artefacts and images
+all: build-all-images helm-chart ## Build all the Coherence Operator artefacts and images
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Configure the build properties
@@ -501,12 +501,6 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TAR
 .PHONY: build-mvn
 build-mvn: ## Build the Java artefacts
 	./mvnw -B -f java clean install -DskipTests $(MAVEN_BUILD_OPTS)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Build Java client
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: java-client
-java-client: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests prepare-deploy $(BUILD_OUTPUT)/java-client/java/gen/pom.xml build-mvn
 
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
@@ -1654,7 +1648,7 @@ endef
 # Deploy the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: mvn-deploy
-mvn-deploy: java-client
+mvn-deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	./mvnw $(MAVEN_BUILD_OPTS) -s ./.mvn/settings.xml -B -f java clean deploy -DskipTests -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2176,28 +2170,3 @@ endif
 	rm -f licensed.tar.gz
 	mv ./licensed $(TOOLS_BIN)/licensed
 	chmod +x $(TOOLS_BIN)/licensed
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Generate Java client
-# ----------------------------------------------------------------------------------------------------------------------
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: export LOCAL_MANIFEST_FILE := $(BUILD_OUTPUT)/java-client/crds/coherence.oracle.com_coherence.yaml
-$(BUILD_OUTPUT)/java-client/java/gen/pom.xml: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
-	docker pull ghcr.io/yue9944882/crd-model-gen:v1.0.6 || true
-	rm -rf $(BUILD_OUTPUT)/java-client || true
-	mkdir -p $(BUILD_OUTPUT)/java-client/crds
-	mkdir -p $(BUILD_OUTPUT)/java-client/java/gen
-	cp $(CURRDIR)/client/generate.sh $(BUILD_OUTPUT)/java-client/java/generate.sh
-	chmod +x $(BUILD_OUTPUT)/java-client/java/generate.sh
-	cp $(CURRDIR)/client/Dockerfile $(BUILD_OUTPUT)/java-client/java/Dockerfile
-	docker build -f $(BUILD_OUTPUT)/java-client/java/Dockerfile -t crd-model-gen:custom $(BUILD_OUTPUT)/java-client/java
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd > $(LOCAL_MANIFEST_FILE)
-	docker run --rm --network host \
-	  -v "$(LOCAL_MANIFEST_FILE)":"$(LOCAL_MANIFEST_FILE)" \
-	  -v /var/run/docker.sock:/var/run/docker.sock \
-	  -v "$(BUILD_OUTPUT)/java-client/java":"$(BUILD_OUTPUT)/java-client/java" \
-	  crd-model-gen:custom \
-	  /generate.sh \
-	  -u $(LOCAL_MANIFEST_FILE) -n com.oracle.coherence -p com.oracle.coherence.k8s.client -o "$(BUILD_OUTPUT)/java-client/java"
-	kind delete cluster || true
-
