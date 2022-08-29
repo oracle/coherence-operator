@@ -58,7 +58,9 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
-		"-Dcoherence.override=k8s-coherence-override.xml")
+		"-Dcoherence.override=k8s-coherence-override.xml",
+		"-Dcoherence.k8s.operator.health.enabled=false",
+		"-Dcoherence.health.http.port=6676")
 
 	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
