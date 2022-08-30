@@ -359,11 +359,18 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	post2206 := checkCoherenceVersion("22.06.0", details)
-	if !post2206 {
-		post2206 = checkCoherenceVersion("14.1.1.2206", details)
-	}
 	if post2206 {
+		// at least CE 22.06
 		cohPost2206(details)
+	} else {
+		post2006 := checkCoherenceVersion("20.06.0", details)
+		if !post2006 {
+			// pre CE 20.06 - could be 14.1.1.2206
+			if post14112206 := checkCoherenceVersion("14.1.1.2206", details); post14112206 {
+				// at least 14.1.1.2206
+				cohPost2206(details)
+			}
+		}
 	}
 
 	addManagementSSL(details)
