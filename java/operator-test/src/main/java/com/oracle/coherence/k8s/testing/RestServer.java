@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,11 +8,13 @@ package com.oracle.coherence.k8s.testing;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.stream.Collectors;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
@@ -39,8 +41,10 @@ public class RestServer {
      * Program entry point.
      *
      * @param args the program command line arguments
+     *
+     * @throws Exception if the server fails to start
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         try {
             int port = Integer.parseInt(System.getProperty("test.rest.port", "8080"));
             HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -64,7 +68,9 @@ public class RestServer {
             thrown.printStackTrace();
         }
 
-        DefaultCacheServer.main(args);
+        Class<?> clsMain = Class.forName(getMainClass());
+        Method method = clsMain.getMethod("main", args.getClass());
+        method.invoke(null, (Object) args);
     }
 
     private static void send(HttpExchange t, int status, String body) throws IOException {
@@ -146,4 +152,14 @@ public class RestServer {
 
         send(t, 200, "OK");
     }
+
+    private static String getMainClass() {
+        try {
+            return Coherence.class.getCanonicalName();
+        }
+        catch (Throwable e) {
+            return DefaultCacheServer.class.getCanonicalName();
+        }
+    }
+
 }

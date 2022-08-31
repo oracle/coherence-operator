@@ -23,7 +23,6 @@
 
     <modules>
         <module>coherence-operator</module>
-        <module>coherence-operator-client</module>
         <module>operator-compatibility</module>
         <module>operator-test</module>
         <module>operator-test-helidon</module>
@@ -46,7 +45,7 @@
         <coherence.test.version>${coherence.version}</coherence.test.version>
 
         <coherence.test.base.image>gcr.io/distroless/java11-debian11</coherence.test.base.image>
-        <coherence.compatibility.coherence.image>oraclecoherence/coherence-ce:${coherence.version}
+        <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}
         </coherence.compatibility.coherence.image>
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>

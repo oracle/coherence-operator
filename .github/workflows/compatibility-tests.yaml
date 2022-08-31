@@ -46,39 +46,51 @@ jobs:
         - 3.1.1
         include:
         - compatibilityVersion: 3.2.7
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.6
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.5
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.4
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.3
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.2.2
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.2.1
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.1"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9
         - compatibilityVersion: 3.1.5
+          coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
         - compatibilityVersion: 3.1.4
+          coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
         - compatibilityVersion: 3.1.3
+          coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
         - compatibilityVersion: 3.1.2
+          coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
         - compatibilityVersion: 3.1.1
+          coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 
@@ -150,6 +162,7 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
+        docker pull ${{ matrix.coherence-image }}
 
     - name: Build
       shell: bash
@@ -164,7 +177,10 @@ jobs:
     - name: Compatibility Tests
       shell: bash
       run: |
-        make compatibility-test COMPATIBLE_VERSION=${{ matrix.compatibilityVersion }} COMPATIBLE_SELECTOR=${{ matrix.compatibilitySelector }}
+        export COHERENCE_IMAGE=${{ matrix.coherence-image }} 
+        export COMPATIBLE_VERSION=${{ matrix.compatibilityVersion }} 
+        export COMPATIBLE_SELECTOR=${{ matrix.compatibilitySelector }}
+        make compatibility-test
 
     - uses: actions/upload-artifact@v1
       if: failure()

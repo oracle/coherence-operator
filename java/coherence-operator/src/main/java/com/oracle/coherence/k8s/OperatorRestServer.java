@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -67,6 +67,11 @@ public class OperatorRestServer implements AutoCloseable {
      * A flag indicating whether debug logging is enabled.
      */
     public static final boolean LOGGING_ENABLED = Boolean.getBoolean(PROP_HEALTH_LOG);
+
+    /**
+     * The system property to use to enable the health server.
+     */
+    public static final String PROP_HEALTH_ENABLED = "coherence.k8s.operator.health.enabled";
 
     /**
      * The system property to use to set the health port.
@@ -261,7 +266,8 @@ public class OperatorRestServer implements AutoCloseable {
      * @throws Exception if an error occurs
      */
     public synchronized void start() throws Exception {
-        if (httpServer == null) {
+        boolean enabled = Boolean.parseBoolean(System.getProperty(PROP_HEALTH_ENABLED, "true"));
+        if (enabled && httpServer == null) {
             int port = Integer.parseInt(properties.getProperty(PROP_HEALTH_PORT, "6676"));
             HttpServer server = secure ? tlsServer(port) : plainServer(port);
 
