@@ -358,6 +358,21 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		cohPre12214(details)
 	}
 
+	post2206 := checkCoherenceVersion("22.06.0", details)
+	if post2206 {
+		// at least CE 22.06
+		cohPost2206(details)
+	} else {
+		post2006 := checkCoherenceVersion("20.06.0", details)
+		if !post2006 {
+			// pre CE 20.06 - could be 14.1.1.2206
+			if post14112206 := checkCoherenceVersion("14.1.1.2206", details); post14112206 {
+				// at least 14.1.1.2206
+				cohPost2206(details)
+			}
+		}
+	}
+
 	addManagementSSL(details)
 	addMetricsSSL(details)
 
@@ -900,6 +915,11 @@ func cohPre12214(details *RunDetails) {
 func cohPost12214(details *RunDetails) {
 	details.addArg("-Dcoherence.override=k8s-coherence-override.xml")
 	details.addArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
+}
+
+func cohPost2206(details *RunDetails) {
+	details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 }
 
 func addManagementSSL(details *RunDetails) {
