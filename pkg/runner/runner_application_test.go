@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -120,7 +120,7 @@ func TestApplicationMain(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), "com.tangosol.net.DefaultCacheServer", "com.oracle.test.Main")
+	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), "$DEFAULT$", "com.oracle.test.Main")
 
 	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())

@@ -31,8 +31,8 @@ import (
 // The code that actually starts the process in the Coherence container.
 
 const (
-	// DCS is the Coherence DefaultCacheServer class name.
-	DCS = "com.tangosol.net.DefaultCacheServer"
+	// DefaultMain is an indicator to run the default main class.
+	DefaultMain = "$DEFAULT$"
 	// HelidonMain is the default Helidon main class name.
 	HelidonMain = "io.helidon.microprofile.server.Main"
 	// ServerMain is the default server main class name.
