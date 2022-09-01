@@ -17,7 +17,7 @@ import com.tangosol.net.DefaultCacheServer;
  */
 public class Main {
 
-    public static final String DEFAULT_MAIN = "$DEFAULT$";
+    private static final String DEFAULT_MAIN = "$DEFAULT$";
 
     private static boolean initialised = false;
 
@@ -36,7 +36,8 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             args = new String[] {getMainClass()};
-        } else if (DEFAULT_MAIN.equals(args[0])) {
+        }
+        else if (DEFAULT_MAIN.equals(args[0])) {
             args[0] = getMainClass();
         }
 
