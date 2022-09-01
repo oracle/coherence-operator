@@ -116,7 +116,7 @@ public class RestServer {
         send(t, 200, "OK");
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void canaryStart(HttpExchange t) throws IOException {
         NamedCache cache = CacheFactory.getCache("canary");
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
@@ -127,9 +127,11 @@ public class RestServer {
             cache.put(key, "data");
         }
 
+        System.out.println("CanaryCheck: Loaded canary cache " + cache.getCacheName() + " with " + cache.size() + " entries");
         send(t, 200, "OK");
     }
 
+    @SuppressWarnings({"rawtypes"})
     private static void canaryCheck(HttpExchange t) throws IOException {
         NamedCache cache = CacheFactory.getCache("canary");
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
@@ -137,19 +139,20 @@ public class RestServer {
         int nSize = cache.size();
 
         if (nSize == nPart) {
+            System.out.println("CanaryCheck: Passed found " + nSize + " partitions in " + cache.getCacheName());
             send(t, 200, "OK " + nSize + " entries");
         }
         else {
+            System.out.println("CanaryCheck: Failed found " + nPart + " of " + nSize + " partitions in " + cache.getCacheName());
             send(t, 400, "Expected " + nPart + " entries but there are only " + nSize);
         }
     }
 
+    @SuppressWarnings({"rawtypes"})
     private static void canaryClear(HttpExchange t) throws IOException {
         NamedCache cache = CacheFactory.getCache("canary");
-        DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
-
+        System.out.println("CanaryCheck: Clearing canary cache " + cache.getCacheName());
         cache.clear();
-
         send(t, 200, "OK");
     }
 
