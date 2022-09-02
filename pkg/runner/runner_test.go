@@ -97,7 +97,7 @@ func GetMinimalExpectedArgs() []string {
 
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
-		"com.tangosol.net.DefaultCacheServer")
+		"$DEFAULT$")
 }
 
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
@@ -109,7 +109,7 @@ func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
-		"com.tangosol.net.DefaultCacheServer")
+		"$DEFAULT$")
 }
 
 func AppendCommonExpectedArgs(args []string) []string {

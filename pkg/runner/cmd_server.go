@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -39,7 +39,7 @@ func server(details *RunDetails, _ *cobra.Command) {
 	details.MainClass = ServerMain
 
 	// If the main class environment variable is set then use that
-	// otherwise run Coherence DCS.
+	// otherwise run Coherence DefaultMain.
 	mc, found := details.lookupEnv(v1.EnvVarAppMainClass)
 	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
 	jibMainClassFileName := appDir + "/jib-main-class-file"
@@ -66,14 +66,14 @@ func server(details *RunDetails, _ *cobra.Command) {
 		// the app type is Spring Boot so main is PropertiesLauncher
 		details.MainClass = SpringBootMain
 	case !found && details.AppType == AppTypeCoherence:
-		// the app type is Coherence so main is DCS
-		details.MainArgs = []string{DCS}
+		// the app type is Coherence so main is DefaultMain
+		details.MainArgs = []string{DefaultMain}
 	case !found && details.AppType == AppTypeHelidon:
 		// the app type is Helidon so main is the Helidon CDI starter
 		details.MainArgs = []string{HelidonMain}
 	default:
-		// no main or app type specified, use DCS
-		details.MainArgs = []string{DCS}
+		// no main or app type specified, use DefaultMain
+		details.MainArgs = []string{DefaultMain}
 	}
 
 	// Check for any main class arguments

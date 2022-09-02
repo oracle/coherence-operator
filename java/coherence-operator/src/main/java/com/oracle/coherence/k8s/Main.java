@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,6 +16,8 @@ import com.tangosol.net.DefaultCacheServer;
  * running another main class.
  */
 public class Main {
+
+    private static final String DEFAULT_MAIN = "$DEFAULT$";
 
     private static boolean initialised = false;
 
@@ -34,6 +36,9 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             args = new String[] {getMainClass()};
+        }
+        else if (DEFAULT_MAIN.equals(args[0])) {
+            args[0] = getMainClass();
         }
 
         init();
