@@ -26,7 +26,7 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 		JavaHome:      v.GetString(v1.EnvVarJavaHome),
 		AppType:       strings.ToLower(v.GetString(v1.EnvVarAppType)),
 		Dir:           v.GetString(v1.EnvVarCohAppDir),
-		MainClass:     DCS,
+		MainClass:     DefaultMain,
 		GetSite:       strings.ToLower(skipSite) != "true",
 	}
 
