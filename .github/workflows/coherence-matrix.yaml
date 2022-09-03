@@ -32,7 +32,7 @@ jobs:
           - "22.06"
           - "14.1.1-2206-SNAPSHOT"
           - "15.1.1-0-0-SNAPSHOT"
-          - "15.1.1-0-0-SNAPSHOT Graal"
+          - "15.1.1-0-0-SNAPSHOT-Graal"
           - "14.1.1-0-11-SNAPSHOT"
           - "14.1.1-0-10"
           - "14.1.1.0.0"
@@ -52,7 +52,7 @@ jobs:
             coherenceVersion: "15.1.1-0-0-SNAPSHOT"
             javaVersion: 17
             coherence-image: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-0-SNAPSHOT"
-          - matrixName: "15.1.1-0-0-SNAPSHOT Graal"
+          - matrixName: "15.1.1-0-0-SNAPSHOT-Graal"
             coherenceVersion: "15.1.1-0-0-SNAPSHOT"
             javaVersion: 17
             coherence-image: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-0-SNAPSHOT-graal"
@@ -108,8 +108,9 @@ jobs:
         df -h
 
     - name: Set up JDK
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v3
       with:
+        distribution: 'zulu'
         java-version: '17'
 
     - name: Cache Go Modules
@@ -173,4 +174,4 @@ jobs:
       if: failure()
       with:
         name: test-output
-        path: build/_output/test-logs
+        path: build/_output/test-logs/${{ matrix.matrixName }}
