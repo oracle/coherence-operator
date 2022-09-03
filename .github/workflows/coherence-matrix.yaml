@@ -156,6 +156,8 @@ jobs:
       run: |
         export COHERENCE_IMAGE=${{ matrix.coherence-image }}
         echo "COHERENCE_IMAGE=${COHERENCE_IMAGE}"
+        export BUILD_JAVA_VERSION=${{ matrix.javaVersion }}
+        echo "COHERENCE_IMAGE=${COHERENCE_IMAGE}"
         make clean
         echo "Building Operator Image"
         make build-operator-images
