@@ -206,7 +206,7 @@
           "unit": "short"
         },
         {
-          "alias": "Heap Usage",
+          "alias": "Heap Usage After GC",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -294,7 +294,7 @@
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -310,7 +310,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\"}) by (member, nodeId, site, machine, role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\"}) by (member, nodeId, site, machine, role) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=\"$ClusterName\"}) by (member, nodeId, site, machine, role)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -527,7 +527,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\"}) / vendor:coherence_memory_heap_memory_usage_max{cluster=\"$ClusterName\"} * 100",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\"}) by (member) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=\"$ClusterName\"}) by (member) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -539,7 +539,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Memory Usage %",
+      "title": "Memory Usage % After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -620,11 +620,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\"}",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\"}) by (member)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}} ({{role}})",
+          "legendFormat": "Member: {{member}})",
           "refId": "A"
         }
       ],
@@ -632,7 +632,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Heap Memory Usage",
+      "title": "Heap Memory Usage After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
