@@ -23,7 +23,6 @@ PREV_VERSION ?= 3.2.7
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
-BUILD_JAVA_VERSION    ?= 17
 
 # The previous Operator version used to run the compatibility tests.
 COMPATIBLE_VERSION  = 3.2.6
@@ -40,6 +39,10 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 COHERENCE_VERSION ?= 21.12.4
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:22.06.1
+# The Java version that tests will be compiled to.
+# This should match the version required by the COHERENCE_IMAGE version
+BUILD_JAVA_VERSION    ?= 11
+
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
