@@ -154,7 +154,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\",member=\"$MemberName\"}  ",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\",member=\"$MemberName\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -163,7 +163,7 @@
         }
       ],
       "thresholds": "",
-      "title": "Used Heap",
+      "title": "Used Heap After GC",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -318,7 +318,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\",member=\"$MemberName\"} / vendor:coherence_memory_heap_memory_usage_max{cluster=\"$ClusterName\",member=\"$MemberName\"}  ",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\",member=\"$MemberName\"}) / sum(vendor:coherence_memory_heap_memory_usage_max{cluster=\"$ClusterName\",member=\"$MemberName\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -924,15 +924,15 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Max",
+          "legendFormat": "Max Heap",
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=\"$ClusterName\", member=\"$MemberName\"}",
+          "expr": "sum(vendor:coherence_memory_heap_after_gc_used{cluster=\"$ClusterName\", member=\"$MemberName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Used",
+          "legendFormat": "Used After GC",
           "refId": "B"
         }
       ],

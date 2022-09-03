@@ -666,7 +666,7 @@
       ],
       "thresholds": "50,80",
       "timeFrom": null,
-      "title": "Total Memory Usage %",
+      "title": "Total Memory Usage After GC %",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -1048,7 +1048,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Total Heap Used By Role",
+      "title": "Total Heap Used By Role After GC",
       "transform": "table",
       "type": "table"
     },
@@ -1058,7 +1058,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "prometheus",
-      "description": "Memory usage percentage by member role.",
+      "description": "Memory usage percentage by member role after GC.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -1109,7 +1109,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Memory Usage % by Role",
+      "title": "Memory Usage % by Role After GC",
       "tooltip": {
         "shared": true,
         "sort": 0,
