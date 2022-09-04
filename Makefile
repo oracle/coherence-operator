@@ -75,7 +75,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.test.base.image={COHERENCE_TEST_BASE_IMAGE} -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
