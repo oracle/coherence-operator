@@ -28,6 +28,9 @@
         <image.arch>amd64</image.arch>
         <base.image.name.amd>gcr.io/distroless/java11-debian11</base.image.name.amd>
         <base.image.name.arm>gcr.io/distroless/java11-debian11</base.image.name.arm>
+
+        <java.version>8</java.version>
+        <java.version.release>8</java.version.release> <!-- maven-compiler-plugin "release" version -->
     </properties>
 
     <dependencies>

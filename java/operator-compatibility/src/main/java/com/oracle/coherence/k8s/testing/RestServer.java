@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
@@ -67,10 +68,19 @@ public class RestServer {
             thrown.printStackTrace();
         }
 
-        String main = System.getProperty("coherence.k8s.testing.main", DefaultCacheServer.class.getName());
+        String main = System.getProperty("coherence.k8s.testing.main", getMainClass());
         Class<?> cls = Class.forName(main);
         Method method = cls.getMethod("main", String[].class);
         method.invoke(method, (Object) args);
+    }
+
+    private static String getMainClass() {
+        try {
+            return Coherence.class.getCanonicalName();
+        }
+        catch (Throwable e) {
+            return DefaultCacheServer.class.getCanonicalName();
+        }
     }
 
     private static void send(HttpExchange t, int status, String body) throws IOException {

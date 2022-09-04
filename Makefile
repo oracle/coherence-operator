@@ -39,6 +39,11 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 COHERENCE_VERSION ?= 21.12.4
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:22.06.1
+# The Java version that tests will be compiled to.
+# This should match the version required by the COHERENCE_IMAGE version
+BUILD_JAVA_VERSION        ?= 11
+COHERENCE_TEST_BASE_IMAGE ?= gcr.io/distroless/java11-debian11
+
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
@@ -70,7 +75,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names

@@ -34,9 +34,11 @@
         <revision>3.2.8</revision>
         <operator.version>${project.version}</operator.version>
 
+        <build.java.version>17</build.java.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <java.version>${build.java.version}</java.version>
+        <java.version.release>${build.java.version}</java.version.release> <!-- maven-compiler-plugin "release" version -->
 
         <!--  The Coherence jar version (compile time dependency) -->
         <coherence.version>21.12.4</coherence.version>
@@ -273,6 +275,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${version.plugin.maven.compiler}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <release>${java.version.release}</release>
+                    </configuration>
                 </plugin>
 
                 <plugin>

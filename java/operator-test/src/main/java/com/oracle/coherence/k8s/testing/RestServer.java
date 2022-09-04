@@ -164,5 +164,4 @@ public class RestServer {
             return DefaultCacheServer.class.getCanonicalName();
         }
     }
-
 }
