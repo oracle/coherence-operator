@@ -54,6 +54,21 @@ var (
 )
 
 func main() {
+	// hard coded links to types that are not in the k8s docs
+	selfLinks["corev1.DNSPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#DNSPolicy"
+	selfLinks["corev1.IPFamily"] = "https://pkg.go.dev/k8s.io/api/core/v1#IPFamily"
+	selfLinks["corev1.IPFamilyPolicyType"] = "https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicyType"
+	selfLinks["corev1.MountPropagationMode"] = "https://pkg.go.dev/k8s.io/api/core/v1#MountPropagationMode"
+	selfLinks["corev1.PreemptionPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#PreemptionPolicy"
+	selfLinks["corev1.PullPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy"
+	selfLinks["corev1.Protocol"] = "https://pkg.go.dev/k8s.io/api/core/v1#Protocol"
+	selfLinks["corev1.RestartPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#RestartPolicy"
+	selfLinks["corev1.ServiceAffinity"] = "https://pkg.go.dev/k8s.io/api/core/v1#ServiceAffinity"
+	selfLinks["corev1.ServiceExternalTrafficPolicyType"] = "https://pkg.go.dev/k8s.io/api/core/v1#ServiceExternalTrafficPolicyType"
+	selfLinks["corev1.ServiceType"] = "https://pkg.go.dev/k8s.io/api/core/v1#ServiceType"
+	selfLinks["corev1.VolumeSource"] = fmt.Sprintf("%svolume-v1-core", k8sLink)
+	selfLinks["intstr.IntOrString"] = "https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString"
+
 	printAPIDocs(os.Args[1:])
 }
 
@@ -266,24 +281,8 @@ func toLink(typeName string) string {
 	}
 
 	switch {
-	case typeName == "corev1.IPFamily":
-		return typeName + "(*string)"
-	case typeName == "corev1.IPFamilyPolicyType":
-		return typeName + "(*string)"
-	case typeName == "corev1.PullPolicy":
-		return typeName + "(*string)"
-	case typeName == "corev1.Protocol":
-		return typeName + "(*string)"
-	case typeName == "corev1.ServiceAffinity":
-		return typeName + "(*string)"
-	case typeName == "corev1.ServiceExternalTrafficPolicyType":
-		return typeName + "(*string)"
-	case typeName == "corev1.ServiceType":
-		return typeName + "(*string)"
-	case typeName == "intstr.IntOrString":
-		return "intstr.IntOrString (*int or *string)"
 	case strings.HasPrefix(typeName, "batchv1."):
-		return fmt.Sprintf("%s%s-v1-batch[%s]", k8sLink, strings.ToLower(typeName[7:]), escapeTypeName(typeName))
+		return fmt.Sprintf("%s%s-v1-batch[%s]", k8sLink, strings.ToLower(typeName[8:]), escapeTypeName(typeName))
 	case strings.HasPrefix(typeName, "corev1."):
 		return fmt.Sprintf("%s%s-v1-core[%s]", k8sLink, strings.ToLower(typeName[7:]), escapeTypeName(typeName))
 	case strings.HasPrefix(typeName, "metav1."):

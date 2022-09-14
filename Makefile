@@ -591,9 +591,9 @@ api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) controller-gen
 .PHONY: api-doc-gen
 api-doc-gen: docs/about/04_coherence_spec.adoc  ## Generate API documentation
 
-docs/about/04_coherence_spec.adoc: $(API_GO_FILES)
+docs/about/04_coherence_spec.adoc: $(API_GO_FILES) utils/docgen/main.go
 	@echo "Generating CRD Doc"
-	go run ./docgen/ \
+	go run ./utils/docgen/ \
 		api/v1/coherenceresourcespec_types.go \
 		api/v1/coherence_types.go \
 		api/v1/coherenceresource_types.go \
@@ -1981,7 +1981,7 @@ version:
 # Build the documentation.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: docs
-docs:
+docs: api-doc-gen
 	./mvnw -B -f java install -P docs -pl docs -DskipTests \
 		-Doperator.version=$(VERSION) \
 		-Doperator.image=$(OPERATOR_IMAGE) \
@@ -1990,6 +1990,21 @@ docs:
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/
 	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Test the documentation.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: test-docs
+test-docs: docs
+	go run ./utils/linkcheck/ --file $(BUILD_OUTPUT)/docs/pages/... \
+		--exclude 'https://oracle.github.io/coherence-operator/charts' \
+		--exclude 'https://github.com/oracle/coherence-operator/releases' \
+		--exclude 'https://oracle.github.io/coherence-operator/docs/latest/' \
+		--exclude 'http://proxyserver' \
+		--exclude 'http://&lt;pod-ip' \
+		--exclude 'http://elasticsearch-master' \
+		--exclude 'http://payments' \
+ 		2>&1 | tee $(TEST_LOGS_DIR)/doc-link-check.log
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a local web server to serve the documentation.

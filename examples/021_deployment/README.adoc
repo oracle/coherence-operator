@@ -117,7 +117,7 @@ You also need to prefix the image name in the `yaml` files below.
 == Install the Coherence Operator
 
 Install the Coherence Operator using your preferred method in the Operator
-https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide]
+https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation[Installation Guide]
 
 Confirm the operator is running, for example if the operator is installed into the `coherence-example` namespace:
 [source,bash]
