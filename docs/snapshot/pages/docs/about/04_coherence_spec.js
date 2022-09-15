@@ -263,7 +263,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>spec</code></td>
 <td class="">Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource, so it gets deleted when the Coherence resource is deleted.</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#.jobspec-v1-batch">batchv1.JobSpec</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#jobspec-v1-batch">batchv1.JobSpec</a></code></td>
 <td class="">true</td>
 </tr>
 <tr>
@@ -316,7 +316,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>imagePullPolicy</code></td>
 <td class="">Image pull policy. One of Always, Never, IfNotPresent. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/containers/images#updating-images">https://kubernetes.io/docs/concepts/containers/images#updating-images</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#pullpolicy(*string)-v1-core">corev1.PullPolicy(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy">https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -638,7 +638,7 @@ For example:<br>
 <tr>
 <td class=""><code>preemptionPolicy</code></td>
 <td class="">PreemptionPolicy is the Policy for preempting pods with lower priority. One of Never, PreemptLowerPriority. Defaults to PreemptLowerPriority if unset.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#preemptionpolicy-v1-core">corev1.PreemptionPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#PreemptionPolicy">https://pkg.go.dev/k8s.io/api/core/v1#PreemptionPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -650,7 +650,7 @@ For example:<br>
 <tr>
 <td class=""><code>restartPolicy</code></td>
 <td class="">Restart policy for all containers within the pod. One of Always, OnFailure, Never. Default to Always. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#restartpolicy-v1-core">corev1.RestartPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#RestartPolicy">https://pkg.go.dev/k8s.io/api/core/v1#RestartPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -915,7 +915,7 @@ see: <router-link to="#coherence_settings/070_wka.adoc" @click.native="this.scro
 <tr>
 <td class=""><code>localPortAdjust</code></td>
 <td class="">LocalPortAdjust sets the Coherence unicast port adjust value. To specify a range of unicast ports from which ports are selected, include a port value that represents the upper limit of the port range.</td>
-<td class=""><code>&#42;intstr.IntOrString (*int or *string)</code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString">https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1065,7 +1065,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>mountPropagation</code></td>
 <td class="">mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#mountpropagationmode-v1-core">corev1.MountPropagationMode</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#MountPropagationMode">https://pkg.go.dev/k8s.io/api/core/v1#MountPropagationMode</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1130,7 +1130,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>imagePullPolicy</code></td>
 <td class="">Image pull policy. One of Always, Never, IfNotPresent. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/containers/images#updating-images">https://kubernetes.io/docs/concepts/containers/images#updating-images</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#pullpolicy(*string)-v1-core">corev1.PullPolicy(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy">https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1195,7 +1195,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>diagnosticsVolume</code></td>
 <td class="">DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1632,7 +1632,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>protocol</code></td>
 <td class="">Protocol for container port. Must be UDP or TCP. Defaults to "TCP"</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#protocol(*string)-v1-core">corev1.Protocol(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#Protocol">https://pkg.go.dev/k8s.io/api/core/v1#Protocol</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1709,7 +1709,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>dnsPolicy</code></td>
 <td class="">Set DNS policy for the pod. Defaults to "ClusterFirst". Valid values are 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'. DNS parameters given in DNSConfig will be merged with the policy selected with DNSPolicy. To have DNS options set along with hostNetwork, you have to specify DNS policy explicitly to 'ClusterFirstWithHostNet'.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#dnspolicy-v1-core">corev1.DNSPolicy</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#DNSPolicy">https://pkg.go.dev/k8s.io/api/core/v1#DNSPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1786,7 +1786,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>volume</code></td>
 <td class="">Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1833,7 +1833,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>volume</code></td>
 <td class="">Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumesource-v1-core">corev1.VolumeSource</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2497,7 +2497,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>mountPropagation</code></td>
 <td class="">mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#mountpropagationmode-v1-core">corev1.MountPropagationMode</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#MountPropagationMode">https://pkg.go.dev/k8s.io/api/core/v1#MountPropagationMode</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2567,109 +2567,109 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>jobLabel</code></td>
-<td class="">The label to use to retrieve the job name from. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec">https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec</a></td>
+<td class="">The label to use to retrieve the job name from. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>targetLabels</code></td>
-<td class="">TargetLabels transfers labels on the Kubernetes Service onto the target. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec">https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec</a></td>
+<td class="">TargetLabels transfers labels on the Kubernetes Service onto the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>podTargetLabels</code></td>
-<td class="">PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec">https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec</a></td>
+<td class="">PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>sampleLimit</code></td>
-<td class="">SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec">https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec</a></td>
+<td class="">SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
 <td class=""><code>uint64</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>path</code></td>
-<td class="">HTTP path to scrape for metrics. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">HTTP path to scrape for metrics. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>scheme</code></td>
-<td class="">HTTP scheme to use for scraping. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">HTTP scheme to use for scraping. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>params</code></td>
-<td class="">Optional HTTP URL parameters See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">Optional HTTP URL parameters See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>map[string][]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>interval</code></td>
-<td class="">Interval at which metrics should be scraped See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">Interval at which metrics should be scraped See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>monitoringv1.Duration</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>scrapeTimeout</code></td>
-<td class="">Timeout after which the scrape is ended See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">Timeout after which the scrape is ended See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>monitoringv1.Duration</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>tlsConfig</code></td>
-<td class="">TLS configuration to use when scraping the endpoint See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">TLS configuration to use when scraping the endpoint See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>&#42;monitoringv1.TLSConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>bearerTokenFile</code></td>
-<td class="">File to read bearer token for scraping targets. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">File to read bearer token for scraping targets. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>bearerTokenSecret</code></td>
-<td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>honorLabels</code></td>
-<td class="">HonorLabels chooses the metric labels on collisions with target labels. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">HonorLabels chooses the metric labels on collisions with target labels. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>honorTimestamps</code></td>
-<td class="">HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>basicAuth</code></td>
-<td class="">BasicAuth allow an endpoint to authenticate over basic authentication More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/operating/configuration/#endpoints">https://prometheus.io/docs/operating/configuration/#endpoints</a> See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">BasicAuth allow an endpoint to authenticate over basic authentication More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/operating/configuration/#endpoints">https://prometheus.io/docs/operating/configuration/#endpoints</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>&#42;monitoringv1.BasicAuth</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>metricRelabelings</code></td>
-<td class="">MetricRelabelings to apply to samples before ingestion. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">MetricRelabelings to apply to samples before ingestion. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>[]&#42;monitoringv1.RelabelConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>relabelings</code></td>
-<td class="">Relabelings to apply to samples before scraping. More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config</a> See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">Relabelings to apply to samples before scraping. More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>[]&#42;monitoringv1.RelabelConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>proxyURL</code></td>
-<td class="">ProxyURL eg <a id="" title="" target="_blank" href="http://proxyserver:2195">http://proxyserver:2195</a> Directs scrapes to proxy through this endpoint. See <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint</a></td>
+<td class="">ProxyURL eg <a id="" title="" target="_blank" href="http://proxyserver:2195">http://proxyserver:2195</a> Directs scrapes to proxy through this endpoint. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -2729,7 +2729,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>type</code></td>
 <td class="">Kind is the K8s service type (typically ClusterIP or LoadBalancer) The default is "ClusterIP".</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#servicetype(*string)-v1-core">corev1.ServiceType(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#ServiceType">https://pkg.go.dev/k8s.io/api/core/v1#ServiceType</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2773,12 +2773,12 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 <tr>
 <td class=""><code>sessionAffinity</code></td>
 <td class="">Supports "ClientIP" and "None". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#serviceaffinity(*string)-v1-core">corev1.ServiceAffinity(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#ServiceAffinity">https://pkg.go.dev/k8s.io/api/core/v1#ServiceAffinity</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>loadBalancerSourceRanges</code></td>
-<td class="">If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature." More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/">https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/</a></td>
+<td class="">If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature."</td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
@@ -2791,7 +2791,7 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 <tr>
 <td class=""><code>externalTrafficPolicy</code></td>
 <td class="">externalTrafficPolicy denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints. "Local" preserves the client source IP and avoids a second hop for LoadBalancer and Nodeport type services, but risks potentially imbalanced traffic spreading. "Cluster" obscures the client source IP and may cause a second hop to another node, but should have good overall load-spreading.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#serviceexternaltrafficpolicytype(*string)-v1-core">corev1.ServiceExternalTrafficPolicyType(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#ServiceExternalTrafficPolicyType">https://pkg.go.dev/k8s.io/api/core/v1#ServiceExternalTrafficPolicyType</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2817,13 +2817,13 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 <td class="">IPFamilies is a list of IP families (e.g. IPv4, IPv6) assigned to this service, and is gated by the "IPv6DualStack" feature gate.  This field is usually assigned automatically based on cluster configuration and the ipFamilyPolicy field. If this field is specified manually, the requested family is available in the cluster, and ipFamilyPolicy allows it, it will be used; otherwise creation of the service will fail.  This field is conditionally mutable: it allows for adding or removing a secondary IP family, but it does not allow changing the primary IP family of the Service.  Valid values are "IPv4" and "IPv6".  This field only applies to Services of types ClusterIP, NodePort, and LoadBalancer, and does apply to "headless" services.  This field will be wiped when updating a Service to type ExternalName.<br>
 <br>
 This field may hold a maximum of two entries (dual-stack families, in either order).  These families must correspond to the values of the clusterIPs field, if specified. Both clusterIPs and ipFamilies are governed by the ipFamilyPolicy field.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#ipfamily(*string)-v1-core">corev1.IPFamily(*string)</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamily">https://pkg.go.dev/k8s.io/api/core/v1#IPFamily</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>ipFamilyPolicy</code></td>
 <td class="">IPFamilyPolicy represents the dual-stack-ness requested or required by this Service, and is gated by the "IPv6DualStack" feature gate.  If there is no value provided, then this field will be set to SingleStack. Services can be "SingleStack" (a single IP family), "PreferDualStack" (two IP families on dual-stack configured clusters or a single IP family on single-stack clusters), or "RequireDualStack" (two IP families on dual-stack configured clusters, otherwise fail). The ipFamilies and clusterIPs fields depend on the value of this field.  This field will be wiped when updating a service to type ExternalName.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#ipfamilypolicytype(*string)-v1-core">corev1.IPFamilyPolicyType(*string)</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicyType">https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicyType</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>

@@ -709,13 +709,6 @@ and gc to occur. In real life this value would need to be adjusted to work corre
 </ul>
 <p>The autoscaler example contains yaml to create the <code>HorizontalPodautoscaler</code> resource in the <code>manifests/</code> directory.</p>
 
-<div class="admonition warning">
-<p class="admonition-inline">If using a version of Kubernetes prior to 1.18 the <code>behaviour</code> secion of the yaml above is invalid and should be
-removed. This could cause the HPA not to work the way we want it to as there will be no cool-down period specified
-between scaling operations, and the HPA could thrash or suddenly scale up or down by a lot of Pods.
-The only way to set these values prior to 1.18 was for the HPA as a whole
-(see the documentation <a id="" title="" target="_blank" href="https://v1-17.docs.kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-cooldown-delay">support for cooldown delay</a>).</p>
-</div>
 <markup
 lang="bash"
 

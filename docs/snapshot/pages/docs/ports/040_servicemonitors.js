@@ -65,8 +65,8 @@ spec:
 <div class="section">
 <p>The <code>Coherence</code> CRD <router-link :to="{path: '/docs/about/04_coherence_spec', hash: '#_servicemonitorspec'}">ServiceMonitorSpec</router-link>
 contains many of the fields from the
-<a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec">Prometheus <code>ServiceMonitorSpec</code></a>
-and <a id="" title="" target="_blank" href="https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint">Prometheus Endpoint</a>
+<a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">Prometheus <code>ServiceMonitorSpec</code></a>
+and <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">Prometheus Endpoint</a>
 to allow the <code>ServiceMonitor</code> to be configured for most use-cases.</p>
 
 <p>In situations where the <code>Coherence</code> CRD does not have the required fields, for example when a different version

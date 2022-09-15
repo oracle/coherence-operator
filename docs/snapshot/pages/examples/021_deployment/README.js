@@ -172,7 +172,7 @@ You also need to prefix the image name in the <code>yaml</code> files below.</p>
 <h2 id="install-operator">Install the Coherence Operator</h2>
 <div class="section">
 <p>Install the Coherence Operator using your preferred method in the Operator
-<a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation">Installation Guide</a></p>
+<a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation">Installation Guide</a></p>
 
 <p>Confirm the operator is running, for example if the operator is installed into the <code>coherence-example</code> namespace:</p>
 

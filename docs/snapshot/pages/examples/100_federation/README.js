@@ -2,7 +2,7 @@
 
 <h2 id="_coherence_federation">Coherence Federation</h2>
 <div class="section">
-<p>This simple example demonstrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images">Obtain Coherence Images</a> on how to get a commercial Coherence image.</p>
+<p>This simple example demonstrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/04_obtain_coherence_images">Obtain Coherence Images</a> on how to get a commercial Coherence image.</p>
 
 <div class="admonition tip">
 <p class="admonition-textlabel">Tip</p>
@@ -39,7 +39,7 @@
 
 <h3 id="install-operator">Install the Coherence Operator</h3>
 <div class="section">
-<p>To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation">Installation Guide</a>.</p>
+<p>To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation">Installation Guide</a>.</p>
 
 <p>Once you complete, confirm the operator is running, for example:</p>
 
