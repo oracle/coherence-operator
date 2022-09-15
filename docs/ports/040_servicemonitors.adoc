@@ -68,8 +68,8 @@ spec:
 
 The `Coherence` CRD <<docs/about/04_coherence_spec.adoc#_servicemonitorspec,ServiceMonitorSpec>>
 contains many of the fields from the
-https://coreos.com/operators/prometheus/docs/latest/api.html#servicemonitorspec[Prometheus `ServiceMonitorSpec`]
-and https://coreos.com/operators/prometheus/docs/latest/api.html#endpoint[Prometheus Endpoint]
+https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec[Prometheus `ServiceMonitorSpec`]
+and https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint[Prometheus Endpoint]
 to allow the `ServiceMonitor` to be configured for most use-cases.
 
 In situations where the `Coherence` CRD does not have the required fields, for example when a different version

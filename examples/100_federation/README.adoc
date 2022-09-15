@@ -9,7 +9,7 @@
 
 == Coherence Federation
 
-This simple example demonstrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.
+This simple example demonstrates the Coherence federation feature.  It shows how to deploy two Coherence clusters that federating data between them using the Coherence Operator. The Coherence federation feature requires Coherence Grid Edition. See https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/04_obtain_coherence_images[Obtain Coherence Images] on how to get a commercial Coherence image.
 
 [TIP]
 ====
@@ -27,7 +27,7 @@ image:GitHub-Mark-32px.png[] The complete source code for this example is in the
 [#install-operator]
 === Install the Coherence Operator
 
-To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/installation/01_installation[Installation Guide].
+To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation[Installation Guide].
 
 Once you complete, confirm the operator is running, for example:
 [source,bash]

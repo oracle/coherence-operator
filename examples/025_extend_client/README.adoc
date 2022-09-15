@@ -16,7 +16,7 @@ There are two scenarios, the client could also be in kubernetes, or the client c
 There are different ways to configure the client in these scenarios.
 
 These examples are not going to cover all the possible use-cases for Extend, the examples are specifically about different ways to connect a client to a Coherence cluster running inside kubernetes.
-Extend is extensively documented in the https://{commercial-docs-base-url}/develop-remote-clients/getting-started.html[official Coherence documentation].
+Extend is extensively documented in the https://{commercial-docs-base-url}/develop-remote-clients/getting-started-coherenceextend.html[official Coherence documentation].
 
 === Prerequisites
 
