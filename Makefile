@@ -98,8 +98,6 @@ OPERATOR_PACKAGE_IMAGE  := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
 OPERATOR_REPO_PREFIX    := $(OPERATOR_IMAGE_REPO)-repo
 OPERATOR_REPO_IMAGE     := $(OPERATOR_REPO_PREFIX):$(VERSION)
 
-GPG_PASSPHRASE :=
-
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1648,13 +1646,6 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Deploy the Java artifacts
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: mvn-deploy
-mvn-deploy: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	./mvnw $(MAVEN_BUILD_OPTS) -s ./.mvn/settings.xml -B -f java clean deploy -DskipTests -DskipTests -Prelease -Dgpg.passphrase=$(GPG_PASSPHRASE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples

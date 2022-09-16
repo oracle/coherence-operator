@@ -167,12 +167,9 @@ jobs:
       env:
         MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
         MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       shell: bash
       run: |
         git config --local user.name "Github Action"
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         export NO_DAEMON=false
-        sh ./hack/maven-gpg.sh
-        make mvn-deploy GPG_PASSPHRASE=${GPG_PASSPHRASE}
         make push-snapshot-docs || true
