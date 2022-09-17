@@ -74,7 +74,7 @@ documentation.</p>
 <p>At the time of writing, for whatever reason, Grafana does not provide a simple way to bulk import a set of dashboard files.
 There are many examples and scripts on available in the community that show how to do this.
 The Coherence Operator source contains a script that can be used for this purpose
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/raw/master/hack/grafana-import.sh">grafana-import.sh</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/raw/main/hack/grafana-import.sh">grafana-import.sh</a></p>
 
 <div class="admonition note">
 <p class="admonition-inline">The <code>grafana-import.sh</code> script requires the <a id="" title="" target="_blank" href="https://stedolan.github.io/jq/">JQ</a> utility to parse json.</p>
@@ -88,7 +88,7 @@ We do not document the credentials here as the default values have been known to
 <markup
 lang="bash"
 
->curl -Lo grafana-import.sh https://github.com/oracle/coherence-operator/raw/master/hack/grafana-import.sh
+>curl -Lo grafana-import.sh https://github.com/oracle/coherence-operator/raw/main/hack/grafana-import.sh
 chmod +x grafana-import.sh</markup>
 
 <markup

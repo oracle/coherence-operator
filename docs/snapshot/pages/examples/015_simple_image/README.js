@@ -14,7 +14,7 @@ When building with Gradle the project uses the <a id="" title="" target="_blank"
 <div class="admonition tip">
 <p class="admonition-textlabel">Tip</p>
 <p ><p><img src="./images/GitHub-Mark-32px.png" alt="GitHub Mark 32px" />
- The complete source code for this example is in the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/tree/master/examples/015_simple_image">Coherence Operator GitHub</a> repository.</p>
+ The complete source code for this example is in the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/tree/main/examples/015_simple_image">Coherence Operator GitHub</a> repository.</p>
 </p>
 </div>
 

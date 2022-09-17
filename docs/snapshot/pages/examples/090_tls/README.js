@@ -9,7 +9,7 @@
 <div class="admonition tip">
 <p class="admonition-textlabel">Tip</p>
 <p ><p><img src="./images/GitHub-Mark-32px.png" alt="GitHub Mark 32px" />
- The complete source code for this example is in the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/tree/master/examples/090_tls">Coherence Operator GitHub</a> repository.</p>
+ The complete source code for this example is in the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/tree/main/examples/090_tls">Coherence Operator GitHub</a> repository.</p>
 </p>
 </div>
 <p>In this example we are going to use <a id="" title="" target="_blank" href="https://cert-manager.io">Cert Manager</a> to manage the keys and certs for our Coherence server and clients. Cert Manage makes managing certificates in Kubernetes very simple, but it isn&#8217;t the only solution.</p>

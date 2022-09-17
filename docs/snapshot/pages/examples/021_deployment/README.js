@@ -9,7 +9,7 @@
 <div class="admonition tip">
 <p class="admonition-textlabel">Tip</p>
 <p ><p><img src="./images/GitHub-Mark-32px.png" alt="GitHub Mark 32px" />
- The complete source code for this example is in the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/tree/master/examples/021_deployment">Coherence Operator GitHub</a> repository.</p>
+ The complete source code for this example is in the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/tree/main/examples/021_deployment">Coherence Operator GitHub</a> repository.</p>
 </p>
 </div>
 <p>The following scenarios are covered:</p>
@@ -905,7 +905,7 @@ install any of the examples above.</p>
 <p>If installing Prometheus into RBAC enabled k8s clusters, you may need to create the required RBAC resources
 as described in the <a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/operator/rbac/">Prometheus RBAC</a> documentation.
 The Coherence Operator contains an example that works with the out-of-the-box Prometheus Operator install
-that we use for testing <a id="" title="" target="_blank" href="https://raw.githubusercontent.com/oracle/coherence-operator/master/hack/prometheus-rbac.yaml">prometheus-rbac.yaml</a>
+that we use for testing <a id="" title="" target="_blank" href="https://raw.githubusercontent.com/oracle/coherence-operator/main/hack/prometheus-rbac.yaml">prometheus-rbac.yaml</a>
 This yaml creates a <code>ClusterRole</code> with the required permissions and a <code>ClusterRoleBinding</code> that binds the role to the
 <code>prometheus-k8s</code> service account (which is the name of the account created, and used by the Prometheus Operator).
 This yaml file can be installed into k8s before installing the Prometheus Operator.</p>
