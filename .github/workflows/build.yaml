@@ -165,7 +165,7 @@ jobs:
         path: build/_output/test-logs
 
     - name: Deploy Snapshots & Docs
-      if: ${{ github.ref == 'refs/heads/master' && success() }}
+      if: ${{ github.ref == 'refs/heads/main' && success() }}
       env:
         MAVEN_SONATYPE_USERNAME: ${{ secrets.MAVEN_SONATYPE_USERNAME }}
         MAVEN_SONATYPE_TOKEN: ${{ secrets.MAVEN_SONATYPE_TOKEN }}

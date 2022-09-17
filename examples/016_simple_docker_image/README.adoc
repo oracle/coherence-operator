@@ -20,7 +20,7 @@ This simple application does not actually contain any code, a real application w
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/master/examples/016_simple_docker_image[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://github.com/oracle/coherence-operator/tree/main/examples/016_simple_docker_image[Coherence Operator GitHub] repository.
 ====
 
 

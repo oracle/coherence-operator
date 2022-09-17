@@ -23,7 +23,7 @@ If you really cannot change the minds of those dictating policies that mean you 
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://github.com/oracle/coherence-operator/tree/master/examples/no-operator/[Coherence Operator GitHub] repository.
+image:GitHub-Mark-32px.png[] The complete source code for the examples is in the https://github.com/oracle/coherence-operator/tree/main/examples/no-operator/[Coherence Operator GitHub] repository.
 ====
 
 === Prerequisites

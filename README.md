@@ -9,7 +9,7 @@ http://oss.oracle.com/licenses/upl.
 -----
 ![logo](docs/images/logo-with-name.png)
 
-![Operator CI](https://github.com/oracle/coherence-operator/workflows/Operator%20CI/badge.svg?branch=master)
+![Operator CI](https://github.com/oracle/coherence-operator/workflows/Operator%20CI/badge.svg?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/oracle/coherence-operator)](https://goreportcard.com/report/github.com/oracle/coherence-operator)
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=oracle_coherence-operator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=oracle_coherence-operator)

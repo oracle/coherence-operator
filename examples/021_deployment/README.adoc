@@ -758,7 +758,7 @@ https://prometheus-operator.dev/docs/prologue/quick-start/#access-prometheus[Acc
 If installing Prometheus into RBAC enabled k8s clusters, you may need to create the required RBAC resources
 as described in the https://prometheus-operator.dev/docs/operator/rbac/[Prometheus RBAC] documentation.
 The Coherence Operator contains an example that works with the out-of-the-box Prometheus Operator install
-that we use for testing https://raw.githubusercontent.com/oracle/coherence-operator/master/hack/prometheus-rbac.yaml[prometheus-rbac.yaml]
+that we use for testing https://raw.githubusercontent.com/oracle/coherence-operator/main/hack/prometheus-rbac.yaml[prometheus-rbac.yaml]
 This yaml creates a `ClusterRole` with the required permissions and a `ClusterRoleBinding` that binds the role to the
 `prometheus-k8s` service account (which is the name of the account created, and used by the Prometheus Operator).
 This yaml file can be installed into k8s before installing the Prometheus Operator.
