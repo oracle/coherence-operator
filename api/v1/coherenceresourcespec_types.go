@@ -564,7 +564,7 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resour
 	res = append(res, in.CreateHeadlessService(d))
 
 	// Create the StatefulSet
-	res = append(res, in.CreateStatefulSet(d))
+	res = append(res, in.CreateStatefulSetResource(d))
 
 	// Create the Services for each port (and optionally ServiceMonitors)
 	res = append(res, in.CreateServicesForPort(d)...)
@@ -722,8 +722,19 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 	}
 }
 
+// CreateStatefulSetResource creates the deployment's StatefulSet resource.
+func (in *CoherenceResourceSpec) CreateStatefulSetResource(deployment *Coherence) Resource {
+	sts := in.CreateStatefulSet(deployment)
+
+	return Resource{
+		Kind: ResourceTypeStatefulSet,
+		Name: sts.GetName(),
+		Spec: &sts,
+	}
+}
+
 // CreateStatefulSet creates the deployment's StatefulSet.
-func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resource {
+func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1.StatefulSet {
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
@@ -830,11 +841,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) Resour
 		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, v.ToPVC())
 	}
 
-	return Resource{
-		Kind: ResourceTypeStatefulSet,
-		Name: sts.GetName(),
-		Spec: &sts,
-	}
+	return sts
 }
 
 func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {

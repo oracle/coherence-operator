@@ -10,8 +10,11 @@ import (
 	"fmt"
 	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	appsv1 "k8s.io/api/apps/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -131,6 +134,7 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 		return err
 	}
 	prev := previous.(*Coherence)
+
 	if err := in.validatePersistence(prev); err != nil {
 		return err
 	}
@@ -140,6 +144,14 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	if err := in.validateNodePorts(); err != nil {
 		return err
 	}
+
+	sts := in.Spec.CreateStatefulSet(in)
+	stsOld := prev.Spec.CreateStatefulSet(prev)
+	errorList := ValidateStatefulSetUpdate(&sts, &stsOld)
+	if len(errorList) > 0 {
+		return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
+	}
+
 	return nil
 }
 
@@ -211,4 +223,24 @@ func (in *Coherence) validateNodePorts() error {
 	}
 
 	return nil
+}
+
+// ValidateStatefulSetUpdate tests if required fields in the StatefulSet are set.
+func ValidateStatefulSetUpdate(statefulSet, oldStatefulSet *appsv1.StatefulSet) field.ErrorList {
+	var allErrs field.ErrorList
+
+	// statefulset updates aren't super common and general updates are likely to be touching spec, so we'll do this
+	// deep copy right away.  This avoids mutating our inputs
+	newStatefulSetClone := statefulSet.DeepCopy()
+	newStatefulSetClone.Spec.Replicas = oldStatefulSet.Spec.Replicas               // +k8s:verify-mutation:reason=clone
+	newStatefulSetClone.Spec.Template = oldStatefulSet.Spec.Template               // +k8s:verify-mutation:reason=clone
+	newStatefulSetClone.Spec.UpdateStrategy = oldStatefulSet.Spec.UpdateStrategy   // +k8s:verify-mutation:reason=clone
+	newStatefulSetClone.Spec.MinReadySeconds = oldStatefulSet.Spec.MinReadySeconds // +k8s:verify-mutation:reason=clone
+
+	newStatefulSetClone.Spec.PersistentVolumeClaimRetentionPolicy = oldStatefulSet.Spec.PersistentVolumeClaimRetentionPolicy // +k8s:verify-mutation:reason=clone
+	if !apiequality.Semantic.DeepEqual(newStatefulSetClone.Spec, oldStatefulSet.Spec) {
+		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec"), "updates to statefulset spec for fields other than 'replicas', 'template', 'updateStrategy', 'persistentVolumeClaimRetentionPolicy' and 'minReadySeconds' are forbidden"))
+	}
+
+	return allErrs
 }

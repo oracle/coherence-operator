@@ -173,7 +173,7 @@ func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
 		d.Spec.JVM = &coh.JVMSpec{}
 	}
 
-	res := d.Spec.CreateStatefulSet(d)
+	res := d.Spec.CreateStatefulSetResource(d)
 	sts := res.Spec.(*appsv1.StatefulSet)
 	c := coh.FindContainer(coh.ContainerNameCoherence, sts)
 	for _, ev := range c.Env {

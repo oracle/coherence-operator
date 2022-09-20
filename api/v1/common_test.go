@@ -473,6 +473,6 @@ func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpec
 	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
 	viper.Set(operator.FlagOperatorImage, testOperatorImage)
 
-	res := deployment.Spec.CreateStatefulSet(deployment)
+	res := deployment.Spec.CreateStatefulSetResource(deployment)
 	assertStatefulSet(t, res, stsExpected)
 }

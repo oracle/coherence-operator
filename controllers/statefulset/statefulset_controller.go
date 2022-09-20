@@ -45,7 +45,7 @@ const (
 )
 
 // blank assignment to verify that ReconcileStatefulSet implements reconcile.Reconciler.
-// If the reconcile.Reconciler API was to change then we'd get a compile error here.
+// If the `reconcile.Reconciler` API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &ReconcileStatefulSet{}
 
 var log = logf.Log.WithName(controllerName)
@@ -397,12 +397,12 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 	switch {
 	case currentReplicas < desiredReplicas:
 		// scale up - if also updating we do the rolling upgrade first followed by the
-		// scale up so we do not do a rolling upgrade of the bigger scaled up cluster
+		// scale up so that we do not do a rolling upgrade of the bigger scaled up cluster
 
 		// try the patch first
 		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
 		if err == nil && !result.Requeue {
-			// there was nothing else to patch so we can do the scale up
+			// there was nothing else to patch, so we can do the scale up
 			result, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
 		}
 	case currentReplicas > desiredReplicas:
@@ -411,7 +411,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 
 		// do the scale down
 		_, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
-		// requeue the request so we do any upgrade next time around
+		// requeue the request so that we do any upgrade next time around
 		result.Requeue = true
 	default:
 		// just an update
@@ -441,8 +441,16 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		original = desired
 	}
 
+	errorList := coh.ValidateStatefulSetUpdate(desired, original)
+	if len(errorList) > 0 {
+		msg := fmt.Sprintf("upddates to the statefuleset would have been invalid, the update will not be re-queued: %v", errorList)
+		events := in.GetEventRecorder()
+		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
+		return reconcile.Result{Requeue: false}, fmt.Errorf(msg)
+	}
+
 	// We NEVER change the replicas or Status in an update.
-	// Replicas is handled by scaling so we always set the desired replicas to match the current replicas
+	// Replicas is handled by scaling, so we always set the desired replicas to match the current replicas
 	desired.Spec.Replicas = current.Spec.Replicas
 	original.Spec.Replicas = current.Spec.Replicas
 
@@ -451,7 +459,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	desired.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
 
 	// We need to ensure we do not create a patch due to differences in
-	// StatefulSet Status so we blank out the status fields
+	// StatefulSet Status, so we blank out the status fields
 	desired.Status = appsv1.StatefulSetStatus{}
 	current.Status = appsv1.StatefulSetStatus{}
 	original.Status = appsv1.StatefulSetStatus{}
@@ -465,7 +473,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 
 	// ensure we do not patch any fields that may be set by a previous version of the Operator
 	// as this will cause a rolling update of the Pods, typically these are fields where
-	// the Operator sets defaults and we changed the default behaviour
+	// the Operator sets defaults, and we changed the default behaviour
 	in.blankContainerFields(deployment, desired)
 	in.blankContainerFields(deployment, current)
 	in.blankContainerFields(deployment, original)
@@ -663,7 +671,7 @@ func (in *ReconcileStatefulSet) blankOperatorInitContainerFields(sts *appsv1.Sta
 
 // Blanks out any fields that may have been set by a previous Operator version.
 // DO NOT blank out anything that the user has control over as they may have
-// updated them so we need to include them in the patch
+// updated them, so we need to include them in the patch
 func (in *ReconcileStatefulSet) blankCoherenceContainerFields(sts *appsv1.StatefulSet) {
 	for i := range sts.Spec.Template.Spec.Containers {
 		c := sts.Spec.Template.Spec.Containers[i]
