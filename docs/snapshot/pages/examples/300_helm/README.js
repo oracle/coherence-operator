@@ -186,8 +186,8 @@ spec:
 <markup
 lang="bash"
 
->docker pull ghcr.io/oracle/coherence-operator:3.2.8
-docker run -it --rm ghcr.io/oracle/coherence-operator:3.2.8 status -h</markup>
+>docker pull ghcr.io/oracle/coherence-operator:3.2.9
+docker run -it --rm ghcr.io/oracle/coherence-operator:3.2.9 status -h</markup>
 
 <p>By creating a K8s Job that runs the status command we can query the Operator for the status of the Coherence resource we installed from the Helm chart. Of course, we could have written something similar that used kubectl in the Job or similar to query k8s for the state of the Coherence resource, but this becomes more complex in RBAC enabled cluster. Querying the simple REST endpoint of the Coherence Operator does not require RBAC rules for the Job to execute.</p>
 
@@ -241,7 +241,7 @@ operator:
   namespace: coherence
   service: coherence-operator-rest
   port: 8000
-  image: ghcr.io/oracle/coherence-operator-utils:3.2.8
+  image: ghcr.io/oracle/coherence-operator-utils:3.2.9
   condition: Ready
   timeout: 5m
   interval: 10s</markup>
