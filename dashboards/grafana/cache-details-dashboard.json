@@ -1137,15 +1137,18 @@
           "unit": "ms"
         },
         {
-          "alias": "",
+          "alias": "Store Writes",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
-          "pattern": "/.*/",
+          "mappingType": 1,
+          "pattern": "Value #F",
           "thresholds": [],
           "type": "number",
           "unit": "short"
@@ -1431,6 +1434,40 @@
           "thresholds": [],
           "type": "number",
           "unit": "short"
+        },
+        {
+          "alias": "Store Writes",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #K",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
+        },
+        {
+          "alias": "Store Reads",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #L",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
         }
       ],
       "targets": [
@@ -1515,6 +1552,24 @@
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "J"
+        },
+        {
+          "expr": "sum(vendor:coherence_cache_store_writes{cluster=\"$ClusterName\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "K"
+        },
+        {
+          "expr": "sum(vendor:coherence_cache_store_reads{cluster=\"$ClusterName\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "L"
         }
       ],
       "title": "Cache Storage Details for Cache $CacheName",
@@ -1564,6 +1619,7 @@
         },
         {
           "alias": "Total Gets",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1682,6 +1738,7 @@
         },
         {
           "alias": "",
+          "align": "auto",
           "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",

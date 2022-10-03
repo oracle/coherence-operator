@@ -439,6 +439,120 @@
       }
     },
     {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "decimals": 0,
+      "description": "",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "hiddenSeries": false,
+      "id": 98,
+      "interval": "",
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideZero": true,
+        "max": true,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor:coherence_service_request_timeout_count{cluster=\"$ClusterName\"}) - sum(vendor:coherence_service_request_timeout_count{cluster=\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Request Timeouts",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(vendor:coherence_service_task_timeout_count{cluster=\"$ClusterName\"}) - sum(vendor:coherence_service_task_timeout_count{cluster=\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Task Timeouts",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(vendor:coherence_service_task_hung_count{cluster=\"$ClusterName\"}) - sum(vendor:coherence_service_task_hung_count{cluster=\"$ClusterName\"} offset $__interval)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Hung Tasks",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Request/Task Timeouts - All Services",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "columns": [],
       "datasource": "prometheus",
       "fontSize": "100%",
@@ -446,7 +560,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 18
+        "y": 26
       },
       "id": 77,
       "links": [],
@@ -561,7 +675,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 18
+        "y": 26
       },
       "id": 78,
       "links": [],
@@ -659,7 +773,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 18
+        "y": 26
       },
       "id": 79,
       "links": [],
@@ -758,7 +872,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "id": 48,
       "links": [],
@@ -892,7 +1006,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 32
       },
       "id": 93,
       "links": [],
