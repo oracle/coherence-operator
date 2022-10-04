@@ -291,12 +291,14 @@
       "decimals": 0,
       "description": "Thread utilization across all members.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 19,
       "legend": {
         "alignAsTable": false,
@@ -379,15 +381,133 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": null,
+      "decimals": 0,
+      "description": "",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "hiddenSeries": false,
+      "id": 43,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": true,
+        "max": true,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(vendor:coherence_service_request_timeout_count{cluster=\"$ClusterName\",name='$ServiceName'}) - sum(vendor:coherence_service_request_timeout_count{cluster=\"$ClusterName\",name='$ServiceName'} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Request Timeouts",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(vendor:coherence_service_task_timeout_count{cluster=\"$ClusterName\",name='$ServiceName'}) - sum(vendor:coherence_service_task_timeout_count{cluster=\"$ClusterName\",name='$ServiceName'} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Task Timeouts",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(vendor:coherence_service_task_hung_count{cluster=\"$ClusterName\",name='$ServiceName'}) - sum(vendor:coherence_service_task_hung_count{cluster=\"$ClusterName\",name='$ServiceName'} offset $__interval)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Task Hangs",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Request/ Task Errors and Hangs",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": "1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
       "decimals": 1,
       "description": "The rate of tasks for this service across all members.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 24
       },
+      "hiddenSeries": false,
       "id": 4,
       "interval": "",
       "legend": {
@@ -473,12 +593,14 @@
       "dashes": false,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 24
       },
+      "hiddenSeries": false,
       "id": 36,
       "legend": {
         "alignAsTable": false,
@@ -563,12 +685,14 @@
       "dashes": false,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 32
       },
+      "hiddenSeries": false,
       "id": 22,
       "interval": "",
       "legend": {
@@ -655,12 +779,14 @@
       "dashes": false,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 32
       },
+      "hiddenSeries": false,
       "id": 23,
       "legend": {
         "alignAsTable": false,
@@ -746,12 +872,14 @@
       "dashes": false,
       "decimals": 1,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 40
       },
+      "hiddenSeries": false,
       "id": 28,
       "legend": {
         "alignAsTable": false,
@@ -838,12 +966,14 @@
       "dashes": false,
       "decimals": 0,
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 40
       },
+      "hiddenSeries": false,
       "id": 14,
       "legend": {
         "alignAsTable": false,
@@ -927,7 +1057,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 49
       },
       "id": 35,
       "links": [],
@@ -957,7 +1087,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 43
+        "y": 51
       },
       "id": 9,
       "interval": null,
@@ -1038,7 +1168,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 43
+        "y": 51
       },
       "id": 12,
       "interval": null,
@@ -1119,7 +1249,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 43
+        "y": 51
       },
       "id": 13,
       "interval": null,
@@ -1200,7 +1330,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 43
+        "y": 51
       },
       "id": 11,
       "interval": null,
@@ -1280,7 +1410,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 43
+        "y": 51
       },
       "id": 32,
       "interval": null,
@@ -1360,7 +1490,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 43
+        "y": 51
       },
       "id": 31,
       "interval": null,
@@ -1430,7 +1560,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 48
+        "y": 56
       },
       "id": 30,
       "legend": {
@@ -1536,7 +1666,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 48
+        "y": 56
       },
       "id": 37,
       "legend": {
@@ -1630,7 +1760,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 65
       },
       "id": 8,
       "links": [],
@@ -1822,7 +1952,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 64
+        "y": 72
       },
       "id": 38,
       "links": [],
@@ -1838,7 +1968,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 74
       },
       "id": 42,
       "links": [],
