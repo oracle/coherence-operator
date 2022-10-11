@@ -97,6 +97,15 @@ spec:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
+                topologyKey: "kubernetes.io/hostname"
+                labelSelector:
+                  matchLabels:
+                    control-plane: coherence
+                    app.kubernetes.io/name: coherence-operator
+                    app.kubernetes.io/instance: coherence-operator-manager
+                    app.kubernetes.io/version: "3.2.9"
+              weight: 50
+            - podAffinityTerm:
                 topologyKey: "topology.kubernetes.io/zone"
                 labelSelector:
                   matchLabels:
