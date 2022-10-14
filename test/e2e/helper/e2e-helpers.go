@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	"github.com/operator-framework/operator-lib/status"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
 	"github.com/oracle/coherence-operator/pkg/clients"
@@ -431,7 +430,7 @@ func ReplicaCountCondition(replicas int32) DeploymentStateCondition {
 }
 
 type phaseCondition struct {
-	phase status.ConditionType
+	phase coh.ConditionType
 }
 
 func (in phaseCondition) Test(d *coh.Coherence) bool {
@@ -442,7 +441,7 @@ func (in phaseCondition) String() string {
 	return fmt.Sprintf("phase == %s", in.phase)
 }
 
-func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
+func StatusPhaseCondition(phase coh.ConditionType) DeploymentStateCondition {
 	return phaseCondition{phase: phase}
 }
 

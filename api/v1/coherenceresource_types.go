@@ -8,7 +8,6 @@ package v1
 
 import (
 	"fmt"
-	"github.com/operator-framework/operator-lib/status"
 	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
@@ -33,14 +32,14 @@ import (
 // RollingUpgrade -> Ready
 // Stopped        -> Created
 const (
-	ConditionTypeInitialized    status.ConditionType = "Initialized"
-	ConditionTypeWaiting        status.ConditionType = "Waiting"
-	ConditionTypeCreated        status.ConditionType = "Created"
-	ConditionTypeReady          status.ConditionType = "Ready"
-	ConditionTypeScaling        status.ConditionType = "Scaling"
-	ConditionTypeRollingUpgrade status.ConditionType = "RollingUpgrade"
-	ConditionTypeFailed         status.ConditionType = "Failed"
-	ConditionTypeStopped        status.ConditionType = "Stopped"
+	ConditionTypeInitialized    ConditionType = "Initialized"
+	ConditionTypeWaiting        ConditionType = "Waiting"
+	ConditionTypeCreated        ConditionType = "Created"
+	ConditionTypeReady          ConditionType = "Ready"
+	ConditionTypeScaling        ConditionType = "Scaling"
+	ConditionTypeRollingUpgrade ConditionType = "RollingUpgrade"
+	ConditionTypeFailed         ConditionType = "Failed"
+	ConditionTypeStopped        ConditionType = "Stopped"
 )
 
 // The package init function that will automatically register the Coherence resource types with
@@ -259,7 +258,7 @@ type CoherenceResourceStatus struct {
 	// Failed:         An error occurred reconciling the deployment and its secondary resources.
 	//
 	// +optional
-	Phase status.ConditionType `json:"phase,omitempty"`
+	Phase ConditionType `json:"phase,omitempty"`
 	// The name of the Coherence cluster that this deployment is part of.
 	// +optional
 	CoherenceCluster string `json:"coherenceCluster,omitempty"`
@@ -290,7 +289,7 @@ type CoherenceResourceStatus struct {
 	// +optional
 	// +patchMergeKey=type
 	// +patchStrategy=merge
-	Conditions status.Conditions `json:"conditions,omitempty"`
+	Conditions Conditions `json:"conditions,omitempty"`
 	// Hash is the hash of the latest applied Coherence spec
 	// +optional
 	Hash string `json:"hash,omitempty"`
@@ -301,12 +300,12 @@ type CoherenceResourceStatus struct {
 
 // UpdatePhase updates the current Phase
 // TODO not used?
-func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase status.ConditionType) bool {
-	return in.SetCondition(deployment, status.Condition{Type: phase, Status: coreV1.ConditionTrue})
+func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase ConditionType) bool {
+	return in.SetCondition(deployment, Condition{Type: phase, Status: coreV1.ConditionTrue})
 }
 
 // SetCondition sets the current Status Condition
-func (in *CoherenceResourceStatus) SetCondition(deployment *Coherence, c status.Condition) bool {
+func (in *CoherenceResourceStatus) SetCondition(deployment *Coherence, c Condition) bool {
 	deployment.Status.DeepCopyInto(in)
 	updated := in.ensureInitialized(deployment)
 	if in.Phase != "" && in.Phase == c.Type {
@@ -372,7 +371,7 @@ func (in *CoherenceResourceStatus) Update(deployment *Coherence, sts *appsv1.Sta
 }
 
 // set a status phase.
-func (in *CoherenceResourceStatus) setPhase(phase status.ConditionType) bool {
+func (in *CoherenceResourceStatus) setPhase(phase ConditionType) bool {
 	if in.Phase == phase {
 		return false
 	}
@@ -380,22 +379,22 @@ func (in *CoherenceResourceStatus) setPhase(phase status.ConditionType) bool {
 	switch {
 	case in.Phase == ConditionTypeReady && phase != ConditionTypeReady:
 		// we're transitioning out of Ready state
-		in.Conditions.SetCondition(status.Condition{Type: ConditionTypeReady, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeReady, Status: coreV1.ConditionFalse})
 	case in.Phase == ConditionTypeScaling && phase != ConditionTypeScaling:
 		// we're transitioning out of Scaling state
-		in.Conditions.SetCondition(status.Condition{Type: ConditionTypeScaling, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeScaling, Status: coreV1.ConditionFalse})
 	case in.Phase == ConditionTypeRollingUpgrade && phase != ConditionTypeRollingUpgrade:
 		// we're transitioning out of Upgrading state
-		in.Conditions.SetCondition(status.Condition{Type: ConditionTypeRollingUpgrade, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeRollingUpgrade, Status: coreV1.ConditionFalse})
 	case in.Phase == ConditionTypeWaiting && phase != ConditionTypeWaiting:
 		// we're transitioning out of Waiting state
-		in.Conditions.SetCondition(status.Condition{Type: ConditionTypeWaiting, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeWaiting, Status: coreV1.ConditionFalse})
 	case in.Phase == ConditionTypeStopped && phase != ConditionTypeStopped:
 		// we're transitioning out of Stopped state
-		in.Conditions.SetCondition(status.Condition{Type: ConditionTypeStopped, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeStopped, Status: coreV1.ConditionFalse})
 	}
 	in.Phase = phase
-	in.Conditions.SetCondition(status.Condition{Type: phase, Status: coreV1.ConditionTrue})
+	in.Conditions.SetCondition(Condition{Type: phase, Status: coreV1.ConditionTrue})
 	return true
 }
 

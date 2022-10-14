@@ -879,14 +879,14 @@ CoherenceResourceStatus defines the observed state of Coherence resource.
 | Field | Description | Type | Required
 m| phase | The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod's status. There are eight possible phase values: +
  +
-Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment's start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources. m| status.ConditionType | false
+Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment's start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources. m| ConditionType | false
 m| coherenceCluster | The name of the Coherence cluster that this deployment is part of. m| string | false
 m| replicas | Replicas is the desired number of members in the Coherence deployment represented by the Coherence resource. m| int32 | true
 m| currentReplicas | CurrentReplicas is the current number of members in the Coherence deployment represented by the Coherence resource. m| int32 | true
 m| readyReplicas | ReadyReplicas is the number of members in the Coherence deployment represented by the Coherence resource that are in the ready state. m| int32 | true
 m| role | The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name m| string | false
 m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
-m| conditions | The status conditions. m| status.Conditions | false
+m| conditions | The status conditions. m| Conditions | false
 m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
 m| actionsExecuted | ActionsExecuted tracks whether actions were executed m| bool | false
 |===

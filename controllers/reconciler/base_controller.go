@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/status"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -170,12 +169,12 @@ func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request 
 }
 
 // UpdateDeploymentStatusPhase updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatusPhase(ctx context.Context, key types.NamespacedName, phase status.ConditionType) error {
-	return in.UpdateDeploymentStatusCondition(ctx, key, status.Condition{Type: phase, Status: corev1.ConditionTrue})
+func (in *CommonReconciler) UpdateDeploymentStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
+	return in.UpdateDeploymentStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
 }
 
 // UpdateDeploymentStatusCondition updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c status.Condition) error {
+func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
 	var err error
 	deployment := &coh.Coherence{}
 	err = in.GetClient().Get(ctx, key, deployment)
