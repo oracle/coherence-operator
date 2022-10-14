@@ -206,6 +206,15 @@ spec:
                     app.kubernetes.io/name: coherence-operator
                     app.kubernetes.io/instance: coherence-operator-manager
                     app.kubernetes.io/version: "${VERSION}"
+              weight: 10
+            - podAffinityTerm:
+                topologyKey: "kubernetes.io/hostname"
+                labelSelector:
+                  matchLabels:
+                    control-plane: coherence
+                    app.kubernetes.io/name: coherence-operator
+                    app.kubernetes.io/instance: coherence-operator-manager
+                    app.kubernetes.io/version: "${VERSION}"
               weight: 1
 {{- end }}
       volumes:
