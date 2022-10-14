@@ -259,10 +259,12 @@ func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.Coheren
 	Expect(service.Spec.Selector[coh.LabelCoherenceCluster]).To(Equal(deployment.Name))
 }
 
+var _ cache.Cache = fakeCache{}
+
 type fakeCache struct {
 }
 
-func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	panic("implement me")
 }
 
@@ -283,14 +285,6 @@ func (f fakeCache) WaitForCacheSync(ctx context.Context) bool {
 }
 
 func (f fakeCache) IndexField(ctx context.Context, obj client.Object, field string, extractValue client.IndexerFunc) error {
-	panic("implement me")
-}
-
-func (f fakeCache) Set(key string, responseBytes []byte) {
-	panic("implement me")
-}
-
-func (f fakeCache) Delete(key string) {
 	panic("implement me")
 }
 

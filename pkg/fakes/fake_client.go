@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -45,7 +45,7 @@ type clientWithErrors struct {
 }
 
 // ClientErrors is the configuration used by ClientWithErrors to
-// decide whether or not to return an error from a method call.
+// decide whether to return an error from a method call.
 type ClientErrors struct {
 	getErrors    map[ErrorOpts]error
 	createErrors map[ErrorOpts]error
@@ -124,7 +124,7 @@ func (c *clientWithErrors) RESTMapper() meta.RESTMapper {
 	panic("implement me")
 }
 
-func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	if c.errorsOn {
 		if err := c.errors.IsGetError(key, obj); err != nil {
 			return err
