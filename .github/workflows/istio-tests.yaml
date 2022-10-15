@@ -71,6 +71,11 @@ jobs:
         distribution: 'zulu'
         java-version: '11'
 
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.19.x
+
     - name: Cache Go Modules
       uses: actions/cache@v1
       with:
@@ -85,11 +90,6 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
 
     - name: Edit DNS Resolve
       shell: bash
