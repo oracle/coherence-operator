@@ -618,8 +618,8 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='G101:' --exclude='SA4005:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --exclude='G114:' --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='G101:' --exclude='G112:' --exclude='SA4005:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1948,7 +1948,7 @@ get-istio: $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) v1.46.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) v1.50.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
