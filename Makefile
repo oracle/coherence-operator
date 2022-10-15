@@ -1613,15 +1613,20 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 .PHONY: controller-gen
 CONTROLLER_GEN = $(TOOLS_BIN)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0)
+	@echo "Downloading controller-gen"
+	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0
+	ls -al $(TOOLS_BIN)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
+KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+KUSTOMIZE_VERSION ?= v3.8.7
+
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
@@ -1629,23 +1634,7 @@ kustomize: ## Download kustomize locally if necessary.
 .PHONY: gotestsum
 GOTESTSUM = $(TOOLS_BIN)/gotestsum
 gotestsum: ## Download gotestsum locally if necessary.
-	$(call go-get-tool,$(GOTESTSUM),gotest.tools/gotestsum@v0.5.2)
-
-
-# go-get-tool will 'go get' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2) into $(TOOLS_BIN)" ;\
-GOBIN=$(TOOLS_BIN) go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
-endef
-
+	test -s $(TOOLS_BIN)/gotestsum || GOBIN=$(TOOLS_BIN) go install gotest.tools/gotestsum@v1.8.2
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
