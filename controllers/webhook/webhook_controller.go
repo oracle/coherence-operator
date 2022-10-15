@@ -17,7 +17,6 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,7 +33,7 @@ const (
 )
 
 // blank assignment to verify that CertReconciler implements reconcile.Reconciler.
-// If the reconcile.Reconciler API was to change then we'd get a compile error here.
+// If the "reconcile.Reconciler" API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &CertReconciler{}
 
 type CertReconciler struct {
@@ -167,7 +166,7 @@ func (r *CertReconciler) ReconcileResources(ctx context.Context) error {
 	}
 
 	if operator.IsDevMode() {
-		// In dev mode (i.e. outside of k8s) write the certs to the local cert dir
+		// In dev mode (i.e. outside k8s) write the certs to the local cert dir
 		if err = r.writeLocalCertsFromSecret(secret); err != nil {
 			return err
 		}
@@ -211,7 +210,7 @@ func (r *CertReconciler) writeLocalCertsFromSecret(secret *corev1.Secret) error 
 
 	for name, data := range secret.Data {
 		fn := filepath.Join(certDir, name)
-		if err = ioutil.WriteFile(fn, data, os.ModePerm); err != nil {
+		if err = os.WriteFile(fn, data, os.ModePerm); err != nil {
 			return errors.Wrap(err, "writing local cert file")
 		}
 	}
@@ -223,7 +222,7 @@ func (r *CertReconciler) shouldRenewWebhookConfigs(ctx context.Context, ca *cert
 	mCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1().
 		MutatingWebhookConfigurations().Get(ctx, viper.GetString(operator.FlagMutatingWebhookName), metav1.GetOptions{})
 	if err != nil {
-		// probably does not exists so needs creating
+		// probably does not exist, so needs creating
 		return true
 	}
 
@@ -236,7 +235,7 @@ func (r *CertReconciler) shouldRenewWebhookConfigs(ctx context.Context, ca *cert
 	vCfg, err := r.Clientset.KubeClient.AdmissionregistrationV1().
 		ValidatingWebhookConfigurations().Get(ctx, viper.GetString(operator.FlagValidatingWebhookName), metav1.GetOptions{})
 	if err != nil {
-		// probably does not exists so needs creating
+		// probably does not exist, so needs creating
 		return true
 	}
 

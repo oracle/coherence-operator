@@ -11,7 +11,6 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/pkg/errors"
 	"io"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/rest"
@@ -286,7 +285,7 @@ func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string)
 	}
 
 	// read the whole file
-	data, err := ioutil.ReadFile(actualFile)
+	data, err := os.ReadFile(actualFile)
 	if err != nil {
 		return deployments, errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
 	}
@@ -322,7 +321,7 @@ func LoadFromYamlFile(file string, o interface{}) error {
 	}
 
 	// read the whole file
-	data, err := ioutil.ReadFile(actualFile)
+	data, err := os.ReadFile(actualFile)
 	if err != nil {
 		return errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
 	}

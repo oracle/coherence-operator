@@ -12,7 +12,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"golang.org/x/net/context"
-	"io/ioutil"
+	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/testing_frameworks/integration"
@@ -78,7 +78,7 @@ func TestScaleDownToZero(t *testing.T) {
 func TestScaleDownToZeroWithSuspendTrue(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.BoolPtr(true))
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.Bool(true))
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
@@ -87,7 +87,7 @@ func TestScaleDownToZeroWithSuspendTrue(t *testing.T) {
 func TestScaleDownToZeroWithSuspendFalse(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.BoolPtr(false))
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.Bool(false))
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
@@ -130,9 +130,9 @@ var kubeCtlScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error
 	t.Logf("Executing kubectl %s", strings.Join(args, " "))
 
 	stdout, stderr, err := kubectl.Run(args...)
-	o, _ := ioutil.ReadAll(stdout)
+	o, _ := io.ReadAll(stdout)
 	t.Logf("kubectl scale stdout:\n%s\n", string(o))
-	e, _ := ioutil.ReadAll(stderr)
+	e, _ := io.ReadAll(stderr)
 	t.Logf("kubectl scale stderr:\n%s\n", string(e))
 	return err
 }

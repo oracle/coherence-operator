@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io/ioutil"
+	"io"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
@@ -303,7 +303,7 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType, snaps
 			return false, err
 		}
 
-		bs, err := ioutil.ReadAll(resp.Body)
+		bs, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Print("Error in reading idle check response")
 			return false, err

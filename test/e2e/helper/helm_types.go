@@ -10,7 +10,6 @@ import (
 	"errors"
 	"github.com/ghodss/yaml"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"io/ioutil"
 	coreV1 "k8s.io/api/core/v1"
 	"os"
 )
@@ -89,7 +88,7 @@ func (v *OperatorValues) LoadFromYaml(file string) error {
 		return err
 	}
 
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}

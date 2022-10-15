@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,9 +9,9 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
+	"os"
 	"strings"
 	"testing"
 )
@@ -140,7 +140,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 
 	g.Expect(e.OsCmd.Args[2]).To(HavePrefix("@"))
 	fileName := e.OsCmd.Args[2][1:]
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	actualOpts := strings.Split(string(data), "\n")

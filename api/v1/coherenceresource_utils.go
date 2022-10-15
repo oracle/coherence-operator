@@ -13,7 +13,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -60,7 +60,7 @@ func ensureV1CRD(ctx context.Context, logger logr.Logger, cl client.Client, file
 	//goland:noinspection GoUnhandledErrorResult
 	defer f.Close()
 
-	yml, err := ioutil.ReadAll(f)
+	yml, err := io.ReadAll(f)
 	if err != nil {
 		return errors.Wrap(err, "reading embedded CRD asset "+fileName)
 	}
