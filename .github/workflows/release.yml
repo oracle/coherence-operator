@@ -66,6 +66,7 @@ jobs:
         export NO_DAEMON=false
         make clean
         make all
+        make trivy-scan
         if echo $GITHUB_EVENT_NAME -eq "release"; then PRE_RELEASE=false; else PRE_RELEASE=true; fi
         make release RELEASE_DRY_RUN=false PRE_RELEASE=$PRE_RELEASE
 
