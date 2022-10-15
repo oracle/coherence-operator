@@ -18,13 +18,13 @@ var TestAppDir string
 // The entry point for the test suite
 func TestMain(m *testing.M) {
 	// create a temporary folder to represent the app directory
-	dir, err := os.CreateTemp("", "operator-tests")
+	dir, err := os.MkdirTemp("", "operator-tests")
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
 
-	TestAppDir = dir.Name()
+	TestAppDir = dir
 	err = os.Setenv(v1.EnvVarCohAppDir, TestAppDir)
 	if err != nil {
 		fmt.Print(err)
