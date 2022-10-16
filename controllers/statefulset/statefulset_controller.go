@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/status"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/utils"
@@ -294,7 +293,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 	if !ok {
 		// start quorum not met, send event and update deployment status
 		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "Waiting", reason)
-		_ = in.UpdateDeploymentStatusCondition(ctx, deployment.GetNamespacedName(), status.Condition{
+		_ = in.UpdateDeploymentStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
 			Type:    coh.ConditionTypeWaiting,
 			Status:  corev1.ConditionTrue,
 			Reason:  "StatusQuorum",

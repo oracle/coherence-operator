@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,7 +14,6 @@ import (
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 	"net/http"
@@ -54,7 +53,7 @@ func TestManagementOverRest(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// require 2-way auth
-	ssl.RequireClientCert = pointer.BoolPtr(true)
+	ssl.RequireClientCert = pointer.Bool(true)
 
 	// load the test Coherence from a yaml files
 	deploymentWithoutSSL, err := helper.NewSingleCoherenceFromYaml(namespace, "management-test.yaml")
@@ -73,7 +72,7 @@ func TestManagementOverRest(t *testing.T) {
 
 	// Set the SSL settings
 	deploymentSSL.Name = "management-ssl"
-	deploymentSSL.Spec.Coherence.Management.Enabled = pointer.BoolPtr(true)
+	deploymentSSL.Spec.Coherence.Management.Enabled = pointer.Bool(true)
 	deploymentSSL.Spec.Coherence.Management.SSL = ssl
 
 	j, _ = json.Marshal(deploymentWithoutSSL)
@@ -166,7 +165,7 @@ func requestManagementWithSSL(pod corev1.Pod, tc ManagementTestCase, retry bool)
 	certFile := certDir + string(os.PathSeparator) + tc.CertFile
 	caCertFile := certDir + string(os.PathSeparator) + tc.CaCertFile
 
-	caCert, err := ioutil.ReadFile(caCertFile)
+	caCert, err := os.ReadFile(caCertFile)
 	if err != nil {
 		return err
 	}

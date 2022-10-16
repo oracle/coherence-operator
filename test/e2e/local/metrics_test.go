@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,7 +13,6 @@ import (
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 	"net/http"
@@ -156,7 +155,7 @@ func requestMetricsWithSSL(pod corev1.Pod, tc MetricsTestCase, retry bool) error
 	certFile := certDir + string(os.PathSeparator) + tc.CertFile
 	caCertFile := certDir + string(os.PathSeparator) + tc.CaCertFile
 
-	caCert, err := ioutil.ReadFile(caCertFile)
+	caCert, err := os.ReadFile(caCertFile)
 	if err != nil {
 		return err
 	}

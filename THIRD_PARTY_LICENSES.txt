@@ -225,7 +225,6 @@ package cloud
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -261,7 +260,7 @@ func TestLicense(t *testing.T) {
 			// BSD license, which is compatible, is embedded in the file.
 			return nil
 		}
-		src, err := ioutil.ReadFile(path)
+		src, err := os.ReadFile(path)
 		if err != nil {
 			return nil
 		}

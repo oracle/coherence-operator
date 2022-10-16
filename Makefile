@@ -618,8 +618,8 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='G101:' --exclude='SA4005:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --exclude='G114:' --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='G101:' --exclude='G112:' --exclude='SA4005:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1607,21 +1607,36 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 # ======================================================================================================================
 ##@ Miscellaneous
 
+TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.32.1
+.PHONY: trivy-scan
+trivy-scan: $(BUILD_TARGETS)/build-operator ## Scan the Operator image using Trivy
+	docker pull $(TRIVY_IMAGE)
+ifeq (Darwin, $(UNAME_S))
+	docker run --rm -v $HOME/Library/Caches:/root/.cache/ -v /var/run/docker.sock:/var/run/docker.sock $(TRIVY_IMAGE) image $(OPERATOR_IMAGE)
+else
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(TRIVY_IMAGE) image $(OPERATOR_IMAGE)
+endif
+
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: controller-gen
 CONTROLLER_GEN = $(TOOLS_BIN)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0)
+	@echo "Downloading controller-gen"
+	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0
+	ls -al $(TOOLS_BIN)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
+KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+KUSTOMIZE_VERSION ?= v3.8.7
+
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
@@ -1629,23 +1644,7 @@ kustomize: ## Download kustomize locally if necessary.
 .PHONY: gotestsum
 GOTESTSUM = $(TOOLS_BIN)/gotestsum
 gotestsum: ## Download gotestsum locally if necessary.
-	$(call go-get-tool,$(GOTESTSUM),gotest.tools/gotestsum@v0.5.2)
-
-
-# go-get-tool will 'go get' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2) into $(TOOLS_BIN)" ;\
-GOBIN=$(TOOLS_BIN) go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
-endef
-
+	test -s $(TOOLS_BIN)/gotestsum || GOBIN=$(TOOLS_BIN) go install gotest.tools/gotestsum@v1.8.2
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the examples
@@ -1959,7 +1958,7 @@ get-istio: $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) v1.46.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) v1.50.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

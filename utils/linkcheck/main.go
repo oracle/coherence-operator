@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -154,7 +154,7 @@ func checkDirectory(dirName string, excludes []string) int {
 
 func checkFileInfo(dir string, info os.FileInfo, excludes []string) int {
 	if info.IsDir() {
-		files, err := ioutil.ReadDir(dir)
+		files, err := os.ReadDir(dir)
 		if err != nil {
 			fmt.Printf(err.Error())
 			return 1
@@ -189,7 +189,7 @@ func checkDoc(path string, excludes []string) int {
 	fmt.Printf("Checking file %s\n", path)
 	exitCode := 0
 
-	buf, err := ioutil.ReadFile(path)
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -268,7 +268,7 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	count := len(fragments)
 	if (count == 1 && fragments[0] != "") || count > 1 {
 		// Read the body of the HTTP response
-		if content, err = ioutil.ReadAll(resp.Body); err != nil {
+		if content, err = io.ReadAll(resp.Body); err != nil {
 			fmt.Printf(" FAILED error: %v\n", err)
 			return 1
 		}

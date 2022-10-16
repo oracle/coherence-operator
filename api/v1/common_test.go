@@ -15,7 +15,6 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,13 +109,13 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	// Dump the json for the actual StatefulSet for debugging failures
 	jsonActual, err := json.MarshalIndent(stsActual, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Dump the json for the expected StatefulSet for debugging failures
 	jsonExpected, err := json.MarshalIndent(stsExpected, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	assertEnvironmentVariables(t, stsActual, stsExpected)
@@ -126,7 +125,7 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	msg := "StatefulSets not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
-		err = ioutil.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
 		g.Expect(err).NotTo(HaveOccurred())
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
@@ -256,7 +255,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 					SecretKeyRef: &corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
 						Key:                  coh.OperatorConfigKeyHost,
-						Optional:             pointer.BoolPtr(true),
+						Optional:             pointer.Bool(true),
 					},
 				},
 			},
@@ -311,12 +310,12 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			Labels: labels,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: pointer.Int32Ptr(spec.GetReplicas()),
+			Replicas: pointer.Int32(spec.GetReplicas()),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: selector,
 			},
 			ServiceName:          deployment.GetHeadlessServiceName(),
-			RevisionHistoryLimit: pointer.Int32Ptr(5),
+			RevisionHistoryLimit: pointer.Int32(5),
 			UpdateStrategy:       appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType},
 			PodManagementPolicy:  appsv1.ParallelPodManagement,
 			Template: corev1.PodTemplateSpec{

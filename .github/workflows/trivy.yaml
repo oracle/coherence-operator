@@ -1,25 +1,17 @@
-# Copyright 2019, 2022, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2022, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
 # Coherence Operator GitHub Actions Backwards Compatibility Tests.
 # ---------------------------------------------------------------------------
-name: Istio Tests
+name: Trivy Image Scan
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
   push:
-    branches-ignore:
-    - gh-pages
-    - 1.0.0
-    - 2.x
-    - 3.x
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - committed
     branches-ignore:
     - gh-pages
     - 1.0.0
@@ -29,15 +21,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        istioVersion:
-        - latest
-        - 1.12.1
-        - 1.11.5
-        - 1.10.6
 
     steps:
     - uses: actions/checkout@v3
@@ -98,7 +81,6 @@ jobs:
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
     - name: Start KinD Cluster
-#     Start a KinD K8s cluster with single worker node
       shell: bash
       run: |
         make kind
@@ -108,27 +90,6 @@ jobs:
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
 
-    - name: Build
+    - name: Image Scan
       shell: bash
-      run: make all
-
-    - name: Load Images to KinD
-#     Load the images just built to the KinD cluster
-      shell: bash
-      run: |
-        make kind-load
-
-    - name: Istio Tests
-      shell: bash
-      run: |
-        make deploy
-        ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
-        make e2e-client-test
-        make undeploy
-        ISTIO_VERSION=${{ matrix.istioVersion }} make uninstall-istio
-
-    - uses: actions/upload-artifact@v1
-      if: failure()
-      with:
-        name: test-output
-        path: build/_output/test-logs
+      run: make trivy-scan

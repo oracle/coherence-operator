@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 const (
@@ -66,7 +66,7 @@ func createHTTPClient(cmd *cobra.Command) (http.Client, error) {
 	}
 
 	if caCertFile != "" {
-		caCert, err := ioutil.ReadFile(caCertFile)
+		caCert, err := os.ReadFile(caCertFile)
 		if err != nil {
 			return client, errors.Wrapf(err, "opening cert file %s", caCertFile)
 		}

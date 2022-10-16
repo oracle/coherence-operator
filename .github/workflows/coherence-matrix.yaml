@@ -95,7 +95,7 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
@@ -126,8 +126,13 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19.x
+
     - name: Cache Go Modules
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
@@ -135,16 +140,11 @@ jobs:
           ${{ runner.os }}-go-mods-
 
     - name: Cache Maven packages
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
 
     - name: Edit DNS Resolve
       shell: bash

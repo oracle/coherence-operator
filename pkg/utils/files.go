@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,7 +9,6 @@ package utils
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -24,7 +23,7 @@ func AlwaysFilter() FileFilter {
 
 func CopyDir(src string, dst string, filter FileFilter) error {
 	var err error
-	var fds []os.FileInfo
+	var fds []os.DirEntry
 	var srcinfo os.FileInfo
 
 	fmt.Printf("Copying directory %s to %s\n", src, dst)
@@ -37,7 +36,7 @@ func CopyDir(src string, dst string, filter FileFilter) error {
 		return err
 	}
 
-	if fds, err = ioutil.ReadDir(src); err != nil {
+	if fds, err = os.ReadDir(src); err != nil {
 		return err
 	}
 
@@ -58,7 +57,7 @@ func CopyDir(src string, dst string, filter FileFilter) error {
 	return nil
 }
 
-// File copies a single file from src to dst
+// CopyFile copies a single file from src to dst
 func CopyFile(src, dst string) error {
 	var err error
 	var srcfd *os.File

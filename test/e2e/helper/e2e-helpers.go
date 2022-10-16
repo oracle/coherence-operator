@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	"github.com/operator-framework/operator-lib/status"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
 	"github.com/oracle/coherence-operator/pkg/clients"
@@ -25,7 +24,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"io"
-	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -350,6 +348,7 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 }
 
 // WaitForEndpoints waits for Enpoints for a Service to be created.
+//
 //goland:noinspection GoUnusedExportedFunction
 func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval, timeout time.Duration) (*corev1.Endpoints, error) {
 	var ep *corev1.Endpoints
@@ -431,7 +430,7 @@ func ReplicaCountCondition(replicas int32) DeploymentStateCondition {
 }
 
 type phaseCondition struct {
-	phase status.ConditionType
+	phase coh.ConditionType
 }
 
 func (in phaseCondition) Test(d *coh.Coherence) bool {
@@ -442,11 +441,12 @@ func (in phaseCondition) String() string {
 	return fmt.Sprintf("phase == %s", in.phase)
 }
 
-func StatusPhaseCondition(phase status.ConditionType) DeploymentStateCondition {
+func StatusPhaseCondition(phase coh.ConditionType) DeploymentStateCondition {
 	return phaseCondition{phase: phase}
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
+//
 //goland:noinspection GoUnusedExportedFunction
 func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	return WaitForCoherenceCondition(ctx, namespace, name, alwaysCondition{}, retryInterval, timeout)
@@ -531,6 +531,7 @@ func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryI
 }
 
 // WaitForOperatorDeletion waits for deletion of the Operator Pods.
+//
 //goland:noinspection GoUnusedExportedFunction
 func WaitForOperatorDeletion(ctx TestContext, namespace string, retryInterval, timeout time.Duration) error {
 	return WaitForDeleteOfPodsWithSelector(ctx, namespace, operatorPodSelector, retryInterval, timeout)
@@ -703,6 +704,7 @@ func ListPodsWithLabelAndFieldSelector(ctx TestContext, namespace, labelSelector
 }
 
 // WaitForPodReady waits for a Pods to be ready.
+//
 //goland:noinspection GoUnusedExportedFunction
 func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
@@ -993,7 +995,7 @@ func readCertFile(name string) ([]byte, error) {
 		return nil, err
 	}
 
-	return ioutil.ReadAll(f)
+	return io.ReadAll(f)
 }
 
 // DumpOperatorLogs dumps the operator logs

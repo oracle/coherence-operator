@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"io/ioutil"
+	"io"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
 	"os"
@@ -660,7 +660,7 @@ func _createBuildPackCommand(_ *RunDetails, className string, args []string) (*e
 	launcher := getBuildpackLauncher()
 
 	// Create the JVM arguments file
-	argsFile, err := ioutil.TempFile("", "jvm-args")
+	argsFile, err := os.CreateTemp("", "jvm-args")
 	if err != nil {
 		return nil, err
 	}
@@ -732,7 +732,7 @@ func configureSiteAndRack(details *RunDetails) {
 		default:
 			st, err := os.Stat(siteLocation)
 			if err == nil && !st.IsDir() {
-				d, err := ioutil.ReadFile(siteLocation)
+				d, err := os.ReadFile(siteLocation)
 				if err != nil {
 					site = string(d)
 				}
@@ -758,7 +758,7 @@ func configureSiteAndRack(details *RunDetails) {
 		default:
 			st, err := os.Stat(rackLocation)
 			if err == nil && !st.IsDir() {
-				d, err := ioutil.ReadFile(rackLocation)
+				d, err := os.ReadFile(rackLocation)
 				if err != nil {
 					rack = string(d)
 				}
@@ -827,7 +827,7 @@ func httpGet(url string, client http.Client) (string, int, error) {
 	//noinspection GoUnhandledErrorResult
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", resp.StatusCode, errors.Wrapf(err, "failed to read response body from URL %s", url)
 	}

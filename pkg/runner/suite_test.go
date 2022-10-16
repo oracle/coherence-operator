@@ -9,7 +9,6 @@ package runner
 import (
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -19,30 +18,30 @@ var TestAppDir string
 // The entry point for the test suite
 func TestMain(m *testing.M) {
 	// create a temporary folder to represent the app directory
-	dir, err := ioutil.TempDir("", "operator-tests")
+	dir, err := os.MkdirTemp("", "operator-tests")
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
 
 	TestAppDir = dir
-	err = os.Setenv(v1.EnvVarCohAppDir, dir)
+	err = os.Setenv(v1.EnvVarCohAppDir, TestAppDir)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
 
-	err = os.MkdirAll(dir+string(os.PathSeparator)+"resources", os.ModePerm)
+	err = os.MkdirAll(TestAppDir+string(os.PathSeparator)+"resources", os.ModePerm)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	err = os.MkdirAll(dir+string(os.PathSeparator)+"classes", os.ModePerm)
+	err = os.MkdirAll(TestAppDir+string(os.PathSeparator)+"classes", os.ModePerm)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	libs := dir + string(os.PathSeparator) + "libs"
+	libs := TestAppDir + string(os.PathSeparator) + "libs"
 	err = os.MkdirAll(libs, os.ModePerm)
 	if err != nil {
 		fmt.Print(err)
@@ -63,7 +62,7 @@ func TestMain(m *testing.M) {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	classpath := dir + string(os.PathSeparator) + "classpath"
+	classpath := TestAppDir + string(os.PathSeparator) + "classpath"
 	err = os.MkdirAll(classpath, os.ModePerm)
 	if err != nil {
 		fmt.Print(err)
@@ -87,6 +86,6 @@ func TestMain(m *testing.M) {
 
 	exitCode := m.Run()
 
-	_ = os.RemoveAll(dir)
+	_ = os.RemoveAll(TestAppDir)
 	os.Exit(exitCode)
 }

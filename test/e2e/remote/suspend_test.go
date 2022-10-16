@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -15,7 +15,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io/ioutil"
+	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -81,7 +81,7 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
-	c.Spec.SuspendServicesOnShutdown = pointer.BoolPtr(false)
+	c.Spec.SuspendServicesOnShutdown = pointer.Bool(false)
 
 	installSimpleDeployment(t, c)
 
@@ -178,7 +178,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
-	c.Spec.SuspendServicesOnShutdown = pointer.BoolPtr(false)
+	c.Spec.SuspendServicesOnShutdown = pointer.Bool(false)
 
 	installSimpleDeployment(t, c)
 
@@ -357,7 +357,7 @@ func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]inte
 		return nil, fmt.Errorf("request returned non-200 status %d", resp.StatusCode)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
