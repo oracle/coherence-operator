@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-// The operator package contains types and functions used directly by the Operator main
+// Package operator package contains types and functions used directly by the Operator main
 package operator
 
 import (
@@ -28,7 +28,7 @@ const (
 	DefaultRestHost       = "0.0.0.0"
 	DefaultRestPort int32 = 8000
 
-	// DefaultCertValidity makes new certificates default to a 1 year expiration
+	// DefaultCertValidity makes new certificates default to a one-year expiration
 	DefaultCertValidity = 365 * 24 * time.Hour
 	// DefaultRotateBefore defines how long before expiration a certificate
 	// should be re-issued
@@ -75,8 +75,11 @@ const (
 
 	// OCI Node Labels
 
-	// LabelOciNodeFaultDomain is the OCI Node label fo the fault domain.
+	// LabelOciNodeFaultDomain is the OCI Node label for the fault domain.
 	LabelOciNodeFaultDomain = "oci.oraclecloud.com/fault-domain"
+
+	// LabelHostName is the Node label for the Node's hostname.
+	LabelHostName = "kubernetes.io/hostname"
 )
 
 var setupLog = ctrl.Log.WithName("setup")
