@@ -3054,7 +3054,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <td class="">The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod&#8217;s status. There are eight possible phase values:<br>
 <br>
 Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment&#8217;s start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources.</td>
-<td class=""><code>status.ConditionType</code></td>
+<td class=""><code>ConditionType</code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3096,7 +3096,7 @@ Initialized:    The deployment has been accepted by the Kubernetes system. Creat
 <tr>
 <td class=""><code>conditions</code></td>
 <td class="">The status conditions.</td>
-<td class=""><code>status.Conditions</code></td>
+<td class=""><code>Conditions</code></td>
 <td class="">false</td>
 </tr>
 <tr>
