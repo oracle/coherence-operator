@@ -264,7 +264,7 @@ type CoherenceResourceSpec struct {
 	// Use the host's ipc namespace. Optional: Default to false.
 	// +optional
 	HostIPC *bool `json:"hostIPC,omitempty"`
-	// Configure various networks and DNS settings for Pods in this rolw.
+	// Configure various networks and DNS settings for Pods in this role.
 	// +optional
 	Network *NetworkSpec `json:"network,omitempty"`
 	// The configuration for the Coherence operator image name
@@ -771,7 +771,7 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1
 		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 			Type: appsv1.RollingUpdateStatefulSetStrategyType,
 		},
-		RevisionHistoryLimit: pointer.Int32Ptr(5),
+		RevisionHistoryLimit: pointer.Int32(5),
 		ServiceName:          deployment.GetHeadlessServiceName(),
 		Selector: &metav1.LabelSelector{
 			MatchLabels: in.CreatePodSelectorLabels(deployment),
@@ -973,6 +973,8 @@ func (in *CoherenceResourceSpec) AddEnvVarIfAbsent(envVar corev1.EnvVar) {
 }
 
 // AddEnvVarIfAbsent adds the specified EnvVar to the destination slice if one with the same name does not already exist.
+//
+//goland:noinspection ALL
 func AddEnvVarIfAbsent(dest []corev1.EnvVar, envVar corev1.EnvVar) []corev1.EnvVar {
 	for _, e := range dest {
 		if e.Name == envVar.Name {
@@ -1005,7 +1007,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: OperatorConfigName},
 					Key:                  OperatorConfigKeyHost,
-					Optional:             pointer.BoolPtr(true),
+					Optional:             pointer.Bool(true),
 				},
 			},
 		},
@@ -1151,9 +1153,16 @@ func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment *Coherence)
 					},
 				},
 				{
-					Weight: 1,
+					Weight: 10,
 					PodAffinityTerm: corev1.PodAffinityTerm{
 						TopologyKey:   operator.LabelOciNodeFaultDomain,
+						LabelSelector: &selector,
+					},
+				},
+				{
+					Weight: 1,
+					PodAffinityTerm: corev1.PodAffinityTerm{
+						TopologyKey:   operator.LabelHostName,
 						LabelSelector: &selector,
 					},
 				},
