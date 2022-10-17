@@ -583,7 +583,7 @@ For example:<br>
 </tr>
 <tr>
 <td class=""><code>network</code></td>
-<td class="">Configure various networks and DNS settings for Pods in this rolw.</td>
+<td class="">Configure various networks and DNS settings for Pods in this role.</td>
 <td class=""><code>&#42;<router-link to="#_networkspec" @click.native="this.scrollFix('#_networkspec')">NetworkSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
