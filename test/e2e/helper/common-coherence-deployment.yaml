@@ -9,5 +9,5 @@ spec:
   coherenceUtils:
     imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   readinessProbe:
-    initialDelaySeconds: 10
+    initialDelaySeconds: 30
     periodSeconds: 5
