@@ -34,9 +34,11 @@ jobs:
         matrixName:
           - "15.1.1-0-0-SNAPSHOT"
           - "15.1.1-0-0-SNAPSHOT-Graal"
+          - "22.09"
+          - "22.09-Graal"
           - "22.06"
           - "14.1.1-2206-SNAPSHOT"
-          - "14.1.1-0-11-SNAPSHOT"
+          - "14.1.1-0-12-SNAPSHOT"
           - "14.1.1-0-10"
           - "14.1.1.0.0"
           - "12.2.1.4.0"
@@ -53,20 +55,30 @@ jobs:
             javaVersion: 17
             coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-0-SNAPSHOT-graal"
             baseImage: "gcr.io/distroless/java17-debian11"
+          - matrixName: "22.09"
+            coherenceVersion: "22.09"
+            javaVersion: 17
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.09"
+            baseImage: "gcr.io/distroless/java17-debian11"
+          - matrixName: "22.09-Graal"
+            coherenceVersion: "22.09"
+            javaVersion: 17
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.09-graal"
+            baseImage: "gcr.io/distroless/java17-debian11"
           - matrixName: "22.06"
             coherenceVersion: "22.06"
             javaVersion: 11
-            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.1"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.2"
             baseImage: "gcr.io/distroless/java11-debian11"
           - matrixName: "14.1.1-2206-SNAPSHOT"
             coherenceVersion: "14.1.1-2206-SNAPSHOT"
             javaVersion: 11
             coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-2206-2-SNAPSHOT"
             baseImage: "gcr.io/distroless/java11-debian11"
-          - matrixName: "14.1.1-0-11-SNAPSHOT"
-            coherenceVersion: "14.1.1-0-11-SNAPSHOT"
+          - matrixName: "14.1.1-0-12-SNAPSHOT"
+            coherenceVersion: "14.1.1-0-12-SNAPSHOT"
             javaVersion: 8
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-11-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-12-SNAPSHOT"
             baseImage: "gcr.io/distroless/java11-debian11"
           - matrixName: "14.1.1-0-10"
             coherenceVersion: "14.1.1-0-10"
