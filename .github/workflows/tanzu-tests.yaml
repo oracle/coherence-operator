@@ -97,6 +97,7 @@ jobs:
     - name: Install Tanzu Community
       shell: bash
       run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         make get-tanzu
         make tanzu-create-cluster
 

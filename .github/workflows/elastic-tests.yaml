@@ -93,6 +93,7 @@ jobs:
     - name: Start KinD Cluster
       shell: bash
       run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         make kind-single-worker
         kubectl version
         kubectl get nodes
