@@ -196,7 +196,8 @@ jobs:
         make kind-load
         make kind-load-compatibility
         echo "Running Coherence Compatibility Tests"
-        make coherence-compatibility-test
+        export TEST_LOGS_DIR=build/_output/test-logs/${{ matrix.matrixName }}
+        make coherence-compatibility-test 
 
     - uses: actions/upload-artifact@v1
       if: failure()
