@@ -30,6 +30,7 @@ env:
   MAVEN_USER: ${{ secrets.MAVEN_USER }}
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   LOAD_KIND: true
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:

@@ -18,6 +18,9 @@ on:
     - 2.x
     - 3.x
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
