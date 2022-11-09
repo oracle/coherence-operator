@@ -26,6 +26,9 @@ on:
     - 2.x
     - 3.x
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -93,6 +96,7 @@ jobs:
     - name: Start KinD Cluster
       shell: bash
       run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         make kind-single-worker
         kubectl version
         kubectl get nodes

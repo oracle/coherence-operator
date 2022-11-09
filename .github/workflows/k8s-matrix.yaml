@@ -30,6 +30,7 @@ env:
   MAVEN_USER: ${{ secrets.MAVEN_USER }}
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   LOAD_KIND: true
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
@@ -109,6 +110,7 @@ jobs:
     - name: Start KinD Cluster
       shell: bash
       run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         make kind KIND_IMAGE=${{ matrix.k8s }}
         kubectl version
         kubectl get nodes

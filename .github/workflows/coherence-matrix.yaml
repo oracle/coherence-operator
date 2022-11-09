@@ -23,6 +23,7 @@ env:
   MAVEN_USER: ${{ secrets.MAVEN_USER }}
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   LOAD_KIND: true
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
@@ -170,6 +171,7 @@ jobs:
         make kind
         kubectl version
         kubectl get nodes
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         docker login container-registry.oracle.com -u "${{ secrets.OCR_DOCKER_USERNAME }}" -p "${{ secrets.OCR_DOCKER_PASSWORD }}"
         docker login "${{ secrets.OCI_REGISTRY }}" -u "${{ secrets.OCI_USERNAME }}" -p "${{ secrets.OCI_PASSWORD }}"
         docker pull gcr.io/distroless/java
@@ -195,7 +197,8 @@ jobs:
         make kind-load
         make kind-load-compatibility
         echo "Running Coherence Compatibility Tests"
-        make coherence-compatibility-test
+        export TEST_LOGS_DIR=build/_output/test-logs/${{ matrix.matrixName }}
+        make coherence-compatibility-test 
 
     - uses: actions/upload-artifact@v1
       if: failure()

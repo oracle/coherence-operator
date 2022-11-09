@@ -54,6 +54,13 @@ TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 # The current working directory
 CURRDIR := $(shell pwd)
 
+GH_TOKEN ?= 
+ifneq ($(origin GH_TOKEN), undefined)
+  GH_AUTH := "Foo: Bar"
+else
+  GH_AUTH := "Authorization: Bearer $(GH_TOKEN)"
+endif
+
 # ----------------------------------------------------------------------------------------------------------------------
 # By default we target amd64 as this is by far the most common local build environment
 # We actually build images for amd64 and arm64
@@ -772,7 +779,7 @@ ifeq (,$(shell which opm 2>/dev/null))
 	set -e ;\
 	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.15.1/$${OS}-$${ARCH}-opm ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.15.1/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
 	chmod +x $(OPM) ;\
 	}
 else
@@ -1481,7 +1488,7 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 
 CERT_MANAGER_VERSION ?= v1.8.0
 # Get latest version...
-#  curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
+#  curl -s -H "Accept: application/vnd.github.v3+json" --header $(GH_AUTH) https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
 
 .PHONY: install-cmctl
 install-cmctl: $(TOOLS_BIN)/cmctl ## Install the Cert Manager CLI into $(TOOLS_BIN)
@@ -1489,7 +1496,7 @@ install-cmctl: $(TOOLS_BIN)/cmctl ## Install the Cert Manager CLI into $(TOOLS_B
 CMCTL = $(TOOLS_BIN)/cmctl
 $(TOOLS_BIN)/cmctl:
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cmctl-$${OS}-$${ARCH}.tar.gz
+	curl -sSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cmctl-$${OS}-$${ARCH}.tar.gz  --header $(GH_AUTH)
 	tar xzf cmctl.tar.gz
 	mv cmctl $(TOOLS_BIN)
 	rm cmctl.tar.gz
@@ -1636,7 +1643,7 @@ KUSTOMIZE_VERSION ?= v3.8.7
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
+	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header $(GH_AUTH) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
@@ -1780,7 +1787,7 @@ push-release-images: push-operator-image tanzu-repo
 get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
 
 $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
-	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz
+	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
 	mkdir -p $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
 	rm $(BUILD_OUTPUT)/prometheus.tar.gz
@@ -1958,7 +1965,7 @@ get-istio: $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) v1.50.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.50.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
@@ -2172,9 +2179,9 @@ license: $(TOOLS_BIN)/licensed
 
 $(TOOLS_BIN)/licensed:
 ifeq (Darwin, $(UNAME_S))
-	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-darwin-x64.tar.gz > licensed.tar.gz
+	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-darwin-x64.tar.gz --header $(GH_AUTH) > licensed.tar.gz
 else
-	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-linux-x64.tar.gz > licensed.tar.gz
+	curl -sSL https://github.com/github/licensed/releases/download/2.14.4/licensed-2.14.4-linux-x64.tar.gz --header $(GH_AUTH) > licensed.tar.gz
 endif
 	tar -xzf licensed.tar.gz
 	rm -f licensed.tar.gz

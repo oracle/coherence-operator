@@ -11,6 +11,9 @@ on:
   release:
     types: [prereleased, released]
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
