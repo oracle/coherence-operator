@@ -494,13 +494,14 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 7,
+        "w": 12,
         "x": 0,
         "y": 14
       },
       "hiddenSeries": false,
       "id": 98,
+      "interval": "",
       "legend": {
         "alignAsTable": true,
         "avg": false,
@@ -533,7 +534,7 @@
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Member: {{member}} ({{role}})",
+          "legendFormat": "Member: {{member}}",
           "refId": "A"
         }
       ],
@@ -541,7 +542,103 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Process CPU",
+      "title": "Process CPU Load",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": "1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "description": "",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "hiddenSeries": false,
+      "id": 99,
+      "interval": "",
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "avg(vendor:coherence_os_system_cpu_load{cluster=\"$ClusterName\"}) by (machine)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Machine: {{machine}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "System CPU Load",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -591,7 +688,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 21
       },
       "hiddenSeries": false,
       "id": 65,
@@ -684,7 +781,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 21
       },
       "hiddenSeries": false,
       "id": 66,
@@ -779,7 +876,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 29
       },
       "hiddenSeries": false,
       "id": 68,
@@ -879,7 +976,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 29
       },
       "hiddenSeries": false,
       "id": 69,
@@ -977,7 +1074,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 37
       },
       "hiddenSeries": false,
       "id": 23,
@@ -1071,7 +1168,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 37
       },
       "hiddenSeries": false,
       "id": 24,
