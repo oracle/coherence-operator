@@ -1412,7 +1412,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER ?= operator
-KIND_IMAGE   ?= "kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e"
+KIND_IMAGE   ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
