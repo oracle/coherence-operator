@@ -118,7 +118,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_journal_file_count{cluster=\"$ClusterName\",name=~\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_file_count{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -200,7 +200,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"$ClusterName\",name=~\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -282,7 +282,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_journal_file_count{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_file_count{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -364,7 +364,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -426,7 +426,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"$ClusterName\",name=~\"RamJournalRM\"}) by (name)",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -517,7 +517,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"}) by (name)",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -610,7 +610,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "vendor:coherence_journal_compaction_count{cluster=\"$ClusterName\",name=~\"RamJournalRM\"} - vendor:coherence_journal_compaction_count{cluster=\"$ClusterName\",name=~\"RamJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"} - vendor:coherence_journal_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -618,7 +618,7 @@
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_journal_exhaustive_compaction_count{cluster=\"$ClusterName\",name=~\"RamJournalRM\"}  - vendor:coherence_journal_exhaustive_compaction_count{cluster=\"$ClusterName\",name=~\"RamJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_exhaustive_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"}  - vendor:coherence_journal_exhaustive_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -712,7 +712,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "vendor:coherence_journal_compaction_count{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"} - vendor:coherence_journal_compaction_count{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"} - vendor:coherence_journal_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -720,7 +720,7 @@
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_journal_exhaustive_compaction_count{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"}  - vendor:coherence_journal_exhaustive_compaction_count{cluster=\"$ClusterName\",name=~\"FlashJournalRM\"} offset $__interval ",
+          "expr": "vendor:coherence_journal_exhaustive_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"}  - vendor:coherence_journal_exhaustive_compaction_count{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"} offset $__interval ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -816,7 +816,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
