@@ -994,7 +994,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_origin_total_bytes_received {cluster=\"${ClusterName:raw}\"} - vendor:coherence_federation_origin_total_bytes_received {cluster=\"${ClusterName:raw}\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_origin_total_bytes_received {cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_federation_origin_total_bytes_received {cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1174,7 +1174,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_origin_total_msg_received {cluster=\"${ClusterName:raw}\"}  - vendor:coherence_federation_origin_total_msg_received {cluster=\"${ClusterName:raw}\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_origin_total_msg_received {cluster=\"${ClusterName:raw}\"})  - sum(vendor:coherence_federation_origin_total_msg_received {cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1354,7 +1354,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_origin_total_records_received {cluster=\"${ClusterName:raw}\"} - vendor:coherence_federation_origin_total_records_received {cluster=\"${ClusterName:raw}\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_origin_total_records_received {cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_federation_origin_total_records_received {cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1534,7 +1534,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "vendor:coherence_federation_origin_total_entries_received {cluster=\"${ClusterName:raw}\"} - vendor:coherence_federation_origin_total_entries_received {cluster=\"${ClusterName:raw}\"} offset $__interval ",
+          "expr": "sum(vendor:coherence_federation_origin_total_entries_received {cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_federation_origin_total_entries_received {cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
