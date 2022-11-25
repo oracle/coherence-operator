@@ -15,18 +15,9 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 19,
-  "iteration": 1641538562880,
+  "id": 18,
+  "iteration": 1641539225818,
   "links": [
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "title": "Back to Executors Summary Dashboard",
-      "type": "link",
-      "url": "/d/coh-executors-summary/executors-summary-dashboard"
-    },
     {
       "icon": "dashboard",
       "includeVars": true,
@@ -50,7 +41,7 @@
   ],
   "panels": [
     {
-      "content": "<center><h3>Executor Detail - $ExecutorName</h3></center>",
+      "content": "<center><h3>Executors Summary - $ClusterName</h3></center>",
       "datasource": "prometheus",
       "gridPos": {
         "h": 2,
@@ -92,7 +83,7 @@
           "type": "hidden"
         },
         {
-          "alias": "Machine",
+          "alias": "Member Count",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -102,17 +93,14 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
-          "link": true,
-          "linkTooltip": "Drill down to machines summary",
-          "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
           "mappingType": 1,
-          "pattern": "machine",
+          "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
           "unit": "short"
         },
         {
-          "alias": "Member Name",
+          "alias": "Executor",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -123,16 +111,16 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "link": true,
-          "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "linkTooltip": "Drill down to executor details for ${__cell}",
+          "linkUrl": "/d/coh-executor-detail?var-ExecutorName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
-          "pattern": "member",
+          "pattern": "name",
           "thresholds": [],
           "type": "string",
           "unit": "short"
         },
         {
-          "alias": "Member Id",
+          "alias": "Tasks In Progress",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -143,13 +131,13 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "member_id",
+          "pattern": "Value #B",
           "thresholds": [],
           "type": "number",
           "unit": "short"
         },
         {
-          "alias": "Executor Name",
+          "alias": "Tasks Completed",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -160,7 +148,7 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
-          "pattern": "name",
+          "pattern": "Value #C",
           "thresholds": [
             ""
           ],
@@ -168,61 +156,62 @@
           "unit": "short"
         },
         {
-          "alias": "State",
+          "alias": "Tasks Rejected",
           "align": "auto",
           "colorMode": null,
           "colors": [
-            "rgba(245, 54, 54, 0.9)",
+            "rgba(50, 172, 45, 0.97)",
             "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
+            "rgba(245, 54, 54, 0.9)"
           ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": [
-            {
-              "text": "JOINING",
-              "value": "1"
-            },
-            {
-              "text": "RUNNING",
-              "value": "2"
-            },
-            {
-              "text": "CLOSING GRACEFULLY",
-              "value": "3"
-            },
-            {
-              "text": "CLOSING",
-              "value": "4"
-            },
-            {
-              "text": "CLOSED",
-              "value": "5"
-            },
-            {
-              "text": "REJECTING TASKS",
-              "value": "6"
-            }
-          ]
+          "decimals": 0,
+          "pattern": "Value #D",
+          "thresholds": [
+            ""
+          ],
+          "type": "number",
+          "unit": "short"
         }
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_executor_state_code{cluster=~\"$ClusterName\",name=\"$ExecutorName\"}) by (machine, member, member_id, name)",
+          "expr": "count(vendor:coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}) by (name) ",
           "format": "table",
           "instant": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
+        },
+        {
+          "expr": "sum(vendor:coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(vendor:coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(vendor:coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "D"
         }
       ],
-      "title": "Executor Members",
+      "title": "Executors List",
       "transform": "table",
       "type": "table"
     },
@@ -233,7 +222,7 @@
       "dashes": false,
       "datasource": "prometheus",
       "decimals": 0,
-      "description": "Total tasks in progress for this executor",
+      "description": "Total tasks in progress across all executors",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -270,7 +259,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_executor_tasks_in_progress_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"})",
+          "expr": "sum(vendor:coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -282,7 +271,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Tasks In Progress",
+      "title": "Tasks In Progress (All Executors)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -327,7 +316,7 @@
       "dashes": false,
       "datasource": "prometheus",
       "decimals": 0,
-      "description": "Total completed and rejected tasks for this executor",
+      "description": "Total completed and rejected tasks across all executors",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -339,13 +328,11 @@
       "hiddenSeries": false,
       "id": 39,
       "legend": {
-        "alignAsTable": true,
         "avg": false,
         "current": true,
         "hideZero": true,
         "max": false,
         "min": false,
-        "rightSide": true,
         "show": false,
         "total": false,
         "values": true
@@ -353,7 +340,7 @@
       "lines": false,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "options": {
         "dataLinks": []
       },
@@ -367,7 +354,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_executor_tasks_completed_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"}) - sum(vendor:coherence_executor_tasks_completed_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -375,7 +362,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_executor_tasks_rejected_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"}) -sum(vendor:cohence_executor_tasks_rejected_count{cluster=~\"$ClusterName\",name=\"$ExecutorName\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"} offset $__interval)  ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -387,7 +374,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Completed/ Rejected Tasks",
+      "title": "Completed/ Rejected Tasks (All Executors)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -426,7 +413,7 @@
       }
     }
   ],
-  "refresh": "5s",
+  "refresh": "10s",
   "schemaVersion": 22,
   "style": "dark",
   "tags": [
@@ -471,7 +458,7 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=~\"$ClusterName\"}, version)",
+        "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -481,38 +468,11 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
-      },
-      {
-        "allValue": null,
-        "current": {
-        },
-        "datasource": "prometheus",
-        "definition": "label_values(vendor:coherence_executor_state_code{cluster=~\"$ClusterName\"}, name)",
-        "hide": 0,
-        "includeAll": false,
-        "index": -1,
-        "label": "Executor Name",
-        "multi": false,
-        "name": "ExecutorName",
-        "options": [
-          {
-          }
-        ],
-        "query": "label_values(vendor:coherence_executor_state_code{cluster=~\"$ClusterName\"}, name)",
-        "refresh": 0,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
       }
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -541,10 +501,10 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence Executor Detail",
-  "uid": "coh-executor-detail",
+  "title": "Coherence Executors Summary",
+  "uid": "coh-executors-summary",
   "variables": {
     "list": []
   },
-  "version": 3
+  "version": 4
 }
