@@ -15,18 +15,30 @@
       }
     ]
   },
+  "description": "",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 21,
-  "iteration": 1671153718315,
+  "id": 23,
+  "iteration": 1671159180869,
   "links": [
     {
       "icon": "dashboard",
       "includeVars": true,
       "keepTime": true,
       "tags": [],
+      "title": "Back to Topic  Details Dashboard",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/coh-topic-details/topic-details-dashboard"
+    },
+    {
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
       "title": "Back to Main Dashboard",
+      "tooltip": "",
       "type": "link",
       "url": "/d/coh-main/coherence-dashboard-main"
     },
@@ -55,10 +67,10 @@
         "x": 0,
         "y": 0
       },
-      "id": 93,
+      "id": 38,
       "links": [],
       "options": {
-        "content": "<center><h3>Topics Summary - $ClusterName</h3></center>",
+        "content": "<center><h3>Subscriber Details - $ServiceName / $TopicName / $Subscriber</h3></center>",
         "mode": "html"
       },
       "pluginVersion": "8.5.6",
@@ -69,12 +81,14 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -94,7 +108,7 @@
         "x": 0,
         "y": 2
       },
-      "id": 96,
+      "id": 63,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -118,13 +132,13 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": " count(count(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) by (channel))",
           "instant": true,
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Total Published Messages",
+      "title": "Channels",
       "type": "stat"
     },
     {
@@ -138,7 +152,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 0,
           "mappings": [],
           "noValue": "0",
           "thresholds": {
@@ -160,7 +173,7 @@
         "x": 4,
         "y": 2
       },
-      "id": 99,
+      "id": 50,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -184,13 +197,13 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(count(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"}) by (id))",
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"})",
           "instant": true,
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Total Active Subscribers",
+      "title": "Subscriber Receives",
       "type": "stat"
     },
     {
@@ -204,7 +217,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 0,
           "mappings": [],
           "noValue": "0",
           "thresholds": {
@@ -213,6 +225,10 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "dark-red",
+                "value": 1
               }
             ]
           },
@@ -226,7 +242,7 @@
         "x": 8,
         "y": 2
       },
-      "id": 102,
+      "id": 52,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -250,13 +266,13 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(count(\nvendor:coherence_paged_topic_subscriber_group_polled_count{cluster=\"${ClusterName:raw}\"}) by (name))",
+          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName\", id=\"$Subscriber\"})",
           "instant": true,
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Total Active Subscriber Groups",
+      "title": "Subscriber Errors",
       "type": "stat"
     },
     {
@@ -278,6 +294,10 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "dark-red",
+                "value": 1
               }
             ]
           },
@@ -291,7 +311,7 @@
         "x": 12,
         "y": 2
       },
-      "id": 97,
+      "id": 54,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -315,13 +335,13 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"})",
           "instant": true,
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Total Active Subscriber Receives",
+      "title": "Subscriber Errors",
       "type": "stat"
     },
     {
@@ -329,11 +349,11 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
-      "description": "",
+      "description": "Show channel details for subscriber $Subscriber",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "continuous-GrYlRd"
           },
           "mappings": [],
           "noValue": "0",
@@ -343,304 +363,10 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "dark-red",
-                "value": 1
               }
             ]
           },
           "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 16,
-        "y": 2
-      },
-      "id": 98,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.5.6",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\"})",
-          "instant": true,
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Total Active Subscriber Errors",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "dark-red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 20,
-        "y": 2
-      },
-      "id": 100,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.5.6",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\"})",
-          "instant": true,
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Total Active Subscriber Errors",
-      "type": "stat"
-    },
-    {
-      "columns": [],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
-      "description": "",
-      "fontSize": "100%",
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 7
-      },
-      "id": 45,
-      "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": true
-      },
-      "styles": [
-        {
-          "$$hashKey": "object:293",
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "$$hashKey": "object:294",
-          "alias": "Topic",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to topic details for ${__cell}",
-          "linkUrl": " /d/coh-topic-details?var-ClusterName=$ClusterName&var-ServiceName=${__cell_1}&var-TopicName=${__cell}",
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:295",
-          "alias": "Service",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "coherence_service",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:1459",
-          "alias": "Total Published Messages",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:299",
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} ) by (coherence_service, name)",
-          "format": "table",
-          "instant": true,
-          "interval": "0",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Topic List",
-      "transform": "table",
-      "type": "table-old"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
-      "description": "Shows a graph of topic publish rate for all topics",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 100,
-            "gradientMode": "hue",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
         },
         "overrides": []
       },
@@ -648,20 +374,23 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 7
       },
-      "id": 91,
+      "id": 62,
       "links": [],
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showUnfilled": true
       },
       "pluginVersion": "8.5.6",
       "targets": [
@@ -671,24 +400,40 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) by (channel)",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Publish Count",
+          "legendFormat": "{{channel}}",
           "refId": "A"
         }
       ],
-      "title": "Publishing Rate (All Topics)",
-      "type": "timeseries"
+      "title": "Subscriber Channel Receives",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "binary": {
+              "operator": "*",
+              "reducer": "sum"
+            },
+            "mode": "binary",
+            "reduce": {
+              "include": [],
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "type": "bargauge"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
-      "description": "Shows a graph of topic subscriber receive rates for all topics",
+      "description": "Shows a graph of topic subscriber receive rates for $TopicName",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -743,9 +488,9 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 7
       },
-      "id": 101,
+      "id": 59,
       "links": [],
       "options": {
         "legend": {
@@ -766,7 +511,7 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) - sum (vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -775,8 +520,231 @@
           "refId": "A"
         }
       ],
-      "title": "Subscriber Receive Rate (All Topics)",
+      "title": "Subscriber Receive Rate",
       "type": "timeseries"
+    },
+    {
+      "columns": [],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 55,
+      "links": [],
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 2,
+        "desc": true
+      },
+      "styles": [
+        {
+          "$$hashKey": "object:1961",
+          "alias": "Time",
+          "align": "auto",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "$$hashKey": "object:1968",
+          "alias": "Member",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down to member details for ${__cell}",
+          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
+          "mappingType": 1,
+          "pattern": "member",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:2779",
+          "alias": "Subscriber ID",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "id",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
+        },
+        {
+          "$$hashKey": "object:2908",
+          "alias": "Received",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:3005",
+          "alias": "Backlog",
+          "align": "auto",
+          "colorMode": "value",
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 1,
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [
+            "1",
+            "2"
+          ],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:3271",
+          "alias": "Errors",
+          "align": "auto",
+          "colorMode": "value",
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 1,
+          "mappingType": 1,
+          "pattern": "Value #C",
+          "thresholds": [
+            "1",
+            "2"
+          ],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:3433",
+          "alias": "Disconnections",
+          "align": "auto",
+          "colorMode": "value",
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 1,
+          "mappingType": 1,
+          "pattern": "Value #D",
+          "thresholds": [
+            "1",
+            "2"
+          ],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:7040",
+          "alias": "Subscriber Group",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "group",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member, group)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member, group)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_disconnections{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "D"
+        }
+      ],
+      "title": "Subscribers",
+      "transform": "table",
+      "transformations": [],
+      "type": "table-old"
     }
   ],
   "refresh": "10s",
@@ -811,7 +779,7 @@
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 1,
+        "sort": 0,
         "tagValuesQuery": "",
         "tagsQuery": "",
         "type": "query",
@@ -820,23 +788,23 @@
       {
         "current": {
           "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "text": "PartitionedTopic",
+          "value": "PartitionedTopic"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "P1809F7CD0C75ACF3"
         },
-        "definition": "",
-        "hide": 2,
+        "definition": "label_values(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
+        "hide": 0,
         "includeAll": false,
-        "label": "Coherence Version",
+        "label": "Service Name",
         "multi": false,
-        "name": "CoherenceVersion",
+        "name": "ServiceName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
-          "refId": "prometheus-CoherenceVersion-Variable-Query"
+          "query": "label_values(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -850,23 +818,23 @@
       {
         "current": {
           "selected": false,
-          "text": "All",
-          "value": "$__all"
+          "text": "sms-messages",
+          "value": "sms-messages"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "P1809F7CD0C75ACF3"
         },
-        "definition": "",
-        "hide": 2,
-        "includeAll": true,
-        "label": "Services",
+        "definition": "label_values(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Topic Name",
         "multi": false,
-        "name": "Services",
+        "name": "TopicName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
-          "refId": "prometheus-Services-Variable-Query"
+          "query": "label_values(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -880,41 +848,33 @@
       {
         "current": {
           "selected": false,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
+          "text": "35972833718",
+          "value": "35972833718"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "P1809F7CD0C75ACF3"
         },
-        "definition": "",
-        "hide": 2,
-        "includeAll": true,
-        "label": "Caches",
-        "multi": true,
-        "name": "Caches",
+        "definition": "label_values(vendor:coherence_paged_topic_subscriber_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, id)",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "Subscriber",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
-          "refId": "prometheus-Caches-Variable-Query"
+          "query": "label_values(vendor:coherence_paged_topic_subscriber_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, id)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -943,8 +903,8 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence Topics Summary Dashboard",
-  "uid": "coh-topics-summary",
-  "version": 5,
+  "title": "Coherence Subscriber Details Dashboard",
+  "uid": "coh-subscriber-details",
+  "version": 11,
   "weekStart": ""
 }
