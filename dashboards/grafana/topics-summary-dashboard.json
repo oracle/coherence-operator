@@ -19,7 +19,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 21,
-  "iteration": 1671153718315,
+  "iteration": 1671416690816,
   "links": [
     {
       "icon": "dashboard",
@@ -655,7 +655,7 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom"
         },
         "tooltip": {
@@ -750,7 +750,7 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom"
         },
         "tooltip": {
@@ -879,7 +879,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "All"
           ],
@@ -914,7 +914,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -945,6 +945,6 @@
   "timezone": "",
   "title": "Coherence Topics Summary Dashboard",
   "uid": "coh-topics-summary",
-  "version": 5,
+  "version": 2,
   "weekStart": ""
 }

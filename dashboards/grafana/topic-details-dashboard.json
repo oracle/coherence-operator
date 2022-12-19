@@ -20,7 +20,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 22,
-  "iteration": 1671155306126,
+  "iteration": 1671416710916,
   "links": [
     {
       "icon": "dashboard",
@@ -480,7 +480,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
-      "description": "Shows a graph of topic publish rate for $TopicName",
+      "description": "Shows a graph of topic publish rate for selected topic",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -542,7 +542,7 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom"
         },
         "tooltip": {
@@ -575,7 +575,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
-      "description": "Shows a graph of topic subscriber receive rates for $TopicName",
+      "description": "Shows a graph of topic subscriber receive rates for selected topic",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -637,7 +637,7 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom"
         },
         "tooltip": {
@@ -826,6 +826,9 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down for subscriber group details for ${__cell}",
+          "linkUrl": "   /d/coh-subscriber-group-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-SubscriberGroup=${__cell}",
           "mappingType": 1,
           "pattern": "group",
           "thresholds": [],
@@ -1487,6 +1490,6 @@
   "timezone": "",
   "title": "Coherence Topic Details Dashboard",
   "uid": "coh-topic-details",
-  "version": 11,
+  "version": 6,
   "weekStart": ""
 }
