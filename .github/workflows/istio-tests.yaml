@@ -134,5 +134,5 @@ jobs:
     - uses: actions/upload-artifact@v1
       if: failure()
       with:
-        name: test-output-${{ matrix.matrixName }}
+        name: test-output-${{ matrix.istioVersion }}
         path: build/_output/test-logs
