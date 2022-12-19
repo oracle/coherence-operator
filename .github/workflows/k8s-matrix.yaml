@@ -124,5 +124,5 @@ jobs:
     - uses: actions/upload-artifact@v1
       if: failure()
       with:
-        name: test-output
+        name: test-output-${{ matrix.matrixName }}
         path: build/_output/test-logs
