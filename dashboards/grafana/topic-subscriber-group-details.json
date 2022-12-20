@@ -19,8 +19,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 24,
-  "iteration": 1671416747836,
+  "id": 22,
+  "iteration": 1671437693821,
   "links": [
     {
       "icon": "dashboard",
@@ -110,7 +110,7 @@
       },
       "id": 63,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -163,7 +163,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -175,7 +175,7 @@
       },
       "id": 65,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -246,12 +246,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3867",
@@ -283,12 +283,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:4338",
@@ -477,7 +477,7 @@
       "fontSize": "100%",
       "gridPos": {
         "h": 12,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 20
       },
@@ -511,12 +511,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3094",
@@ -829,8 +829,8 @@
       {
         "current": {
           "selected": true,
-          "text": "All",
-          "value": "$__all"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "prometheus",
@@ -886,6 +886,6 @@
   "timezone": "",
   "title": "Coherence Subscriber Group Details Dashboard",
   "uid": "coh-subscriber-group-details",
-  "version": 19,
+  "version": 4,
   "weekStart": ""
 }

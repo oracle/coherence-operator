@@ -20,7 +20,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 23,
-  "iteration": 1671416723343,
+  "iteration": 1671497098909,
   "links": [
     {
       "icon": "dashboard",
@@ -110,7 +110,7 @@
       },
       "id": 63,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -163,7 +163,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -175,7 +175,7 @@
       },
       "id": 50,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -228,7 +228,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -240,7 +240,7 @@
       },
       "id": 65,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -297,7 +297,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -366,7 +366,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -435,7 +435,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -518,12 +518,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3094",
@@ -574,28 +574,11 @@
           "pattern": "Value #C",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:3889",
-          "alias": "5 Min Rate",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 4,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3918",
-          "alias": "15 Min rate",
+          "alias": "5 Min rate",
           "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -608,7 +591,57 @@
           "pattern": "Value #D",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
+        },
+        {
+          "$$hashKey": "object:1969",
+          "alias": "15 Min Rate",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 4,
+          "mappingType": 1,
+          "pattern": "Value #E",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
+        },
+        {
+          "$$hashKey": "object:2109",
+          "alias": "Owned",
+          "align": "auto",
+          "colorMode": "cell",
+          "colors": [
+            "#00000000",
+            "#00000000",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #F",
+          "thresholds": [
+            "0",
+            "1"
+          ],
+          "type": "string",
+          "unit": "short",
+          "valueMaps": [
+            {
+              "$$hashKey": "object:2132",
+              "text": "true",
+              "value": "1"
+            },
+            {
+              "$$hashKey": "object:2134",
+              "text": "false",
+              "value": "0"
+            }
+          ]
         }
       ],
       "targets": [
@@ -642,7 +675,7 @@
             "type": "prometheus",
             "uid": "P1809F7CD0C75ACF3"
           },
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\",rate=\"1-min\"}) by (channel)",
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\",rate=\"1min\"}) by (channel)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -655,7 +688,7 @@
             "type": "prometheus",
             "uid": "P1809F7CD0C75ACF3"
           },
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\",rate=\"5-min\"}) by (channel)",
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\", rate=\"5min\"}) by (channel)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -668,13 +701,26 @@
             "type": "prometheus",
             "uid": "P1809F7CD0C75ACF3"
           },
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\",rate=\"15   -min\"}) by (channel)",
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\", rate=\"15min\"}) by (channel)",
           "format": "table",
           "hide": false,
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_owned_code{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) by (channel)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "F"
         }
       ],
       "title": "Channel Receives",
@@ -904,8 +950,8 @@
       {
         "current": {
           "selected": false,
-          "text": "26526808090",
-          "value": "26526808090"
+          "text": "13201973222",
+          "value": "13201973222"
         },
         "datasource": {
           "type": "prometheus",
@@ -930,8 +976,8 @@
       {
         "current": {
           "selected": false,
-          "text": "6",
-          "value": "6"
+          "text": "3",
+          "value": "3"
         },
         "datasource": {
           "type": "prometheus",
@@ -987,6 +1033,6 @@
   "timezone": "",
   "title": "Coherence Subscriber Details Dashboard",
   "uid": "coh-subscriber-details",
-  "version": 14,
+  "version": 7,
   "weekStart": ""
 }

@@ -19,7 +19,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 21,
-  "iteration": 1671416690816,
+  "iteration": 1671437805818,
   "links": [
     {
       "icon": "dashboard",
@@ -75,6 +75,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -84,7 +85,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -96,7 +97,7 @@
       },
       "id": 96,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -162,7 +163,7 @@
       },
       "id": 99,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -228,7 +229,7 @@
       },
       "id": 102,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -281,7 +282,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -293,7 +294,7 @@
       },
       "id": 97,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -453,13 +454,13 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Total Active Subscriber Errors",
+      "title": "Total Active Subscriber Backlog",
       "type": "stat"
     },
     {
@@ -543,12 +544,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:299",

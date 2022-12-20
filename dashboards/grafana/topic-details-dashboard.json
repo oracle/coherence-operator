@@ -20,7 +20,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 22,
-  "iteration": 1671416710916,
+  "iteration": 1671497420749,
   "links": [
     {
       "icon": "dashboard",
@@ -97,7 +97,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -109,7 +109,7 @@
       },
       "id": 44,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -175,7 +175,7 @@
       },
       "id": 46,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -241,7 +241,7 @@
       },
       "id": 48,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -294,7 +294,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -306,7 +306,7 @@
       },
       "id": 50,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -363,7 +363,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -432,7 +432,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -532,7 +532,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 9,
         "w": 12,
         "x": 0,
         "y": 7
@@ -627,7 +627,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 9,
         "w": 12,
         "x": 12,
         "y": 7
@@ -676,7 +676,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 16
       },
       "id": 55,
       "links": [],
@@ -745,12 +745,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3005",
@@ -828,12 +828,41 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down for subscriber group details for ${__cell}",
-          "linkUrl": "   /d/coh-subscriber-group-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-SubscriberGroup=${__cell}",
+          "linkUrl": "/d/coh-subscriber-group-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-SubscriberGroup=${__cell}",
           "mappingType": 1,
           "pattern": "group",
           "thresholds": [],
           "type": "string",
           "unit": "short"
+        },
+        {
+          "$$hashKey": "object:4022",
+          "alias": "Type",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #E",
+          "thresholds": [],
+          "type": "string",
+          "unit": "short",
+          "valueMaps": [
+            {
+              "$$hashKey": "object:4045",
+              "text": "Durable",
+              "value": "1"
+            },
+            {
+              "$$hashKey": "object:4047",
+              "text": "Anonymous",
+              "value": "0"
+            }
+          ]
         }
       ],
       "targets": [
@@ -887,6 +916,19 @@
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_sub_type_code{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "E"
         }
       ],
       "title": "Subscribers",
@@ -905,7 +947,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 23
       },
       "id": 60,
       "links": [],
@@ -972,6 +1014,9 @@
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
+          "link": true,
+          "linkTooltip": "Drill down for subscriber group details for ${__cell}",
+          "linkUrl": "/d/coh-subscriber-group-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-SubscriberGroup=${__cell}",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
@@ -988,12 +1033,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:10920",
@@ -1145,7 +1190,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 30
       },
       "id": 27,
       "links": [],
@@ -1211,12 +1256,12 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:4506",
@@ -1490,6 +1535,6 @@
   "timezone": "",
   "title": "Coherence Topic Details Dashboard",
   "uid": "coh-topic-details",
-  "version": 6,
+  "version": 2,
   "weekStart": ""
 }
