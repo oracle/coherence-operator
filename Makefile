@@ -55,7 +55,7 @@ TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 CURRDIR := $(shell pwd)
 
 GH_TOKEN ?= 
-ifneq ($(origin GH_TOKEN), undefined)
+ifeq ("$(GH_TOKEN)", "")
   GH_AUTH := "Foo: Bar"
 else
   GH_AUTH := "Authorization: Bearer $(GH_TOKEN)"
