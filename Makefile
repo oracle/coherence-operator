@@ -56,9 +56,9 @@ CURRDIR := $(shell pwd)
 
 GH_TOKEN ?= 
 ifeq ("$(GH_TOKEN)", "")
-  GH_AUTH := "Foo: Bar"
+  GH_AUTH := 'Foo: Bar'
 else
-  GH_AUTH := "Authorization: token $(GH_TOKEN)"
+  GH_AUTH := 'authorization: Bearer $(GH_TOKEN)'
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
