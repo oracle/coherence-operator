@@ -529,7 +529,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "count(avg(vendor:coherence_service_partitions_unbalanced{type=~\"DistributedCache|FederatedCache\"}) by(name) > 0)",
+          "expr": "count(avg(vendor:coherence_service_partitions_unbalanced{type=~\"DistributedCache|FederatedCache|PagedTopic\"}) by(name) > 0)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

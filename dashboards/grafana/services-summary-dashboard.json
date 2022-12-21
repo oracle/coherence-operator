@@ -331,7 +331,7 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\",type!~\"DistributedCache|FederatedCache|ReplicatedCache\"}) by (name, type) ",
+          "expr": "count(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\",type!~\"DistributedCache|FederatedCache|ReplicatedCache|PagedTopic\"}) by (name, type) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -654,7 +654,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_endangered{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache\"}) by (name) > 0",
+          "expr": "avg(vendor:coherence_service_partitions_endangered{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache|PagedTopic\"}) by (name) > 0",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -752,7 +752,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_vulnerable{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache\"}) by (name) > 0",
+          "expr": "avg(vendor:coherence_service_partitions_vulnerable{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache|PagedTopic\"}) by (name) > 0",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -850,7 +850,7 @@
       ],
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache\"}) by (name) > 0",
+          "expr": "avg(vendor:coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache|PagedTopic\"}) by (name) > 0",
           "format": "table",
           "instant": true,
           "interval": "",
