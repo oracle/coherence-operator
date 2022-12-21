@@ -790,9 +790,6 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
         },
         "datasource": {
           "type": "prometheus",

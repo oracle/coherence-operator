@@ -19,8 +19,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 22,
-  "iteration": 1671437693821,
+  "id": 21,
+  "iteration": 1671582904548,
   "links": [
     {
       "icon": "dashboard",
@@ -602,6 +602,26 @@
           "thresholds": [],
           "type": "number",
           "unit": "short"
+        },
+        {
+          "$$hashKey": "object:2269",
+          "alias": "Owning Subscriber",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "link": true,
+          "linkTooltip": "Drill down for subscriber details for ${__cell}",
+          "linkUrl": "/d/coh-subscriber-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-Subscriber=${__cell}",
+          "mappingType": 1,
+          "pattern": "Value #F",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
         }
       ],
       "targets": [
@@ -668,6 +688,19 @@
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_paged_topic_subscriber_group_channels_owning_subscriber_id{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", name=\"$SubscriberGroup\",node_id=\"$NodeId\"}) by (channel)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "F"
         }
       ],
       "title": "Details for Node Id $NodeId",
@@ -711,9 +744,6 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
         },
         "datasource": {
           "type": "prometheus",
@@ -771,9 +801,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-messages",
-          "value": "sms-messages"
         },
         "datasource": {
           "type": "prometheus",
@@ -801,9 +828,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-processor",
-          "value": "sms-processor"
         },
         "datasource": {
           "type": "prometheus",
@@ -828,7 +852,7 @@
       },
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "1",
           "value": "1"
         },
@@ -886,6 +910,6 @@
   "timezone": "",
   "title": "Coherence Subscriber Group Details Dashboard",
   "uid": "coh-subscriber-group-details",
-  "version": 4,
+  "version": 2,
   "weekStart": ""
 }

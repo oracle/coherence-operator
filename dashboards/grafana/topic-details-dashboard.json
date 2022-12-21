@@ -19,8 +19,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 22,
-  "iteration": 1671497420749,
+  "id": 23,
+  "iteration": 1671581699168,
   "links": [
     {
       "icon": "dashboard",
@@ -712,7 +712,7 @@
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
-          "type": "number",
+          "type": "string",
           "unit": "short"
         },
         {
@@ -763,7 +763,7 @@
             "rgba(245, 54, 54, 0.9)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [
@@ -771,7 +771,7 @@
             "2"
           ],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3271",
@@ -784,7 +784,7 @@
             "rgba(245, 54, 54, 0.9)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #C",
           "thresholds": [
@@ -792,7 +792,7 @@
             "2"
           ],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3433",
@@ -805,7 +805,7 @@
             "rgba(245, 54, 54, 0.9)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #D",
           "thresholds": [
@@ -813,7 +813,7 @@
             "2"
           ],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:7040",
@@ -954,8 +954,8 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 1,
-        "desc": false
+        "col": 4,
+        "desc": true
       },
       "styles": [
         {
@@ -983,8 +983,8 @@
           "mappingType": 1,
           "pattern": "member",
           "thresholds": [],
-          "type": "number",
-          "unit": "short"
+          "type": "string",
+          "unit": "none"
         },
         {
           "$$hashKey": "object:4454",
@@ -1413,9 +1413,6 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
         },
         "datasource": {
           "type": "prometheus",
@@ -1473,9 +1470,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-messages",
-          "value": "sms-messages"
         },
         "datasource": {
           "type": "prometheus",

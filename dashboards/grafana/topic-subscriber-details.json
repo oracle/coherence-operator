@@ -859,9 +859,6 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
         },
         "datasource": {
           "type": "prometheus",
@@ -919,9 +916,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-messages",
-          "value": "sms-messages"
         },
         "datasource": {
           "type": "prometheus",
@@ -949,9 +943,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "13201973222",
-          "value": "13201973222"
         },
         "datasource": {
           "type": "prometheus",
