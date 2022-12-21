@@ -58,7 +58,7 @@ GH_TOKEN ?=
 ifeq ("$(GH_TOKEN)", "")
   GH_AUTH := "Foo: Bar"
 else
-  GH_AUTH := "Authorization: Bearer $(GH_TOKEN)"
+  GH_AUTH := "Authorization: token $(GH_TOKEN)"
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
