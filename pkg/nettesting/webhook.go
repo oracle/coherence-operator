@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package net_testing
+package nettesting
 
 import "context"
 

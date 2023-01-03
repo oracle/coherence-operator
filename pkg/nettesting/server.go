@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package net_testing
+package nettesting
 
 import (
 	"context"
@@ -81,7 +81,6 @@ type simpleServer struct {
 	name       string
 	port       int
 	listener   net.Listener
-	ctx        context.Context
 	running    chan struct{}
 	httpServer *http.Server
 }
@@ -89,7 +88,7 @@ type simpleServer struct {
 // _ is a simple variable to verify at compile time that simpleServer implements WebServer
 var _ WebServer = simpleServer{}
 
-func (in simpleServer) Start(ctx context.Context) error {
+func (in simpleServer) Start(_ context.Context) error {
 	mux := http.NewServeMux()
 	mux.Handle("/", handler{fn: in.requestHandler})
 
@@ -134,9 +133,8 @@ func (in simpleServer) Close() error {
 	return in.httpServer.Shutdown(ctx)
 }
 
-func (in simpleServer) requestHandler(w http.ResponseWriter, req *http.Request) {
+func (in simpleServer) requestHandler(_ http.ResponseWriter, _ *http.Request) {
 	log.Info("Received HTTP request", "Name", in.name)
-
 }
 
 // handler is a simple request handler

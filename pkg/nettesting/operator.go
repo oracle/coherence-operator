@@ -4,7 +4,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package net_testing
+package nettesting
 
 import (
 	"context"
@@ -29,17 +29,17 @@ func (o operatorSimulator) Run(ctx context.Context) error {
 	}
 
 	tests := make(map[string]portTester)
-	tests["K8s"] = k8sApiTester{}
+	tests["K8s"] = k8sAPITester{}
 	tests[TestPortHealth] = simplePortTester{name: TestPortHealth, host: o.host, port: ports[TestPortHealth], protocol: "tcp"}
 
 	runTests(ctx, tests)
 	return nil
 }
 
-type k8sApiTester struct {
+type k8sAPITester struct {
 }
 
-func (in k8sApiTester) testPort(ctx context.Context) {
+func (in k8sAPITester) testPort(ctx context.Context) {
 	log.Info("Testing connectivity", "PortName", "K8s API Server")
 
 	cfg, err := ctrl.GetConfig()

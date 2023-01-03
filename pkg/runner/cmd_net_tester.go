@@ -8,7 +8,7 @@ package runner
 
 import (
 	"context"
-	"github.com/oracle/coherence-operator/pkg/net_testing"
+	"github.com/oracle/coherence-operator/pkg/nettesting"
 	"github.com/spf13/cobra"
 )
 
@@ -83,7 +83,7 @@ func networkTestServerCommand() *cobra.Command {
 
 // netTestOperator runs a network test server
 func netTestServer(_ *cobra.Command) error {
-	test := net_testing.NewServerRunner()
+	test := nettesting.NewServerRunner()
 	if err := test.Run(context.Background()); err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func netTestOperator(cmd *cobra.Command) error {
 		return err
 	}
 
-	test := net_testing.NewOperatorSimulatorRunner(hostName)
+	test := nettesting.NewOperatorSimulatorRunner(hostName)
 	if err := test.Run(context.Background()); err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func netTestCluster(cmd *cobra.Command) error {
 		return err
 	}
 
-	test := net_testing.NewClusterMemberRunner(operatorHost, clusterHost)
+	test := nettesting.NewClusterMemberRunner(operatorHost, clusterHost)
 	if err := test.Run(context.Background()); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func netTestWebHook(cmd *cobra.Command) error {
 		return err
 	}
 
-	test := net_testing.NewWebHookClientRunner(operatorHost)
+	test := nettesting.NewWebHookClientRunner(operatorHost)
 	if err := test.Run(context.Background()); err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func netTestClient(cmd *cobra.Command) error {
 		return err
 	}
 
-	test := net_testing.NewSimpleClientRunner(host, port, protocol)
+	test := nettesting.NewSimpleClientRunner(host, port, protocol)
 	if err := test.Run(context.Background()); err != nil {
 		return err
 	}
