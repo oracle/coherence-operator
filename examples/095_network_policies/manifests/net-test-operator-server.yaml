@@ -17,6 +17,7 @@ spec:
       protocol: TCP
     - port: 443
       name: webhook-server
+      targetPort: webhook-server
       protocol: TCP
     - port: 9612
       name: metrics
@@ -54,12 +55,12 @@ metadata:
 spec:
   containers:
   - name: net-test
-    image: ghcr.io/oracle/coherence-operator:3.2.9
+    image: ghcr.io/oracle/coherence-operator:3.2.10
     ports:
     - containerPort: 8000
       name: operator
       protocol: TCP
-    - containerPort: 443
+    - containerPort: 9443
       name: webhook-server
       protocol: TCP
     - containerPort: 9612

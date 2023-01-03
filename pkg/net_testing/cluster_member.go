@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
 package net_testing
 
 import (
@@ -9,8 +15,8 @@ type clusterMemberSimulator struct {
 	clusterHost  string
 }
 
-// _ is a simple variable to verify at compile time that clusterMemberSimulator implements ClusterMemberSimulator
-var _ ClusterMemberSimulator = clusterMemberSimulator{}
+// _ is a simple variable to verify at compile time that clusterMemberSimulator implements ClientSimulator
+var _ ClientSimulator = clusterMemberSimulator{}
 
 // Run executes the Operator simulator test
 func (in clusterMemberSimulator) Run(ctx context.Context) error {

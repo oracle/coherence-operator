@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
 package net_testing
 
 import (
@@ -9,6 +15,7 @@ import (
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"strconv"
+	"time"
 )
 
 const (
@@ -42,15 +49,8 @@ type ServerRunner interface {
 	Run(ctx context.Context) error
 }
 
-// OperatorSimulator runs a test simulating the connectivity
-// required by the Coherence Operator.
-type OperatorSimulator interface {
-	Run(ctx context.Context) error
-}
-
-// ClusterMemberSimulator runs a test simulating the connectivity
-// required by the Coherence cluster member.
-type ClusterMemberSimulator interface {
+// ClientSimulator runs a test simulating connectivity to a port.
+type ClientSimulator interface {
 	Run(ctx context.Context) error
 }
 
@@ -62,13 +62,24 @@ func NewServerRunner() ServerRunner {
 }
 
 // NewOperatorSimulatorRunner create a new ServerRunner
-func NewOperatorSimulatorRunner(host string) OperatorSimulator {
+func NewOperatorSimulatorRunner(host string) ClientSimulator {
 	return operatorSimulator{host: host}
 }
 
 // NewClusterMemberRunner create a new ClusterMemberSimulator
-func NewClusterMemberRunner(operatorHost, clusterHost string) ClusterMemberSimulator {
+func NewClusterMemberRunner(operatorHost, clusterHost string) ClientSimulator {
 	return clusterMemberSimulator{operatorHost: operatorHost, clusterHost: clusterHost}
+}
+
+func NewWebHookClientRunner(operatorHost string) ClientSimulator {
+	return webHookClientSimulator{operatorHost: operatorHost}
+}
+
+func NewSimpleClientRunner(host string, port int, protocol string) ClientSimulator {
+	if protocol == "" {
+		protocol = "tcp"
+	}
+	return simpleClientSimulator{host: host, port: port, protocol: protocol}
 }
 
 type portTester interface {
@@ -82,16 +93,16 @@ type simplePortTester struct {
 	protocol string
 }
 
-func (in simplePortTester) testPort(ctx context.Context) {
+func (in simplePortTester) testPort(_ context.Context) {
 	var err error
 
-	log.Info("Testing connectivity", "PortName", in.name, "Port", in.port)
+	log.Info("Testing connectivity", "Host", in.host, "PortName", in.name, "Port", in.port)
 
-	con, err := net.Dial(in.protocol, fmt.Sprintf("%s:%d", in.host, in.port))
+	con, err := net.DialTimeout(in.protocol, fmt.Sprintf("%s:%d", in.host, in.port), time.Second*10)
 	if err != nil {
-		log.Info("Testing connectivity FAILED", "PortName", in.name, "Port", in.port, "Error", err.Error())
+		log.Info("Testing connectivity FAILED", "Host", in.host, "PortName", in.name, "Port", in.port, "Error", err.Error())
 	} else {
-		log.Info("Testing connectivity PASSED", "PortName", in.name, "Port", in.port)
+		log.Info("Testing connectivity PASSED", "Host", in.host, "PortName", in.name, "Port", in.port)
 		_ = con.Close()
 	}
 }
@@ -154,4 +165,25 @@ func findPort(portEnvVar string, defaultPort int) (int, error) {
 		}
 	}
 	return port, nil
+}
+
+type simpleClientSimulator struct {
+	host     string
+	port     int
+	protocol string
+}
+
+// _ is a simple variable to verify at compile time that simpleClientSimulator implements ClientSimulator
+var _ ClientSimulator = simpleClientSimulator{}
+
+// Run executes the simple client test
+func (in simpleClientSimulator) Run(ctx context.Context) error {
+	log.Info("Starting test", "Name", "Simple Client")
+
+	name := fmt.Sprintf("%s-%d", in.host, in.port)
+	tests := make(map[string]portTester)
+	tests[name] = simplePortTester{name: name, host: in.host, port: in.port, protocol: in.protocol}
+
+	runTests(ctx, tests)
+	return nil
 }

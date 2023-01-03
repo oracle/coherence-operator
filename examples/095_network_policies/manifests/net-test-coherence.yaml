@@ -7,7 +7,7 @@ metadata:
     coherenceComponent: coherencePod
     coherenceDeployment: net-test
     coherenceRole: net-test
-    coherenceNetTest: client
+    coherenceNetTest: coherence-client
 spec:
   template:
     metadata:
@@ -16,11 +16,11 @@ spec:
         coherenceComponent: coherencePod
         coherenceDeployment: net-test
         coherenceRole: net-test
-        coherenceNetTest: client
+        coherenceNetTest: coherence-client
     spec:
       containers:
       - name: net-test
-        image: ghcr.io/oracle/coherence-operator:3.2.9
+        image: ghcr.io/oracle/coherence-operator:3.2.10
         env:
           - name: CLUSTER_HOST
             value: net-test-coherence-server.coh-test.svc.cluster.local

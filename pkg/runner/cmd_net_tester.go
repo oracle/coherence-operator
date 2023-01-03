@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -25,11 +25,26 @@ const (
 	// CommandNetTestCluster is the argument to launch a network test Coherence cluster member simulation.
 	CommandNetTestCluster = "cluster"
 
+	// CommandNetTestHook is the argument to launch a network test that connects to the Operator web-hook port.
+	CommandNetTestHook = "hook"
+
+	// CommandNetTestClient is the argument to launch a simple network test client.
+	CommandNetTestClient = "client"
+
 	// ArgOperatorHostName is the argument to use to specify the Operator host name to connect to
 	ArgOperatorHostName = "operator-host"
 
 	// ArgClusterHostName is the argument to use to specify the Operator host name to connect to
 	ArgClusterHostName = "cluster-host"
+
+	// ArgHostName is the argument to use to specify the host name to connect to
+	ArgHostName = "host"
+
+	// ArgPort is the argument to use to specify the port to connect to
+	ArgPort = "port"
+
+	// ArgProtocol is the argument to use to specify the network protocol to use
+	ArgProtocol = "protocol"
 )
 
 // networkTestCommand creates the corba net-test sub-command
@@ -47,6 +62,8 @@ func networkTestCommand() *cobra.Command {
 	rootCmd.AddCommand(networkTestServerCommand())
 	rootCmd.AddCommand(networkTestOperatorCommand())
 	rootCmd.AddCommand(networkTestClusterCommand())
+	rootCmd.AddCommand(networkWebHookClientCommand())
+	rootCmd.AddCommand(networkSimpleClientCommand())
 
 	return rootCmd
 }
@@ -65,7 +82,7 @@ func networkTestServerCommand() *cobra.Command {
 }
 
 // netTestOperator runs a network test server
-func netTestServer(cmd *cobra.Command) error {
+func netTestServer(_ *cobra.Command) error {
 	test := net_testing.NewServerRunner()
 	if err := test.Run(context.Background()); err != nil {
 		return err
@@ -142,6 +159,88 @@ func netTestCluster(cmd *cobra.Command) error {
 	}
 
 	test := net_testing.NewClusterMemberRunner(operatorHost, clusterHost)
+	if err := test.Run(context.Background()); err != nil {
+		return err
+	}
+	return nil
+}
+
+// networkTestClusterCommand creates the network test Coherence cluster member simulator sub-command
+func networkWebHookClientCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   CommandNetTestHook,
+		Short: "Network test web-hook client",
+		Long:  "Run a network communication test web-hook client",
+		Args:  cobra.ArbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return netTestWebHook(cmd)
+		},
+	}
+
+	flagSet := cmd.Flags()
+	flagSet.String(ArgOperatorHostName, "127.0.0.1", "The host name of the Coherence Operator simulator")
+
+	return cmd
+}
+
+// netTestWebHook runs a web-hook connectivity test
+func netTestWebHook(cmd *cobra.Command) error {
+
+	flagSet := cmd.Flags()
+
+	operatorHost, err := flagSet.GetString(ArgOperatorHostName)
+	if err != nil {
+		return err
+	}
+
+	test := net_testing.NewWebHookClientRunner(operatorHost)
+	if err := test.Run(context.Background()); err != nil {
+		return err
+	}
+	return nil
+}
+
+// networkTestClusterCommand creates the network test Coherence cluster member simulator sub-command
+func networkSimpleClientCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   CommandNetTestClient,
+		Short: "Network test client",
+		Long:  "Run a network communication test client for a single host and port",
+		Args:  cobra.ArbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return netTestClient(cmd)
+		},
+	}
+
+	flagSet := cmd.Flags()
+	flagSet.String(ArgHostName, "127.0.0.1", "The host name of the server to connect to")
+	flagSet.Int(ArgPort, -1, "The port to connect to")
+	flagSet.String(ArgProtocol, "tcp", "The host name of the server to connect to")
+
+	return cmd
+}
+
+// netTestClient runs a connectivity test client
+func netTestClient(cmd *cobra.Command) error {
+
+	flagSet := cmd.Flags()
+
+	host, err := flagSet.GetString(ArgHostName)
+	if err != nil {
+		return err
+	}
+
+	port, err := flagSet.GetInt(ArgPort)
+	if err != nil {
+		return err
+	}
+
+	protocol, err := flagSet.GetString(ArgProtocol)
+	if err != nil {
+		return err
+	}
+
+	test := net_testing.NewSimpleClientRunner(host, port, protocol)
 	if err := test.Run(context.Background()); err != nil {
 		return err
 	}

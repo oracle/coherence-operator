@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
 package net_testing
 
 import (
@@ -10,8 +16,8 @@ type operatorSimulator struct {
 	host string
 }
 
-// _ is a simple variable to verify at compile time that operatorSimulator implements OperatorSimulator
-var _ OperatorSimulator = operatorSimulator{}
+// _ is a simple variable to verify at compile time that operatorSimulator implements ClientSimulator
+var _ ClientSimulator = operatorSimulator{}
 
 // Run executes the Operator simulator test
 func (o operatorSimulator) Run(ctx context.Context) error {
@@ -38,21 +44,21 @@ func (in k8sApiTester) testPort(ctx context.Context) {
 
 	cfg, err := ctrl.GetConfig()
 	if err != nil {
-		log.Info("Testing connectivity failed", "PortName", "K8s API Server", "Error", err.Error())
+		log.Info("Testing connectivity FAILED", "PortName", "K8s API Server", "Error", err.Error())
 		return
 	}
 
 	cs, err := clients.NewForConfig(cfg)
 	if err != nil {
-		log.Info("Testing connectivity failed", "PortName", "K8s API Server", "Error", err.Error())
+		log.Info("Testing connectivity FAILED", "PortName", "K8s API Server", "Error", err.Error())
 		return
 	}
 
 	version, err := cs.DiscoveryClient.ServerVersion()
 	if err != nil {
-		log.Info("Testing connectivity failed", "PortName", "K8s API Server", "Error", err.Error())
+		log.Info("Testing connectivity FAILED", "PortName", "K8s API Server", "Error", err.Error())
 		return
 	}
 
-	log.Info("Testing connectivity passed", "PortName", "K8s API Server", "Version", version)
+	log.Info("Testing connectivity PASSED", "PortName", "K8s API Server", "Version", version)
 }

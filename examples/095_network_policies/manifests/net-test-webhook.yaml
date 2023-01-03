@@ -1,29 +1,25 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: test-client
+  name: test-web-hook
   labels:
-    coherenceNetTest: client
+    coherenceNetTest: webhook-client
 spec:
   template:
     metadata:
       labels:
-        coherenceNetTest: client
+        coherenceNetTest: webhook-client
     spec:
       containers:
       - name: net-test
         image: ghcr.io/oracle/coherence-operator:3.2.10
         env:
-          - name: HOST
-            value: net-test-coherence-server.coh-test.svc.cluster.local
-          - name: PORT
-            value: "9612"
-          - name: PROTOCOL
-            value: tcp
+          - name: OPERATOR_HOST
+            value: net-test-operator-server.coherence.svc.cluster.local
         command:
           - /files/runner
         args:
           - net-test
-          - client
+          - hook
       restartPolicy: Never
   backoffLimit: 4
