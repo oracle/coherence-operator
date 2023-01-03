@@ -9,4 +9,4 @@ resources:
 images:
 - name: controller
   newName: ghcr.io/oracle/coherence-operator
-  newTag: 3.2.9
+  newTag: 3.2.10
