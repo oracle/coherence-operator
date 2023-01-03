@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: net-test-operator-server
+spec:
+  selector:
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/instance: coherence-operator-manager
+    app.kubernetes.io/version: "3.2.10"
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/part-of: coherence-operator
+    coherenceNetTest: server
+  clusterIP: None
+  ports:
+    - port: 8000
+      name: operator
+      protocol: TCP
+    - port: 443
+      name: webhook-server
+      protocol: TCP
+    - port: 9612
+      name: metrics
+      protocol: TCP
+    - port: 30000
+      name: management
+      protocol: TCP
+    - port: 6676
+      name: health
+      protocol: TCP
+    - port: 7574
+      name: clusterport
+      protocol: TCP
+    - port: 7575
+      name: unicast1
+      protocol: TCP
+    - port: 7576
+      name: unicast2
+      protocol: TCP
+    - port: 7
+      name: echo
+      protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: net-test-operator-server
+  labels:
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/instance: coherence-operator-manager
+    app.kubernetes.io/version: "3.2.10"
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/part-of: coherence-operator
+    coherenceNetTest: server
+spec:
+  containers:
+  - name: net-test
+    image: ghcr.io/oracle/coherence-operator:3.2.9
+    ports:
+    - containerPort: 8000
+      name: operator
+      protocol: TCP
+    - containerPort: 443
+      name: webhook-server
+      protocol: TCP
+    - containerPort: 9612
+      name: metrics
+      protocol: TCP
+    - containerPort: 30000
+      name: management
+      protocol: TCP
+    - containerPort: 6676
+      name: health
+      protocol: TCP
+    - containerPort: 7574
+      name: clusterport
+      protocol: TCP
+    - containerPort: 7575
+      name: unicast1
+      protocol: TCP
+    - containerPort: 7576
+      name: unicast2
+      protocol: TCP
+    - containerPort: 7
+      name: echo
+      protocol: TCP
+    command:
+      - /files/runner
+    args:
+      - net-test
+      - server

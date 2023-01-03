@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: operator-test
+  labels:
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/instance: coherence-operator-manager
+    app.kubernetes.io/version: "3.2.10"
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/part-of: coherence-operator
+    coherenceNetTest: client
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: coherence-operator
+        app.kubernetes.io/instance: coherence-operator-manager
+        app.kubernetes.io/version: "3.2.10"
+        app.kubernetes.io/component: manager
+        app.kubernetes.io/part-of: coherence-operator
+        coherenceNetTest: client
+    spec:
+      containers:
+      - name: net-test
+        image: ghcr.io/oracle/coherence-operator:3.2.9
+        env:
+          - name: CLUSTER_HOST
+            value: net-test-coherence-server.coh-test.svc.cluster.local
+        command:
+          - /files/runner
+        args:
+          - net-test
+          - operator
+      restartPolicy: Never
+  backoffLimit: 4
