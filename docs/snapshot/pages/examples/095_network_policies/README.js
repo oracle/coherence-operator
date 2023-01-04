@@ -229,7 +229,7 @@ spec:
   egress:
     - to:
         - ipBlock:
-            cidr: 172.18.0.5/32
+            cidr: 172.18.0.2/32
       ports:
         - port: 6443
           protocol: TCP</markup>
@@ -875,6 +875,422 @@ spec:
       ports:
         - port: metrics
           protocol: TCP</markup>
+
+</div>
+</div>
+
+<h3 id="_testing_network_policies">Testing Network Policies</h3>
+<div class="section">
+<p>At the time of writing this documentation, Kubernetes provides no way to verify the correctness of network policies.
+It is easy to mess up a policy, in which case policies will either block too much traffic, in which case your application
+will work, or worse they will not be blocking access and leave a security hole.</p>
+
+<p>As we have had various requests for help from customers who cannot get Coherence to work with network policies enabled,
+the Operator has a simple utility to test connectivity outside of Coherence. This will allow testing pf policies without
+the complications of having to start a Coherence server.</p>
+
+<p>This example includes some simple yaml files that will create simulator Pods that listen on all the ports used by the Operator
+and by a Coherence cluster member. These simulator Pods are configured with the same labels that the real Operator and
+Coherence Pods would have and the same labels used by the network policies in this example. Also included are some yaml files
+that start a test client, that simulates either the Operator connecting to Coherence Pods or a Coherence Pod connecting to
+the Operator and to other Coherence Pods.</p>
+
+<p>To run these tests, the Operator does not have to be installed.</p>
+
+
+<h4 id="_create_the_test_namespaces">Create the Test Namespaces</h4>
+<div class="section">
+<p>In this example we will assume the Operator will eventually be running in a namespace called <code>coherence</code> and the Coherence
+cluster will run in a namespace called <code>coh-test</code>. We can create the namespaces using <code>kubectl</code></p>
+
+<markup
+lang="bash"
+
+>kubectl create ns coherence</markup>
+
+<markup
+lang="bash"
+
+>kubectl create ns coh-test</markup>
+
+<p>At this point there are no network policies installed, this will allow us to confirm the connectivity tests work.</p>
+
+</div>
+
+<h4 id="_start_the_operator_simulator">Start the Operator Simulator</h4>
+<div class="section">
+<p>The Operator simulator server should run in the <code>coherence</code> namespace.
+It can be created using the following command:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence apply -f examples/095_network_policies/manifests/net-test-operator-server.yaml</markup>
+
+</div>
+
+<h4 id="_start_the_coherence_cluster_simulator">Start the Coherence Cluster Simulator</h4>
+<div class="section">
+<p>The Coherence cluster member simulator server should run in the <code>coh-test</code> namespace.
+It can be created using the following command:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coh-test apply -f examples/095_network_policies/manifests/net-test-coherence-server.yaml</markup>
+
+</div>
+
+<h4 id="_run_the_operator_test">Run the Operator Test</h4>
+<div class="section">
+<p>We can now run the Operator test Job. This wil run a Kubernetes Job that simulates the Operator connecting to the
+Kubernetes API server and to the Operator Pods.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence apply -f examples/095_network_policies/manifests/net-test-operator.yaml</markup>
+
+<p>The test Job should complete very quickly as it is only testing connectivity to various ports.
+The results of the test can be seen by looking at the Pod log. The command below will display the log:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence logs $(kubectl -n coherence get pod -l 'coherenceNetTest=operator-client' -o name)</markup>
+
+<p>The output from a successful test will look like this:</p>
+
+<markup
+
+
+>1.6727606592497227e+09	INFO	runner	Operator Version: 3.2.10
+1.6727606592497835e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
+1.6727606592500978e+09	INFO	runner	Operator Built By: jonathanknight
+1.6727606592501197e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
+1.6727606592501485e+09	INFO	runner	Go Version: go1.19.2
+1.6727606592501757e+09	INFO	runner	Go OS/Arch: linux/amd64
+1.6727606592504115e+09	INFO	net-test	Starting test	{"Name": "Operator Simulator"}
+1.6727606592504556e+09	INFO	net-test	Testing connectivity	{"PortName": "K8s API Server"}
+1.6727606592664087e+09	INFO	net-test	Testing connectivity PASSED	{"PortName": "K8s API Server", "Version": "v1.24.7"}
+1.6727606592674055e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}
+1.6727606592770455e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}</markup>
+
+<p>We can see that the test has connected to the Kubernetes API server and has connected to the health port on the
+Coherence cluster test server in the <code>coh-test</code> namespace.</p>
+
+<p>The test Job can then be deleted:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence delete -f examples/095_network_policies/manifests/net-test-operator.yaml</markup>
+
+</div>
+
+<h4 id="_run_the_cluster_member_test">Run the Cluster Member Test</h4>
+<div class="section">
+<p>The cluster member test simulates a Coherence cluster member connecting to other cluster members in the same namespace
+and also making calls to the Operator&#8217;s REST endpoint.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coh-test apply -f examples/095_network_policies/manifests/net-test-coherence.yaml</markup>
+
+<p>Again, the test should complete quickly as it is just connecting to various ports.
+The results of the test can be seen by looking at the Pod log. The command below will display the log:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coh-test logs $(kubectl -n coh-test get pod -l 'coherenceNetTest=coherence-client' -o name)</markup>
+
+<p>The output from a successful test will look like this:</p>
+
+<markup
+
+
+>1.6727631152848177e+09	INFO	runner	Operator Version: 3.2.10
+1.6727631152849226e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
+1.6727631152849536e+09	INFO	runner	Operator Built By: jonathanknight
+1.6727631152849755e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
+1.6727631152849965e+09	INFO	runner	Go Version: go1.19.2
+1.6727631152850187e+09	INFO	runner	Go OS/Arch: linux/amd64
+1.6727631152852216e+09	INFO	net-test	Starting test	{"Name": "Cluster Member Simulator"}
+1.6727631152852666e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort1", "Port": 7575}
+1.6727631152997334e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort1", "Port": 7575}
+1.6727631152998908e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort2", "Port": 7576}
+1.6727631153059115e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort2", "Port": 7576}
+1.6727631153063197e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Management", "Port": 30000}
+1.6727631153116117e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Management", "Port": 30000}
+1.6727631153119817e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Metrics", "Port": 9612}
+1.6727631153187876e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Metrics", "Port": 9612}
+1.6727631153189638e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "OperatorRest", "Port": 8000}
+1.6727631153265746e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "OperatorRest", "Port": 8000}
+1.6727631153267298e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Echo", "Port": 7}
+1.6727631153340726e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Echo", "Port": 7}
+1.6727631153342876e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "ClusterPort", "Port": 7574}
+1.6727631153406997e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "ClusterPort", "Port": 7574}</markup>
+
+<p>The test client successfully connected to the Coherence cluster port (7475), the two unicast ports (7575 and 7576),
+the Coherence management port (30000), the Coherence metrics port (9612), the Operator REST port (8000), and the echo port (7).</p>
+
+<p>The test Job can then be deleted:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coh-test delete -f examples/095_network_policies/manifests/net-test-coherence.yaml</markup>
+
+</div>
+
+<h4 id="_testing_the_operator_web_hook">Testing the Operator Web Hook</h4>
+<div class="section">
+<p>The Operator has a web-hook that k8s calls to validate Coherence resource configurations and to provide default values.
+Web hooks in Kubernetes use TLS by default and listen on port 443. The Operator server simulator also listens on port 443
+to allow this connectivity to be tested.</p>
+
+<p>The network policy in this example that allows ingress to the web-hook allows any client to connect.
+This is because it is not always simple to work out the IP address that the API server will connect to the web-hook from.</p>
+
+<p>We can use the network tester to simulate this by running a Job that will connect to the web hook port.
+The web-hook test job in this example does not label the Pod and can be run from the default namespace to simulate a random
+external connection.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n default apply -f examples/095_network_policies/manifests/net-test-webhook.yaml</markup>
+
+<p>We can then check the results of the Job by looking at the Pod log.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n default logs $(kubectl -n default get pod -l 'coherenceNetTest=webhook-client' -o name)</markup>
+
+<p>The output from a successful test will look like this:</p>
+
+<markup
+
+
+>1.6727639834559627e+09	INFO	runner	Operator Version: 3.2.10
+1.6727639834562948e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
+1.6727639834563956e+09	INFO	runner	Operator Built By: jonathanknight
+1.6727639834565024e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
+1.6727639834566057e+09	INFO	runner	Go Version: go1.19.2
+1.6727639834567096e+09	INFO	runner	Go OS/Arch: linux/amd64
+1.6727639834570327e+09	INFO	net-test	Starting test	{"Name": "Web-Hook Client"}
+1.6727639834571698e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "WebHook", "Port": 443}
+1.6727639834791095e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "WebHook", "Port": 443}</markup>
+
+<p>We can see that the client successfully connected to port 443.</p>
+
+<p>The test Job can then be deleted:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n default delete -f examples/095_network_policies/manifests/net-test-webhook.yaml</markup>
+
+</div>
+
+<h4 id="_testing_ad_hoc_ports">Testing Ad-Hoc Ports</h4>
+<div class="section">
+<p>The test client is able to test connectivity to any host and port. For example suppose we want to simulate a Prometheus Pod
+connecting to the metrics port of a Coherence cluster. The server simulator is listening on port 9612, so we need to run
+the client to connect to that port.</p>
+
+<p>We can create a Job yaml file to run the test client. As the test will simulate a Prometheus client we add the labels
+that a standard Prometheus Pod would have and that we also use in the network policies in this example.</p>
+
+<p>In the Job yaml, we need to set the <code>HOST</code>, <code>PORT</code> and optionally the <code>PROTOCOL</code> environment variables.
+In this test, the host is the DNS name for the Service created for the Coherence server simulator <code>net-test-coherence-server.coh-test.svc.cluster.local</code>, the port is the metrics port <code>9612</code> and the protocol is <code>tcp</code>.</p>
+
+<markup
+lang="yaml"
+title="manifests/net-test-client.yaml"
+>apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-client
+  labels:
+    app.kubernetes.io/name: prometheus
+    coherenceNetTest: client
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+        coherenceNetTest: client
+    spec:
+      containers:
+      - name: net-test
+        image: ghcr.io/oracle/coherence-operator:3.2.10
+        env:
+          - name: HOST
+            value: net-test-coherence-server.coh-test.svc.cluster.local
+          - name: PORT
+            value: "9612"
+          - name: PROTOCOL
+            value: tcp
+        command:
+          - /files/runner
+        args:
+          - net-test
+          - client
+      restartPolicy: Never
+  backoffLimit: 4</markup>
+
+<p>We need to run the test Job in the <code>monitoring</code> namespace, which is the same namespace that Prometheus is
+usually deployed into.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n monitoring apply -f examples/095_network_policies/manifests/net-test-client.yaml</markup>
+
+<p>We can then check the results of the Job by looking at the Pod log.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n monitoring logs $(kubectl -n monitoring get pod -l 'coherenceNetTest=client' -o name)</markup>
+
+<p>The output from a successful test will look like this:</p>
+
+<markup
+
+
+>1.6727665901488597e+09	INFO	runner	Operator Version: 3.2.10
+1.6727665901497366e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
+1.6727665901498337e+09	INFO	runner	Operator Built By: jonathanknight
+1.6727665901498716e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
+1.6727665901498966e+09	INFO	runner	Go Version: go1.19.2
+1.6727665901499205e+09	INFO	runner	Go OS/Arch: linux/amd64
+1.6727665901501486e+09	INFO	net-test	Starting test	{"Name": "Simple Client"}
+1.6727665901501985e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "net-test-coherence-server.coh-test.svc.cluster.local-9612", "Port": 9612}
+1.6727665901573336e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "net-test-coherence-server.coh-test.svc.cluster.local-9612", "Port": 9612}</markup>
+
+<p>We can see that the test client successfully connected to the Coherence cluster member simulator on port 9612.</p>
+
+<p>The test Job can then be deleted:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n monitoring delete -f examples/095_network_policies/manifests/net-test-client.yaml</markup>
+
+</div>
+
+<h4 id="_test_with_network_policies">Test with Network Policies</h4>
+<div class="section">
+<p>All the above tests ran successfully without any network policies. We can now start to apply policies and re-run the
+tests to see what happens.</p>
+
+<p>In a secure environment we would start with a policy that blocks all access and then gradually open up required ports.
+We can apply the <code>deny-all.yaml</code> policy and then re-run the tests. We should apply the policy to both of the namespaces we are using in this example:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence apply -f examples/095_network_policies/manifests/deny-all.yaml
+kubectl -n coh-test apply -f examples/095_network_policies/manifests/deny-all.yaml</markup>
+
+<p>Now, re-run the Operator test client:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence apply -f examples/095_network_policies/manifests/net-test-operator.yaml</markup>
+
+<p>and check the result:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence logs $(kubectl -n coherence get pod -l 'coherenceNetTest=operator-client' -o name)</markup>
+
+<markup
+
+
+>1.6727671834237397e+09	INFO	runner	Operator Version: 3.2.10
+1.6727671834238796e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
+1.6727671834239576e+09	INFO	runner	Operator Built By: jonathanknight
+1.6727671834240365e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
+1.6727671834240875e+09	INFO	runner	Go Version: go1.19.2
+1.6727671834241736e+09	INFO	runner	Go OS/Arch: linux/amd64
+1.6727671834244306e+09	INFO	net-test	Starting test	{"Name": "Operator Simulator"}
+1.6727671834245417e+09	INFO	net-test	Testing connectivity	{"PortName": "K8s API Server"}
+1.6727672134268515e+09	INFO	net-test	Testing connectivity FAILED	{"PortName": "K8s API Server", "Error": "Get \"https://10.96.0.1:443/version?timeout=32s\": dial tcp 10.96.0.1:443: i/o timeout"}
+1.6727672134269848e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}
+1.6727672234281697e+09	INFO	net-test	Testing connectivity FAILED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676, "Error": "dial tcp: lookup net-test-coherence-server.coh-test.svc.cluster.local: i/o timeout"}</markup>
+
+<p>We can see that the test client failed to connect to the Kubernetes API server and failed to connect
+to the Coherence cluster health port. This means the deny-all policy is working.</p>
+
+<p>We can now apply the various polices to fix the test</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-dns.yaml
+kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-k8s-api-server.yaml
+kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-operator-cluster-member-egress.yaml
+kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-operator-rest-ingress.yaml
+kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-webhook-ingress-from-all.yaml
+
+kubectl -n coh-test apply -f examples/095_network_policies/manifests/allow-dns.yaml
+kubectl -n coh-test apply -f examples/095_network_policies/manifests/allow-cluster-member-access.yaml
+kubectl -n coh-test apply -f examples/095_network_policies/manifests/allow-cluster-member-operator-access.yaml
+kubectl -n coh-test apply -f examples/095_network_policies/manifests/allow-metrics-ingress.yaml</markup>
+
+<p>Now, delete and re-run the Operator test client:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence delete -f examples/095_network_policies/manifests/net-test-operator.yaml
+kubectl -n coherence apply -f examples/095_network_policies/manifests/net-test-operator.yaml</markup>
+
+<p>and check the result:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence logs $(kubectl -n coherence get pod -l 'coherenceNetTest=operator-client' -o name)</markup>
+
+<p>Now with the policies applied the test should have passed.</p>
+
+<markup
+
+
+>1.6727691273634596e+09	INFO	runner	Operator Version: 3.2.10
+1.6727691273635025e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
+1.6727691273635256e+09	INFO	runner	Operator Built By: jonathanknight
+1.6727691273635616e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
+1.6727691273637156e+09	INFO	runner	Go Version: go1.19.2
+1.6727691273637407e+09	INFO	runner	Go OS/Arch: linux/amd64
+1.6727691273639407e+09	INFO	net-test	Starting test	{"Name": "Operator Simulator"}
+1.6727691273639877e+09	INFO	net-test	Testing connectivity	{"PortName": "K8s API Server"}
+1.6727691273857167e+09	INFO	net-test	Testing connectivity PASSED	{"PortName": "K8s API Server", "Version": "v1.24.7"}
+1.6727691273858056e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}
+1.6727691273933685e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}</markup>
+
+<p>The other tests can also be re-run and should also pass.</p>
+
+</div>
+
+<h4 id="_clean_up">Clean-Up</h4>
+<div class="section">
+<p>Once the tests are completed, the test servers and Jobs can be deleted.</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence delete -f examples/095_network_policies/manifests/net-test-operator-server.yaml
+kubectl -n coh-test delete -f examples/095_network_policies/manifests/net-test-coherence-server.yaml</markup>
 
 </div>
 </div>
