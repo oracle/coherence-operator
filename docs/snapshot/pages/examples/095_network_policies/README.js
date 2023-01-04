@@ -73,6 +73,10 @@ This is the most secure use of network policies, and hence the examples can easi
 </li>
 </ul>
 </li>
+<li>
+<p><router-link to="#testing" @click.native="this.scrollFix('#testing')">Testing Connectivity</router-link> - using the Operator&#8217;s network connectivity test utility to test policies</p>
+
+</li>
 </ul>
 
 <h4 id="deny">Deny All Policy</h4>
@@ -879,7 +883,7 @@ spec:
 </div>
 </div>
 
-<h3 id="_testing_network_policies">Testing Network Policies</h3>
+<h3 id="testing">Testing Network Policies</h3>
 <div class="section">
 <p>At the time of writing this documentation, Kubernetes provides no way to verify the correctness of network policies.
 It is easy to mess up a policy, in which case policies will either block too much traffic, in which case your application
