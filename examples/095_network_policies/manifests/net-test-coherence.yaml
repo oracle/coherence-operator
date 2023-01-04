@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: coherence-test
+  labels:
+    coherenceCluster: net-test
+    coherenceComponent: coherencePod
+    coherenceDeployment: net-test
+    coherenceRole: net-test
+    coherenceNetTest: coherence-client
+spec:
+  template:
+    metadata:
+      labels:
+        coherenceCluster: net-test
+        coherenceComponent: coherencePod
+        coherenceDeployment: net-test
+        coherenceRole: net-test
+        coherenceNetTest: coherence-client
+    spec:
+      containers:
+      - name: net-test
+        image: ghcr.io/oracle/coherence-operator:3.2.10
+        env:
+          - name: CLUSTER_HOST
+            value: net-test-coherence-server.coh-test.svc.cluster.local
+          - name: OPERATOR_HOST
+            value: net-test-operator-server.coherence.svc.cluster.local
+        command:
+          - /files/runner
+        args:
+          - net-test
+          - cluster
+      restartPolicy: Never
+  backoffLimit: 4

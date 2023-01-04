@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-client
+  labels:
+    app.kubernetes.io/name: prometheus
+    coherenceNetTest: client
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+        coherenceNetTest: client
+    spec:
+      containers:
+      - name: net-test
+        image: ghcr.io/oracle/coherence-operator:3.2.10
+        env:
+          - name: HOST
+            value: net-test-coherence-server.coh-test.svc.cluster.local
+          - name: PORT
+            value: "9612"
+          - name: PROTOCOL
+            value: tcp
+        command:
+          - /files/runner
+        args:
+          - net-test
+          - client
+      restartPolicy: Never
+  backoffLimit: 4
