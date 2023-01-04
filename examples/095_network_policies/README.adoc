@@ -43,6 +43,7 @@ This example has the following sections:
 ** <<cluster-to-operator,Coherence Operator>> - allow Coherence cluster Pods to communicate with the Operator
 ** <<client,Clients>> - allows access by Extend and gRPC clients
 ** <<metrics,Metrics>> - allow Coherence cluster member metrics to be scraped
+* <<testing,Testing Connectivity>> - using the Operator's network connectivity test utility to test policies
 
 
 [#deny]
@@ -509,6 +510,7 @@ The policy below will allow Pods with the label `app.kubernetes.io/name: prometh
 include::manifests/allow-metrics-egress.yaml[]
 ----
 
+[#testing]
 === Testing Network Policies
 
 At the time of writing this documentation, Kubernetes provides no way to verify the correctness of network policies.
