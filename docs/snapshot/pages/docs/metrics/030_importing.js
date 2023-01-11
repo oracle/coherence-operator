@@ -64,7 +64,8 @@ done</pre>
 <h3 id="_manually_import_grafana_dashboards">Manually Import Grafana Dashboards</h3>
 <div class="section">
 <p>The dashboard <code>.json</code> files can be manually imported into Grafana using the Grafana UI following the instructions
-in the <a id="" title="" target="_blank" href="https://grafana.com/docs/grafana/latest/dashboards/export-import/#import-dashboard">Grafana Import Dashboard</a>
+in the
+<a id="" title="" target="_blank" href="https://grafana.com/docs/grafana/latest/dashboards/manage-dashboards/#import-a-dashboard">Grafana Import Dashboard</a>
 documentation.</p>
 
 </div>
