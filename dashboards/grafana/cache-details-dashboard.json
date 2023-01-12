@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 25,
-  "iteration": 1564038858271,
+  "id": 11,
+  "iteration": 1673412796860,
   "links": [
     {
       "icon": "dashboard",
@@ -51,9 +51,13 @@
       "type": "dashboards"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "content": "<center><h3>Cache Details - $ServiceName / $CacheName</h3></center>",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -62,27 +66,51 @@
       },
       "id": 38,
       "links": [],
-      "mode": "html",
-      "title": "",
+      "options": {
+        "content": "<center><h3>Cache Details - $ServiceName / $CacheName</h3></center>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.13",
       "type": "text"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "description": "The size of number of entries in the cache.",
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -91,40 +119,23 @@
         "y": 2
       },
       "id": 31,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "8.5.13",
       "targets": [
         {
           "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
@@ -134,36 +145,47 @@
           "refId": "A"
         }
       ],
-      "thresholds": "",
       "title": "Cache Size",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "description": "Indicates memory utilized by the cache entries. \nNote: If the unit-calculator is not BINARY or the service is not a DistributedCache service, then the details may be incorrect.",
-      "format": "decbytes",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -172,40 +194,23 @@
         "y": 2
       },
       "id": 29,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "8.5.13",
       "targets": [
         {
           "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"}) ",
@@ -215,35 +220,46 @@
           "refId": "A"
         }
       ],
-      "thresholds": "",
       "title": "Cache Memory",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "format": "decbytes",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -252,40 +268,23 @@
         "y": 2
       },
       "id": 30,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "8.5.13",
       "targets": [
         {
           "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
@@ -295,35 +294,50 @@
           "refId": "A"
         }
       ],
-      "thresholds": "",
       "title": "Index Memory",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "rgba(237, 129, 40, 0.89)",
+                "value": 1
+              },
+              {
+                "color": "#d44a3a",
+                "value": 1000
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -332,40 +346,23 @@
         "y": 2
       },
       "id": 32,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "8.5.13",
       "targets": [
         {
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
@@ -375,35 +372,50 @@
           "refId": "A"
         }
       ],
-      "thresholds": "1,1000",
       "title": "Total Non-Optimized Queries",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "format": "ms",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "rgba(237, 129, 40, 0.89)",
+                "value": 1
+              },
+              {
+                "color": "#d44a3a",
+                "value": 1000
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -412,40 +424,23 @@
         "y": 2
       },
       "id": 34,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "8.5.13",
       "targets": [
         {
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_total_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
@@ -455,36 +450,50 @@
           "refId": "A"
         }
       ],
-      "thresholds": "1,1000",
       "title": "Total Non-Optimized Query Time",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "decimals": null,
-      "format": "ms",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "rgba(237, 129, 40, 0.89)",
+                "value": 500
+              },
+              {
+                "color": "#d44a3a",
+                "value": 1000
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -493,40 +502,23 @@
         "y": 2
       },
       "id": 35,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "8.5.13",
       "targets": [
         {
           "expr": "max(vendor:coherence_storage_manager_max_query_duration_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
@@ -536,31 +528,27 @@
           "refId": "A"
         }
       ],
-      "thresholds": "500,1000",
       "title": "Max Query Duration",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 24,
         "x": 0,
         "y": 7
       },
+      "hiddenSeries": false,
       "id": 41,
       "legend": {
         "avg": false,
@@ -576,6 +564,7 @@
       "links": [],
       "nullPointMode": "null",
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -601,9 +590,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Cache And Index Memory for $CacheName",
       "tooltip": {
         "shared": true,
@@ -612,33 +599,25 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "decbytes",
-          "label": null,
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -648,11 +627,17 @@
       "dashes": false,
       "datasource": "prometheus",
       "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
-        "w": 24,
+        "h": 8,
+        "w": 12,
         "x": 0,
         "y": 16
       },
@@ -663,7 +648,7 @@
         "current": false,
         "max": false,
         "min": false,
-        "show": true,
+        "show": false,
         "total": false,
         "values": false
       },
@@ -672,9 +657,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -693,9 +679,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Cache Evictions for $CacheName",
       "tooltip": {
         "shared": true,
@@ -704,34 +688,133 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
+          "$$hashKey": "object:14842",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
+          "$$hashKey": "object:14843",
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
+    },
+    {
+      "datasource": "prometheus",
+      "description": "Shows the total listener count across all members for this cache",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 43,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.13",
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_storage_manager_listener_key_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"})",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Key Listeners",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_storage_manager_listener_filter_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"})",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Filter Listeners",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Current Listeners for $CacheName",
+      "type": "timeseries"
     },
     {
       "columns": [],
@@ -741,11 +824,10 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 24
       },
       "id": 27,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -755,13 +837,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Size",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -777,14 +860,13 @@
         },
         {
           "alias": "Total Gets",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [],
@@ -793,14 +875,13 @@
         },
         {
           "alias": "Total Puts",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #C",
           "thresholds": [],
@@ -809,7 +890,7 @@
         },
         {
           "alias": "Cache Hits",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -825,14 +906,13 @@
         },
         {
           "alias": "Cache Misses",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #E",
           "thresholds": [],
@@ -841,6 +921,7 @@
         },
         {
           "alias": "Hit Probability",
+          "align": "auto",
           "colorMode": "cell",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -860,7 +941,7 @@
         },
         {
           "alias": "Member",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -879,7 +960,7 @@
         },
         {
           "alias": "Prunes",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -895,7 +976,7 @@
         },
         {
           "alias": "Cache Memory",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -911,7 +992,7 @@
         },
         {
           "alias": "",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -991,20 +1072,20 @@
       ],
       "title": "Back Cache and Access Counts for Cache $CacheName",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 31
       },
       "id": 36,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -1013,21 +1094,23 @@
       },
       "styles": [
         {
+          "$$hashKey": "object:3475",
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
+          "$$hashKey": "object:3476",
           "alias": "Total Gets Millis",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [],
@@ -1035,15 +1118,15 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:3477",
           "alias": "Total Puts Millis",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #C",
           "thresholds": [],
@@ -1051,8 +1134,9 @@
           "unit": "none"
         },
         {
+          "$$hashKey": "object:3478",
           "alias": "Cache Hits Millis",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1067,15 +1151,15 @@
           "unit": "ns"
         },
         {
+          "$$hashKey": "object:3479",
           "alias": "Cache Misses Millis",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #E",
           "thresholds": [],
@@ -1083,8 +1167,9 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:3480",
           "alias": "Member",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1102,8 +1187,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:3481",
           "alias": "Prunes Millis",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1118,7 +1204,9 @@
           "unit": "ns"
         },
         {
+          "$$hashKey": "object:3482",
           "alias": "Max Query Duration",
+          "align": "auto",
           "colorMode": "cell",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -1137,9 +1225,9 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:3483",
           "alias": "Store Writes",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1205,37 +1293,39 @@
       ],
       "title": "Back Cache and Access Times for Cache $CacheName",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 38
       },
       "id": 33,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 1,
-        "desc": false
+        "col": 12,
+        "desc": true
       },
       "styles": [
         {
+          "$$hashKey": "object:8081",
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
-          "alias": "Listener Registrations",
+          "$$hashKey": "object:8082",
+          "alias": "Key Listeners",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1250,8 +1340,9 @@
           "unit": "none"
         },
         {
+          "$$hashKey": "object:8083",
           "alias": "Member",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1266,26 +1357,29 @@
           "pattern": "member",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
+          "$$hashKey": "object:8084",
           "alias": "Evictions",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 16,
+          "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
+          "$$hashKey": "object:8085",
           "alias": "Non Optimized Queries",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -1301,11 +1395,12 @@
             "100"
           ],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
+          "$$hashKey": "object:8086",
           "alias": "Optimized Queries",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1320,15 +1415,15 @@
           "unit": "none"
         },
         {
+          "$$hashKey": "object:8087",
           "alias": "Index Size",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #E",
           "thresholds": [],
@@ -1336,7 +1431,9 @@
           "unit": "decbytes"
         },
         {
+          "$$hashKey": "object:8088",
           "alias": "Non Optimzed Query Time",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -1355,7 +1452,9 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:8089",
           "alias": "Max Query Duration",
+          "align": "auto",
           "colorMode": "value",
           "colors": [
             "rgba(50, 172, 45, 0.97)",
@@ -1374,8 +1473,9 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:8090",
           "alias": "",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1390,8 +1490,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:8091",
           "alias": "Eviction Count",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1404,8 +1505,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:8092",
           "alias": "Locks Pending",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1420,8 +1522,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:8093",
           "alias": "Locks Granted",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1436,9 +1539,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:8094",
           "alias": "Store Writes",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1453,9 +1556,9 @@
           "unit": "none"
         },
         {
+          "$$hashKey": "object:8095",
           "alias": "Store Reads",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1468,11 +1571,32 @@
           "thresholds": [],
           "type": "number",
           "unit": "none"
+        },
+        {
+          "$$hashKey": "object:11034",
+          "alias": "Filter Listeners",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #M",
+          "thresholds": [],
+          "type": "number",
+          "unit": "none"
         }
       ],
       "targets": [
         {
-          "expr": "sum(vendor:coherence_storage_listener_registrations{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_storage_manager_listener_key_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1480,7 +1604,24 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_storage_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_storage_manager_listener_filter_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "M"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1489,7 +1630,11 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_storage_non_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1497,7 +1642,11 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor:coherence_storage_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_storage_manager_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1505,7 +1654,11 @@
           "refId": "D"
         },
         {
-          "expr": "sum(vendor:coherence_storage_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1514,6 +1667,10 @@
           "refId": "E"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_total_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1522,6 +1679,10 @@
           "refId": "F"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_storage_manager_max_query_duration_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1530,6 +1691,10 @@
           "refId": "G"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1538,6 +1703,10 @@
           "refId": "H"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_storage_manager_locks_pending{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1546,6 +1715,10 @@
           "refId": "I"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_storage_manager_locks_granted{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1554,6 +1727,10 @@
           "refId": "J"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1563,6 +1740,10 @@
           "refId": "K"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1574,20 +1755,23 @@
       ],
       "title": "Cache Storage Details for Cache $CacheName",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 46
       },
       "id": 39,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -1597,13 +1781,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Size",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1620,14 +1805,12 @@
         {
           "alias": "Total Gets",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #B",
           "thresholds": [],
@@ -1636,14 +1819,13 @@
         },
         {
           "alias": "Total Puts",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #C",
           "thresholds": [],
@@ -1652,7 +1834,7 @@
         },
         {
           "alias": "Cache Hits",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1668,14 +1850,13 @@
         },
         {
           "alias": "Cache Misses",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value #E",
           "thresholds": [],
@@ -1684,6 +1865,7 @@
         },
         {
           "alias": "Hit Probability",
+          "align": "auto",
           "colorMode": "cell",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1703,7 +1885,7 @@
         },
         {
           "alias": "Member",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1722,7 +1904,7 @@
         },
         {
           "alias": "Prunes",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1739,7 +1921,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1803,7 +1984,7 @@
       ],
       "title": "Front Cache and Access Counts for Cache $CacheName",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     }
   ],
   "refresh": "30s",
@@ -1815,7 +1996,6 @@
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
         },
         "datasource": "prometheus",
@@ -1826,19 +2006,20 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size, cluster)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "refId": "prometheus-ClusterName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
         },
         "datasource": "prometheus",
@@ -1849,19 +2030,20 @@
         "multi": false,
         "name": "ServiceName",
         "options": [],
-        "query": "label_values(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, name)",
+        "query": {
+          "query": "label_values(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, name)",
+          "refId": "prometheus-ServiceName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
         },
         "datasource": "prometheus",
@@ -1872,13 +2054,15 @@
         "multi": false,
         "name": "CacheName",
         "options": [],
-        "query": "label_values(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+        "query": {
+          "query": "label_values(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+          "refId": "prometheus-CacheName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1917,5 +2101,6 @@
   "timezone": "",
   "title": "Coherence Cache Details Dashboard",
   "uid": "coh-cache-details",
-  "version": 1
+  "version": 1,
+  "weekStart": ""
 }
