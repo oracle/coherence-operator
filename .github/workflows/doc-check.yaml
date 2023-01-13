@@ -1,0 +1,87 @@
+# Copyright 2023, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence Operator GitHub Actions Documentation Link Checker.
+# ---------------------------------------------------------------------------
+name: Doc Link Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches-ignore:
+    - gh-pages
+    - 1.0.0
+    - 2.x
+    - 3.x
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '11'
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19.x
+
+    - name: Cache Go Modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-mods-
+
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Cache Tools
+      uses: actions/cache@v3
+      with:
+        path: build/tools
+        key: ${{ runner.os }}-build-tools-${{ hashFiles('**/Makefile') }}
+        restore-keys: ${{ runner.os }}-build-tools
+
+    - name: Edit DNS Resolve
+      shell: bash
+      run: |
+        sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
+        sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
+
+    - name: Start KinD Cluster
+      shell: bash
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+        make kind
+        kubectl version
+        kubectl get nodes
+        docker pull gcr.io/distroless/java
+        docker pull gcr.io/distroless/java11-debian11
+        docker pull gcr.io/distroless/java17-debian11
+
+    - name: Image Scan
+      shell: bash
+      run: |
+        make build-operator
+        make test-docs
