@@ -25,7 +25,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 
 	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
@@ -90,7 +90,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 
 	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{

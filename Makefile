@@ -19,7 +19,7 @@ VERSION ?= 3.2.10
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.8
+PREV_VERSION ?= 3.2.9
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
@@ -165,8 +165,10 @@ GO_TEST_FLAGS     ?= -timeout=20m -run=^$(RUN_ONE)$$
 GO_TEST_FLAGS_E2E ?= -timeout=100m -run=^$(RUN_ONE)$$
 endif
 
-# default as in test/e2e/helper/proj_helpers.go
+# default test namespace, as in test/e2e/helper/proj_helpers.go
 OPERATOR_NAMESPACE ?= operator-test
+# default test cluster namespace, as in test/e2e/helper/proj_helpers.go
+CLUSTER_NAMESPACE ?= coherence-test
 # the test client namespace
 OPERATOR_NAMESPACE_CLIENT ?= operator-test-client
 # the optional namespaces the operator should watch
@@ -247,6 +249,7 @@ override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
 override SCRIPTS_DIR         := $(CURRDIR)/hack
+override EXAMPLES_DIR        := $(CURRDIR)/examples
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 override TANZU_DIR           := $(BUILD_OUTPUT)/tanzu
 override TANZU_PACKAGE_DIR   := $(BUILD_OUTPUT)/tanzu/package
@@ -1092,6 +1095,7 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 .PHONY: run-certification
 run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+run-certification: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-certification: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-certification: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -1117,6 +1121,51 @@ run-certification: gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
 cleanup-certification: undeploy uninstall-crds clean-namespace
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Executes the Go end-to-end Operator Kubernetes network policy tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# Note that the namespace will be created if it does not exist.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: network-policy-test
+network-policy-test: export MF = $(MAKEFLAGS)
+network-policy-test: install-network-policy-tests     ## Run the Operator Kubernetes network policy tests
+	$(MAKE) run-certification  $${MF} \
+	; rc=$$? \
+	; $(MAKE) cleanup-certification $${MF} \
+	; exit $$rc
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Operator prior to running network policy tests.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-network-policy-tests
+install-network-policy-tests: $(BUILD_TARGETS)/build-operator install-network-policies create-ssl-secrets deploy-and-wait
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-network-policies
+install-network-policies: reset-namespace install-operator-network-policies install-coherence-network-policies
+	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
+	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
+	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
+	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Operator network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-operator-network-policies
+install-operator-network-policies: export NAMESPACE := $(OPERATOR_NAMESPACE)
+install-operator-network-policies:
+	$(EXAMPLES_DIR)/095_network_policies/add-operator-policies.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Coherence cluster network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-coherence-network-policies
+install-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
+install-coherence-network-policies:
+	$(EXAMPLES_DIR)/095_network_policies/add-cluster-member-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Coherence versions compatibility tests.
@@ -1319,9 +1368,11 @@ create-namespace: ## Create the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	kubectl get ns $(OPERATOR_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE)
 	kubectl get ns $(OPERATOR_NAMESPACE_CLIENT) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE_CLIENT)
+	kubectl get ns $(CLUSTER_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(CLUSTER_NAMESPACE)
 endif
 	kubectl label namespace $(OPERATOR_NAMESPACE) coherence.oracle.com/test=true --overwrite
 	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) coherence.oracle.com/test=true --overwrite
+	kubectl label namespace $(CLUSTER_NAMESPACE) coherence.oracle.com/test=true --overwrite
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1362,6 +1413,7 @@ ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
 	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE)" || true
 	kubectl delete namespace $(OPERATOR_NAMESPACE_CLIENT) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE_CLIENT)" || true
+	kubectl delete namespace $(CLUSTER_NAMESPACE) --force --grace-period=0 && echo "deleted namespace $(CLUSTER_NAMESPACE)" || true
 endif
 	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
 	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
@@ -1381,9 +1433,15 @@ delete-coherence-clusters: ## Delete all running Coherence clusters in the test 
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-namespace
 clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
+	kubectl delete --all networkpolicy --namespace=$(OPERATOR_NAMESPACE) || true
+	kubectl delete --all networkpolicy --namespace=$(CLUSTER_NAMESPACE) || true
 	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
 		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	done
+	for i in $$(kubectl -n $(CLUSTER_NAMESPACE) get all -o name); do \
+		echo "Deleting $${i} from test namespace $(CLUSTER_NAMESPACE)" \
+		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
 	done
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1412,7 +1470,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER ?= operator
-KIND_IMAGE   ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
+KIND_IMAGE   ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
@@ -1480,6 +1538,42 @@ kind-load-operator:   ## Load the Operator images into the KinD cluster
 .PHONY: kind-load-compatibility
 kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_COMPATIBILITY_IMAGE) || true
+
+# ======================================================================================================================
+# Targets related to running Minikube
+# ======================================================================================================================
+##@ Minikube
+
+# the version of minikube to install
+MINIKUBE_VERSION ?= latest
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Start Minikube
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: minikube
+minikube: minikube-install  ## Run a default minikube cluster with Calico
+	minikube start --cni calico
+	kubectl get nodes
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install Minikube
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: minikube-install
+minikube-install:   ## Install minikube (defaults to the latest version, can be changed by setting MINIKUBE_VERSION)
+ifeq (,$(shell which minikube 2>/dev/null))
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-amd64
+	install minikube-darwin-amd64 /usr/local/bin/minikube
+else
+	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-arm64
+	install minikube-darwin-arm64 /usr/local/bin/minikubeendif
+endif
+else
+	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-linux-amd64
+	install minikube-linux-amd64 /usr/local/bin/minikube
+endif
+endif
 
 # ======================================================================================================================
 # Kubernetes Cert Manager targets

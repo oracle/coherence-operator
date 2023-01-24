@@ -45,7 +45,7 @@ func TestActivePersistenceScaleUpAndDown(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 	deployment, pods := ensurePods(g, yamlFile, ns)
 
 	// check the pvc is created for the given volume
@@ -102,7 +102,7 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 
 	deployment, pods := ensurePods(g, yamlFile, ns)
 
@@ -161,7 +161,7 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 
 	deployment, pods := ensurePods(g, yamlFile, ns)
 

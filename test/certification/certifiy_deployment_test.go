@@ -27,7 +27,7 @@ func TestCertifyMinimalSpec(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ns,
@@ -47,7 +47,7 @@ func TestCertifyScaling(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ns,

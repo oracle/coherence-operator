@@ -29,6 +29,8 @@ import (
 const (
 	// TestNamespaceEnv is environment variable holding the name of the test k8s namespace.
 	TestNamespaceEnv = "OPERATOR_NAMESPACE"
+	// TestClusterNamespaceEnv is environment variable holding the name of the coherence cluster test k8s namespace.
+	TestClusterNamespaceEnv = "CLUSTER_NAMESPACE"
 	// TestClientNamespaceEnv is environment variable holding the name of the client test k8s namespace.
 	TestClientNamespaceEnv = "OPERATOR_NAMESPACE_CLIENT"
 	// PrometheusNamespaceEnv is environment variable holding the name of the Prometheus k8s namespace.
@@ -46,8 +48,9 @@ const (
 	// CoherenceVersionEnv is environment variable holding the Coherence version.
 	CoherenceVersionEnv = "COHERENCE_VERSION"
 
-	defaultNamespace       = "operator-test"
-	defaultClientNamespace = "operator-test-client"
+	defaultNamespace        = "operator-test"
+	defaultClusterNamespace = "coherence-test"
+	defaultClientNamespace  = "operator-test-client"
 
 	buildDir      = "build"
 	outDir        = buildDir + string(os.PathSeparator) + "_output"
@@ -96,6 +99,15 @@ func GetTestNamespace() string {
 	ns := os.Getenv(TestNamespaceEnv)
 	if ns == "" {
 		ns = defaultNamespace
+	}
+	return ns
+}
+
+// GetTestClusterNamespace returns the name of the test cluster namespace.
+func GetTestClusterNamespace() string {
+	ns := os.Getenv(TestClusterNamespaceEnv)
+	if ns == "" {
+		ns = defaultClusterNamespace
 	}
 	return ns
 }
