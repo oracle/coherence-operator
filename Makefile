@@ -329,7 +329,7 @@ GRAFANA_DASHBOARDS           ?= dashboards/grafana/
 # ----------------------------------------------------------------------------------------------------------------------
 # Elasticsearch & Kibana settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
-ELASTIC_VERSION ?= 7.6.2
+ELASTIC_VERSION ?= 8.6.0
 KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1478,7 +1478,8 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
+KIND_IMAGE   ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
+#KIND_IMAGE     ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1530,8 +1531,8 @@ kind-load: kind-load-operator kind-load-coherence  ## Load all images into the K
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
 	kind load docker-image --name $(KIND_CLUSTER) gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
-	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
-	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:7.6.2 || true
+	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:$(ELASTIC_VERSION) || true
+	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:$(ELASTIC_VERSION) || true
 
 .PHONY: kind-load-coherence
 kind-load-coherence:   ## Load the Coherence image into the KinD cluster

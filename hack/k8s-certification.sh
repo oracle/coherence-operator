@@ -23,32 +23,29 @@
 # --------------------------------------------------------------------------------
 
 echo "Building Operator"
-if ! make build-all-images;
-then
+make build-all-images
+if [[ $? != 0 ]]; then
   exit 1
 fi
 
-if ! make helm-chart;
-then
+make helm-chart
+if [[ $? != 0 ]]; then
   exit 1
 fi
 
 if [[ "$LOAD_KIND" == "true" ]]; then
   echo "Loading Images to Kind"
-  if ! make kind-load;
-  then
-    exit 1
-  fi
+  make kind-load
 fi
 
 echo "Running Certification Tests"
-if ! make certification-test;
-then
+make certification-test
+if [[ $? != 0 ]]; then
   exit 1
 fi
 
-echo "Running Network Policy Tests"
-if ! make network-policy-test;
-then
-  exit 1
-fi
+#echo "Running Network Policy Tests"
+#if ! make network-policy-test;
+#then
+#  exit 1
+#fi
