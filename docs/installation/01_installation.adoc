@@ -169,11 +169,24 @@ helm install  \
     coherence/coherence-operator
 ----
 
-=== Run the Operator as a Non-Root User
+=== Install the Operator with a Security Context
 
-The Operator container can be configured with a `securityContext` so that it runs as a non-root user.
+The Operator container can be configured with a Pod `securityContext` or a container `securityContext`,
+so that it runs as a non-root user.
 
 This can be done using a values file:
+
+*Set the Pod securityContext*
+
+[source,yaml]
+.security-values.yaml
+----
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+----
+
+*Set the Container securityContext*
 
 [source,yaml]
 .security-values.yaml
@@ -194,7 +207,21 @@ helm install  \
     coherence/coherence-operator
 ----
 
-Alternatively, the `securityContext` values can be set on the command line as `--set` parameters:
+Alternatively, the Pod or container `securityContext` values can be set on the command line as `--set` parameters:
+
+*Set the Pod securityContext*
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set podSecurityContext.runAsNonRoot=true \
+    --set podSecurityContext.runAsUser=1000 \
+    coherence \
+    coherence/coherence-operator
+----
+
+*Set the Container securityContext*
 
 [source,bash]
 ----
