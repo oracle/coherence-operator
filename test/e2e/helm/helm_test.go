@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -24,6 +24,60 @@ import (
 	"testing"
 	"time"
 )
+
+func TestPodSecurityContext(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	result, err := helmInstall("--set", "podSecurityContext.runAsNonRoot=true",
+		"--set", "podSecurityContext.runAsUser=1000")
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	d := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", d)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Should have a Pod securityContext
+	g.Expect(d.Spec.Template.Spec.SecurityContext).NotTo(BeNil())
+	ctx := *d.Spec.Template.Spec.SecurityContext
+	g.Expect(ctx.RunAsNonRoot).NotTo(BeNil())
+	g.Expect(*ctx.RunAsNonRoot).To(BeTrue())
+	g.Expect(ctx.RunAsUser).NotTo(BeNil())
+	g.Expect(*ctx.RunAsUser).To(Equal(int64(1000)))
+
+	// Should not have a container securityContext
+	for _, c := range d.Spec.Template.Spec.Containers {
+		g.Expect(c.SecurityContext).To(BeNil())
+	}
+}
+
+func TestContainerSecurityContext(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	result, err := helmInstall("--set", "securityContext.runAsNonRoot=true",
+		"--set", "securityContext.runAsUser=1000")
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	d := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", d)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Should have a container securityContext
+	for _, c := range d.Spec.Template.Spec.Containers {
+		g.Expect(c.SecurityContext).NotTo(BeNil())
+		ctx := *c.SecurityContext
+		g.Expect(ctx.RunAsNonRoot).NotTo(BeNil())
+		g.Expect(*ctx.RunAsNonRoot).To(BeTrue())
+		g.Expect(ctx.RunAsUser).NotTo(BeNil())
+		g.Expect(*ctx.RunAsUser).To(Equal(int64(1000)))
+	}
+
+	// Should not have a Pod securityContext
+	g.Expect(d.Spec.Template.Spec.SecurityContext).To(BeNil())
+}
 
 func TestCreateWebhookCertSecretByDefault(t *testing.T) {
 	g := NewGomegaWithT(t)

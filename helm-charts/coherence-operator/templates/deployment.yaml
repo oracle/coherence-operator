@@ -87,6 +87,10 @@ spec:
         app.kubernetes.io/created-by: controller-manager
     spec:
       serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}
+{{- if .Values.podSecurityContext }}
+      securityContext:
+{{ toYaml .Values.podSecurityContext | indent 8 }}
+{{- end }}
       containers:
       - name: manager
         args:

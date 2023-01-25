@@ -1,4 +1,4 @@
-# Copyright 2020, 2022, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2023, Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -41,6 +41,17 @@ replicas: 3
 #   - name: "foo"
 #   - name: "bar"
 imagePullSecrets:
+
+# ---------------------------------------------------------------------------
+# Operator Pod securityContext
+# This sets the securityContext configuration for the Pod, for example
+# to run as a non-root user:
+#
+#  podSecurityContext:
+#    runAsNonRoot: true
+#    runAsUser: 1000
+#
+podSecurityContext:
 
 # ---------------------------------------------------------------------------
 # Operator container securityContext
