@@ -1121,7 +1121,7 @@ run-certification: gotestsum
 # Clean up after to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
-cleanup-certification: undeploy uninstall-crds clean-namespace
+cleanup-certification: undeploy clean-namespace
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Kubernetes network policy tests.
