@@ -235,11 +235,23 @@ lang="bash"
 
 </div>
 
-<h3 id="_run_the_operator_as_a_non_root_user">Run the Operator as a Non-Root User</h3>
+<h3 id="_install_the_operator_with_a_security_context">Install the Operator with a Security Context</h3>
 <div class="section">
-<p>The Operator container can be configured with a <code>securityContext</code> so that it runs as a non-root user.</p>
+<p>The Operator container can be configured with a Pod <code>securityContext</code> or a container <code>securityContext</code>,
+so that it runs as a non-root user.</p>
 
 <p>This can be done using a values file:</p>
+
+<p><strong>Set the Pod securityContext</strong></p>
+
+<markup
+lang="yaml"
+title="security-values.yaml"
+>podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000</markup>
+
+<p><strong>Set the Container securityContext</strong></p>
 
 <markup
 lang="yaml"
@@ -259,7 +271,21 @@ lang="bash"
     coherence \
     coherence/coherence-operator</markup>
 
-<p>Alternatively, the <code>securityContext</code> values can be set on the command line as <code>--set</code> parameters:</p>
+<p>Alternatively, the Pod or container <code>securityContext</code> values can be set on the command line as <code>--set</code> parameters:</p>
+
+<p><strong>Set the Pod securityContext</strong></p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set podSecurityContext.runAsNonRoot=true \
+    --set podSecurityContext.runAsUser=1000 \
+    coherence \
+    coherence/coherence-operator</markup>
+
+<p><strong>Set the Container securityContext</strong></p>
 
 <markup
 lang="bash"
