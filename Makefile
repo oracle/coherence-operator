@@ -1075,6 +1075,7 @@ compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$
 .PHONY: certification-test
 certification-test: export MF = $(MAKEFLAGS)
 certification-test: install-certification     ## Run the Operator Kubernetes versions certification tests
+	@echo "Running certification tests"
 	$(MAKE) run-certification  $${MF} \
 	; rc=$$? \
 	; $(MAKE) cleanup-certification $${MF} \
@@ -1236,8 +1237,11 @@ install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
+	@echo "Uninstalling CRDs - calling prepare_deploy"
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
+	@echo "Uninstalling CRDs - executing deletion"
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true
+	@echo "Uninstall CRDs completed"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -1330,11 +1334,13 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests kustomize  ## Undeploy the Coherence Operator
+	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
 	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
+	@echo "Undeploy Coherence Operator completed"
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1433,6 +1439,7 @@ delete-coherence-clusters: ## Delete all running Coherence clusters in the test 
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-namespace
 clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
+	@echo "Cleaning Namespaces..."
 	kubectl delete --all networkpolicy --namespace=$(OPERATOR_NAMESPACE) || true
 	kubectl delete --all networkpolicy --namespace=$(CLUSTER_NAMESPACE) || true
 	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
@@ -1443,6 +1450,7 @@ clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test
 		echo "Deleting $${i} from test namespace $(CLUSTER_NAMESPACE)" \
 		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
 	done
+	@echo "Cleaning Namespaces completed"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Create the k8s secret to use in SSL/TLS testing.
@@ -1469,8 +1477,9 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ======================================================================================================================
 ##@ KinD
 
-KIND_CLUSTER ?= operator
-KIND_IMAGE   ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
+KIND_CLUSTER   ?= operator
+KIND_IMAGE     ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
+CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
@@ -1498,8 +1507,9 @@ kind-calico:   ## Run a KinD cluster with Calico
 	$(SCRIPTS_DIR)/kind-label-node.sh
 	curl -sL https://docs.projectcalico.org/manifests/calico.yaml | kubectl apply -f -
 	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
-	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=calico-node pod
-	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=kube-dns pod
+	sleep 30
+	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=calico-node pod
+	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=kube-dns pod
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop and delete the Kind cluster
