@@ -23,24 +23,27 @@
 # --------------------------------------------------------------------------------
 
 echo "Building Operator"
-make build-all-images
-if [[ $? != 0 ]]; then
+if ! make build-all-images;
+then
   exit 1
 fi
 
-make helm-chart
-if [[ $? != 0 ]]; then
+if ! make helm-chart;
+then
   exit 1
 fi
 
 if [[ "$LOAD_KIND" == "true" ]]; then
   echo "Loading Images to Kind"
-  make kind-load
+  if ! make kind-load;
+  then
+    exit 1
+  fi
 fi
 
 echo "Running Certification Tests"
-make certification-test
-if [[ $? != 0 ]]; then
+if ! make certification-test;
+then
   exit 1
 fi
 

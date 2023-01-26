@@ -1140,13 +1140,26 @@ network-policy-test: install-network-policy-tests     ## Run the Operator Kubern
 # Install the Operator prior to running network policy tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-network-policy-tests
-install-network-policy-tests: $(BUILD_TARGETS)/build-operator install-network-policies create-ssl-secrets deploy-and-wait
+install-network-policy-tests: $(BUILD_TARGETS)/build-operator reset-namespace install-network-policies create-ssl-secrets deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install the network policies from the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-network-policies
-install-network-policies: reset-namespace install-operator-network-policies install-coherence-network-policies
+install-network-policies: install-operator-network-policies install-coherence-network-policies
+	@echo "API Server info"
+	kubectl get svc -o wide
+	kubectl get endpoints kubernetes
+	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
+	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
+	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
+	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall the network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-network-policies
+uninstall-network-policies: uninstall-operator-network-policies uninstall-coherence-network-policies
 	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
 	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
 	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
@@ -1161,12 +1174,28 @@ install-operator-network-policies:
 	$(EXAMPLES_DIR)/095_network_policies/add-operator-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Uninstall the Operator network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-operator-network-policies
+uninstall-operator-network-policies: export NAMESPACE := $(OPERATOR_NAMESPACE)
+uninstall-operator-network-policies:
+	$(EXAMPLES_DIR)/095_network_policies/remove-operator-policies.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Install the Coherence cluster network policies from the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-coherence-network-policies
 install-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
 install-coherence-network-policies:
 	$(EXAMPLES_DIR)/095_network_policies/add-cluster-member-policies.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall the Coherence cluster network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-coherence-network-policies
+uninstall-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
+uninstall-coherence-network-policies:
+	$(EXAMPLES_DIR)/095_network_policies/remove-cluster-member-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Coherence versions compatibility tests.
@@ -1310,8 +1339,10 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
-	echo "Waiting for Operator to be ready. Pod: $(POD)"
 	sleep 10
+	echo "Operator Pods:"
+	kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
+	echo "Waiting for Operator to be ready. Pod: $(POD)"
 	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 120s $(POD)
 
 # ----------------------------------------------------------------------------------------------------------------------

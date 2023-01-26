@@ -17,5 +17,5 @@ spec:
       ports:
         - port: extend
           protocol: TCP
-        - port: extend-concurrent
+        - port: extend-atomics
           protocol: TCP
