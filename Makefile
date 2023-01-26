@@ -1989,7 +1989,8 @@ helm-install-elastic:
 		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
 #   Install Kibana
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values hack/kibana-values.yaml kibana elastic/kibana \
+		--debug --values hack/kibana-values.yaml kibana elastic/kibana
+	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 600s elasticsearch-master-0
 
 .PHONY: kibana-import
 kibana-import:

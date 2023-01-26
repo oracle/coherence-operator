@@ -157,5 +157,5 @@ jobs:
     - uses: actions/upload-artifact@v1
       if: failure()
       with:
-        name: test-output-${{ matrix.k8s }}
+        name: test-output-${{ matrix.matrixName }}
         path: build/_output/test-logs

@@ -56,7 +56,7 @@ func assertCoherenceClusterIndexInKibana(t *testing.T, kPod *corev1.Pod) {
 	fwd, ports, err := helper.StartPortForwarderForPod(kPod)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	// Defer closing the PortForwarder so we clean-up properly
+	// Defer closing the PortForwarder so we clean up properly
 	defer fwd.Close()
 
 	// The REST port in the Kibana container spec is un-named, so we have to get it by the port number
@@ -148,7 +148,7 @@ func (c *ESClient) Query(fn ESFunction) (*esapi.Response, error) {
 		return nil, err
 	}
 
-	// Defer closing the PortForwarder so we clean-up properly
+	// Defer closing the PortForwarder so we clean up properly
 	defer fwd.Close()
 
 	// The REST port in the Elasticsearch container spec is named "rest"

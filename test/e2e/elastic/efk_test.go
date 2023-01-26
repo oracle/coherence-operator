@@ -71,7 +71,7 @@ func shouldConnectToES(t *testing.T, cl ESClient) {
 	g.Expect(res.IsError()).To(BeFalse(), fmt.Sprintf("Error response from ES %s", res.String()))
 }
 
-// Assert that all of the Pods have a Fluentd container
+// Assert that all the Pods have a Fluentd container
 func assertAllHaveFluentdContainers(t *testing.T, pods []corev1.Pod) {
 	g := NewGomegaWithT(t)
 
