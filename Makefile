@@ -1416,13 +1416,21 @@ endif
 .PHONY: delete-namespace
 delete-namespace: clean-namespace  ## Delete the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
-	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE)" || true
-	kubectl delete namespace $(OPERATOR_NAMESPACE_CLIENT) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE_CLIENT)" || true
-	kubectl delete namespace $(CLUSTER_NAMESPACE) --force --grace-period=0 && echo "deleted namespace $(CLUSTER_NAMESPACE)" || true
+	$(call delete_ns,$(OPERATOR_NAMESPACE))
+	$(call delete_ns,$(OPERATOR_NAMESPACE_CLIENT))
+	$(call delete_ns,$(CLUSTER_NAMESPACE))
 endif
-	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
-	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
+	kubectl delete clusterrole operator-test-coherence-operator --force --ignore-not-found=true --grace-period=0 && echo "deleted namespace" || true
+	kubectl delete clusterrolebinding operator-test-coherence-operator --ignore-not-found=true --force --grace-period=0 && echo "deleted namespace" || true
+
+define delete_ns
+	if kubectl get ns $(1); then \
+		echo "Deleting test namespace $(1)" ;\
+		kubectl patch ns $(1) -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl delete namespace $(1) --force --ignore-not-found=true --grace-period=0 --timeout=600s ;\
+		echo "deleted namespace $(1)" || true ;\
+	fi
+endef
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete all of the Coherence resources from the test namespace.
