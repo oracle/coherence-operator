@@ -1457,7 +1457,6 @@ endif
 define delete_ns
 	if kubectl get ns $(1); then \
 		echo "Deleting test namespace $(1)" ;\
-		kubectl patch ns $(1) -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
 		kubectl delete namespace $(1) --force --ignore-not-found=true --grace-period=0 --timeout=600s ;\
 		echo "deleted namespace $(1)" || true ;\
 	fi
@@ -2018,10 +2017,11 @@ helm-install-elastic:
 #   Install Elasticsearch
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
+	sleep 60
+	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 600s elasticsearch-master-0
 #   Install Kibana
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values hack/kibana-values.yaml kibana elastic/kibana
-	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 600s elasticsearch-master-0
 
 .PHONY: kibana-import
 kibana-import:
