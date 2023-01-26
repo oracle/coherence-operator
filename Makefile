@@ -1441,6 +1441,10 @@ delete-coherence-clusters: ## Delete all running Coherence clusters in the test 
   		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
+	for i in $$(kubectl -n  $(CLUSTER_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
+  		kubectl -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	done
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete all resource from the test namespace
