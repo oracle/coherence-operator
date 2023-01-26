@@ -114,11 +114,11 @@ jobs:
     - name: E2E Elasticsearch Tests
       shell: bash
       run: |
-        docker pull docker.elastic.co/elasticsearch/elasticsearch:8.6.0
-        docker pull docker.elastic.co/kibana/kibana:8.6.0
-        kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:8.6.0
-        kind load docker-image --name operator docker.elastic.co/kibana/kibana:8.6.0
-        export ELASTIC_VERSION=8.6.0
+        docker pull docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+        docker pull docker.elastic.co/kibana/kibana:8.5.1
+        kind load docker-image --name operator docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+        kind load docker-image --name operator docker.elastic.co/kibana/kibana:8.5.1
+        export ELASTIC_VERSION=8.5.1
         make all
         make kind-load
         make e2e-elastic-test

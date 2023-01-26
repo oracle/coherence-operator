@@ -131,7 +131,8 @@ jobs:
         make tanzu-ttl-install-repo
         make tanzu-install
         sleep 20
-        export  OPERATOR_NAMESPACE=coherence
+        export OPERATOR_NAMESPACE=coherence
+        make reset-namespace
         make wait-for-deploy
         make create-ssl-secrets
         make kind-load

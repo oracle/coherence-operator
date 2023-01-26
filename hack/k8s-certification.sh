@@ -44,8 +44,8 @@ if [[ $? != 0 ]]; then
   exit 1
 fi
 
-#echo "Running Network Policy Tests"
-#if ! make network-policy-test;
-#then
-#  exit 1
-#fi
+echo "Running Network Policy Tests"
+if ! make network-policy-test;
+then
+  exit 1
+fi
