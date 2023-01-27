@@ -123,7 +123,7 @@ jobs:
         minikube version: 'v1.28.0'
         kubernetes version: ${{ matrix.k8s }}
         driver: docker
-        start args: 'kubelet.cgroup-driver=systemd'
+        start args: '--extra-config=kubelet.cgroup-driver=systemd'
         github token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Certification Tests
