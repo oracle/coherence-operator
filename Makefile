@@ -1531,7 +1531,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE   ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
+KIND_IMAGE     ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
 #KIND_IMAGE     ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
 CALICO_TIMEOUT ?= 300s
 
@@ -1610,33 +1610,39 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 
 # the version of minikube to install
 MINIKUBE_VERSION ?= latest
+MINIKUBE_K8S     ?= 1.26.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start Minikube
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: minikube
 minikube: minikube-install  ## Run a default minikube cluster with Calico
-	minikube start --cni calico
+	$(MINIKUBE) start --cni calico --kubernetes-version=$(MINIKUBE_K8S)
 	kubectl get nodes
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Minikube
 # ----------------------------------------------------------------------------------------------------------------------
+MINIKUBE = $(TOOLS_BIN)/minikube
 .PHONY: minikube-install
-minikube-install:   ## Install minikube (defaults to the latest version, can be changed by setting MINIKUBE_VERSION)
-ifeq (,$(shell which minikube 2>/dev/null))
+minikube-install: $(TOOLS_BIN)/minikube ## Install minikube (defaults to the latest version, can be changed by setting MINIKUBE_VERSION)
+	$(MINIKUBE) version
+
+$(TOOLS_BIN)/minikube:
 ifeq (Darwin, $(UNAME_S))
 ifeq (x86_64, $(UNAME_M))
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-amd64
-	install minikube-darwin-amd64 /usr/local/bin/minikube
+	install minikube-darwin-amd64 $(TOOLS_BIN)/minikube
+	rm minikube-darwin-amd64
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-arm64
-	install minikube-darwin-arm64 /usr/local/bin/minikubeendif
+	install minikube-darwin-arm64 $(TOOLS_BIN)/minikube
+	rm minikube-darwin-arm64
 endif
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-linux-amd64
-	install minikube-linux-amd64 /usr/local/bin/minikube
-endif
+	install minikube-linux-amd64 $(TOOLS_BIN)/minikube
+	rm minikube-linux-amd64
 endif
 
 # ======================================================================================================================
@@ -2029,7 +2035,9 @@ helm-install-elastic:
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
 	sleep 60
-	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 600s elasticsearch-master-0
+	kubectl get pods --namespace=$(OPERATOR_NAMESPACE) -l app=elasticsearch-master
+	kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=elasticsearch-master -o name | xargs \
+			kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 600s
 #   Install Kibana
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
 		--debug --values hack/kibana-values.yaml kibana elastic/kibana
