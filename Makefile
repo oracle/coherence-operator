@@ -1339,7 +1339,7 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
-	sleep 30
+	sleep 600
 	echo "Operator Pods:"
 	kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
 	echo "Operator Logs:"
