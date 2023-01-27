@@ -1156,6 +1156,17 @@ install-network-policies: install-operator-network-policies install-coherence-ne
 	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Prepare a copy of the example network policies
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: prepare-network-policies
+prepare-network-policies: export IP=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}')
+prepare-network-policies:
+	mkdir -p $(BUILD_OUTPUT)/network-policies
+	cp $(EXAMPLES_DIR)/095_network_policies/add-operator-policies.sh $(BUILD_OUTPUT)/network-policies/add-operator-policies.sh
+	cp -R $(EXAMPLES_DIR)/095_network_policies/ $(BUILD_OUTPUT)/network-policies
+	$(SED) -e 's/172.18.0.2/${IP}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the network policies from the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-network-policies
@@ -1170,32 +1181,32 @@ uninstall-network-policies: uninstall-operator-network-policies uninstall-cohere
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-operator-network-policies
 install-operator-network-policies: export NAMESPACE := $(OPERATOR_NAMESPACE)
-install-operator-network-policies:
-	$(EXAMPLES_DIR)/095_network_policies/add-operator-policies.sh
+install-operator-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/add-operator-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the Operator network policies from the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-operator-network-policies
 uninstall-operator-network-policies: export NAMESPACE := $(OPERATOR_NAMESPACE)
-uninstall-operator-network-policies:
-	$(EXAMPLES_DIR)/095_network_policies/remove-operator-policies.sh
+uninstall-operator-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/remove-operator-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install the Coherence cluster network policies from the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-coherence-network-policies
 install-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
-install-coherence-network-policies:
-	$(EXAMPLES_DIR)/095_network_policies/add-cluster-member-policies.sh
+install-coherence-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/add-cluster-member-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the Coherence cluster network policies from the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-coherence-network-policies
 uninstall-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
-uninstall-coherence-network-policies:
-	$(EXAMPLES_DIR)/095_network_policies/remove-cluster-member-policies.sh
+uninstall-coherence-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/remove-cluster-member-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Coherence versions compatibility tests.
