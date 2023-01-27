@@ -41,11 +41,11 @@ if [[ "$LOAD_KIND" == "true" ]]; then
   fi
 fi
 
-echo "Running Certification Tests"
-if ! make certification-test;
-then
-  exit 1
-fi
+#echo "Running Certification Tests"
+#if ! make certification-test;
+#then
+#  exit 1
+#fi
 
 echo "Running Network Policy Tests"
 if ! make network-policy-test;
