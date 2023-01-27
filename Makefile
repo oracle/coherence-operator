@@ -1353,11 +1353,6 @@ wait-for-deploy:
 	sleep 30
 	echo "Operator Pods:"
 	kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
-#	echo "Operator Logs:"
-#	mkdir -p $(TEST_LOGS_DIR)/pod || true
-#	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name); do \
-#		kubectl -n $(OPERATOR_NAMESPACE) logs $${i} > $(TEST_LOGS_DIR)/$${i}.log; \
-#	done
 	echo "Waiting for Operator to be ready. Pod: $(POD)"
 	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
 
