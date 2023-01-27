@@ -1617,7 +1617,7 @@ MINIKUBE_K8S     ?= 1.26.1
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: minikube
 minikube: minikube-install  ## Run a default minikube cluster with Calico
-	$(MINIKUBE) start --cni calico --kubernetes-version=$(MINIKUBE_K8S)
+	$(MINIKUBE) start --driver docker --cni calico --kubernetes-version $(MINIKUBE_K8S)
 	kubectl get nodes
 
 # ----------------------------------------------------------------------------------------------------------------------
