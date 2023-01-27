@@ -44,39 +44,17 @@ jobs:
           - v1.25
           - v1.24
         include:
-          - matrixName: v1.26
-            k8s: v1.26.1
+#          - matrixName: v1.26
+#            k8s: v1.26.1
           - matrixName: v1.25
-            k8s: v1.25.3
-          - matrixName: v1.24
-            k8s: v1.24.7
+            k8s: v1.25.4
+#          - matrixName: v1.24
+#            k8s: v1.24.7
 
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-
-#   This step will free up disc space on the runner by removing
-#   lots of things that we do not need.
-    - name: disc
-      shell: bash
-      run: |
-        echo "Listing 100 largest packages"
-        dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-        df -h
-        echo "Removing large packages"
-        sudo apt-get remove -y '^dotnet-.*' || true
-        sudo apt-get remove -y '^llvm-.*' || true
-        sudo apt-get remove -y 'monodoc-http' || true
-        sudo apt-get remove -y 'php.*' || true
-        sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel || true
-        sudo apt-get autoremove -y || true
-        sudo apt-get clean
-        df -h
-        echo "Removing large directories"
-        rm -rf /usr/share/dotnet/
-        df -h
-        softwareupdate --install-rosetta
 
     - name: Set up JDK
       uses: actions/setup-java@v3
@@ -123,8 +101,6 @@ jobs:
       with:
         minikube version: 'v1.28.0'
         kubernetes version: ${{ matrix.k8s }}
-        driver: docker
-        start args: '--extra-config=kubelet.cgroup-driver=systemd'
         github token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Certification Tests
