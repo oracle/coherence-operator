@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------
 # Coherence Operator GitHub Actions Minikube K8s Certification build.
 # ---------------------------------------------------------------------------
-name: K8s Certification
+name: Minikube K8s Certification
 
 on:
   workflow_dispatch:
@@ -116,11 +116,18 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-    - name: Start Minikube Cluster
+    - name: Start Minikube
+      uses: ./.github/actions/setup-minikube
+      id: minikube
+      with:
+        driver: docker
+        kubernetes-version: ${{ matrix.k8s }}
+        cni: calico
+
+    - name: Setup
       shell: bash
       run: |
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-        make minikube MINIKUBE_K8S=${{ matrix.k8s }}
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
