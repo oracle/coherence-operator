@@ -1003,6 +1003,10 @@ func DumpOperatorLogs(t *testing.T, ctx TestContext) {
 	namespace := GetTestNamespace()
 	DumpOperatorLog(ctx, namespace, t.Name())
 	DumpState(ctx, namespace, t.Name())
+	clusterNamespace := GetTestClusterNamespace()
+	if clusterNamespace != namespace {
+		DumpState(ctx, clusterNamespace, t.Name()+string(os.PathSeparator)+clusterNamespace)
+	}
 }
 
 func DumpState(ctx TestContext, namespace, dir string) {
