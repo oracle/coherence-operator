@@ -1162,8 +1162,8 @@ install-network-policies: install-operator-network-policies install-coherence-ne
 prepare-network-policies: export IP=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}')
 prepare-network-policies:
 	mkdir -p $(BUILD_OUTPUT)/network-policies
-	cp $(EXAMPLES_DIR)/095_network_policies/add-operator-policies.sh $(BUILD_OUTPUT)/network-policies/add-operator-policies.sh
-	cp -R $(EXAMPLES_DIR)/095_network_policies/ $(BUILD_OUTPUT)/network-policies
+	cp $(EXAMPLES_DIR)/095_network_policies/*.sh $(BUILD_OUTPUT)/network-policies
+	cp -R $(EXAMPLES_DIR)/095_network_policies/manifests $(BUILD_OUTPUT)/network-policies
 	$(SED) -e 's/172.18.0.2/${IP}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
