@@ -123,20 +123,20 @@ jobs:
         driver: docker
         kubernetes-version: ${{ matrix.k8s }}
         cni: calico
+        extra-config: 'kubelet.cgroup-driver=systemd'
 
-    - name: Setup
+    - name: Certification Tests
       shell: bash
       run: |
+        export SHELL=/bin/bash
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+        eval $(minikube -p minikube docker-env)
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
-
-    - name: Certification Tests
-      shell: bash
-      run: ./hack/k8s-certification.sh
+        ./hack/k8s-certification.sh
 
     - uses: actions/upload-artifact@v1
       if: failure()
