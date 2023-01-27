@@ -1,78 +1,24 @@
-name: 'setup-minikube'
-description: 'test your app against real Kubernetes.'
-author: 'Medya Gh'
+name: 'Setup Minikube Kubernetes Cluster'
+description: 'This action sets up a single node Kubernetes Cluster in your environment using Minikube'
+author: 'Marc Nuri'
 branding:
-  icon: 'box'
-  color: 'blue'
+  icon: anchor
+  color: blue
 inputs:
-  cache:
-    description: 'Cache ISO, kicbase, and preloads to speed up starting minikube'
-    required: false
-    default: true
-  minikube-version:
-    description: 'Choose a specific version of minikube, "latest" for the latest stable build, or "HEAD" for the latest development build'
-    required: false
-    default: 'latest'
+  minikube version:
+    description: 'Version of Minikube to deploy'
+    required: true
+  kubernetes version:
+    description: 'Version of Kubernetes to deploy'
+    required: true
+  github token:
+    description: 'GITHUB_TOKEN to be able to perform requests to GH REST API (with no limit)'
   driver:
-    description: 'Choose a specific driver, one of: docker, none, podman, virtualbox, parallels, vmwarefusion, hyperkit, vmware, ssh'
-    required: false
-    default: ''
-  container-runtime:
-    description: 'Choose a specific container-runtime, one of: docker, containerd, cri-o'
-    required: false
-    default: ''
-  kubernetes-version:
-    description: 'Choose a specific version of Kubernetes, "stable" for the latest stable build, or "latest" for the latest development build'
-    required: false
-    default: ''
-  cpus:
-    description: 'Number of CPUs allocated to Kubernetes. Use "max" to use the maximum number of CPUs.'
-    required: false
-    default: ''
-  memory:
-    description: 'Amount of RAM to allocate to Kubernetes (format: <number>[<unit>], where unit = b, k, m or g). Use "max" to use the maximum amount of memory.'
-    required: false
-    default: ''
-  network-plugin:
-    description: 'Kubelet network plug-in to use (default: auto). Valid options: cni'
-    required: false
-    default: ''
-  cni:
-    description: 'CNI plug-in to use. Valid options: auto, bridge, calico, cilium, flannel, kindnet, or path to a CNI manifest'
-    required: false
-    default: ''
-  addons:
-    description: 'Choose optional addons to install. Valid options: ingress, gcp-auth, registry ...'
-    required: false
-    default: ''
-  extra-config:
-    description: 'Extra configuration (--extra-config) to pass into "minikube start".'
-    required: false
-    default: ''
-  feature-gates:
-    description: 'Enabling feature gates (--feature-gates) to pass into "minikube start" in a format it accepts it.'
-    required: false
-    default: ''
-  listen-address:
-    description: 'IP Address to use to expose ports (docker and podman driver only)'
-    required: false
-    default: ''
-  mount-path:
-    description: 'Mount the source directory from your host into the target directory inside the cluster (format: <source directory>:<target directory>)'
-    required: false
-    default: ''
-  wait:
-    description: 'comma separated list of Kubernetes components to verify and wait for after starting a cluster. defaults to "apiserver,system_pods", available options: "apiserver,system_pods,default_sa,apps_running,node_ready,kubelet". Other acceptable values are "all" or "none", "true" and "false"'
-    required: false
-    default: 'all'
-  insecure-registry:
-    description: 'Enable insecure communication with the given registries'
-    required: false
-    default: ''
-  start-args:
-    description: 'Any flags you would regularly pass into minikube via CLI, seperated by space'
-    required: false
-    default: ''
+    description: 'Minikube driver to use. This action supports `none` (default if not specified) or `docker`'
+  container runtime:
+    description: 'The container runtime to be used (valid options: docker, cri-o, containerd)'
+  start args:
+    description: 'Additional arguments to append to minikube start command'
 runs:
   using: 'node16'
-  main: 'dist/index.js'
+  main: 'src/index.js'

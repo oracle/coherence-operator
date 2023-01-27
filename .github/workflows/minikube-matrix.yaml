@@ -120,10 +120,9 @@ jobs:
       uses: ./.github/actions/setup-minikube
       id: minikube
       with:
-        driver: docker
-        kubernetes-version: ${{ matrix.k8s }}
-        cni: calico
-        extra-config: 'kubelet.cgroup-driver=systemd'
+        minikube version: 'v1.28.0'
+        kubernetes version: ${{ matrix.k8s }}
+        github token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Certification Tests
       shell: bash
