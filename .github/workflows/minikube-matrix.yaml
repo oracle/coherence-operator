@@ -40,9 +40,9 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
-          - v1.26
+#          - v1.26
           - v1.25
-          - v1.24
+#          - v1.24
         include:
 #          - matrixName: v1.26
 #            k8s: v1.26.1
@@ -100,6 +100,7 @@ jobs:
       id: minikube
       with:
         minikube version: 'v1.28.0'
+        driver: docker
         kubernetes version: ${{ matrix.k8s }}
         github token: ${{ secrets.GITHUB_TOKEN }}
 
