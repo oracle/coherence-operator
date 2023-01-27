@@ -22,6 +22,8 @@
 #
 # --------------------------------------------------------------------------------
 
+export OPERATOR_NAMESPACE=coherence
+
 echo "Building Operator"
 if ! make build-all-images;
 then
