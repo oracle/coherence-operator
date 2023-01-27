@@ -76,6 +76,7 @@ jobs:
         echo "Removing large directories"
         rm -rf /usr/share/dotnet/
         df -h
+        softwareupdate --install-rosetta
 
     - name: Set up JDK
       uses: actions/setup-java@v3
