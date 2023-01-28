@@ -95,12 +95,7 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-#    - name: Start Minikube
-#      shell: bash
-#      run: |
-#        make minikube MINIKUBE_K8S=${{ matrix.k8s }}
     - name: Start Minikube
-      shell: bash
       uses: ./.github/actions/setup-minikube
       id: minikube
       with:
