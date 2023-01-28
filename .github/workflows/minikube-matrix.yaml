@@ -96,13 +96,18 @@ jobs:
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
     - name: Start Minikube
-      uses: ./.github/actions/setup-minikube
-      id: minikube
-      with:
-        minikube version: 'v1.28.0'
-        driver: docker
-        kubernetes version: ${{ matrix.k8s }}
-        github token: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        make minikube MINIKUBE_K8S=${{ matrix.k8s }}
+#    - name: Start Minikube
+#      shell: bash
+#      uses: ./.github/actions/setup-minikube
+#      id: minikube
+#      with:
+#        minikube version: 'v1.28.0'
+#        driver: docker
+#        kubernetes version: ${{ matrix.k8s }}
+#        github token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Certification Tests
       shell: bash
