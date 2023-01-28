@@ -29,7 +29,7 @@ on:
 env:
   MAVEN_USER: ${{ secrets.MAVEN_USER }}
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-  LOAD_KIND: true
+  LOAD_KIND: false
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -113,7 +113,6 @@ jobs:
       shell: bash
       run: |
         export SHELL=/bin/bash
-        export LOAD_KIND=false
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         eval $(minikube -p minikube docker-env)
         kubectl version
