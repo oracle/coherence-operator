@@ -95,19 +95,19 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-    - name: Start Minikube
-      shell: bash
-      run: |
-        make minikube MINIKUBE_K8S=${{ matrix.k8s }}
 #    - name: Start Minikube
 #      shell: bash
-#      uses: ./.github/actions/setup-minikube
-#      id: minikube
-#      with:
-#        minikube version: 'v1.28.0'
-#        driver: docker
-#        kubernetes version: ${{ matrix.k8s }}
-#        github token: ${{ secrets.GITHUB_TOKEN }}
+#      run: |
+#        make minikube MINIKUBE_K8S=${{ matrix.k8s }}
+    - name: Start Minikube
+      shell: bash
+      uses: ./.github/actions/setup-minikube
+      id: minikube
+      with:
+        minikube version: 'v1.28.0'
+        driver: docker
+        kubernetes version: ${{ matrix.k8s }}
+        github token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Certification Tests
       shell: bash
@@ -115,6 +115,8 @@ jobs:
         export SHELL=/bin/bash
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         eval $(minikube -p minikube docker-env)
+        minikube version
+        minikube status
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
