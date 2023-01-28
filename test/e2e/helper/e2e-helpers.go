@@ -91,6 +91,12 @@ func (in TestContext) Cleanup() {
 	in.Logger.Info("tearing down the test environment")
 	ns := GetTestNamespace()
 	in.CleanupNamespace(ns)
+	clusterNS := GetTestClusterNamespace()
+	if clusterNS != ns {
+		in.CleanupNamespace(ns)
+	}
+	clientNS := GetTestClientNamespace()
+	in.CleanupNamespace(clientNS)
 	for i := range in.namespaces {
 		_ = in.cleanAndDeleteNamespace(in.namespaces[i])
 	}
