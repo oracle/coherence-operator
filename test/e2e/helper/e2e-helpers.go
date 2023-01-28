@@ -93,7 +93,7 @@ func (in TestContext) Cleanup() {
 	in.CleanupNamespace(ns)
 	clusterNS := GetTestClusterNamespace()
 	if clusterNS != ns {
-		in.CleanupNamespace(ns)
+		in.CleanupNamespace(clusterNS)
 	}
 	clientNS := GetTestClientNamespace()
 	in.CleanupNamespace(clientNS)

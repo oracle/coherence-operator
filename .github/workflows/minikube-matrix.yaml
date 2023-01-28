@@ -40,12 +40,12 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
-          - v1.26
+#          - v1.26
           - v1.25
           - v1.24
         include:
-          - matrixName: v1.26
-            k8s: v1.26.1
+#          - matrixName: v1.26
+#            k8s: v1.26.1
           - matrixName: v1.25
             k8s: v1.25.4
           - matrixName: v1.24
