@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/elastic/go-elasticsearch/v8 v8.6.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v1.2.3
 	github.com/go-test/deep v1.0.7

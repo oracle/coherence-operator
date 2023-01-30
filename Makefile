@@ -327,12 +327,6 @@ PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana/
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Elasticsearch & Kibana settings (used in integration tests)
-# ----------------------------------------------------------------------------------------------------------------------
-ELASTIC_VERSION ?= 8.5.1
-KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
-
-# ----------------------------------------------------------------------------------------------------------------------
 # MetalLB load balancer settings
 # ----------------------------------------------------------------------------------------------------------------------
 METALLB_VERSION ?= v0.12.1
@@ -990,50 +984,6 @@ run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-prometheus-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/...
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Executes the Go end-to-end tests that require Elasticsearch in the k8s cluster
-# using a LOCAL operator instance (i.e. the operator is not deployed to k8s).
-#
-# This target DOES NOT install Elasticsearch, use the e2e-elastic-test target
-# to fully reset the test namespace.
-#
-# These tests will use whichever k8s cluster the local environment
-# is pointing to.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: e2e-elastic-test
-e2e-elastic-test: export MF = $(MAKEFLAGS)
-e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait   ## Run the Operator logging/ElasticSearch end-to-end functional tests
-	$(MAKE) run-elastic-test $${MF} \
-	; rc=$$? \
-	; $(MAKE) uninstall-elastic $${MF} \
-	; $(MAKE) undeploy $${MF} \
-	; $(MAKE) delete-namespace $${MF} \
-	; exit $$rc
-
-.PHONY: run-elastic-test
-run-elastic-test: export CGO_ENABLED = 0
-run-elastic-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
-run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-run-elastic-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
-run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
-run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
-run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-run-elastic-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-run-elastic-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-run-elastic-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-run-elastic-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-run-elastic-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
-run-elastic-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
-run-elastic-test: export VERSION := $(VERSION)
-run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
-run-elastic-test: gotestsum
-	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator backwards compatibility tests to ensure upgrades from previous Operator versions
@@ -2010,70 +1960,6 @@ port-forward-grafana: ## Run a port-forward to Grafana on http://127.0.0.1:3000
 	@echo "Reach Grafana on http://127.0.0.1:3000"
 	@echo "User: admin Password: admin"
 	kubectl --namespace monitoring port-forward svc/grafana 3000
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Install Elasticsearch & Kibana
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: install-elastic
-install-elastic: helm-install-elastic kibana-import ## Install Elastic Stack
-
-.PHONY: helm-install-elastic
-helm-install-elastic:
-	kubectl create ns $(OPERATOR_NAMESPACE) || true
-#   Create the ConfigMap containing the Coherence Kibana dashboards
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-dashboard || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file dashboards/kibana/kibana-dashboard-data.json coherence-kibana-dashboard
-#   Create the ConfigMap containing the Coherence Kibana dashboards import script
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-import || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file hack/kibana-import.sh coherence-kibana-import
-#   Set-up the Elastic Helm repo
-	@echo "Getting Helm Version:"
-	helm version
-	helm repo add elastic https://helm.elastic.co || true
-	helm repo update || true
-#   Install Elasticsearch
-	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
-	sleep 60
-	kubectl get pods --namespace=$(OPERATOR_NAMESPACE) -l app=elasticsearch-master
-	kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=elasticsearch-master -o name | xargs \
-			kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 600s
-#   Install Kibana
-	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values hack/kibana-values.yaml kibana elastic/kibana
-
-.PHONY: kibana-import
-kibana-import:
-	KIBANA_POD=$$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name) \
-	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} -- /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Uninstall Elasticsearch & Kibana
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: uninstall-elastic
-uninstall-elastic: ## Uninstall Elastic Stack
-	helm uninstall --namespace $(OPERATOR_NAMESPACE) kibana || true
-	helm uninstall --namespace $(OPERATOR_NAMESPACE) elasticsearch || true
-	kubectl -n $(OPERATOR_NAMESPACE) delete pvc elasticsearch-master-elasticsearch-master-0 || true
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a port-forward process to the Kibana Pod.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: port-forward-kibana
-port-forward-kibana: export KIBANA_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name)
-port-forward-kibana: ## Run a port-forward to Kibana on http://127.0.0.1:5601
-	@echo "Reach Kibana on http://127.0.0.1:5601"
-	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(KIBANA_POD) 5601:5601
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a port-forward process to the Elasticsearch Pod.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: port-forward-es
-port-forward-es: export ES_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=elasticsearch-master -o name)
-port-forward-es: ## Run a port-forward to Elasticsearch on http://127.0.0.1:9200
-	@echo "Reach Elasticsearch on http://127.0.0.1:9200"
-	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(ES_POD) 9200:9200
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install MetalLB
