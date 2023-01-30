@@ -34,6 +34,7 @@ func AssertElasticsearchInstalled(ctx helper.TestContext, t *testing.T) (*corev1
 	namespace := helper.GetTestNamespace()
 
 	// Find the Elasticsearch Pods
+	t.Logf("Finding ES Pods")
 	pods, err := helper.ListPodsWithLabelSelector(ctx, namespace, "app=elasticsearch-master")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).NotTo(BeZero(), "No Elasticsearch Pods found")

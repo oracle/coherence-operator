@@ -49,8 +49,14 @@ then
   exit 1
 fi
 
-echo "Running Network Policy Tests"
-if ! make network-policy-test;
+if [[ "$RUN_NET_TEST" != "false" ]]
 then
-  exit 1
+  echo "Running Network Policy Tests"
+  if ! make network-policy-test;
+  then
+    exit 1
+  fi
+else
+  echo "Skipping Network Policy Tests"
 fi
+

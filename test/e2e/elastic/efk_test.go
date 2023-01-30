@@ -42,6 +42,7 @@ func TestElasticSearch(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Create an Elasticsearch client
+	t.Logf("Creating ES client")
 	cl := ESClient{Pod: esPod}
 	// Test that the client connects
 	shouldConnectToES(t, cl)
@@ -63,6 +64,7 @@ func shouldConnectToES(t *testing.T, cl ESClient) {
 	g := NewGomegaWithT(t)
 	_, _ = AssertElasticsearchInstalled(testContext, t)
 
+	t.Logf("Executing ES query")
 	res, err := cl.Query(func(es *es.Client) (*esapi.Response, error) {
 		return es.Info()
 	})
