@@ -71,7 +71,7 @@ jobs:
             runNetTests: true
           - matrixName: v1.21
             k8s: kindest/node:v1.21.14@sha256:9d9eb5fb26b4fbc0c6d95fa8c790414f9750dd583f5d7cee45d92e8c26670aa1
-            kindCommand: kind-calico
+            kindCommand: kind
             runNetTests: false
           - matrixName: v1.20
             k8s: kindest/node:v1.20.15@sha256:a32bf55309294120616886b5338f95dd98a2f7231519c7dedcec32ba29699394
