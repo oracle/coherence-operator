@@ -167,7 +167,63 @@ func TestCreateStatefulSetWithLabels(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
-func TestCreateStatefulSetWithAnnotations(t *testing.T) {
+func TestCreateStatefulSetWithAnnotationsFromCoherenceResource(t *testing.T) {
+	// create a spec with empty environment variables
+	annotations := make(map[string]string)
+	annotations["key1"] = "value1"
+	annotations["key2"] = "value2"
+
+	spec := coh.CoherenceResourceSpec{}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	deployment.SetAnnotations(annotations)
+
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	if stsExpected.Annotations == nil {
+		stsExpected.Annotations = make(map[string]string)
+	}
+	for k, v := range annotations {
+		stsExpected.Annotations[k] = v
+	}
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithAnnotationsOverriddenFromCoherenceResource(t *testing.T) {
+	// create a spec with empty environment variables
+	annotationsOne := make(map[string]string)
+	annotationsOne["key1"] = "value1"
+	annotationsOne["key2"] = "value2"
+
+	annotationsTwo := make(map[string]string)
+	annotationsTwo["key3"] = "value3"
+	annotationsTwo["key4"] = "value4"
+
+	spec := coh.CoherenceResourceSpec{
+		StatefulSetAnnotations: annotationsTwo,
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	deployment.SetAnnotations(annotationsOne)
+
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	if stsExpected.Annotations == nil {
+		stsExpected.Annotations = make(map[string]string)
+	}
+	for k, v := range annotationsTwo {
+		stsExpected.Annotations[k] = v
+	}
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithPodAnnotations(t *testing.T) {
 	// create a spec with empty environment variables
 	annotations := make(map[string]string)
 	annotations["foo"] = "foo-annotation"

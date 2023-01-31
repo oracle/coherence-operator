@@ -20,15 +20,23 @@ import (
 //
 // Transitions are:
 // Initialized    -> Waiting
-//                -> Created
+//
+//	-> Created
+//
 // Waiting        -> Created
 // Created        -> Ready
-//                -> Stopped
+//
+//	-> Stopped
+//
 // Ready          -> Scaling
-//                -> RollingUpgrade
-//                -> Stopped
+//
+//	-> RollingUpgrade
+//	-> Stopped
+//
 // Scaling        -> Ready
-//                -> Stopped
+//
+//	-> Stopped
+//
 // RollingUpgrade -> Ready
 // Stopped        -> Created
 const (
@@ -174,6 +182,24 @@ func (in *Coherence) CreateCommonLabels() map[string]string {
 	}
 
 	return labels
+}
+
+// CreateAnnotations returns the annotations to apply to this cluster's
+// deployment (StatefulSet).
+func (in *Coherence) CreateAnnotations() map[string]string {
+	var annotations map[string]string
+	if in.Spec.StatefulSetAnnotations != nil {
+		annotations = make(map[string]string)
+		for k, v := range in.Spec.StatefulSetAnnotations {
+			annotations[k] = v
+		}
+	} else if in.Annotations != nil {
+		annotations = make(map[string]string)
+		for k, v := range in.Annotations {
+			annotations[k] = v
+		}
+	}
+	return annotations
 }
 
 // GetNamespacedName returns the namespace/name key to lookup this resource.

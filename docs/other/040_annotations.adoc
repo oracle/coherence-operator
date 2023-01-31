@@ -6,14 +6,81 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-= Pod Annotations
+= Adding Annotations
+
+Annotations can be added to the Coherence cluster's `StatefulSet` and the `Pods`.
+See the official
+https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
+documentation for more details on applying annotations to resources.
+
+== StatefulSet Annotations
+
+The default behaviour of the Operator is to copy any annotations added to the `Coherence` resource to the `StatefulSet`.
+For example:
+
+[source,yaml]
+.coherence-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+  annotations:
+    key1: value1
+    key2: value2
+----
+
+This will result in a `StatefulSet` with the following annotations:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage
+  annotations:
+    key1: value1
+    key2: value2
+----
+
+Alternatively, if the `StatefulSet` should have different annotations to the `Coherence` resource, the annotations
+for the `StatefulSet` can be specified in the `spec.statefulSetAnnotations` field of the `Coherence` resource.
+For example:
+
+[source,yaml]
+.coherence-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+  annotations:
+    key1: value1
+    key2: value2
+spec:
+  replicas: 3
+  statefulSetAnnotations:
+    key3: value3
+    key4: value4
+----
+
+This will result in a `StatefulSet` with the following annotations:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage
+  annotations:
+    key3: value3
+    key4: value4
+----
 
 == Pod Annotations
 
 Additional annotations can be added to the `Pods` managed by the Operator.
 Annotations should be added to the `annotations` map in the `Coherence` CRD spec.
-The entries in the `annotations` map should confirm to the recommendations and rules in the Kubernetes
-https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Annotations] documentation.
 
 [source,yaml]
 ----
@@ -22,11 +89,20 @@ kind: Coherence
 metadata:
   name: test
 spec:
-  annotations:                        # <1>
-    prometheus.io/path: /metrics
-    prometheus.io/port: "9612"
-    prometheus.io/scheme: http
-    prometheus.io/scrape: "true"
+  annotations:
+    key1: value1
+    key2: value2
 ----
-<1> A number of Prometheus annotations will be added to this `Coherence` deployment's `Pods`
 
+The annotations will be added the `Pods`:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-0
+  annotations:
+    key1: value1
+    key2: value2
+----

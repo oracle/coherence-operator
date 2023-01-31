@@ -146,15 +146,32 @@ type CoherenceResourceSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations are free-form yaml that will be added to the store release as annotations
-	// Any annotations should be placed BELOW this "annotations:" key. For example if we wanted to
-	// include annotations for Prometheus it would look like this:
+	// Annotations are free-form yaml that will be added to the Coherence cluster member Pods
+	// as annotations. Any annotations should be placed BELOW this "annotations:" key,
+	// for example:
 	//
 	// annotations:
-	//   prometheus.io/scrape: "true"
-	//   prometheus.io/port: "2408"
+	//   foo.io/one: "value1"
+	//   foo.io/two: "value2"
+	//
+	// see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster
+	// `StatefulSet` as annotations.
+	// Any annotations should be placed BELOW this "annotations:" key, for example:
+	//
+	// The default behaviour is to copy all annotations from the `Coherence` resource to the
+	// `StatefulSet`, specifying any annotations in the `StatefulSetAnnotations` will override
+	// this behaviour and only include the `StatefulSetAnnotations`.
+	//
+	// annotations:
+	//   foo.io/one: "value1"
+	//   foo.io/two: "value2"
+	//
+	// see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
+	// +optional
+	StatefulSetAnnotations map[string]string `json:"statefulSetAnnotations,omitempty"`
 	// List of additional initialization containers to add to the deployment's Pod.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 	// +listType=map
@@ -737,9 +754,10 @@ func (in *CoherenceResourceSpec) CreateStatefulSetResource(deployment *Coherence
 func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1.StatefulSet {
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: deployment.GetNamespace(),
-			Name:      deployment.GetName(),
-			Labels:    deployment.CreateCommonLabels(),
+			Namespace:   deployment.GetNamespace(),
+			Name:        deployment.GetName(),
+			Labels:      deployment.CreateCommonLabels(),
+			Annotations: deployment.CreateAnnotations(),
 		},
 	}
 
