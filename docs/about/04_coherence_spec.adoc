@@ -122,11 +122,22 @@ m| suspendServiceTimeout | SuspendServiceTimeout sets the number of seconds to w
 m| startQuorum | StartQuorum controls the start-up order of this Coherence resource in relation to other Coherence resources. m| []<<StartQuorum,StartQuorum>> | false
 m| env | Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envvar-v1-core[corev1.EnvVar] | false
 m| labels | The extra labels to add to the all the Pods in this deployment. Labels here will add to or override those defined for the cluster. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
-m| annotations | Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this "annotations:" key. For example if we wanted to include annotations for Prometheus it would look like this: +
+m| annotations | Annotations are free-form yaml that will be added to the Coherence cluster member Pods as annotations. Any annotations should be placed BELOW this "annotations:" key, for example: +
  +
 annotations: +
-  prometheus.io/scrape: "true" + +
-  prometheus.io/port: "2408" + m| map[string]string | false
+  foo.io/one: "value1" + +
+  foo.io/two: "value2" + +
+ +
+see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations] m| map[string]string | false
+m| statefulSetAnnotations | StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster `StatefulSet` as annotations. Any annotations should be placed BELOW this "annotations:" key, for example: +
+ +
+The default behaviour is to copy all annotations from the `Coherence` resource to the `StatefulSet`, specifying any annotations in the `StatefulSetAnnotations` will override this behaviour and only include the `StatefulSetAnnotations`. +
+ +
+annotations: +
+  foo.io/one: "value1" + +
+  foo.io/two: "value2" + +
+ +
+see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations] m| map[string]string | false
 m| initContainers | List of additional initialization containers to add to the deployment's Pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core[corev1.Container] | false
 m| sideCars | List of additional side-car containers to add to the deployment's Pod. m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core[corev1.Container] | false
 m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all the containers and init-containers in the Pod. +

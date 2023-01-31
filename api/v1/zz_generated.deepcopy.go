@@ -320,6 +320,13 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.StatefulSetAnnotations != nil {
+		in, out := &in.StatefulSetAnnotations, &out.StatefulSetAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.InitContainers != nil {
 		in, out := &in.InitContainers, &out.InitContainers
 		*out = make([]corev1.Container, len(*in))
