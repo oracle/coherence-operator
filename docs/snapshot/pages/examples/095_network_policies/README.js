@@ -207,9 +207,8 @@ Kubernetes master is running at https://192.168.99.100:8443</markup>
 <markup
 lang="bash"
 
->$ kubectl get pod -n kube-system kube-apiserver-operator-control-plane -o wide
-NAME                                    READY   STATUS    RESTARTS   AGE     IP           NODE
-kube-apiserver-operator-control-plane   1/1     Running   0          7h43m   172.18.0.5   operator-control-plane</markup>
+>$ kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}'
+172.18.0.5</markup>
 
 <p>In the above case the IP address of the API server would be <code>172.18.0.5</code>.</p>
 
@@ -234,8 +233,12 @@ spec:
     - to:
         - ipBlock:
             cidr: 172.18.0.2/32
+        - ipBlock:
+            cidr: 10.96.0.1/32
       ports:
         - port: 6443
+          protocol: TCP
+        - port: 443
           protocol: TCP</markup>
 
 <p>The <code>allow-k8s-api-server.yaml</code> policy can be installed into the <code>coherence</code> namespace to allow the Operator to communicate with the API server.</p>
@@ -548,7 +551,7 @@ title="manifests/allow-cluster-member-operator-access.yaml"
 >apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: coherence-operator-cluster-member-egress
+  name: coherence-operator-cluster-member-access
 spec:
   podSelector:
     matchLabels:
@@ -613,7 +616,7 @@ configured to run on a fixed port <code>20001</code>. When using this image, or 
 configuration file, this port can be changed by setting the <code>COHERENCE_CONCURRENT_EXTEND_PORT</code> environment variable.</p>
 
 <p>For the examples below, a <code>Coherence</code> deployment has the following configuration.
-This will expose Extend on a port named <code>extend</code> with a port number of <code>20000</code>, and a port named <code>extend-concurrent</code>
+This will expose Extend on a port named <code>extend</code> with a port number of <code>20000</code>, and a port named <code>extend-atomics</code>
 with a port number of <code>20001</code>. The polices described below will then use the port names,
 so if required the port number could be changed and the policies would still work.</p>
 
@@ -628,7 +631,7 @@ spec:
   ports:
     - name: extend
       port: 20000
-    - name: extend-concurrent
+    - name: extend-atomics
       port: 20001</markup>
 
 <p>The ingress policy below will work with the default Coherence image and allow ingress into the Coherence Pods
@@ -658,7 +661,7 @@ spec:
       ports:
         - port: extend
           protocol: TCP
-        - port: extend-concurrent
+        - port: extend-atomics
           protocol: TCP</markup>
 
 <p>The policy above should be applied to the namespace where the Coherence cluster is running.</p>
@@ -691,7 +694,7 @@ spec:
       ports:
         - port: extend
           protocol: TCP
-        - port: extend-concurrent
+        - port: extend-atomics
           protocol: TCP</markup>
 
 <p>The policy above allows egress to Coherence Pods in any namespace. This would ideally be tightened up to the specific
@@ -775,7 +778,7 @@ spec:
       ports:
         - port: extend
           protocol: TCP
-        - port: extend-concurrent
+        - port: extend-atomics
           protocol: TCP</markup>
 
 <p>The policy above allows egress to Coherence Pods in any namespace. This would ideally be tightened up to the specific
