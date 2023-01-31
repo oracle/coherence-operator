@@ -435,11 +435,27 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 </tr>
 <tr>
 <td class=""><code>annotations</code></td>
-<td class="">Annotations are free-form yaml that will be added to the store release as annotations Any annotations should be placed BELOW this "annotations:" key. For example if we wanted to include annotations for Prometheus it would look like this:<br>
+<td class="">Annotations are free-form yaml that will be added to the Coherence cluster member Pods as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
 <br>
 annotations:<br>
-  prometheus.io/scrape: "true" +<br>
-  prometheus.io/port: "2408"<br></td>
+  foo.io/one: "value1" +<br>
+  foo.io/two: "value2" +<br>
+<br>
+see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>statefulSetAnnotations</code></td>
+<td class="">StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster <code>StatefulSet</code> as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
+<br>
+The default behaviour is to copy all annotations from the <code>Coherence</code> resource to the <code>StatefulSet</code>, specifying any annotations in the <code>StatefulSetAnnotations</code> will override this behaviour and only include the <code>StatefulSetAnnotations</code>.<br>
+<br>
+annotations:<br>
+  foo.io/one: "value1" +<br>
+  foo.io/two: "value2" +<br>
+<br>
+see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>

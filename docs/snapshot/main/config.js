@@ -808,8 +808,8 @@ function createRoutes(){
         {
             path: '/docs/other/040_annotations',
             meta: {
-                h1: 'Pod Annotations',
-                title: 'Pod Annotations',
+                h1: 'Adding Annotations',
+                title: 'Adding Annotations',
                 h1Prefix: null,
                 description: null,
                 keywords: null,
@@ -1388,7 +1388,7 @@ function createNav(){
                 { href: '/docs/other/010_overview', title: 'Overview' },
                 { href: '/docs/other/020_environment', title: 'Environment Variables' },
                 { href: '/docs/other/030_labels', title: 'Pod Labels' },
-                { href: '/docs/other/040_annotations', title: 'Pod Annotations' },
+                { href: '/docs/other/040_annotations', title: 'Adding Annotations' },
                 { href: '/docs/other/045_security_context', title: 'Pod & Container SecurityContext' },
                 { href: '/docs/other/050_configmap_volumes', title: 'Add ConfigMap Volumes' },
                 { href: '/docs/other/060_secret_volumes', title: 'Add Secrets Volumes' },
