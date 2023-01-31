@@ -1,0 +1,24 @@
+name: 'Setup Minikube Kubernetes Cluster'
+description: 'This action sets up a single node Kubernetes Cluster in your environment using Minikube'
+author: 'Marc Nuri'
+branding:
+  icon: anchor
+  color: blue
+inputs:
+  minikube version:
+    description: 'Version of Minikube to deploy'
+    required: true
+  kubernetes version:
+    description: 'Version of Kubernetes to deploy'
+    required: true
+  github token:
+    description: 'GITHUB_TOKEN to be able to perform requests to GH REST API (with no limit)'
+  driver:
+    description: 'Minikube driver to use. This action supports `none` (default if not specified) or `docker`'
+  container runtime:
+    description: 'The container runtime to be used (valid options: docker, cri-o, containerd)'
+  start args:
+    description: 'Additional arguments to append to minikube start command'
+runs:
+  using: 'node16'
+  main: 'src/index.js'

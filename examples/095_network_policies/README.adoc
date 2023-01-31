@@ -139,9 +139,8 @@ In a simple KinD development cluster, the API server IP address can be obtained 
 
 [source,bash]
 ----
-$ kubectl get pod -n kube-system kube-apiserver-operator-control-plane -o wide
-NAME                                    READY   STATUS    RESTARTS   AGE     IP           NODE
-kube-apiserver-operator-control-plane   1/1     Running   0          7h43m   172.18.0.5   operator-control-plane
+$ kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}'
+172.18.0.5
 ----
 
 In the above case the IP address of the API server would be `172.18.0.5`.
@@ -364,7 +363,7 @@ configured to run on a fixed port `20001`. When using this image, or any image t
 configuration file, this port can be changed by setting the `COHERENCE_CONCURRENT_EXTEND_PORT` environment variable.
 
 For the examples below, a `Coherence` deployment has the following configuration.
-This will expose Extend on a port named `extend` with a port number of `20000`, and a port named `extend-concurrent`
+This will expose Extend on a port named `extend` with a port number of `20000`, and a port named `extend-atomics`
 with a port number of `20001`. The polices described below will then use the port names,
 so if required the port number could be changed and the policies would still work.
 
@@ -379,7 +378,7 @@ spec:
   ports:
     - name: extend
       port: 20000
-    - name: extend-concurrent
+    - name: extend-atomics
       port: 20001
 ----
 

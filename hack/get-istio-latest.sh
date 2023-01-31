@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2021, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -24,7 +24,7 @@ ISTIO_HOME=${TOOLS_DIRECTORY}/istio-${ISTIO_VERSION}
 
 if [ ! -d "${ISTIO_HOME}" ]; then
   echo "Istio will be installed into ${ISTIO_HOME}"
-  mkdir -p ${ISTIO_HOME} || true
+  rm -rf "${TOOLS_DIRECTORY}"/istio-*
+  mkdir -p "${ISTIO_HOME}" || true
   curl -sL https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} sh -
 fi
-

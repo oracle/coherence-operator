@@ -38,9 +38,8 @@ jobs:
       matrix:
         istioVersion:
         - latest
-        - 1.12.1
-        - 1.11.5
-        - 1.10.6
+        - 1.16.1
+        - 1.15.4
 
     steps:
     - uses: actions/checkout@v3

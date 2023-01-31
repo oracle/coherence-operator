@@ -22,24 +22,41 @@
 #
 # --------------------------------------------------------------------------------
 
+export OPERATOR_NAMESPACE=coherence
+
 echo "Building Operator"
-make build-all-images
-if [[ $? != 0 ]]; then
+if ! make build-all-images;
+then
   exit 1
 fi
 
-make helm-chart
-if [[ $? != 0 ]]; then
+if ! make helm-chart;
+then
   exit 1
 fi
 
 if [[ "$LOAD_KIND" == "true" ]]; then
   echo "Loading Images to Kind"
-  make kind-load
+  if ! make kind-load;
+  then
+    exit 1
+  fi
 fi
 
 echo "Running Certification Tests"
-make certification-test
-if [[ $? != 0 ]]; then
+if ! make certification-test;
+then
   exit 1
 fi
+
+if [[ "$RUN_NET_TEST" != "false" ]]
+then
+  echo "Running Network Policy Tests"
+  if ! make network-policy-test;
+  then
+    exit 1
+  fi
+else
+  echo "Skipping Network Policy Tests"
+fi
+

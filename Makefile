@@ -19,7 +19,7 @@ VERSION ?= 3.2.10
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.8
+PREV_VERSION ?= 3.2.9
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
@@ -165,8 +165,10 @@ GO_TEST_FLAGS     ?= -timeout=20m -run=^$(RUN_ONE)$$
 GO_TEST_FLAGS_E2E ?= -timeout=100m -run=^$(RUN_ONE)$$
 endif
 
-# default as in test/e2e/helper/proj_helpers.go
+# default test namespace, as in test/e2e/helper/proj_helpers.go
 OPERATOR_NAMESPACE ?= operator-test
+# default test cluster namespace, as in test/e2e/helper/proj_helpers.go
+CLUSTER_NAMESPACE ?= coherence-test
 # the test client namespace
 OPERATOR_NAMESPACE_CLIENT ?= operator-test-client
 # the optional namespaces the operator should watch
@@ -247,6 +249,7 @@ override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
 override SCRIPTS_DIR         := $(CURRDIR)/hack
+override EXAMPLES_DIR        := $(CURRDIR)/examples
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
 override TANZU_DIR           := $(BUILD_OUTPUT)/tanzu
 override TANZU_PACKAGE_DIR   := $(BUILD_OUTPUT)/tanzu/package
@@ -322,12 +325,6 @@ PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSI
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
 GRAFANA_DASHBOARDS           ?= dashboards/grafana/
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Elasticsearch & Kibana settings (used in integration tests)
-# ----------------------------------------------------------------------------------------------------------------------
-ELASTIC_VERSION ?= 7.6.2
-KIBANA_INDEX_PATTERN := "6abb1220-3feb-11e9-a9a3-4b1c09db6e6a"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # MetalLB load balancer settings
@@ -988,50 +985,6 @@ run-prometheus-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/...
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Executes the Go end-to-end tests that require Elasticsearch in the k8s cluster
-# using a LOCAL operator instance (i.e. the operator is not deployed to k8s).
-#
-# This target DOES NOT install Elasticsearch, use the e2e-elastic-test target
-# to fully reset the test namespace.
-#
-# These tests will use whichever k8s cluster the local environment
-# is pointing to.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: e2e-elastic-test
-e2e-elastic-test: export MF = $(MAKEFLAGS)
-e2e-elastic-test: reset-namespace install-elastic $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait   ## Run the Operator logging/ElasticSearch end-to-end functional tests
-	$(MAKE) run-elastic-test $${MF} \
-	; rc=$$? \
-	; $(MAKE) uninstall-elastic $${MF} \
-	; $(MAKE) undeploy $${MF} \
-	; $(MAKE) delete-namespace $${MF} \
-	; exit $$rc
-
-.PHONY: run-elastic-test
-run-elastic-test: export CGO_ENABLED = 0
-run-elastic-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
-run-elastic-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-run-elastic-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
-run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
-run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
-run-elastic-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-run-elastic-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-run-elastic-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-run-elastic-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-run-elastic-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-run-elastic-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-run-elastic-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
-run-elastic-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
-run-elastic-test: export VERSION := $(VERSION)
-run-elastic-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-run-elastic-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-run-elastic-test: export KIBANA_INDEX_PATTERN := $(KIBANA_INDEX_PATTERN)
-run-elastic-test: gotestsum
-	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-elastic-test.xml \
-	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/elastic/...
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator backwards compatibility tests to ensure upgrades from previous Operator versions
 # work and do not impact running clusters, etc.
@@ -1072,6 +1025,7 @@ compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$
 .PHONY: certification-test
 certification-test: export MF = $(MAKEFLAGS)
 certification-test: install-certification     ## Run the Operator Kubernetes versions certification tests
+	@echo "Running certification tests"
 	$(MAKE) run-certification  $${MF} \
 	; rc=$$? \
 	; $(MAKE) cleanup-certification $${MF} \
@@ -1092,6 +1046,7 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 .PHONY: run-certification
 run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+run-certification: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-certification: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-certification: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -1116,7 +1071,92 @@ run-certification: gotestsum
 # Clean up after to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: cleanup-certification
-cleanup-certification: undeploy uninstall-crds clean-namespace
+cleanup-certification: undeploy clean-namespace
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Executes the Go end-to-end Operator Kubernetes network policy tests.
+# These tests will use whichever k8s cluster the local environment is pointing to.
+# Note that the namespace will be created if it does not exist.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: network-policy-test
+network-policy-test: export MF = $(MAKEFLAGS)
+network-policy-test: install-network-policy-tests     ## Run the Operator Kubernetes network policy tests
+	$(MAKE) run-certification  $${MF} \
+	; rc=$$? \
+	; $(MAKE) cleanup-certification $${MF} \
+	; exit $$rc
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Operator prior to running network policy tests.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-network-policy-tests
+install-network-policy-tests: $(BUILD_TARGETS)/build-operator reset-namespace install-network-policies create-ssl-secrets deploy-and-wait
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-network-policies
+install-network-policies: install-operator-network-policies install-coherence-network-policies
+	@echo "API Server info"
+	kubectl get svc -o wide
+	kubectl get endpoints kubernetes
+	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
+	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
+	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
+	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Prepare a copy of the example network policies
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: prepare-network-policies
+prepare-network-policies: export IP=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}')
+prepare-network-policies:
+	mkdir -p $(BUILD_OUTPUT)/network-policies
+	cp $(EXAMPLES_DIR)/095_network_policies/*.sh $(BUILD_OUTPUT)/network-policies
+	cp -R $(EXAMPLES_DIR)/095_network_policies/manifests $(BUILD_OUTPUT)/network-policies
+	$(SED) -e 's/172.18.0.2/${IP}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall the network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-network-policies
+uninstall-network-policies: uninstall-operator-network-policies uninstall-coherence-network-policies
+	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
+	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
+	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
+	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Operator network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-operator-network-policies
+install-operator-network-policies: export NAMESPACE := $(OPERATOR_NAMESPACE)
+install-operator-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/add-operator-policies.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall the Operator network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-operator-network-policies
+uninstall-operator-network-policies: export NAMESPACE := $(OPERATOR_NAMESPACE)
+uninstall-operator-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/remove-operator-policies.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install the Coherence cluster network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: install-coherence-network-policies
+install-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
+install-coherence-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/add-cluster-member-policies.sh
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Uninstall the Coherence cluster network policies from the examples
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: uninstall-coherence-network-policies
+uninstall-coherence-network-policies: export NAMESPACE := $(CLUSTER_NAMESPACE)
+uninstall-coherence-network-policies: prepare-network-policies
+	$(BUILD_OUTPUT)/network-policies/remove-cluster-member-policies.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Coherence versions compatibility tests.
@@ -1187,8 +1227,11 @@ install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-crds
 uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
+	@echo "Uninstalling CRDs - calling prepare_deploy"
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete -f - || true
+	@echo "Uninstalling CRDs - executing deletion"
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true
+	@echo "Uninstall CRDs completed"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -1257,9 +1300,11 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 .PHONY: wait-for-deploy
 wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
+	sleep 30
+	echo "Operator Pods:"
+	kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
 	echo "Waiting for Operator to be ready. Pod: $(POD)"
-	sleep 10
-	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 120s $(POD)
+	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Prepare the deployment manifests - this is called by a number of other targets.
@@ -1281,11 +1326,13 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests kustomize  ## Undeploy the Coherence Operator
+	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
 	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
+	@echo "Undeploy Coherence Operator completed"
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1319,9 +1366,11 @@ create-namespace: ## Create the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	kubectl get ns $(OPERATOR_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE)
 	kubectl get ns $(OPERATOR_NAMESPACE_CLIENT) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE_CLIENT)
+	kubectl get ns $(CLUSTER_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(CLUSTER_NAMESPACE)
 endif
 	kubectl label namespace $(OPERATOR_NAMESPACE) coherence.oracle.com/test=true --overwrite
 	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) coherence.oracle.com/test=true --overwrite
+	kubectl label namespace $(CLUSTER_NAMESPACE) coherence.oracle.com/test=true --overwrite
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1359,12 +1408,20 @@ endif
 .PHONY: delete-namespace
 delete-namespace: clean-namespace  ## Delete the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	@echo "Deleting test namespace $(OPERATOR_NAMESPACE)"
-	kubectl delete namespace $(OPERATOR_NAMESPACE) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE)" || true
-	kubectl delete namespace $(OPERATOR_NAMESPACE_CLIENT) --force --grace-period=0 && echo "deleted namespace $(OPERATOR_NAMESPACE_CLIENT)" || true
+	$(call delete_ns,$(OPERATOR_NAMESPACE))
+	$(call delete_ns,$(OPERATOR_NAMESPACE_CLIENT))
+	$(call delete_ns,$(CLUSTER_NAMESPACE))
 endif
-	kubectl delete clusterrole operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
-	kubectl delete clusterrolebinding operator-test-coherence-operator --force --grace-period=0 && echo "deleted namespace" || true
+	kubectl delete clusterrole operator-test-coherence-operator --force --ignore-not-found=true --grace-period=0 && echo "deleted namespace" || true
+	kubectl delete clusterrolebinding operator-test-coherence-operator --ignore-not-found=true --force --grace-period=0 && echo "deleted namespace" || true
+
+define delete_ns
+	if kubectl get ns $(1); then \
+		echo "Deleting test namespace $(1)" ;\
+		kubectl delete namespace $(1) --force --ignore-not-found=true --grace-period=0 --timeout=600s ;\
+		echo "deleted namespace $(1)" || true ;\
+	fi
+endef
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete all of the Coherence resources from the test namespace.
@@ -1375,16 +1432,28 @@ delete-coherence-clusters: ## Delete all running Coherence clusters in the test 
   		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
+	for i in $$(kubectl -n  $(CLUSTER_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
+  		kubectl -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	done
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete all resource from the test namespace
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean-namespace
 clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
+	@echo "Cleaning Namespaces..."
+	kubectl delete --all networkpolicy --namespace=$(OPERATOR_NAMESPACE) || true
+	kubectl delete --all networkpolicy --namespace=$(CLUSTER_NAMESPACE) || true
 	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
 		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
+	for i in $$(kubectl -n $(CLUSTER_NAMESPACE) get all -o name); do \
+		echo "Deleting $${i} from test namespace $(CLUSTER_NAMESPACE)" \
+		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	done
+	@echo "Cleaning Namespaces completed"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Create the k8s secret to use in SSL/TLS testing.
@@ -1411,8 +1480,10 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 # ======================================================================================================================
 ##@ KinD
 
-KIND_CLUSTER ?= operator
-KIND_IMAGE   ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
+KIND_CLUSTER   ?= operator
+KIND_IMAGE     ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
+#KIND_IMAGE     ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
+CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
@@ -1440,8 +1511,9 @@ kind-calico:   ## Run a KinD cluster with Calico
 	$(SCRIPTS_DIR)/kind-label-node.sh
 	curl -sL https://docs.projectcalico.org/manifests/calico.yaml | kubectl apply -f -
 	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
-	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=calico-node pod
-	kubectl -n kube-system wait --for condition=ready --timeout=300s -l k8s-app=kube-dns pod
+	sleep 30
+	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=calico-node pod
+	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=kube-dns pod
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop and delete the Kind cluster
@@ -1462,8 +1534,8 @@ kind-load: kind-load-operator kind-load-coherence  ## Load all images into the K
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
 	kind load docker-image --name $(KIND_CLUSTER) gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
-	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:7.6.2 || true
-	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:7.6.2 || true
+	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:$(ELASTIC_VERSION) || true
+	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:$(ELASTIC_VERSION) || true
 
 .PHONY: kind-load-coherence
 kind-load-coherence:   ## Load the Coherence image into the KinD cluster
@@ -1480,6 +1552,48 @@ kind-load-operator:   ## Load the Operator images into the KinD cluster
 .PHONY: kind-load-compatibility
 kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_COMPATIBILITY_IMAGE) || true
+
+# ======================================================================================================================
+# Targets related to running Minikube
+# ======================================================================================================================
+##@ Minikube
+
+# the version of minikube to install
+MINIKUBE_VERSION ?= latest
+MINIKUBE_K8S     ?= 1.26.1
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Start Minikube
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: minikube
+minikube: minikube-install  ## Run a default minikube cluster with Calico
+	$(MINIKUBE) start --driver docker --cni calico --kubernetes-version $(MINIKUBE_K8S)
+	kubectl get nodes
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install Minikube
+# ----------------------------------------------------------------------------------------------------------------------
+MINIKUBE = $(TOOLS_BIN)/minikube
+.PHONY: minikube-install
+minikube-install: $(TOOLS_BIN)/minikube ## Install minikube (defaults to the latest version, can be changed by setting MINIKUBE_VERSION)
+	$(MINIKUBE) version
+
+$(TOOLS_BIN)/minikube:
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-amd64
+	install minikube-darwin-amd64 $(TOOLS_BIN)/minikube
+	rm minikube-darwin-amd64
+else
+	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-arm64
+	install minikube-darwin-arm64 $(TOOLS_BIN)/minikube
+	rm minikube-darwin-arm64
+endif
+else
+	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-linux-amd64
+	install minikube-linux-amd64 $(TOOLS_BIN)/minikube
+	rm minikube-linux-amd64
+endif
 
 # ======================================================================================================================
 # Kubernetes Cert Manager targets
@@ -1846,66 +1960,6 @@ port-forward-grafana: ## Run a port-forward to Grafana on http://127.0.0.1:3000
 	@echo "Reach Grafana on http://127.0.0.1:3000"
 	@echo "User: admin Password: admin"
 	kubectl --namespace monitoring port-forward svc/grafana 3000
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Install Elasticsearch & Kibana
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: install-elastic
-install-elastic: helm-install-elastic kibana-import ## Install Elastic Stack
-
-.PHONY: helm-install-elastic
-helm-install-elastic:
-	kubectl create ns $(OPERATOR_NAMESPACE) || true
-#   Create the ConfigMap containing the Coherence Kibana dashboards
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-dashboard || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file dashboards/kibana/kibana-dashboard-data.json coherence-kibana-dashboard
-#   Create the ConfigMap containing the Coherence Kibana dashboards import script
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-kibana-import || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic --from-file hack/kibana-import.sh coherence-kibana-import
-#   Set-up the Elastic Helm repo
-	@echo "Getting Helm Version:"
-	helm version
-	helm repo add elastic https://helm.elastic.co || true
-	helm repo update || true
-#   Install Elasticsearch
-	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values hack/elastic-values.yaml elasticsearch elastic/elasticsearch
-#   Install Kibana
-	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(ELASTIC_VERSION) --wait --timeout=10m \
-		--debug --values hack/kibana-values.yaml kibana elastic/kibana \
-
-.PHONY: kibana-import
-kibana-import:
-	KIBANA_POD=$$(kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name) \
-	; kubectl -n $(OPERATOR_NAMESPACE) exec -it $${KIBANA_POD} -- /bin/bash /usr/share/kibana/data/coherence/scripts/kibana-import.sh
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Uninstall Elasticsearch & Kibana
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: uninstall-elastic
-uninstall-elastic: ## Uninstall Elastic Stack
-	helm uninstall --namespace $(OPERATOR_NAMESPACE) kibana || true
-	helm uninstall --namespace $(OPERATOR_NAMESPACE) elasticsearch || true
-	kubectl -n $(OPERATOR_NAMESPACE) delete pvc elasticsearch-master-elasticsearch-master-0 || true
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a port-forward process to the Kibana Pod.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: port-forward-kibana
-port-forward-kibana: export KIBANA_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=kibana -o name)
-port-forward-kibana: ## Run a port-forward to Kibana on http://127.0.0.1:5601
-	@echo "Reach Kibana on http://127.0.0.1:5601"
-	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(KIBANA_POD) 5601:5601
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Start a port-forward process to the Elasticsearch Pod.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: port-forward-es
-port-forward-es: export ES_POD := $(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l app=elasticsearch-master -o name)
-port-forward-es: ## Run a port-forward to Elasticsearch on http://127.0.0.1:9200
-	@echo "Reach Elasticsearch on http://127.0.0.1:9200"
-	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(ES_POD) 9200:9200
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install MetalLB

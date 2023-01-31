@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -91,6 +91,12 @@ func (in TestContext) Cleanup() {
 	in.Logger.Info("tearing down the test environment")
 	ns := GetTestNamespace()
 	in.CleanupNamespace(ns)
+	clusterNS := GetTestClusterNamespace()
+	if clusterNS != ns {
+		in.CleanupNamespace(clusterNS)
+	}
+	clientNS := GetTestClientNamespace()
+	in.CleanupNamespace(clientNS)
 	for i := range in.namespaces {
 		_ = in.cleanAndDeleteNamespace(in.namespaces[i])
 	}
@@ -1003,6 +1009,10 @@ func DumpOperatorLogs(t *testing.T, ctx TestContext) {
 	namespace := GetTestNamespace()
 	DumpOperatorLog(ctx, namespace, t.Name())
 	DumpState(ctx, namespace, t.Name())
+	clusterNamespace := GetTestClusterNamespace()
+	if clusterNamespace != namespace {
+		DumpState(ctx, clusterNamespace, t.Name()+string(os.PathSeparator)+clusterNamespace)
+	}
 }
 
 func DumpState(ctx TestContext, namespace, dir string) {

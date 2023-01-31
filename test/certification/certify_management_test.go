@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -25,7 +25,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 
 	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
@@ -90,7 +90,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewGomegaWithT(t)
 
-	ns := helper.GetTestNamespace()
+	ns := helper.GetTestClusterNamespace()
 
 	d := &v1.Coherence{
 		ObjectMeta: metav1.ObjectMeta{
