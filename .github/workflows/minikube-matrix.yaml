@@ -99,10 +99,11 @@ jobs:
       uses: ./.github/actions/setup-minikube
       id: minikube
       with:
-        minikube version: 'v1.28.0'
+        minikube version: 'v1.29.0'
         driver: docker
         kubernetes version: ${{ matrix.k8s }}
         github token: ${{ secrets.GITHUB_TOKEN }}
+        start args: "--network-plugin=cni --cni=calico"
 
     - name: Certification Tests
       shell: bash

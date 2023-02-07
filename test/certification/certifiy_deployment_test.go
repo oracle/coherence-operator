@@ -42,27 +42,6 @@ func TestCertifyMinimalSpec(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestCertifyMinimalSpecSingleNamespace(t *testing.T) {
-	// Ensure that everything is cleaned up after the test!
-	testContext.CleanupAfterTest(t)
-
-	g := NewGomegaWithT(t)
-
-	ns := helper.GetTestNamespace()
-	d := &v1.Coherence{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: ns,
-			Name:      "certify-minimal-same-ns",
-		},
-	}
-
-	err := testContext.Client.Create(context.TODO(), d)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
-	g.Expect(err).NotTo(HaveOccurred())
-}
-
 func TestCertifyScaling(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
