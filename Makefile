@@ -1560,7 +1560,7 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 
 # the version of minikube to install
 MINIKUBE_VERSION ?= latest
-MINIKUBE_K8S     ?= 1.26.1
+MINIKUBE_K8S     ?= 1.25.4
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start Minikube
@@ -1568,7 +1568,16 @@ MINIKUBE_K8S     ?= 1.26.1
 .PHONY: minikube
 minikube: minikube-install  ## Run a default minikube cluster with Calico
 	$(MINIKUBE) start --driver docker --cni calico --kubernetes-version $(MINIKUBE_K8S)
+	$(MINIKUBE) status
 	kubectl get nodes
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Stop Minikube
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: minikube-stop
+minikube-stop:  ## Stop and delete the minikube cluster
+	$(MINIKUBE) stop || true
+	$(MINIKUBE) delete || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Minikube
