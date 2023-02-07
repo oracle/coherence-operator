@@ -1298,13 +1298,10 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
-wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
+wait-for-deploy: export OPERATOR_NAMESPACE=$(OPERATOR_NAMESPACE)
 wait-for-deploy:
 	sleep 30
-	echo "Operator Pods:"
-	kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
-	echo "Waiting for Operator to be ready. Pod: $(POD)"
-	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
+	hack/wait-for-operator.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Prepare the deployment manifests - this is called by a number of other targets.
