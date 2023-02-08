@@ -43,19 +43,19 @@ if [[ "$LOAD_KIND" == "true" ]]; then
   fi
 fi
 
-#echo "Running Certification Tests"
-#if ! make certification-test;
-#then
-#  exit 1
-#fi
+echo "Running Certification Tests"
+if ! make certification-test;
+then
+  exit 1
+fi
 
 if [[ "$RUN_NET_TEST" != "false" ]]
 then
-#  echo "Running Network Policy Tests"
-#  if ! make network-policy-test;
-#  then
-#    exit 1
-#  fi
+  echo "Running Network Policy Tests"
+  if ! make network-policy-test;
+  then
+    exit 1
+  fi
 
   echo "Running Network Policy Tests - Single Namespace"
   export OPERATOR_NAMESPACE=coherence

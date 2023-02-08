@@ -82,6 +82,7 @@ func execute() error {
 	}
 
 	// create the client here as we use it to install CRDs then inject it into the Manager
+	setupLog.Info("Creating Kubernetes client", "Host", cfg.Host)
 	cl, err := client.New(cfg, client.Options{Scheme: scheme})
 	if err != nil {
 		return errors.Wrap(err, "unable to create client")

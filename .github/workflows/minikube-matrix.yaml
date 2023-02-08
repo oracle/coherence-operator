@@ -103,7 +103,7 @@ jobs:
         driver: docker
         kubernetes version: ${{ matrix.k8s }}
         github token: ${{ secrets.GITHUB_TOKEN }}
-        start args: "--network-plugin=cni --cni=calico"
+        start args: "--cni=calico"
 
     - name: Certification Tests
       shell: bash

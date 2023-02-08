@@ -10,6 +10,8 @@ if [[ "${OPERATOR_NAMESPACE}" == "" ]]; then
   OPERATOR_NAMESPACE="operator-test"
 fi
 
+echo "Waiting for Operator to start in namespace ${OPERATOR_NAMESPACE}"
+
 POD=$(kubectl -n "${OPERATOR_NAMESPACE}" get pod -l control-plane=coherence -o name)
 
 echo "Operator Pods:"

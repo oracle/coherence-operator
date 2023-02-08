@@ -1109,12 +1109,16 @@ install-network-policies: install-operator-network-policies install-coherence-ne
 # Prepare a copy of the example network policies
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: prepare-network-policies
-prepare-network-policies: export IP=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}')
+prepare-network-policies: export IP1=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[0].addresses[0].ip}')
+prepare-network-policies: export IP2=$(shell kubectl -n default get svc kubernetes -o jsonpath='{.spec.clusterIP}')
+prepare-network-policies: export API_PORT=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[0].ports[0].port}')
 prepare-network-policies:
 	mkdir -p $(BUILD_OUTPUT)/network-policies
 	cp $(EXAMPLES_DIR)/095_network_policies/*.sh $(BUILD_OUTPUT)/network-policies
 	cp -R $(EXAMPLES_DIR)/095_network_policies/manifests $(BUILD_OUTPUT)/network-policies
-	$(SED) -e 's/172.18.0.2/${IP}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+	$(SED) -e 's/6443/${API_PORT}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the network policies from the examples
@@ -1298,10 +1302,9 @@ prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
-wait-for-deploy: export OPERATOR_NAMESPACE=$(OPERATOR_NAMESPACE)
 wait-for-deploy:
 	sleep 30
-	hack/wait-for-operator.sh
+	export OPERATOR_NAMESPACE=$(OPERATOR_NAMESPACE) && hack/wait-for-operator.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Prepare the deployment manifests - this is called by a number of other targets.
