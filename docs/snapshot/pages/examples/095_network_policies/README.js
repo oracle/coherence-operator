@@ -93,10 +93,12 @@ kind: NetworkPolicy
 metadata:
   name: deny-all
 spec:
-  podSelector: { }
+  podSelector: {}
   policyTypes:
     - Ingress
-    - Egress</markup>
+    - Egress
+  ingress: []
+  egress: []</markup>
 
 <p>The policy above can be installed into the <code>coherence</code> namespace with the following command:</p>
 
@@ -200,17 +202,46 @@ lang="bash"
 >$ kubectl cluster-info
 Kubernetes master is running at https://192.168.99.100:8443</markup>
 
-<p>In the above case the IP address of the API server would be <code>192.168.99.100</code>.</p>
+<p>In the above case the IP address of the API server would be <code>192.168.99.100</code> and the port is <code>8443</code>.</p>
 
 <p>In a simple KinD development cluster, the API server IP address can be obtained using <code>kubectl</code> as shown below:</p>
 
 <markup
 lang="bash"
 
->$ kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}'
-172.18.0.5</markup>
+>$ kubectl -n default get endpoints kubernetes -o json
+{
+    "apiVersion": "v1",
+    "kind": "Endpoints",
+    "metadata": {
+        "creationTimestamp": "2023-02-08T10:31:26Z",
+        "labels": {
+            "endpointslice.kubernetes.io/skip-mirror": "true"
+        },
+        "name": "kubernetes",
+        "namespace": "default",
+        "resourceVersion": "196",
+        "uid": "68b0a7de-c0db-4524-a1a2-9d29eb137f28"
+    },
+    "subsets": [
+        {
+            "addresses": [
+                {
+                    "ip": "192.168.49.2"
+                }
+            ],
+            "ports": [
+                {
+                    "name": "https",
+                    "port": 8443,
+                    "protocol": "TCP"
+                }
+            ]
+        }
+    ]
+}</markup>
 
-<p>In the above case the IP address of the API server would be <code>172.18.0.5</code>.</p>
+<p>In the above case the IP address of the API server would be <code>192.168.49.2</code> and the port is <code>8443</code>.</p>
 
 <p>The IP address displayed for the API server can then be used in the network policy.
 The policy shown below allows Pods with the <code>app.kubernetes.io/name: coherence-operator</code> label (which the Operator has)
@@ -229,12 +260,13 @@ spec:
       app.kubernetes.io/name: coherence-operator
   policyTypes:
     - Egress
+    - Ingress
   egress:
     - to:
         - ipBlock:
-            cidr: 172.18.0.2/32
+            cidr: 172.18.0.2/24
         - ipBlock:
-            cidr: 10.96.0.1/32
+            cidr: 10.96.0.1/24
       ports:
         - port: 6443
           protocol: TCP
