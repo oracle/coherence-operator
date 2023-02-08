@@ -56,6 +56,14 @@ then
   then
     exit 1
   fi
+
+  echo "Running Network Policy Tests - Single Namespace"
+  export OPERATOR_NAMESPACE=coherence
+  export CLUSTER_NAMESPACE=coherence
+  if ! make network-policy-test;
+  then
+    exit 1
+  fi
 else
   echo "Skipping Network Policy Tests"
 fi

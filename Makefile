@@ -1109,12 +1109,16 @@ install-network-policies: install-operator-network-policies install-coherence-ne
 # Prepare a copy of the example network policies
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: prepare-network-policies
-prepare-network-policies: export IP=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}')
+prepare-network-policies: export IP1=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[0].addresses[0].ip}')
+prepare-network-policies: export IP2=$(shell kubectl -n default get svc kubernetes -o jsonpath='{.spec.clusterIP}')
+prepare-network-policies: export API_PORT=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[0].ports[0].port}')
 prepare-network-policies:
 	mkdir -p $(BUILD_OUTPUT)/network-policies
 	cp $(EXAMPLES_DIR)/095_network_policies/*.sh $(BUILD_OUTPUT)/network-policies
 	cp -R $(EXAMPLES_DIR)/095_network_policies/manifests $(BUILD_OUTPUT)/network-policies
-	$(SED) -e 's/172.18.0.2/${IP}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+	$(SED) -e 's/6443/${API_PORT}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the network policies from the examples
@@ -1504,12 +1508,14 @@ kind-single-worker:   ## Run a KinD cluster with a single worker node
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster with Calico
 # ----------------------------------------------------------------------------------------------------------------------
+CALICO_VERSION ?= v3.25.0
+
 .PHONY: kind-calico
 kind-calico: export KIND_CONFIG=$(SCRIPTS_DIR)/kind-config-calico.yaml
 kind-calico:   ## Run a KinD cluster with Calico
 	kind create cluster --name $(KIND_CLUSTER) --config $(SCRIPTS_DIR)/kind-config-calico.yaml --image $(KIND_IMAGE)
 	$(SCRIPTS_DIR)/kind-label-node.sh
-	curl -sL https://docs.projectcalico.org/manifests/calico.yaml | kubectl apply -f -
+	kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/$(CALICO_VERSION)/manifests/calico.yaml
 	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 	sleep 30
 	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=calico-node pod
@@ -1560,7 +1566,7 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 
 # the version of minikube to install
 MINIKUBE_VERSION ?= latest
-MINIKUBE_K8S     ?= 1.26.1
+MINIKUBE_K8S     ?= 1.25.4
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start Minikube
@@ -1568,7 +1574,16 @@ MINIKUBE_K8S     ?= 1.26.1
 .PHONY: minikube
 minikube: minikube-install  ## Run a default minikube cluster with Calico
 	$(MINIKUBE) start --driver docker --cni calico --kubernetes-version $(MINIKUBE_K8S)
+	$(MINIKUBE) status
 	kubectl get nodes
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Stop Minikube
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: minikube-stop
+minikube-stop:  ## Stop and delete the minikube cluster
+	$(MINIKUBE) stop || true
+	$(MINIKUBE) delete || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Minikube
