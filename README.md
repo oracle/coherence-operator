@@ -59,3 +59,19 @@ please [visit this site to get an invitation](https://join.slack.com/t/oraclecoh
 The invitation email will include details of how to access our Slack
 workspace.  After you are logged in, please come to `#operator` and say, "hello!"
 
+## Contributing
+
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
+
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+
+## License
+
+Copyright (c) 2019, 2023 Oracle and/or its affiliates.
+
+*Replace this statement if your project is not licensed under the UPL*
+
+Released under the Universal Permissive License v1.0 as shown at
+<https://oss.oracle.com/licenses/upl/>.
