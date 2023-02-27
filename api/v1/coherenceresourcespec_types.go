@@ -237,7 +237,7 @@ type CoherenceResourceSpec struct {
 	// +optional
 	ReadinessGates []corev1.PodReadinessGate `json:"readinessGates,omitempty"`
 	// Resources is the optional resource requests and limits for the containers
-	//  ref: http://kubernetes.io/docs/user-guide/compute-resources/
+	//  ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// The Coherence operator does not apply any default resources.
 	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
