@@ -156,7 +156,7 @@ m| livenessProbe | The liveness probe config to be used for the Pods in this dep
 m| startupProbe | The startup probe config to be used for the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ m| &#42;<<ReadinessProbeSpec,ReadinessProbeSpec>> | false
 m| readinessGates | ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness. See: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate m| []https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podreadinessgate-v1-core[corev1.PodReadinessGate] | false
 m| resources | Resources is the optional resource requests and limits for the containers +
- ref: http://kubernetes.io/docs/user-guide/compute-resources/ + +
+ ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ + +
 The Coherence operator does not apply any default resources. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core[corev1.ResourceRequirements] | false
 m| affinity | Affinity controls Pod scheduling preferences. +
   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity + m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#affinity-v1-core[corev1.Affinity] | false
@@ -576,9 +576,9 @@ PersistentVolumeClaimObjectMeta is metadata  for the PersistentVolumeClaim.
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
-m| name | Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names m| string | false
-m| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
-m| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations m| map[string]string | false
+m| name | Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/ m| string | false
+m| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
+m| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ m| map[string]string | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -766,7 +766,7 @@ ServiceMonitorSpec the ServiceMonitor spec for a port service.
 |===
 | Field | Description | Type | Required
 m| enabled | Enabled is a flag to enable or disable creation of a Prometheus ServiceMonitor for a port. If Prometheus ServiceMonitor CR is not installed no ServiceMonitor then even if this flag is true no ServiceMonitor will be created. m| &#42;bool | false
-m| labels | Additional labels to add to the ServiceMonitor. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
+m| labels | Additional labels to add to the ServiceMonitor. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
 m| jobLabel | The label to use to retrieve the job name from. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec m| string | false
 m| targetLabels | TargetLabels transfers labels on the Kubernetes Service onto the target. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec m| []string | false
 m| podTargetLabels | PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec m| []string | false
@@ -807,7 +807,7 @@ m| clusterIPs | ClusterIPs is a list of IP addresses assigned to this service, a
  +
 Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one value, which must be the same as the clusterIP field.  If the feature gate is enabled, this field may hold a maximum of two entries (dual-stack IPs, in either order).  These IPs must correspond to the values of the ipFamilies field. Both clusterIPs and ipFamilies are governed by the ipFamilyPolicy field. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies m| []string | false
 m| loadBalancerIP | LoadBalancerIP is the IP address of the load balancer m| &#42;string | false
-m| labels | The extra labels to add to the service. More info: http://kubernetes.io/docs/user-guide/labels m| map[string]string | false
+m| labels | The extra labels to add to the service. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
 m| annotations | Annotations is free form yaml that will be added to the service annotations m| map[string]string | false
 m| sessionAffinity | Supports "ClientIP" and "None". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies m| &#42;https://pkg.go.dev/k8s.io/api/core/v1#ServiceAffinity | false
 m| loadBalancerSourceRanges | If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature." m| []string | false
@@ -896,7 +896,7 @@ m| replicas | Replicas is the desired number of members in the Coherence deploym
 m| currentReplicas | CurrentReplicas is the current number of members in the Coherence deployment represented by the Coherence resource. m| int32 | true
 m| readyReplicas | ReadyReplicas is the number of members in the Coherence deployment represented by the Coherence resource that are in the ready state. m| int32 | true
 m| role | The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name m| string | false
-m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: http://kubernetes.io/docs/user-guide/labels#label-selectors m| string | false
+m| selector | label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| string | false
 m| conditions | The status conditions. m| Conditions | false
 m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
 m| actionsExecuted | ActionsExecuted tracks whether actions were executed m| bool | false
