@@ -539,7 +539,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>resources</code></td>
 <td class="">Resources is the optional resource requests and limits for the containers<br>
- ref: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/compute-resources/">http://kubernetes.io/docs/user-guide/compute-resources/</a> +<br>
+ ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
 The Coherence operator does not apply any default resources.</td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
 <td class="">false</td>
@@ -1924,19 +1924,19 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tbody>
 <tr>
 <td class=""><code>name</code></td>
-<td class="">Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/identifiers#names">http://kubernetes.io/docs/user-guide/identifiers#names</a></td>
+<td class="">Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/names/">https://kubernetes.io/docs/concepts/overview/working-with-objects/names/</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>labels</code></td>
-<td class="">Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/labels">http://kubernetes.io/docs/user-guide/labels</a></td>
+<td class="">Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>annotations</code></td>
-<td class="">Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/annotations">http://kubernetes.io/docs/user-guide/annotations</a></td>
+<td class="">Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/</a></td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
@@ -2577,7 +2577,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>labels</code></td>
-<td class="">Additional labels to add to the ServiceMonitor. More info: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/labels">http://kubernetes.io/docs/user-guide/labels</a></td>
+<td class="">Additional labels to add to the ServiceMonitor. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
@@ -2776,7 +2776,7 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 </tr>
 <tr>
 <td class=""><code>labels</code></td>
-<td class="">The extra labels to add to the service. More info: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/labels">http://kubernetes.io/docs/user-guide/labels</a></td>
+<td class="">The extra labels to add to the service. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
@@ -3105,7 +3105,7 @@ Initialized:    The deployment has been accepted by the Kubernetes system. Creat
 </tr>
 <tr>
 <td class=""><code>selector</code></td>
-<td class="">label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: <a id="" title="" target="_blank" href="http://kubernetes.io/docs/user-guide/labels#label-selectors">http://kubernetes.io/docs/user-guide/labels#label-selectors</a></td>
+<td class="">label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
