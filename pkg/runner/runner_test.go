@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -118,7 +118,7 @@ func AppendCommonExpectedArgs(args []string) []string {
 		"-XshowSettings:all",
 		"-XX:+PrintCommandLineFlags",
 		"-XX:+PrintFlagsFinal",
-		"-Dcoherence.wka=test-wka..svc.cluster.local",
+		"-Dcoherence.wka=test-wka..svc",
 		"-Dcoherence.cluster=test",
 		"-Dcoherence.k8s.operator.health.port=6676",
 		"-Dcoherence.management.http.port=30000",

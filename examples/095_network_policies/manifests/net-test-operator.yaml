@@ -25,7 +25,7 @@ spec:
         image: ghcr.io/oracle/coherence-operator:3.2.10
         env:
           - name: CLUSTER_HOST
-            value: net-test-coherence-server.coh-test.svc.cluster.local
+            value: net-test-coherence-server.coh-test.svc
         command:
           - /files/runner
         args:

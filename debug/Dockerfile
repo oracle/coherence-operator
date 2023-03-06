@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -18,8 +18,6 @@ ENV COHERENCE_IMAGE=$coherence_image \
     OPERATOR_IMAGE=$operator_image
 
 WORKDIR /
-
-COPY bin/linux/$target/manager-debug  manager
 
 COPY bin/linux/$target/runner                                          /files/runner
 COPY java/coherence-operator/target/docker/lib/*.jar                   /files/lib/

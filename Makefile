@@ -89,6 +89,8 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
 OPERATOR_IMAGE_NAME    := coherence-operator
+OPERATOR_BASE_IMAGE    ?= scratch
+OPERATOR_OL_BASE_IMAGE ?= container-registry.oracle.com/java/jdk:17
 OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
 OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
 OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
@@ -261,6 +263,7 @@ override TANZU_REPO_DIR      := $(BUILD_OUTPUT)/tanzu/repo
 # ----------------------------------------------------------------------------------------------------------------------
 TOOLS_DIRECTORY   = $(CURRDIR)/build/tools
 TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
+TOOLS_MANIFESTS   = $(TOOLS_DIRECTORY)/manifests
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
 
@@ -380,6 +383,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(BUILD_TARGETS)
 	@mkdir -p $(TEST_LOGS_DIR)
 	@mkdir -p $(TOOLS_BIN)
+	@mkdir -p $(TOOLS_MANIFESTS)
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -415,17 +419,31 @@ build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator 
 
 $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn
 	docker build --no-cache --build-arg version=$(VERSION) \
+		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=amd64 \
 		. -t $(OPERATOR_IMAGE)-amd64
 	docker build --no-cache --build-arg version=$(VERSION) \
+		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=arm64 \
 		. -t $(OPERATOR_IMAGE)-arm64
 	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
+
+.PHONY: build-operator-with-tools
+build-operator-with-tools: $(BUILD_BIN)/runner build-mvn ## Build the Coherence Operator image on OL-8 with debug tools
+	mkdir -p $(BUILD_OUTPUT)/images || true
+	cat Dockerfile debug/Tools.Dockerfile > $(BUILD_OUTPUT)/images/Dockerfile
+	docker build --no-cache --build-arg version=$(VERSION) \
+		--build-arg BASE_IMAGE=$(OPERATOR_OL_BASE_IMAGE) \
+		--build-arg coherence_image=$(COHERENCE_IMAGE) \
+		--build-arg operator_image=$(OPERATOR_IMAGE) \
+		--build-arg target=amd64 \
+		-f $(BUILD_OUTPUT)/images/Dockerfile \
+		. -t $(OPERATOR_IMAGE)
 
 .PHONY: build-operator-debug
 build-operator-debug: $(BUILD_BIN)/linux/amd64/runner-debug build-mvn ## Build the Coherence Operator image with the Delve debugger
@@ -849,6 +867,9 @@ test-all: test-mvn test-operator  ## Run all unit tests
 .PHONY: e2e-local-test
 e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+e2e-local-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
+e2e-local-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
+e2e-local-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-local-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 e2e-local-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -893,6 +914,9 @@ prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-sec
 run-e2e-test: export CGO_ENABLED = 0
 run-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 run-e2e-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+run-e2e-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
+run-e2e-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
+run-e2e-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 run-e2e-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-e2e-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 run-e2e-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
@@ -918,6 +942,7 @@ e2e-client-test: export CGO_ENABLED = 0
 e2e-client-test: export CLIENT_CLASSPATH := $(CURRDIR)/java/operator-test-client/target/operator-test-client-$(MVN_VERSION).jar:$(CURRDIR)/java/operator-test-client/target/lib/*
 e2e-client-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-client-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
+e2e-client-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 e2e-client-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-client-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 e2e-client-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
@@ -993,6 +1018,8 @@ run-prometheus-test: gotestsum
 .PHONY: compatibility-test
 compatibility-test: export CGO_ENABLED = 0
 compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+compatibility-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
+compatibility-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 compatibility-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -1036,7 +1063,7 @@ certification-test: install-certification     ## Run the Operator Kubernetes ver
 # Install the Operator prior to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy-and-wait
+install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
@@ -1047,6 +1074,7 @@ install-certification: $(BUILD_TARGETS)/build-operator reset-namespace create-ss
 run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-certification: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
+run-certification: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-certification: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-certification: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -1119,6 +1147,9 @@ prepare-network-policies:
 	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 	$(SED) -e 's/6443/${API_PORT}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
+#	find $(BUILD_OUTPUT)/network-policies/manifests *.yaml -type f -exec $(SED) -e 's/coh-test.svc/$$\{CLUSTER_NAMESPACE}.svc/g' {} \;
+#	find $(BUILD_OUTPUT)/network-policies/manifests *.yaml -type f -exec $(SED) -e 's/coherence.svc/$$\{OPERATOR_NAMESPACE}.svc/g' {} \;
+#	find $(BUILD_OUTPUT)/network-policies/manifests *.yaml -type f -exec $(SED) -e 's/metadata.name: coherence/metadata.name: $$\{OPERATOR_NAMESPACE}.svc/g' {} \;
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the network policies from the examples

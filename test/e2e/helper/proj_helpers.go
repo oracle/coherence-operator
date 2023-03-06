@@ -47,10 +47,14 @@ const (
 	ImagePullSecEnv = "IMAGE_PULL_SECRETS"
 	// CoherenceVersionEnv is environment variable holding the Coherence version.
 	CoherenceVersionEnv = "COHERENCE_VERSION"
+	// BuildOutputEnv is environment variable holding the build output directory.
+	BuildOutputEnv = "BUILD_OUTPUT"
 
 	defaultNamespace        = "operator-test"
 	defaultClusterNamespace = "coherence-test"
 	defaultClientNamespace  = "operator-test-client"
+
+	defaultBuildDirectory = "build/_output"
 
 	buildDir      = "build"
 	outDir        = buildDir + string(os.PathSeparator) + "_output"
@@ -110,6 +114,15 @@ func GetTestClusterNamespace() string {
 		ns = defaultClusterNamespace
 	}
 	return ns
+}
+
+// GetBuildOutputDirectory returns the build output directory
+func GetBuildOutputDirectory() (os.FileInfo, error) {
+	name := os.Getenv(BuildOutputEnv)
+	if name == "" {
+		name = defaultBuildDirectory
+	}
+	return os.Stat(name)
 }
 
 // GetTestClientNamespace returns the name of the client test namespace.
@@ -323,6 +336,37 @@ func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string)
 	}
 
 	return deployments, nil
+}
+
+func (in *CoherenceLoader) loadYamlIntoTemplate(template interface{}, file string) error {
+	if in == nil || file == "" {
+		return nil
+	}
+
+	actualFile, err := FindActualFile(file)
+	if err != nil {
+		return err
+	}
+
+	// read the whole file
+	data, err := os.ReadFile(actualFile)
+	if err != nil {
+		return errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
+	}
+
+	// expand any ${env-var} references in the yaml file
+	s := os.ExpandEnv(string(data))
+
+	// Get the yaml decoder
+	decoder := yaml.NewYAMLToJSONDecoder(strings.NewReader(s))
+
+	err = decoder.Decode(template)
+
+	if err != io.EOF {
+		return errors.New("Failed to parse yaml file " + actualFile + " caused by " + err.Error())
+	}
+
+	return nil
 }
 
 // LoadFromYamlFile loads the specified value from the yaml file.

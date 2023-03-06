@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -320,7 +320,7 @@ func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
-	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".foo.svc.cluster.local")
+	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".foo.svc")
 
 	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -352,7 +352,7 @@ func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.wka")
-	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".back-end.svc.cluster.local")
+	expectedArgs = append(expectedArgs, "-Dcoherence.wka=data"+coh.WKAServiceNameSuffix+".back-end.svc")
 
 	e, err := ExecuteWithArgs(env, args)
 	g.Expect(err).NotTo(HaveOccurred())

@@ -303,7 +303,7 @@ kubectl delete -f manifests/default-server.yaml
 === Deploy the Client to a Different Namespace
 
 In the first example we deployed the client to the same namespace as the server.
-If we wanted to deploy the client to a different namespace we would need to ensure the fully qualified name of the WKA service is used when setting the `COHERENCE_WKA` environment variable. The Coherence cluster is deployed into the `default` namespace so the fully qualified WKA service name is `storage-wka.default.svc`, or we could also use `storage-wka.default.svc.cluster.local`.
+If we wanted to deploy the client to a different namespace we would need to ensure the fully qualified name of the WKA service is used when setting the `COHERENCE_WKA` environment variable. The Coherence cluster is deployed into the `default` namespace so the fully qualified WKA service name is `storage-wka.default.svc`.
 
 [source,yaml]
 .manifests/minimal-job.yaml
@@ -497,7 +497,7 @@ For example, if the client's cache configuration file contains a remote scheme l
 </remote-cache-scheme>
 ----
 
-The client would be run with the `coherence.extend.address` system property, (or `COHERENCE_EXTEND_ADDRESS` environment variable) set to the fully qualified name of the Extend service, in the case of our example server running in the default namespace, this would be `-Dcoherence.extend.address=storage-extend.default.svc.cluster.local`
+The client would be run with the `coherence.extend.address` system property, (or `COHERENCE_EXTEND_ADDRESS` environment variable) set to the fully qualified name of the Extend service, in the case of our example server running in the default namespace, this would be `-Dcoherence.extend.address=storage-extend.default.svc`
 
 
 == External Client in the Real World

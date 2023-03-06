@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -134,7 +134,7 @@ func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
 	}
 	m := in.Spec.FindPortServiceNames(in)
 	for k, v := range m {
-		m[k] = v + "." + in.GetNamespace() + ".svc.cluster.local"
+		m[k] = v + "." + in.GetNamespace() + ".svc"
 	}
 	return m
 }
@@ -144,7 +144,7 @@ func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
 func (in *Coherence) FindFullyQualifiedPortServiceName(name string) (string, bool) {
 	n, found := in.FindPortServiceName(name)
 	if found {
-		n = n + "." + in.GetNamespace() + ".svc.cluster.local"
+		n = n + "." + in.GetNamespace() + ".svc"
 	}
 	return n, found
 }
