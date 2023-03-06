@@ -338,7 +338,7 @@ func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string)
 	return deployments, nil
 }
 
-func (in *CoherenceLoader) loadYamlIntoTemplate(template interface{}, file string) error {
+func (in *CoherenceLoader) LoadYamlIntoTemplate(template interface{}, file string) error {
 	if in == nil || file == "" {
 		return nil
 	}
