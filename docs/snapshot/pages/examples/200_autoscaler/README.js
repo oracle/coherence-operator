@@ -314,8 +314,8 @@ lang="bash"
 <markup
 lang="bash"
 
->application:coherence_heap_usage_percentage_used{cluster="test-cluster", machine="docker-desktop", member="test-cluster-0", node_id="2", role="test-cluster", site="test-cluster-sts.operator-test.svc.cluster.local"} 3.09
-application:coherence_heap_usage_used{cluster="test-cluster", machine="docker-desktop", member="test-cluster-0", node_id="2", role="test-cluster", site="test-cluster-sts.operator-test.svc.cluster.local"} 16177976</markup>
+>application:coherence_heap_usage_percentage_used{cluster="test-cluster", machine="docker-desktop", member="test-cluster-0", node_id="2", role="test-cluster", site="test-cluster-sts.operator-test.svc"} 3.09
+application:coherence_heap_usage_used{cluster="test-cluster", machine="docker-desktop", member="test-cluster-0", node_id="2", role="test-cluster", site="test-cluster-sts.operator-test.svc"} 16177976</markup>
 
 <p>The first metric <code>application:coherence_heap_usage_percentage_used</code> shows the heap was <code>3.09%</code> full after the last gc.
 The second metric <code>application:coherence_heap_usage_used</code> shows that the in-use heap after the last gc was 16177976 bytes,

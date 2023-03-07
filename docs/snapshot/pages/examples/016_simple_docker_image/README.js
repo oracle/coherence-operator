@@ -223,7 +223,7 @@ lang="xml"
 </ul>
 </li>
 <li>
-<p>The <code>&lt;dependencySets&gt;</code> configuration copies all the project dependencies (including transitive dependencies) to the <code>app/libs</code> directory (actually the <code>target/docker/app/libs</code> directory). Any version information will be stripped from the files, so <code>coherence-22.06.1.jar</code> would become <code>coherence.jar</code>.</p>
+<p>The <code>&lt;dependencySets&gt;</code> configuration copies all the project dependencies (including transitive dependencies) to the <code>app/libs</code> directory (actually the <code>target/docker/app/libs</code> directory). Any version information will be stripped from the files, so <code>coherence-22.06.3.jar</code> would become <code>coherence.jar</code>.</p>
 
 </li>
 </ul>
@@ -295,7 +295,7 @@ The Gradle build will pull all the artifacts required in the image, including th
 lang="groovy"
 title="build.gradle"
 >dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.1")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.3")
 
     implementation "com.oracle.coherence.ce:coherence"
     implementation "com.oracle.coherence.ce:coherence-json"

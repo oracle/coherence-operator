@@ -8,6 +8,17 @@ is an application-centric construct which allow you to specify how a pod is allo
 "entities" (we use the word "entity" here to avoid overloading the more common terms such as "endpoints" and "services",
 which have specific Kubernetes connotations) over the network.</p>
 
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>Network policies in Kubernetes are easy to get wrong if you are not careful.
+In this case a policy will either block traffic it should not, in which case your application will not work,
+or it will let traffic through it should block, which will be an invisible security hole.</p>
+
+<p>It is obviously important to test your policies, but Kubernetes offers next to zero visibility into what the policies
+are actually doing, as it is typically the network CNI extensions that are providing the policy implementation
+and each of these may work in a different way.</p>
+</p>
+</div>
 
 <h3 id="_introduction">Introduction</h3>
 <div class="section">
@@ -17,7 +28,10 @@ The default behaviour of a Kubernetes cluster is to allow all Pods to freely tal
 Whilst this sounds insecure, originally Kubernetes was designed to orchestrate services that communicated with each other,
 it was only later that network policies were added.</p>
 
-<p>A network policy is applied to a Kubernetes namespace and controls ingress into and egress out of Pods in that namespace.</p>
+<p>A network policy is applied to a Kubernetes namespace and controls ingress into and egress out of Pods in that namespace.
+The ports specified in a <code>NetworkPolicy</code> are the ports exposed by the <code>Pods</code>, they are not any ports that may be exposed by
+any <code>Service</code> that exposes the <code>Pod</code> ports. For example, if a <code>Pod</code> exposed port 8080 and a <code>Service</code> exposing the <code>Pod</code>
+mapped port 80 in the <code>Service</code> to port <code>8080</code> in the <code>Pod</code>, the <code>NetworkPolicy</code> ingress rule would be for the <code>Pod</code> port 8080.</p>
 
 <p>Network polices would typically end up being dictated by corporate security standards where different companies may
 apply stricter or looser rules than others.
@@ -117,7 +131,7 @@ nor egress. Very secure, but probably impractical for almost all use cases. Afte
 <p>When enforcing egress, such as with the <code>deny-all</code> policy above, it is important to remember that virtually every Pod needs
 to communicate with other Pods or Services, and will therefore need to access DNS.</p>
 
-<p>The policy below allows all Pods (using <code>podSelector: {}</code>) egress to UDP port 53 in all namespaces.</p>
+<p>The policy below allows all Pods (using <code>podSelector: {}</code>) egress to both TCP and UDP on port 53 in all namespaces.</p>
 
 <markup
 lang="yaml"
@@ -135,7 +149,9 @@ spec:
         - namespaceSelector: { }
       ports:
         - protocol: UDP
-          port: 53</markup>
+          port: 53
+#        - protocol: TCP
+#          port: 53</markup>
 
 <p>If allowing DNS egress to all namespaces is overly permissive, DNS could be further restricted to just the <code>kube-system</code>
 namespace, therefore restricting DNS lookups to only Kubernetes internal DNS.
@@ -162,7 +178,9 @@ spec:
               kubernetes.io/metadata.name: kube-system
       ports:
         - protocol: UDP
-          port: 53</markup>
+          port: 53
+#        - protocol: TCP
+#          port: 53</markup>
 
 <p>The policy above can be installed into the <code>coherence</code> namespace with the following command:</p>
 
@@ -171,6 +189,19 @@ lang="bash"
 
 >kubectl -n coherence apply -f manifests/allow-dns-kube-system.yaml</markup>
 
+<div class="admonition tip">
+<p class="admonition-textlabel">Tip</p>
+<p ><p>Some documentation regarding allowing DNS with Kubernetes network policies only shows opening up UDP connections.
+During our testing with network policies, we discovered that with only UDP allowed any lookup for a fully qualified
+name would fail. For example <code>nslookup my-service.my-namespace.svc</code> would work, but the fully qualified
+<code>nslookup my-service.my-namespace.svc.cluster.local</code> would not. Adding TCP to the DNS policy allowed DNS lookups with
+<code>.cluster.local</code> to also work.</p>
+
+<p>Neither the Coherence Operator, nor Coherence itself use a fully qualified service name for a DNS lookup.
+It appears that Java&#8217;s <code>InetAddress.findAllByName()</code> method still works only with UDP, albeit extremely slowly.
+By default, the service name used for the Coherence WKA setting uses just the <code>.svc</code> suffix.</p>
+</p>
+</div>
 </div>
 </div>
 
@@ -380,10 +411,8 @@ lang="bash"
 >$ kubectl apply --timeout=10s -f minimal.yaml
 Error from server (InternalError): error when creating "minimal.yaml": Internal error occurred: failed calling webhook "coherence.oracle.com": failed to call webhook: Post "https://coherence-operator-webhook.operator-test.svc:443/mutate-coherence-oracle-com-v1-coherence?timeout=10s": context deadline exceeded</markup>
 
-<p>The trick here is to know where the webhook call is coming from so that a network policy can be sufficiently secure.</p>
-
-<p>The simplest solution is to allow ingress from any IP address to the webhook with a policy like that shown below.
-This policy uses and empty <code>from: []</code> attribute, which allows access from anywhere.</p>
+<p>The simplest solution is to allow ingress from any IP address to the webhook on port, with a policy like that shown below.
+This policy uses and empty <code>from: []</code> attribute, which allows access from anywhere to the <code>webhook-server</code> port in the Pod.</p>
 
 <markup
 lang="yaml"
@@ -404,8 +433,36 @@ spec:
         - port: webhook-server
           protocol: TCP</markup>
 
-<p>Allowing all access to the webhook is not very secure, so a more restrictive <code>from</code> attribute could be used to limit
-access to the IP address of the Kubernetes API server.</p>
+<p>Allowing access to the webhook from anywhere is not very secure, so a more restrictive <code>from</code> attribute could be used
+to limit access to the IP address (or addresses) of the Kubernetes API server.
+As with the API server policy above, the trick here is knowing the API server addresses to use.</p>
+
+<p>The policy below only allows access from specific addresses:</p>
+
+<markup
+lang="yaml"
+title="manifests/allow-webhook-ingress-from-all.yaml"
+>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apiserver-to-operator-webhook-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: coherence-operator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 172.18.0.2/24
+        - ipBlock:
+            cidr: 10.96.0.1/24
+      ports:
+        - port: webhook-server
+          protocol: TCP
+        - port: 443
+          protocol: TCP</markup>
 
 </div>
 </div>
@@ -1012,8 +1069,8 @@ lang="bash"
 1.6727606592504115e+09	INFO	net-test	Starting test	{"Name": "Operator Simulator"}
 1.6727606592504556e+09	INFO	net-test	Testing connectivity	{"PortName": "K8s API Server"}
 1.6727606592664087e+09	INFO	net-test	Testing connectivity PASSED	{"PortName": "K8s API Server", "Version": "v1.24.7"}
-1.6727606592674055e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}
-1.6727606592770455e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}</markup>
+1.6727606592674055e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Health", "Port": 6676}
+1.6727606592770455e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Health", "Port": 6676}</markup>
 
 <p>We can see that the test has connected to the Kubernetes API server and has connected to the health port on the
 Coherence cluster test server in the <code>coh-test</code> namespace.</p>
@@ -1057,20 +1114,20 @@ lang="bash"
 1.6727631152849965e+09	INFO	runner	Go Version: go1.19.2
 1.6727631152850187e+09	INFO	runner	Go OS/Arch: linux/amd64
 1.6727631152852216e+09	INFO	net-test	Starting test	{"Name": "Cluster Member Simulator"}
-1.6727631152852666e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort1", "Port": 7575}
-1.6727631152997334e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort1", "Port": 7575}
-1.6727631152998908e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort2", "Port": 7576}
-1.6727631153059115e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "UnicastPort2", "Port": 7576}
-1.6727631153063197e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Management", "Port": 30000}
-1.6727631153116117e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Management", "Port": 30000}
-1.6727631153119817e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Metrics", "Port": 9612}
-1.6727631153187876e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Metrics", "Port": 9612}
-1.6727631153189638e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "OperatorRest", "Port": 8000}
-1.6727631153265746e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "OperatorRest", "Port": 8000}
-1.6727631153267298e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Echo", "Port": 7}
-1.6727631153340726e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Echo", "Port": 7}
-1.6727631153342876e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "ClusterPort", "Port": 7574}
-1.6727631153406997e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "ClusterPort", "Port": 7574}</markup>
+1.6727631152852666e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "UnicastPort1", "Port": 7575}
+1.6727631152997334e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "UnicastPort1", "Port": 7575}
+1.6727631152998908e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "UnicastPort2", "Port": 7576}
+1.6727631153059115e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "UnicastPort2", "Port": 7576}
+1.6727631153063197e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Management", "Port": 30000}
+1.6727631153116117e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Management", "Port": 30000}
+1.6727631153119817e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Metrics", "Port": 9612}
+1.6727631153187876e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Metrics", "Port": 9612}
+1.6727631153189638e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc", "PortName": "OperatorRest", "Port": 8000}
+1.6727631153265746e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc", "PortName": "OperatorRest", "Port": 8000}
+1.6727631153267298e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Echo", "Port": 7}
+1.6727631153340726e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Echo", "Port": 7}
+1.6727631153342876e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "ClusterPort", "Port": 7574}
+1.6727631153406997e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "ClusterPort", "Port": 7574}</markup>
 
 <p>The test client successfully connected to the Coherence cluster port (7475), the two unicast ports (7575 and 7576),
 the Coherence management port (30000), the Coherence metrics port (9612), the Operator REST port (8000), and the echo port (7).</p>
@@ -1121,8 +1178,8 @@ lang="bash"
 1.6727639834566057e+09	INFO	runner	Go Version: go1.19.2
 1.6727639834567096e+09	INFO	runner	Go OS/Arch: linux/amd64
 1.6727639834570327e+09	INFO	net-test	Starting test	{"Name": "Web-Hook Client"}
-1.6727639834571698e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "WebHook", "Port": 443}
-1.6727639834791095e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc.cluster.local", "PortName": "WebHook", "Port": 443}</markup>
+1.6727639834571698e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc", "PortName": "WebHook", "Port": 443}
+1.6727639834791095e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc", "PortName": "WebHook", "Port": 443}</markup>
 
 <p>We can see that the client successfully connected to port 443.</p>
 
@@ -1145,7 +1202,7 @@ the client to connect to that port.</p>
 that a standard Prometheus Pod would have and that we also use in the network policies in this example.</p>
 
 <p>In the Job yaml, we need to set the <code>HOST</code>, <code>PORT</code> and optionally the <code>PROTOCOL</code> environment variables.
-In this test, the host is the DNS name for the Service created for the Coherence server simulator <code>net-test-coherence-server.coh-test.svc.cluster.local</code>, the port is the metrics port <code>9612</code> and the protocol is <code>tcp</code>.</p>
+In this test, the host is the DNS name for the Service created for the Coherence server simulator <code>net-test-coherence-server.coh-test.svc</code>, the port is the metrics port <code>9612</code> and the protocol is <code>tcp</code>.</p>
 
 <markup
 lang="yaml"
@@ -1169,7 +1226,7 @@ spec:
         image: ghcr.io/oracle/coherence-operator:3.2.10
         env:
           - name: HOST
-            value: net-test-coherence-server.coh-test.svc.cluster.local
+            value: net-test-coherence-server.coh-test.svc
           - name: PORT
             value: "9612"
           - name: PROTOCOL
@@ -1209,8 +1266,8 @@ lang="bash"
 1.6727665901498966e+09	INFO	runner	Go Version: go1.19.2
 1.6727665901499205e+09	INFO	runner	Go OS/Arch: linux/amd64
 1.6727665901501486e+09	INFO	net-test	Starting test	{"Name": "Simple Client"}
-1.6727665901501985e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "net-test-coherence-server.coh-test.svc.cluster.local-9612", "Port": 9612}
-1.6727665901573336e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "net-test-coherence-server.coh-test.svc.cluster.local-9612", "Port": 9612}</markup>
+1.6727665901501985e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "net-test-coherence-server.coh-test.svc-9612", "Port": 9612}
+1.6727665901573336e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "net-test-coherence-server.coh-test.svc-9612", "Port": 9612}</markup>
 
 <p>We can see that the test client successfully connected to the Coherence cluster member simulator on port 9612.</p>
 
@@ -1263,8 +1320,8 @@ lang="bash"
 1.6727671834244306e+09	INFO	net-test	Starting test	{"Name": "Operator Simulator"}
 1.6727671834245417e+09	INFO	net-test	Testing connectivity	{"PortName": "K8s API Server"}
 1.6727672134268515e+09	INFO	net-test	Testing connectivity FAILED	{"PortName": "K8s API Server", "Error": "Get \"https://10.96.0.1:443/version?timeout=32s\": dial tcp 10.96.0.1:443: i/o timeout"}
-1.6727672134269848e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}
-1.6727672234281697e+09	INFO	net-test	Testing connectivity FAILED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676, "Error": "dial tcp: lookup net-test-coherence-server.coh-test.svc.cluster.local: i/o timeout"}</markup>
+1.6727672134269848e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Health", "Port": 6676}
+1.6727672234281697e+09	INFO	net-test	Testing connectivity FAILED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Health", "Port": 6676, "Error": "dial tcp: lookup net-test-coherence-server.coh-test.svc: i/o timeout"}</markup>
 
 <p>We can see that the test client failed to connect to the Kubernetes API server and failed to connect
 to the Coherence cluster health port. This means the deny-all policy is working.</p>
@@ -1314,8 +1371,8 @@ lang="bash"
 1.6727691273639407e+09	INFO	net-test	Starting test	{"Name": "Operator Simulator"}
 1.6727691273639877e+09	INFO	net-test	Testing connectivity	{"PortName": "K8s API Server"}
 1.6727691273857167e+09	INFO	net-test	Testing connectivity PASSED	{"PortName": "K8s API Server", "Version": "v1.24.7"}
-1.6727691273858056e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}
-1.6727691273933685e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc.cluster.local", "PortName": "Health", "Port": 6676}</markup>
+1.6727691273858056e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Health", "Port": 6676}
+1.6727691273933685e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-coherence-server.coh-test.svc", "PortName": "Health", "Port": 6676}</markup>
 
 <p>The other tests can also be re-run and should also pass.</p>
 

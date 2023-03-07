@@ -275,7 +275,7 @@ spec:
           - "--name"
           - {{ .Release.Name | quote }}
           - "--operator-url"
-          - "http://{{ .Values.operator.service | default "coherence-operator-rest" }}.{{ .Values.operator.namespace | default "coherence" }}.svc.cluster.local:{{ .Values.operator.port | default 8000 }}"
+          - "http://{{ .Values.operator.service | default "coherence-operator-rest" }}.{{ .Values.operator.namespace | default "coherence" }}.svc:{{ .Values.operator.port | default 8000 }}"
           - "--condition"
           - {{ .Values.operator.condition | default "Ready" | quote }}
           - "--timeout"

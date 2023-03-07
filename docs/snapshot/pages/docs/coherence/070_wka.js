@@ -180,7 +180,7 @@ case the <code>data</code> deployment in the <code>back-end</code> namespace.</l
 </ul>
 <p>As described already above the <code>data</code> deployment will have a headless <code>Service</code> created for <code>WKA</code> named <code>data-wka</code>,
 which will be in the <code>back-end</code> namespace.
-The full name of this <code>Service</code> in Kubernetes will be <code>data-wka.back-end.svc.cluster.local</code> and this will be the
+The full name of this <code>Service</code> in Kubernetes will be <code>data-wka.back-end.svc</code> and this will be the
 name that the members of the <code>web-store</code> deployment will be configured to use for WKA.</p>
 
 <div class="admonition warning">

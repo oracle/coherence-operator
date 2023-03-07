@@ -375,7 +375,7 @@ lang="bash"
 <h3 id="_deploy_the_client_to_a_different_namespace">Deploy the Client to a Different Namespace</h3>
 <div class="section">
 <p>In the first example we deployed the client to the same namespace as the server.
-If we wanted to deploy the client to a different namespace we would need to ensure the fully qualified name of the WKA service is used when setting the <code>COHERENCE_WKA</code> environment variable. The Coherence cluster is deployed into the <code>default</code> namespace so the fully qualified WKA service name is <code>storage-wka.default.svc</code>, or we could also use <code>storage-wka.default.svc.cluster.local</code>.</p>
+If we wanted to deploy the client to a different namespace we would need to ensure the fully qualified name of the WKA service is used when setting the <code>COHERENCE_WKA</code> environment variable. The Coherence cluster is deployed into the <code>default</code> namespace so the fully qualified WKA service name is <code>storage-wka.default.svc</code>.</p>
 
 <markup
 lang="yaml"
@@ -395,7 +395,7 @@ spec:
             - name: COHERENCE_CACHE_CONFIG
               value: minimal-client-cache-config.xml
             - name: COHERENCE_WKA
-              value: storage-wka.default.svc.cluster.local
+              value: storage-wka.default.svc
             - name: COHERENCE_CLUSTER
               value: storage</markup>
 
@@ -613,7 +613,7 @@ title="src/main/resources/fixed-address-cache-config.xml"
   &lt;/initiator-config&gt;
 &lt;/remote-cache-scheme&gt;</markup>
 
-<p>The client would be run with the <code>coherence.extend.address</code> system property, (or <code>COHERENCE_EXTEND_ADDRESS</code> environment variable) set to the fully qualified name of the Extend service, in the case of our example server running in the default namespace, this would be <code>-Dcoherence.extend.address=storage-extend.default.svc.cluster.local</code></p>
+<p>The client would be run with the <code>coherence.extend.address</code> system property, (or <code>COHERENCE_EXTEND_ADDRESS</code> environment variable) set to the fully qualified name of the Extend service, in the case of our example server running in the default namespace, this would be <code>-Dcoherence.extend.address=storage-extend.default.svc</code></p>
 
 </div>
 

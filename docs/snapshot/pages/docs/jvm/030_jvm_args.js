@@ -65,7 +65,7 @@ configuration used would be  <code>test-config.xml</code>.</p>
 
 >-Dcoherence.cluster=&lt;cluster-name&gt;
 -Dcoherence.role=&lt;role&gt;
--Dcoherence.wka=&lt;deployment-name&gt;-wka.svc.cluster.local
+-Dcoherence.wka=&lt;deployment-name&gt;-wka.svc
 -Dcoherence.cacheconfig=coherence-cache-config.xml
 -Dcoherence.k8s.operator.health.port=6676
 -Dcoherence.management.http.port=30000
