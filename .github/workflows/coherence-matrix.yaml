@@ -69,7 +69,7 @@ jobs:
           - matrixName: "22.06"
             coherenceVersion: "22.06"
             javaVersion: 11
-            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.2"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.3"
             baseImage: "gcr.io/distroless/java11-debian11"
           - matrixName: "14.1.1-2206-SNAPSHOT"
             coherenceVersion: "14.1.1-2206-SNAPSHOT"

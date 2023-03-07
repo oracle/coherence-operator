@@ -10,10 +10,10 @@ spec:
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
     coherenceNetTest: server
-  clusterIP: None
   ports:
     - port: 8000
-      name: operator
+      name: operator-rest
+      targetPort: operator
       protocol: TCP
     - port: 443
       name: https-webhook-server
@@ -42,6 +42,9 @@ spec:
     - containerPort: 9443
       name: webhook-server
       protocol: TCP
+    env:
+      - name: WEBHOOK_PORT
+        value: "9443"
     command:
       - /files/runner
     args:

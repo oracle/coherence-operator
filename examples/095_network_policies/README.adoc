@@ -15,6 +15,17 @@ is an application-centric construct which allow you to specify how a pod is allo
 "entities" (we use the word "entity" here to avoid overloading the more common terms such as "endpoints" and "services",
 which have specific Kubernetes connotations) over the network.
 
+[NOTE]
+====
+Network policies in Kubernetes are easy to get wrong if you are not careful.
+In this case a policy will either block traffic it should not, in which case your application will not work,
+or it will let traffic through it should block, which will be an invisible security hole.
+
+It is obviously important to test your policies, but Kubernetes offers next to zero visibility into what the policies
+are actually doing, as it is typically the network CNI extensions that are providing the policy implementation
+and each of these may work in a different way.
+====
+
 === Introduction
 
 Kubernetes network policies specify the access permissions for groups of pods, similar to security groups in the
@@ -24,6 +35,9 @@ Whilst this sounds insecure, originally Kubernetes was designed to orchestrate s
 it was only later that network policies were added.
 
 A network policy is applied to a Kubernetes namespace and controls ingress into and egress out of Pods in that namespace.
+The ports specified in a `NetworkPolicy` are the ports exposed by the `Pods`, they are not any ports that may be exposed by
+any `Service` that exposes the `Pod` ports. For example, if a `Pod` exposed port 8080 and a `Service` exposing the `Pod`
+mapped port 80 in the `Service` to port `8080` in the `Pod`, the `NetworkPolicy` ingress rule would be for the `Pod` port 8080.
 
 Network polices would typically end up being dictated by corporate security standards where different companies may
 apply stricter or looser rules than others.
@@ -266,22 +280,14 @@ $ kubectl apply --timeout=10s -f minimal.yaml
 Error from server (InternalError): error when creating "minimal.yaml": Internal error occurred: failed calling webhook "coherence.oracle.com": failed to call webhook: Post "https://coherence-operator-webhook.operator-test.svc:443/mutate-coherence-oracle-com-v1-coherence?timeout=10s": context deadline exceeded
 ----
 
-The trick here is to know where the webhook call is coming from so that a network policy can be sufficiently secure.
-
 The simplest solution is to allow ingress from any IP address to the webhook on port, with a policy like that shown below.
-This policy uses and empty `from: []` attribute, which allows access from anywhere.
+This policy uses and empty `from: []` attribute, which allows access from anywhere to the `webhook-server` port in the Pod.
 
 [source,yaml]
 .manifests/allow-webhook-ingress-from-all.yaml
 ----
 include::manifests/allow-webhook-ingress-from-all.yaml[]
 ----
-
-[NOTE]
-====
-In the example above we allow access to both the named `webhook-server` port in the Operator `Pod` and to the https
-port 443 which is exposed by the web-hook `Service`.
-====
 
 Allowing access to the webhook from anywhere is not very secure, so a more restrictive `from` attribute could be used
 to limit access to the IP address (or addresses) of the Kubernetes API server.

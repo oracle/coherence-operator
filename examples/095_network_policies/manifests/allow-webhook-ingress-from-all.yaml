@@ -13,5 +13,3 @@ spec:
       ports:
         - port: webhook-server
           protocol: TCP
-        - port: 443
-          protocol: TCP
