@@ -268,7 +268,7 @@ Error from server (InternalError): error when creating "minimal.yaml": Internal 
 
 The trick here is to know where the webhook call is coming from so that a network policy can be sufficiently secure.
 
-The simplest solution is to allow ingress from any IP address to the webhook with a policy like that shown below.
+The simplest solution is to allow ingress from any IP address to the webhook on port, with a policy like that shown below.
 This policy uses and empty `from: []` attribute, which allows access from anywhere.
 
 [source,yaml]
@@ -277,9 +277,23 @@ This policy uses and empty `from: []` attribute, which allows access from anywhe
 include::manifests/allow-webhook-ingress-from-all.yaml[]
 ----
 
-Allowing all access to the webhook is not very secure, so a more restrictive `from` attribute could be used to limit
-access to the IP address of the Kubernetes API server.
+[NOTE]
+====
+In the example above we allow access to both the named `webhook-server` port in the Operator `Pod` and to the https
+port 443 which is exposed by the web-hook `Service`.
+====
 
+Allowing access to the webhook from anywhere is not very secure, so a more restrictive `from` attribute could be used
+to limit access to the IP address (or addresses) of the Kubernetes API server.
+As with the API server policy above, the trick here is knowing the API server addresses to use.
+
+The policy below only allows access from specific addresses:
+
+[source,yaml]
+.manifests/allow-webhook-ingress-from-all.yaml
+----
+include::manifests/allow-webhook-ingress-from-api-server.yaml[]
+----
 
 [#coherence]
 === Coherence Cluster Member Policies

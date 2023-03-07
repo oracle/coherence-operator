@@ -9,7 +9,11 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    - from: []
+    - from:
+        - ipBlock:
+            cidr: 172.18.0.2/24
+        - ipBlock:
+            cidr: 10.96.0.1/24
       ports:
         - port: webhook-server
           protocol: TCP

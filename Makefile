@@ -1147,9 +1147,8 @@ prepare-network-policies:
 	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 	$(SED) -e 's/6443/${API_PORT}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
-#	find $(BUILD_OUTPUT)/network-policies/manifests *.yaml -type f -exec $(SED) -e 's/coh-test.svc/$$\{CLUSTER_NAMESPACE}.svc/g' {} \;
-#	find $(BUILD_OUTPUT)/network-policies/manifests *.yaml -type f -exec $(SED) -e 's/coherence.svc/$$\{OPERATOR_NAMESPACE}.svc/g' {} \;
-#	find $(BUILD_OUTPUT)/network-policies/manifests *.yaml -type f -exec $(SED) -e 's/metadata.name: coherence/metadata.name: $$\{OPERATOR_NAMESPACE}.svc/g' {} \;
+	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-webhook-ingress-from-api-server.yaml
+	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-webhook-ingress-from-api-server.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the network policies from the examples
