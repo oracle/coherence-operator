@@ -185,7 +185,7 @@ case the `data` deployment in the `back-end` namespace.
 
 As described already above the `data` deployment will have a headless `Service` created for `WKA` named `data-wka`,
 which will be in the `back-end` namespace.
-The full name of this `Service` in Kubernetes will be `data-wka.back-end.svc.cluster.local` and this will be the
+The full name of this `Service` in Kubernetes will be `data-wka.back-end.svc` and this will be the
 name that the members of the `web-store` deployment will be configured to use for WKA.
 
 WARNING: When using WKA in this way the `Coherence` deployment that is providing the WKA `Service` should be running before

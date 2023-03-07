@@ -133,7 +133,7 @@ spec:
             - name: COHERENCE_CLUSTER
               value: storage
             - name: COHERENCE_WKA
-              value: storage-wka.svc.cluster.local
+              value: storage-wka.svc
             - name: COHERENCE_CACHECONFIG
               value: "test-cache-config.xml"
           ports:

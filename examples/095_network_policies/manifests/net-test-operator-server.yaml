@@ -10,35 +10,14 @@ spec:
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
     coherenceNetTest: server
-  clusterIP: None
   ports:
     - port: 8000
-      name: operator
+      name: operator-rest
+      targetPort: operator
       protocol: TCP
     - port: 443
-      name: webhook-server
+      name: https-webhook-server
       targetPort: webhook-server
-      protocol: TCP
-    - port: 9612
-      name: metrics
-      protocol: TCP
-    - port: 30000
-      name: management
-      protocol: TCP
-    - port: 6676
-      name: health
-      protocol: TCP
-    - port: 7574
-      name: clusterport
-      protocol: TCP
-    - port: 7575
-      name: unicast1
-      protocol: TCP
-    - port: 7576
-      name: unicast2
-      protocol: TCP
-    - port: 7
-      name: echo
       protocol: TCP
 ---
 apiVersion: v1
@@ -63,27 +42,9 @@ spec:
     - containerPort: 9443
       name: webhook-server
       protocol: TCP
-    - containerPort: 9612
-      name: metrics
-      protocol: TCP
-    - containerPort: 30000
-      name: management
-      protocol: TCP
-    - containerPort: 6676
-      name: health
-      protocol: TCP
-    - containerPort: 7574
-      name: clusterport
-      protocol: TCP
-    - containerPort: 7575
-      name: unicast1
-      protocol: TCP
-    - containerPort: 7576
-      name: unicast2
-      protocol: TCP
-    - containerPort: 7
-      name: echo
-      protocol: TCP
+    env:
+      - name: WEBHOOK_PORT
+        value: "9443"
     command:
       - /files/runner
     args:

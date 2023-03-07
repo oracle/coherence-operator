@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -337,7 +337,7 @@ func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
 		svc = in.WKA.Deployment + WKAServiceNameSuffix
 	}
 
-	return fmt.Sprintf("%s.%s.svc.cluster.local", svc, ns)
+	return fmt.Sprintf("%s.%s.svc", svc, ns)
 }
 
 // AddPersistenceVolumeMounts adds the persistence and snapshot volume mounts to the specified container

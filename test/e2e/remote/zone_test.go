@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -36,7 +36,7 @@ func TestSiteLabel(t *testing.T) {
 	}
 
 	dfn := func(namespace string) string {
-		return fmt.Sprintf("zone-zone-test-sts.%s.svc.cluster.local", namespace)
+		return fmt.Sprintf("zone-zone-test-sts.%s.svc", namespace)
 	}
 
 	assertLabel(t, "zone", "zone-test.yaml", operator.DefaultSiteLabels, fn, dfn)
@@ -55,7 +55,7 @@ func TestCustomSiteLabel(t *testing.T) {
 	}
 
 	dfn := func(namespace string) string {
-		return fmt.Sprintf("custom-site-zone-test-sts.%s.svc.cluster.local", namespace)
+		return fmt.Sprintf("custom-site-zone-test-sts.%s.svc", namespace)
 	}
 
 	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, fn, dfn)

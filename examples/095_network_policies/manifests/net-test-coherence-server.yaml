@@ -8,14 +8,7 @@ spec:
     coherenceComponent: coherencePod
     coherenceDeployment: net-test
     coherenceRole: net-test-server
-  clusterIP: None
   ports:
-    - port: 8000
-      name: operator
-      protocol: TCP
-    - port: 443
-      name: webhook-server
-      protocol: TCP
     - port: 9612
       name: metrics
       protocol: TCP
@@ -52,12 +45,6 @@ spec:
   - name: net-test
     image: ghcr.io/oracle/coherence-operator:3.2.10
     ports:
-    - containerPort: 8000
-      name: operator
-      protocol: TCP
-    - containerPort: 443
-      name: webhook-server
-      protocol: TCP
     - containerPort: 9612
       name: metrics
       protocol: TCP

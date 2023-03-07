@@ -13,6 +13,6 @@ spec:
             - name: COHERENCE_CACHE_CONFIG
               value: minimal-client-cache-config.xml
             - name: COHERENCE_WKA
-              value: storage-wka.default.svc.cluster.local
+              value: storage-wka.default.svc
             - name: COHERENCE_CLUSTER
               value: storage
