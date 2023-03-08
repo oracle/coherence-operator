@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -167,7 +167,7 @@ func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment *coh.Cohe
 				log.Info("Using pod " + pod.Name + " to execute probe")
 			}
 
-			ha, err := in.RunProbe(pod, probe)
+			ha, err := in.RunProbe(ctx, pod, probe)
 			if err == nil {
 				log.Info(fmt.Sprintf("Executed probe using pod %s result=%t", pod.Name, ha))
 				return ha
@@ -195,10 +195,10 @@ func (in *CoherenceProbe) IsPodReady(pod corev1.Pod) (bool, string) {
 	return false, string(pod.Status.Phase)
 }
 
-func (in *CoherenceProbe) RunProbe(pod corev1.Pod, handler *coh.Probe) (bool, error) {
+func (in *CoherenceProbe) RunProbe(ctx context.Context, pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	switch {
 	case handler.Exec != nil:
-		return in.ProbeUsingExec(pod, handler)
+		return in.ProbeUsingExec(ctx, pod, handler)
 	case handler.HTTPGet != nil:
 		return in.ProbeUsingHTTP(pod, handler)
 	case handler.TCPSocket != nil:
@@ -208,7 +208,7 @@ func (in *CoherenceProbe) RunProbe(pod corev1.Pod, handler *coh.Probe) (bool, er
 	}
 }
 
-func (in *CoherenceProbe) ProbeUsingExec(pod corev1.Pod, handler *coh.Probe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingExec(ctx context.Context, pod corev1.Pod, handler *coh.Probe) (bool, error) {
 	req := &mgmt.ExecRequest{
 		Pod:       pod.Name,
 		Container: coh.ContainerNameCoherence,
@@ -218,7 +218,7 @@ func (in *CoherenceProbe) ProbeUsingExec(pod corev1.Pod, handler *coh.Probe) (bo
 		Timeout:   handler.GetTimeout(),
 	}
 
-	exitCode, _, _, err := mgmt.PodExec(req, in.Config)
+	exitCode, _, _, err := mgmt.PodExec(ctx, req, in.Config)
 
 	log.Info(fmt.Sprintf("Exec Probe: '%s' result=%d error=%s", strings.Join(handler.Exec.Command, ", "), exitCode, err))
 

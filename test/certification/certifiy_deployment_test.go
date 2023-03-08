@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -54,10 +54,10 @@ func TestCertifyScaling(t *testing.T) {
 			Name:      "certify-scale",
 		},
 		Spec: v1.CoherenceResourceSpec{
-			Replicas: pointer.Int32Ptr(1),
+			Replicas: pointer.Int32(1),
 			ReadinessProbe: &v1.ReadinessProbeSpec{
-				InitialDelaySeconds: pointer.Int32Ptr(10),
-				PeriodSeconds:       pointer.Int32Ptr(10),
+				InitialDelaySeconds: pointer.Int32(10),
+				PeriodSeconds:       pointer.Int32(10),
 			},
 		},
 	}

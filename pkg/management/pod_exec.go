@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,6 +7,7 @@
 package management
 
 import (
+	"context"
 	"errors"
 	"io"
 	"strings"
@@ -28,7 +29,7 @@ type ExecRequest struct {
 }
 
 // PodExec executes a command in a Pod.
-func PodExec(req *ExecRequest, config *rest.Config) (int, string, string, error) {
+func PodExec(ctx context.Context, req *ExecRequest, config *rest.Config) (int, string, string, error) {
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 
 	timeout := req.Timeout
@@ -64,7 +65,7 @@ func PodExec(req *ExecRequest, config *rest.Config) (int, string, string, error)
 	stdOut := new(streamCapture)
 	stdErr := new(streamCapture)
 
-	err = exec.Stream(remotecommand.StreamOptions{
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdin:  stdIn,
 		Stdout: stdOut,
 		Stderr: stdErr,

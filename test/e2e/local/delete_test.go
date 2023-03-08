@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -62,7 +62,7 @@ func TestDeleteDeploymentWithZeroReadyPods(t *testing.T) {
 	name := deployment.Name
 
 	// set the image to an invalid name so that Pods never start
-	deployment.Spec.Image = pointer.StringPtr("invalid-image:1.0.0")
+	deployment.Spec.Image = pointer.String("invalid-image:1.0.0")
 
 	err = testContext.Client.Create(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -96,7 +96,7 @@ func TestDeleteDeploymentWithAllPendingPods(t *testing.T) {
 	// wait for all pods to be in pending state
 	var fieldSelector = fmt.Sprintf("%s=%s", "status.phase", corev1.PodPending)
 	labelSelector := fmt.Sprintf("%s=%s", cohv1.LabelComponent, cohv1.LabelComponentCoherencePod)
-	_, err = helper.WaitForPodsWithLabelAndField(testContext, namespace, labelSelector, fieldSelector, int(deployment.GetReplicas()), time.Second * 10, time.Minute * 2)
+	_, err = helper.WaitForPodsWithLabelAndField(testContext, namespace, labelSelector, fieldSelector, int(deployment.GetReplicas()), time.Second*10, time.Minute*2)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Delete the Coherence deployment
@@ -106,4 +106,3 @@ func TestDeleteDeploymentWithAllPendingPods(t *testing.T) {
 	err = helper.WaitForDelete(testContext, &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 }
-

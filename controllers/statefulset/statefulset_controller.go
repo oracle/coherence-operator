@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -275,8 +275,8 @@ func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh
 					Kind:               deployment.Kind,
 					Name:               deployment.Name,
 					UID:                deployment.UID,
-					Controller:         pointer.BoolPtr(true),
-					BlockOwnerDeletion: pointer.BoolPtr(false),
+					Controller:         pointer.Bool(true),
+					BlockOwnerDeletion: pointer.Bool(false),
 				},
 			},
 		},

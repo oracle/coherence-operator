@@ -35,7 +35,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 		Spec: v1.CoherenceResourceSpec{
 			Coherence: &v1.CoherenceSpec{
 				Management: &v1.PortSpecWithSSL{
-					Enabled: pointer.BoolPtr(true),
+					Enabled: pointer.Bool(true),
 				},
 			},
 			Ports: []v1.NamedPortSpec{
@@ -100,8 +100,8 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 		Spec: v1.CoherenceResourceSpec{
 			Coherence: &v1.CoherenceSpec{
 				Management: &v1.PortSpecWithSSL{
-					Enabled: pointer.BoolPtr(true),
-					Port:    pointer.Int32Ptr(30009),
+					Enabled: pointer.Bool(true),
+					Port:    pointer.Int32(30009),
 				},
 			},
 			Ports: []v1.NamedPortSpec{

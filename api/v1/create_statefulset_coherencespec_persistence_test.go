@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -35,7 +35,7 @@ func TestCreateStatefulSetWithPersistenceModeOnDemand(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
-				Mode: pointer.StringPtr("on-demand"),
+				Mode: pointer.String("on-demand"),
 			},
 		},
 	}
@@ -55,7 +55,7 @@ func TestCreateStatefulSetWithPersistenceModeActive(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
-				Mode: pointer.StringPtr("active"),
+				Mode: pointer.String("active"),
 			},
 		},
 	}
@@ -74,7 +74,7 @@ func TestCreateStatefulSetWithPersistenceModeActiveAsync(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
-				Mode: pointer.StringPtr("active-async"),
+				Mode: pointer.String("active-async"),
 			},
 		},
 	}

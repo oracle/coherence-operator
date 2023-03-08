@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -110,7 +110,7 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
-				UseContainerLimits: pointer.BoolPtr(false),
+				UseContainerLimits: pointer.Bool(false),
 			},
 		},
 	}
@@ -138,7 +138,7 @@ func TestJvmUseContainerLimitsTrue(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
-				UseContainerLimits: pointer.BoolPtr(true),
+				UseContainerLimits: pointer.Bool(true),
 			},
 		},
 	}
@@ -167,7 +167,7 @@ func TestJvmGarbageCollectorG1(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Gc: &coh.JvmGarbageCollectorSpec{
-					Collector: pointer.StringPtr("g1"),
+					Collector: pointer.String("g1"),
 				},
 			},
 		},
@@ -197,7 +197,7 @@ func TestJvmGarbageCollectorCMS(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Gc: &coh.JvmGarbageCollectorSpec{
-					Collector: pointer.StringPtr("cms"),
+					Collector: pointer.String("cms"),
 				},
 			},
 		},
@@ -227,7 +227,7 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Gc: &coh.JvmGarbageCollectorSpec{
-					Collector: pointer.StringPtr("parallel"),
+					Collector: pointer.String("parallel"),
 				},
 			},
 		},
@@ -257,7 +257,7 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
 				Gc: &coh.JvmGarbageCollectorSpec{
-					Logging: pointer.BoolPtr(true),
+					Logging: pointer.Bool(true),
 				},
 			},
 		},

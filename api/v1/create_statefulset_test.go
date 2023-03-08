@@ -49,7 +49,7 @@ func TestCreateStatefulSetWithName(t *testing.T) {
 func TestCreateStatefulSetWithReplicas(t *testing.T) {
 	// create a spec with a name
 	spec := coh.CoherenceResourceSpec{
-		Replicas: pointer.Int32Ptr(50),
+		Replicas: pointer.Int32(50),
 	}
 
 	// Create the test deployment
@@ -347,7 +347,7 @@ func TestCreateStatefulSetWithTolerations(t *testing.T) {
 
 func TestCreateStatefulSetWithSecurityContext(t *testing.T) {
 	ctx := corev1.PodSecurityContext{
-		RunAsUser:    pointer.Int64Ptr(1000),
+		RunAsUser:    pointer.Int64(1000),
 		RunAsNonRoot: boolPtr(true),
 	}
 
@@ -370,7 +370,7 @@ func TestCreateStatefulSetWithContainerSecurityContext(t *testing.T) {
 		Capabilities: &corev1.Capabilities{
 			Add: []corev1.Capability{"foo"},
 		},
-		RunAsUser:    pointer.Int64Ptr(1000),
+		RunAsUser:    pointer.Int64(1000),
 		RunAsNonRoot: boolPtr(true),
 	}
 
@@ -483,14 +483,14 @@ func TestCreateStatefulSetWithActiveDeadlineSeconds(t *testing.T) {
 
 func TestCreateStatefulSetWithEnableServiceLinksFalse(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		EnableServiceLinks: pointer.BoolPtr(false),
+		EnableServiceLinks: pointer.Bool(false),
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.BoolPtr(false)
+	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.Bool(false)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -498,14 +498,14 @@ func TestCreateStatefulSetWithEnableServiceLinksFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithEnableServiceLinksTrue(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		EnableServiceLinks: pointer.BoolPtr(true),
+		EnableServiceLinks: pointer.Bool(true),
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.BoolPtr(true)
+	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.Bool(true)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
