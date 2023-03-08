@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -14,10 +17,10 @@
   },
   "description": "",
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 31,
-  "iteration": 1592184043796,
+  "id": 4,
+  "iteration": 1678258599948,
   "links": [
     {
       "icon": "dashboard",
@@ -50,10 +53,13 @@
       "type": "dashboards"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "content": "<center><h3>Federation Details - $ServiceName, Destiniation - $Destination</h3></center>",
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -62,13 +68,19 @@
       },
       "id": 2,
       "links": [],
-      "mode": "html",
-      "title": "",
+      "options": {
+        "content": "<center><h3>Federation Details - $ServiceName, Destiniation - $Destination</h3></center>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.13",
       "type": "text"
     },
     {
       "columns": [],
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -78,7 +90,6 @@
       },
       "id": 4,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -87,6 +98,7 @@
       },
       "styles": [
         {
+          "$$hashKey": "object:561",
           "alias": "Time",
           "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -94,9 +106,9 @@
           "type": "hidden"
         },
         {
+          "$$hashKey": "object:562",
           "alias": "Destination",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -111,9 +123,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:563",
           "alias": "Service",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -131,9 +143,9 @@
           "unit": "short"
         },
         {
-          "alias": "Current Data Rate",
+          "$$hashKey": "object:564",
+          "alias": "Replicate %",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -145,12 +157,12 @@
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "Mbits"
+          "unit": "percent"
         },
         {
+          "$$hashKey": "object:565",
           "alias": "Type",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -165,9 +177,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:566",
           "alias": "Bytes Sent",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -182,9 +194,9 @@
           "unit": "decbytes"
         },
         {
+          "$$hashKey": "object:567",
           "alias": "Entries Sent",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -199,9 +211,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:568",
           "alias": "Records Sent",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -216,9 +228,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:569",
           "alias": "Messages Sent",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -233,9 +245,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:570",
           "alias": "Last Replicate All Time",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -250,9 +262,9 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:571",
           "alias": "Status",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -267,23 +279,26 @@
           "unit": "percent",
           "valueMaps": [
             {
+              "$$hashKey": "object:707",
               "text": "OK",
               "value": "0"
             },
             {
+              "$$hashKey": "object:708",
               "text": "WARNING",
               "value": "1"
             },
             {
+              "$$hashKey": "object:709",
               "text": "ERROR",
               "value": "2"
             }
           ]
         },
         {
+          "$$hashKey": "object:572",
           "alias": "Node Id",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -294,10 +309,31 @@
           "thresholds": [],
           "type": "number",
           "unit": "short"
+        },
+        {
+          "$$hashKey": "object:1086",
+          "alias": "Service",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "coherence_service",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
         }
       ],
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_federation_destination_total_bytes_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -306,6 +342,10 @@
           "refId": "B"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_federation_destination_total_entries_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -314,6 +354,10 @@
           "refId": "C"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_federation_destination_total_msg_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, nodeId)",
           "format": "table",
           "instant": true,
@@ -322,6 +366,10 @@
           "refId": "E"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_federation_destination_total_records_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -330,6 +378,10 @@
           "refId": "D"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(vendor:coherence_federation_destination_replicate_all_total_time_millis{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -338,32 +390,337 @@
           "refId": "F"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "avg(vendor:coherence_federation_destination_status{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "avg(vendor:coherence_federation_destination_replicate_all_percent_complete{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
         }
       ],
       "title": "Destinations",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "id": 19,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.13",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*Envelope\"})",
+          "interval": "",
+          "legendFormat": "Envelope Size",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Current Envelope Size For This Service (All Members)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.13",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"FlashJournalRM\"})",
+          "interval": "",
+          "legendFormat": "Flash Journal",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Current Flash Journal Used",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.13",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"RamJournalRM\"})",
+          "interval": "",
+          "legendFormat": "RAM Journal",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Current RAM Journal Used",
+      "type": "stat"
     },
     {
       "aliasColors": {},
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "hiddenSeries": false,
+      "id": 23,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.13",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*Envelope\"}) by (node_id, member)",
+          "interval": "",
+          "legendFormat": "Member: {{member}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Envelope Size By Member (Stacked)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:8059",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:8060",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 7,
@@ -382,9 +739,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -403,9 +761,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Data Sent  per Member",
       "tooltip": {
         "shared": true,
@@ -414,34 +770,26 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
-          "decimals": null,
           "format": "decbytes",
           "label": "",
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -449,14 +797,23 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 16,
@@ -475,9 +832,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -496,9 +854,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Entries Sent per Member",
       "tooltip": {
         "shared": true,
@@ -507,9 +863,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -518,22 +872,17 @@
           "format": "short",
           "label": "",
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -541,14 +890,23 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 31
       },
       "hiddenSeries": false,
       "id": 17,
@@ -567,9 +925,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -588,9 +947,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Entries Sent per Member",
       "tooltip": {
         "shared": true,
@@ -599,9 +956,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -610,22 +965,17 @@
           "format": "short",
           "label": "",
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -633,15 +983,24 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 31
       },
       "hiddenSeries": false,
       "id": 12,
@@ -661,9 +1020,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -690,9 +1050,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Errors and Un-Acked Messages",
       "tooltip": {
         "shared": true,
@@ -701,9 +1059,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -713,53 +1069,55 @@
           "format": "short",
           "label": "",
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "decimals": 0,
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
-      "content": "<center><h3>Federation Details - $ServiceName, Origin - $Destination</h3></center>",
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "gridPos": {
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 39
       },
       "id": 13,
       "links": [],
-      "mode": "html",
-      "title": "",
+      "options": {
+        "content": "<center><h3>Federation Details - $ServiceName, Origin - $Destination</h3></center>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.13",
       "type": "text"
     },
     {
       "columns": [],
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 41
       },
       "id": 8,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -768,6 +1126,7 @@
       },
       "styles": [
         {
+          "$$hashKey": "object:1186",
           "alias": "Time",
           "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -775,9 +1134,9 @@
           "type": "hidden"
         },
         {
+          "$$hashKey": "object:1187",
           "alias": "Origin Cluster",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -792,9 +1151,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1188",
           "alias": "Service",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -809,9 +1168,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1189",
           "alias": "Description",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -826,9 +1185,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1190",
           "alias": "Participant Type",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -843,9 +1202,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1191",
           "alias": "Bytes Received",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -860,9 +1219,9 @@
           "unit": "decbytes"
         },
         {
+          "$$hashKey": "object:1192",
           "alias": "Entries Received",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -877,9 +1236,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1193",
           "alias": "Records Received",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -894,9 +1253,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1194",
           "alias": "Messages Recevied",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -911,6 +1270,7 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1195",
           "alias": "Origin Processing Delay",
           "align": "auto",
           "colorMode": "value",
@@ -931,18 +1291,37 @@
           "unit": "ms"
         },
         {
+          "$$hashKey": "object:1367",
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
-          "pattern": "/.*/",
+          "mappingType": 1,
+          "pattern": "",
           "thresholds": [],
           "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:1378",
+          "alias": "Service",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "coherence_service",
+          "thresholds": [],
+          "type": "hidden",
           "unit": "short"
         }
       ],
@@ -982,21 +1361,23 @@
       ],
       "title": "Origins",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 47
       },
       "id": 15,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -1005,6 +1386,7 @@
       },
       "styles": [
         {
+          "$$hashKey": "object:1418",
           "alias": "Time",
           "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -1012,9 +1394,9 @@
           "type": "hidden"
         },
         {
+          "$$hashKey": "object:1419",
           "alias": "Origin Cluster",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1029,9 +1411,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1420",
           "alias": "Service",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1049,9 +1431,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1421",
           "alias": "Description",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1066,9 +1448,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1422",
           "alias": "Participant Type",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1083,9 +1465,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1423",
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1100,9 +1482,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1424",
           "alias": "Node Id",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1115,9 +1497,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1425",
           "alias": "Total Bytes Received",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1132,9 +1514,9 @@
           "unit": "decbytes"
         },
         {
+          "$$hashKey": "object:1426",
           "alias": "Total Un-Acked Messages",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1149,9 +1531,9 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:1427",
           "alias": "Member",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1166,6 +1548,23 @@
           "pattern": "member",
           "thresholds": [],
           "type": "string",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:1601",
+          "alias": "Service",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "coherence_service",
+          "thresholds": [],
+          "type": "hidden",
           "unit": "short"
         }
       ],
@@ -1189,21 +1588,30 @@
       ],
       "title": "Origins Member Details",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 53
       },
       "hiddenSeries": false,
       "id": 14,
@@ -1222,9 +1630,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1243,9 +1652,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Origins Un-Acked Messages",
       "tooltip": {
         "shared": true,
@@ -1254,9 +1661,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -1266,28 +1671,23 @@
           "format": "short",
           "label": "",
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "decimals": 0,
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     }
   ],
-  "refresh": "30s",
-  "schemaVersion": 22,
+  "refresh": "10s",
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1295,79 +1695,82 @@
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
-          "selected": true,
-          "text": "PrimaryCluster",
-          "value": "PrimaryCluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
-        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size, cluster)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "refId": "prometheus-ClusterName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
-          "selected": true,
-          "text": "SecondaryCluster",
-          "value": "SecondaryCluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
-        "index": -1,
         "label": "Destination",
         "multi": false,
         "name": "Destination",
         "options": [],
-        "query": "label_values(vendor:coherence_federation_destination_total_bytes_sent {cluster=\"${ClusterName:raw}\"}, name)",
+        "query": {
+          "query": "label_values(vendor:coherence_federation_destination_total_bytes_sent {cluster=\"${ClusterName:raw}\"}, name)",
+          "refId": "prometheus-Destination-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
-        "index": -1,
         "label": "Service Name",
         "multi": false,
         "name": "ServiceName",
         "options": [],
-        "query": "label_values(vendor:coherence_federation_destination_total_bytes_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\"}, coherence_service)",
+        "query": {
+          "query": "label_values(vendor:coherence_federation_destination_total_bytes_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\"}, coherence_service)",
+          "refId": "prometheus-ServiceName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1375,7 +1778,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1406,8 +1809,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "variables": {
-    "list": []
-  },
-  "version": 1
+  "version": 1,
+  "weekStart": ""
 }
