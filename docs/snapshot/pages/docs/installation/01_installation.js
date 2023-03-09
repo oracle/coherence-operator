@@ -21,8 +21,49 @@ easily be installed into a Kubernetes cluster.</p>
 
 <h2 id="_coherence_operator_installation">Coherence Operator Installation</h2>
 <div class="section">
+<p><strong>Contents</strong></p>
 
-<h3 id="_prerequisites">Prerequisites</h3>
+<ul class="ulist">
+<li>
+<p><router-link to="#prereq" @click.native="this.scrollFix('#prereq')">Prerequisites before installation</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#ha" @click.native="this.scrollFix('#ha')">Operator High Availability</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#images" @click.native="this.scrollFix('#images')">Coherence Operator Images</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#scope" @click.native="this.scrollFix('#scope')">Operator Scope - monitoring all or a fixed set of namespaces</router-link></p>
+
+</li>
+<li>
+<p>Installation Options</p>
+<ul class="ulist">
+<li>
+<p><router-link to="#manifest" @click.native="this.scrollFix('#manifest')">Simple installation using Kubectl</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#helm" @click.native="this.scrollFix('#helm')">Install the Helm chart</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#kubectl" @click.native="this.scrollFix('#kubectl')">Kubectl with Kustomize</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#tanzu" @click.native="this.scrollFix('#tanzu')">VMWare Tanzu Package (kapp-controller)</router-link></p>
+
+</li>
+</ul>
+</li>
+</ul>
+
+<h3 id="prereq">Prerequisites</h3>
 <div class="section">
 <p>The prerequisites apply to all installation methods.</p>
 
@@ -66,7 +107,7 @@ available in Coherence 12.2.1.4 and later.</p>
 </ul>
 </div>
 
-<h3 id="_high_availability">High Availability</h3>
+<h3 id="ha">High Availability</h3>
 <div class="section">
 <p>The Coherence Operator runs in HA mode by default. The <code>Deployment</code> created by the installation will have a replica count of 3.
 In reduced capacity Kubernetes clusters, for example, local laptop development and test, the replica count can be reduced. It is recommended to leave the default of 3 for production environments.
@@ -101,7 +142,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 </div>
 </div>
 
-<h2 id="_coherence_operator_images">Coherence Operator Images</h2>
+<h2 id="images">Coherence Operator Images</h2>
 <div class="section">
 <p>The Coherence Operator uses a single images, the Operator also runs as an init-container in the Coherence cluster Pods.</p>
 
@@ -121,6 +162,47 @@ for more details if you have well-known-address issues when Pods attempt to form
 </ul>
 <p>If using a private image registry then these images will all need to be pushed to that registry for the Operator to work. The default Coherence image may be omitted if all Coherence applications will use custom Coherence images.</p>
 
+</div>
+
+<h2 id="scope">Operator Scope</h2>
+<div class="section">
+<p>The recommended way to install the Coherence Operator is to install a single instance of the operator into a namespace
+and where it will then control <code>Coherence</code> resources in all namespaces across the Kubernetes cluster.
+Alternatively it may be configured to watch a sub-set of namespaces by setting the <code>WATCH_NAMESPACE</code> environment variable.
+The watch namespace(s) does not have to include the installation namespace.</p>
+
+<div class="admonition caution">
+<p class="admonition-textlabel">Caution</p>
+<p ><p>In theory, it is possible to install multiple instances of the Coherence Operator into different namespaces, where
+each instance monitors a different set of namespaces. There are a number of potential issues with this approach, so
+it is not recommended.</p>
+
+<ul class="ulist">
+<li>
+<p>Only one version of a CRD can be installed - There is currently only a single version of the CRD, but different
+releases of the Operator may use slightly different specs of this CRD version, for example
+a new Operator release may introduce extra fields not in the previous releases.
+As the CRD version is fixed at <code>v1</code> there is no guarantee which CRD version has actually installed, which could lead to
+subtle issues.</p>
+
+</li>
+<li>
+<p>The operator creates and installs defaulting and validating web-hooks. A web-hook is associated to a CRD resource so
+installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
+configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
+unable to contact the web-hook.</p>
+
+</li>
+</ul></p>
+</div>
+<div class="admonition important">
+<p class="admonition-textlabel">Important</p>
+<p ><p>If multiple instance of the Operator are installed, where they are monitoring the same namespaces, this can cause issues.
+For example, when a <code>Coherence</code> resource is then changed, all the Operator deployments will receive the same events
+from Etcd and try to apply the same changes. Sometimes this may work, sometimes there may be errors, for example multiple
+Operators trying to remove finalizers and delete a Coherence cluster.</p>
+</p>
+</div>
 </div>
 
 <h2 id="manifest">Default Install with Kubectl</h2>
@@ -309,34 +391,9 @@ lang="bash"
 >helm delete coherence-operator --namespace &lt;namespace&gt;</markup>
 
 </div>
-</div>
 
-<h2 id="_operator_scope">Operator Scope</h2>
+<h3 id="_set_the_watch_namespaces">Set the Watch Namespaces</h3>
 <div class="section">
-<p>The recommended way to install the Coherence Operator is to install a single instance of the operator into a namespace
-and where it will then control <code>Coherence</code> resources in all namespaces across the Kubernetes cluster.
-Alternatively it may be configured to watch a sub-set of namespaces by setting the <code>WATCH_NAMESPACE</code> environment variable.
-The watch namespace(s) does not have to include the installation namespace.</p>
-
-<p>In theory, it is possible to install multiple instances of the Coherence Operator into different namespaces, where
-each instances monitors a different set of namespaces. There are a number of potential issues with this approach, so
-it is not recommended.</p>
-
-<ul class="ulist">
-<li>
-<p>Only one CRD can be installed - Different releases of the Operator may use slightly different CRD versions, for example
-a new version may introduce extra fields not in the previous version. As the CRD version is <code>v1</code> there is no guarantee
-which CRD version has actually installed, which could lead to subtle issues.</p>
-
-</li>
-<li>
-<p>The operator creates and installs defaulting and validating web-hooks. A web-hook is associated to a CRD resource so
-installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
-configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
-unable to contact the web-hook.</p>
-
-</li>
-</ul>
 <p>To set the watch namespaces when installing with helm set the <code>watchNamespaces</code> value, for example:</p>
 
 <markup
@@ -352,8 +409,9 @@ lang="bash"
 <li data-value="1">The <code>payments</code>, <code>catalog</code> and <code>customers</code> namespaces will be watched by the Operator.</li>
 </ul>
 </div>
+</div>
 
-<h2 id="_operator_image">Operator Image</h2>
+<h2 id="_set_the_operator_image">Set the Operator Image</h2>
 <div class="section">
 <p>The Helm chart uses a default registry to pull the Operator image from.
 If the image needs to be pulled from a different location (for example an internal registry) then the <code>image</code> field
