@@ -532,6 +532,8 @@ type JVMSpec struct {
 	// +optional
 	Memory *JvmMemorySpec `json:"memory,omitempty"`
 	// Configure JMX using JMXMP.
+	// Note: This should only be used in development as JMXMP does not have support for encrypted connections via TLS.
+	// Use in production should ideally put the JMXMP port behind some sort of TLS enabled ingress or network policy.
 	// +optional
 	Jmxmp *JvmJmxmpSpec `json:"jmxmp,omitempty"`
 	// A flag indicating whether to automatically add the default classpath for images
