@@ -1708,7 +1708,7 @@ func (in *PortSpecWithSSL) AddSSLVolumes(sts *appsv1.StatefulSet, c *corev1.Cont
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName:  *in.SSL.Secrets,
-					DefaultMode: pointer.Int32Ptr(int32(0777)),
+					DefaultMode: pointer.Int32(int32(0777)),
 				},
 			},
 		})

@@ -35,7 +35,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 		Spec: v1.CoherenceResourceSpec{
 			Coherence: &v1.CoherenceSpec{
 				Metrics: &v1.PortSpecWithSSL{
-					Enabled: pointer.BoolPtr(true),
+					Enabled: pointer.Bool(true),
 				},
 			},
 			Ports: []v1.NamedPortSpec{
@@ -100,8 +100,8 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 		Spec: v1.CoherenceResourceSpec{
 			Coherence: &v1.CoherenceSpec{
 				Metrics: &v1.PortSpecWithSSL{
-					Enabled: pointer.BoolPtr(true),
-					Port:    pointer.Int32Ptr(9619),
+					Enabled: pointer.Bool(true),
+					Port:    pointer.Int32(9619),
 				},
 			},
 			Ports: []v1.NamedPortSpec{

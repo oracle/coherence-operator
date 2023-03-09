@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -152,7 +152,7 @@ func TestCreateStatefulSetWithMetricsPortWhenMetricsPortValueSpecified(t *testin
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
-				Port: pointer.Int32Ptr(1234),
+				Port: pointer.Int32(1234),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},
@@ -185,7 +185,7 @@ func TestCreateStatefulSetWithMetricsPortAndServicePortWhenNoPortValueSpecified(
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameMetrics,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32Ptr(1234),
+			Port: pointer.Int32(1234),
 		},
 	}
 
@@ -220,14 +220,14 @@ func TestCreateStatefulSetWithMetricsPortAndServicePortWhenMetricsPortValueSpeci
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameMetrics,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32Ptr(1234),
+			Port: pointer.Int32(1234),
 		},
 	}
 
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
-				Port: pointer.Int32Ptr(9876),
+				Port: pointer.Int32(9876),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},
@@ -296,7 +296,7 @@ func TestCreateStatefulSetWithManagementPortWhenManagementPortValueSpecified(t *
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Management: &coh.PortSpecWithSSL{
-				Port: pointer.Int32Ptr(1234),
+				Port: pointer.Int32(1234),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},
@@ -329,7 +329,7 @@ func TestCreateStatefulSetWithManagementPortAndServicePortWhenNoPortValueSpecifi
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameManagement,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32Ptr(1234),
+			Port: pointer.Int32(1234),
 		},
 	}
 
@@ -364,14 +364,14 @@ func TestCreateStatefulSetWithManagementPortAndServicePortWhenManagementPortValu
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameManagement,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32Ptr(1234),
+			Port: pointer.Int32(1234),
 		},
 	}
 
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Management: &coh.PortSpecWithSSL{
-				Port: pointer.Int32Ptr(9876),
+				Port: pointer.Int32(9876),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},

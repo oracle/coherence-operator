@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -21,7 +21,7 @@ func TestApplicationTypeNone(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeNone),
+				Type: pointer.String(AppTypeNone),
 			},
 		},
 	}
@@ -49,8 +49,8 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeNone),
-				Main: pointer.StringPtr("com.foo.Bar"),
+				Type: pointer.String(AppTypeNone),
+				Main: pointer.String("com.foo.Bar"),
 			},
 		},
 	}
@@ -78,7 +78,7 @@ func TestApplicationTypeCoherence(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeCoherence),
+				Type: pointer.String(AppTypeCoherence),
 			},
 		},
 	}
@@ -106,8 +106,8 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeCoherence),
-				Main: pointer.StringPtr("com.foo.Bar"),
+				Type: pointer.String(AppTypeCoherence),
+				Main: pointer.String("com.foo.Bar"),
 			},
 		},
 	}
@@ -135,7 +135,7 @@ func TestApplicationTypeJava(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeJava),
+				Type: pointer.String(AppTypeJava),
 			},
 		},
 	}
@@ -163,8 +163,8 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeJava),
-				Main: pointer.StringPtr("com.foo.Bar"),
+				Type: pointer.String(AppTypeJava),
+				Main: pointer.String("com.foo.Bar"),
 			},
 		},
 	}
@@ -192,7 +192,7 @@ func TestApplicationTypeHelidon(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeHelidon),
+				Type: pointer.String(AppTypeHelidon),
 			},
 		},
 	}
@@ -220,8 +220,8 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeHelidon),
-				Main: pointer.StringPtr("com.foo.Bar"),
+				Type: pointer.String(AppTypeHelidon),
+				Main: pointer.String("com.foo.Bar"),
 			},
 		},
 	}

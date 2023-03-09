@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -24,7 +24,7 @@ func TestJibClasspath(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.BoolPtr(true),
+				UseJibClasspath: pointer.Bool(true),
 			},
 		},
 	}
@@ -52,7 +52,7 @@ func TestJibClasspathFile(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.BoolPtr(true),
+				UseJibClasspath: pointer.Bool(true),
 			},
 		},
 	}
@@ -82,7 +82,7 @@ func TestJibMainClassFile(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.BoolPtr(true),
+				UseJibClasspath: pointer.Bool(true),
 			},
 		},
 	}
@@ -112,7 +112,7 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.BoolPtr(true),
+				UseJibClasspath: pointer.Bool(true),
 			},
 		},
 	}

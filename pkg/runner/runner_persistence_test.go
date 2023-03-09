@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -22,7 +22,7 @@ func TestServerWithPersistenceMode(t *testing.T) {
 		Spec: coh.CoherenceResourceSpec{
 			Coherence: &coh.CoherenceSpec{
 				Persistence: &coh.PersistenceSpec{
-					Mode: pointer.StringPtr("active"),
+					Mode: pointer.String("active"),
 				},
 			},
 		},

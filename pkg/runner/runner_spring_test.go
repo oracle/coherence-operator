@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,7 +23,7 @@ func TestSpringBootApplication(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeSpring),
+				Type: pointer.String(AppTypeSpring),
 			},
 		},
 	}
@@ -52,7 +52,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type:             pointer.StringPtr(AppTypeSpring),
+				Type:             pointer.String(AppTypeSpring),
 				SpringBootFatJar: &jar,
 			},
 		},
@@ -82,9 +82,9 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type:             pointer.StringPtr(AppTypeSpring),
+				Type:             pointer.String(AppTypeSpring),
 				SpringBootFatJar: &jar,
-				Main:             pointer.StringPtr("foo.Bar"),
+				Main:             pointer.String("foo.Bar"),
 			},
 		},
 	}
@@ -112,9 +112,9 @@ func TestSpringBootBuildpacks(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceResourceSpec{
 			Application: &coh.ApplicationSpec{
-				Type: pointer.StringPtr(AppTypeSpring),
+				Type: pointer.String(AppTypeSpring),
 				CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
-					Enabled: pointer.BoolPtr(true),
+					Enabled: pointer.Bool(true),
 				},
 			},
 		},

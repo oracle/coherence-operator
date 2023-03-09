@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -31,9 +31,9 @@ func TestCreateDeploymentWithPort(t *testing.T) {
 					Name:     "extend",
 					Port:     20000,
 					Protocol: &tcp,
-					NodePort: pointer.Int32Ptr(80),
-					HostPort: pointer.Int32Ptr(8080),
-					HostIP:   pointer.StringPtr("10.10.10.1"),
+					NodePort: pointer.Int32(80),
+					HostPort: pointer.Int32(8080),
+					HostIP:   pointer.String("10.10.10.1"),
 				},
 			},
 		},
