@@ -39,6 +39,15 @@ for how to connect to a cluster via the VisualVM plugin using REST.</p>
 <p class="admonition-inline">See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/introduction-oracle-coherence-management.html">Coherence Management Documentation</a>
 for more information on JMX and Management.</p>
 </div>
+<div class="admonition warning">
+<p class="admonition-textlabel">Warning</p>
+<p ><p>JMXMP does not support secure transports such as TLS so cannot be recommended for production use.
+If used in production clusters, then the JMXMP ports should be secured behind TLS enabled ingress or
+with suitable network policies.</p>
+
+<p>Coherence has other mechanisms to access management APIs and metrics that do support TLS.</p>
+</p>
+</div>
 
 <h3 id="_prerequisites">Prerequisites</h3>
 <div class="section">

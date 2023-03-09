@@ -1222,7 +1222,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 </tr>
 <tr>
 <td class=""><code>jmxmp</code></td>
-<td class="">Configure JMX using JMXMP.</td>
+<td class="">Configure JMX using JMXMP. Note: This should only be used in development as JMXMP does not have support for encrypted connections via TLS. Use in production should ideally put the JMXMP port behind some sort of TLS enabled ingress or network policy.</td>
 <td class=""><code>&#42;<router-link to="#_jvmjmxmpspec" @click.native="this.scrollFix('#_jvmjmxmpspec')">JvmJmxmpSpec</router-link></code></td>
 <td class="">false</td>
 </tr>

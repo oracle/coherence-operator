@@ -17,6 +17,15 @@ to port 9099 in the container but this can be configured to bind to a different 
 <p class="admonition-inline">Using a custom transport for JMX, such as JMXMP, requires any JMX client that will connect to the JMX server to
 also have a JMXMP library on its classpath.</p>
 </div>
+<div class="admonition warning">
+<p class="admonition-textlabel">Warning</p>
+<p ><p>JMXMP does not support secure transports such as TLS so cannot be recommended for production use.
+If used in production clusters, then the JMXMP ports should be secured behind TLS enabled ingress or
+with suitable network policies.</p>
+
+<p>Coherence has other mechanisms to access management APIs and metrics that do support TLS.</p>
+</p>
+</div>
 <p>See the <router-link to="/docs/management/030_visualvm">VisualVM Example</router-link> for a detailed example of how to configure
 JMX and connect to a server in a <code>Coherence</code> resource.</p>
 
