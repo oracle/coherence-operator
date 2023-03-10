@@ -167,3 +167,8 @@ clusterRoles: true
 # to set theCoherence site and rack values so Coherence cluster will be unable to automatically achieve site-safety.
 # The default is true.
 nodeRoles: false
+# webhooks controls whether the Coherence Operator registers admission web-hooks for the Coherence resource.
+# If this is set to false, then it will be possible to install invalid Coherence resource into the Kubernetes
+# cluster, that may cause errors when the Operator tries to reconcile them, or worse the Operator may create
+# other invalid Kubernetes resources that fail to run.
+webhooks: true

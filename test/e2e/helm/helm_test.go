@@ -123,6 +123,23 @@ func TestNotCreateWebhookCertSecretIfManualCertManager(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
+func TestDisableWebhooks(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "webhooks=false")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	g.Expect(c.Args).NotTo(BeNil())
+	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--enable-webhook=false"))
+}
+
 func TestBasicHelmInstall(t *testing.T) {
 	g := NewGomegaWithT(t)
 	cmd, err := createHelmCommand()

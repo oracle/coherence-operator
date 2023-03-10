@@ -345,7 +345,7 @@ m| useContainerLimits | If set to true Adds the  -XX:+UseContainerSupport JVM op
 m| gc | Set JVM garbage collector options. m| &#42;<<JvmGarbageCollectorSpec,JvmGarbageCollectorSpec>> | false
 m| diagnosticsVolume | DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core | false
 m| memory | Configure the JVM memory options. m| &#42;<<JvmMemorySpec,JvmMemorySpec>> | false
-m| jmxmp | Configure JMX using JMXMP. m| &#42;<<JvmJmxmpSpec,JvmJmxmpSpec>> | false
+m| jmxmp | Configure JMX using JMXMP. Note: This should only be used in development as JMXMP does not have support for encrypted connections via TLS. Use in production should ideally put the JMXMP port behind some sort of TLS enabled ingress or network policy. m| &#42;<<JvmJmxmpSpec,JvmJmxmpSpec>> | false
 m| useJibClasspath | A flag indicating whether to automatically add the default classpath for images created by the JIB tool https://github.com/GoogleContainerTools/jib If true then the /app/lib/* /app/classes and /app/resources entries are added to the JVM classpath. The default value fif not specified is true. m| &#42;bool | false
 |===
 

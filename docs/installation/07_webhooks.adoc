@@ -175,7 +175,7 @@ set the `webhookCertType` value.
 ----
 helm install  \
     --namespace <namespace> \
-    --set webhookCertType=manual <1>
+    --set webhookCertType=manual \ <1>
     coherence-operator \
     coherence/coherence-operator
 ----
@@ -190,8 +190,8 @@ name using the `webhookCertSecret` value.
 ----
 helm install  \
     --namespace <namespace> \
-    --set webhookCertType=manual <1>
-    --set webhookCertSecret=operator-certs <2>
+    --set webhookCertType=manual \ <1>
+    --set webhookCertSecret=operator-certs \ <2>
     coherence-operator \
     coherence/coherence-operator
 ----
@@ -202,3 +202,60 @@ helm install  \
 The Coherence Operator will now expect to find the keys and certs in a `Secret` named `operator-certs` in
 the same namespace that the Operator is deployed into.
 
+[#no-hooks]
+=== Install the Operator Without Web-Hooks
+
+It is possible to start the Operator without it registering any web-hooks with the API server.
+
+[CAUTION]
+====
+Running the Operator without web-hooks is not recommended.
+The admission web-hooks validate the `Coherence` resource yaml before it gets into the k8s cluster.
+Without the web-hooks, invalid yaml will be accepted by k8s and the Operator will then log errors
+when it tries to reconcile invalid yaml. Or worse, the Operator will create an invalid `StatefulSet`
+which will then fail to start.
+====
+
+==== Install Using Manifest File
+
+If installing using the manifest yaml files, then you need to edit the `coherence-operator.yaml` manifest to add a
+command line argument to the Operator.
+
+Update the `controller-manager` deployment and add an argument, edit the section that looks like this:
+[source,yaml]
+----
+        args:
+          - operator
+          - --enable-leader-election
+----
+
+and add the additional `--enable-webhook=false` argument like this:
+
+[source,yaml]
+----
+        args:
+          - operator
+          - --enable-leader-election
+          - --enable-webhook=false
+----
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+
+
+==== Installing Using Helm
+
+If installing the Operator using Helm, the `webhooks` value can be set to false in the values file or
+on the command line.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set webhooks=false \
+    coherence-operator \
+    coherence/coherence-operator
+----
