@@ -53,8 +53,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 11,
-  "iteration": 1678258481746,
+  "id": 1,
+  "iteration": 1678407866434,
   "links": [
     {
       "icon": "dashboard",
@@ -445,7 +445,7 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", name=~\".*Envelope\"})",
+          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", name=~\".*\\\\$Envelope\"})",
           "interval": "",
           "legendFormat": "Envelope Size",
           "range": true,
@@ -1831,7 +1831,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "3",
           "value": "3"
         },
@@ -1905,6 +1905,6 @@
   "timezone": "",
   "title": "Coherence Federation Summary Dashboard",
   "uid": "coh-federation-summary",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

@@ -19,8 +19,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1678258599948,
+  "id": 20,
+  "iteration": 1678408307716,
   "links": [
     {
       "icon": "dashboard",
@@ -473,7 +473,7 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*Envelope\"})",
+          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*\\\\$Envelope\"})",
           "interval": "",
           "legendFormat": "Envelope Size",
           "range": true,
@@ -659,7 +659,7 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*Envelope\"}) by (node_id, member)",
+          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*\\\\$Envelope\"}) by (node_id, member)",
           "interval": "",
           "legendFormat": "Member: {{member}}",
           "range": true,
@@ -948,7 +948,7 @@
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Entries Sent per Member",
+      "title": "Records Sent per Member",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -962,6 +962,7 @@
       },
       "yaxes": [
         {
+          "$$hashKey": "object:282",
           "format": "short",
           "label": "",
           "logBase": 1,
@@ -969,6 +970,7 @@
           "show": true
         },
         {
+          "$$hashKey": "object:283",
           "format": "short",
           "logBase": 1,
           "show": true
