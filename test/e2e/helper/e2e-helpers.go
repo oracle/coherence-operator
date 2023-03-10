@@ -234,12 +234,6 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 
 	ctx := context.Background()
 
-	// Ensure CRDs exist
-	err = coh.EnsureCRDs(ctx, v, scheme.Scheme, cl)
-	if err != nil {
-		return TestContext{}, err
-	}
-
 	var stop chan struct{}
 
 	// Create the REST server
@@ -249,6 +243,12 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	}
 
 	if startController {
+		// Ensure CRDs exist
+		err = coh.EnsureCRDs(ctx, v, scheme.Scheme, cl)
+		if err != nil {
+			return TestContext{}, err
+		}
+
 		// Create the Coherence controller
 		err = (&controllers.CoherenceReconciler{
 			Client: k8sManager.GetClient(),
