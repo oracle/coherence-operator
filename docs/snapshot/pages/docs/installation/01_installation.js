@@ -193,7 +193,10 @@ configuration remains, then Kubernetes will not accept modifications to resource
 unable to contact the web-hook.</p>
 
 </li>
-</ul></p>
+</ul>
+<p>It is possible to run the Operator without web-hooks, but this has its own
+caveats see the <router-link to="/docs/installation/07_webhooks">Web Hooks</router-link> documentation for how to do this.</p>
+</p>
 </div>
 <div class="admonition important">
 <p class="admonition-textlabel">Important</p>

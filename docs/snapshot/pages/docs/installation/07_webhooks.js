@@ -184,7 +184,7 @@ lang="bash"
 
 >helm install  \
     --namespace &lt;namespace&gt; \
-    --set webhookCertType=manual <span class="conum" data-value="1" />
+    --set webhookCertType=manual \ <span class="conum" data-value="1" />
     coherence-operator \
     coherence/coherence-operator</markup>
 
@@ -199,8 +199,8 @@ lang="bash"
 
 >helm install  \
     --namespace &lt;namespace&gt; \
-    --set webhookCertType=manual <span class="conum" data-value="1" />
-    --set webhookCertSecret=operator-certs <span class="conum" data-value="2" />
+    --set webhookCertType=manual \ <span class="conum" data-value="1" />
+    --set webhookCertSecret=operator-certs \ <span class="conum" data-value="2" />
     coherence-operator \
     coherence/coherence-operator</markup>
 
@@ -210,6 +210,68 @@ lang="bash"
 </ul>
 <p>The Coherence Operator will now expect to find the keys and certs in a <code>Secret</code> named <code>operator-certs</code> in
 the same namespace that the Operator is deployed into.</p>
+
+</div>
+</div>
+
+<h3 id="no-hooks">Install the Operator Without Web-Hooks</h3>
+<div class="section">
+<p>It is possible to start the Operator without it registering any web-hooks with the API server.</p>
+
+<div class="admonition caution">
+<p class="admonition-textlabel">Caution</p>
+<p ><p>Running the Operator without web-hooks is not recommended.
+The admission web-hooks validate the <code>Coherence</code> resource yaml before it gets into the k8s cluster.
+Without the web-hooks, invalid yaml will be accepted by k8s and the Operator will then log errors
+when it tries to reconcile invalid yaml. Or worse, the Operator will create an invalid <code>StatefulSet</code>
+which will then fail to start.</p>
+</p>
+</div>
+
+<h4 id="_install_using_manifest_file_3">Install Using Manifest File</h4>
+<div class="section">
+<p>If installing using the manifest yaml files, then you need to edit the <code>coherence-operator.yaml</code> manifest to add a
+command line argument to the Operator.</p>
+
+<p>Update the <code>controller-manager</code> deployment and add an argument, edit the section that looks like this:</p>
+
+<markup
+lang="yaml"
+
+>        args:
+          - operator
+          - --enable-leader-election</markup>
+
+<p>and add the additional <code>--enable-webhook=false</code> argument like this:</p>
+
+<markup
+lang="yaml"
+
+>        args:
+          - operator
+          - --enable-leader-election
+          - --enable-webhook=false</markup>
+
+<p>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager</p>
+
+</div>
+
+<h4 id="_installing_using_helm">Installing Using Helm</h4>
+<div class="section">
+<p>If installing the Operator using Helm, the <code>webhooks</code> value can be set to false in the values file or
+on the command line.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set webhooks=false \
+    coherence-operator \
+    coherence/coherence-operator</markup>
 
 </div>
 </div>
