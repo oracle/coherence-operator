@@ -109,6 +109,9 @@ subtle issues.
 installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
 configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
 unable to contact the web-hook.
+
+It is possible to run the Operator without web-hooks, but this has its own
+caveats see the <<docs/installation/07_webhooks.adoc,Web Hooks>> documentation for how to do this.
 ====
 
 [IMPORTANT]

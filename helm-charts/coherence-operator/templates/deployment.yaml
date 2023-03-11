@@ -99,6 +99,10 @@ spec:
 {{- if (eq .Values.clusterRoles false) }}
         - --enable-webhook=false
         - --install-crd=false
+{{- else }}
+{{- if (eq .Values.webhooks false) }}
+        - --enable-webhook=false
+{{- end }}
 {{- end }}
         command:
         - "/files/runner"

@@ -153,6 +153,8 @@ func execute() error {
 		if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
 			return errors.Wrap(err, " unable to create webhook")
 		}
+	} else {
+		setupLog.Info("Operator is running with web-hooks disabled")
 	}
 
 	// Create the REST server

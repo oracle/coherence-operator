@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -99,7 +99,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			return ctrl.Result{}, nil
 		}
 		// Error reading the current deployment state from k8s.
-		return reconcile.Result{}, err
+		return reconcile.Result{}, errors.Wrap(err, "getting Coherence resource")
 	}
 
 	// Check whether this is a deletion
@@ -120,7 +120,11 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			controllerutil.RemoveFinalizer(deployment, coh.CoherenceFinalizer)
 			err := in.GetClient().Update(ctx, deployment)
 			if err != nil {
-				return ctrl.Result{}, err
+				if apierrors.IsNotFound(err) {
+					log.Info("Failed to remove the finalizer from the Coherence resource, it looks like it had already been deleted")
+					return ctrl.Result{}, nil
+				}
+				return ctrl.Result{}, errors.Wrap(err, "trying to remove finalizer from Coherence resource")
 			}
 		} else {
 			log.Info("Coherence resource deleted at " + deleteTime.String() + ", finalizer already removed")
