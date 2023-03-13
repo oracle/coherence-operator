@@ -404,13 +404,46 @@ lang="bash"
 
 >helm install  \
     --namespace &lt;namespace&gt; \
-    --set watchNamespaces=payments,catalog,customers <span class="conum" data-value="1" />
+    --set watchNamespaces=payments,catalog,customers \
     coherence-operator \
     coherence/coherence-operator</markup>
 
-<ul class="colist">
-<li data-value="1">The <code>payments</code>, <code>catalog</code> and <code>customers</code> namespaces will be watched by the Operator.</li>
-</ul>
+<p>The <code>payments</code>, <code>catalog</code> and <code>customers</code> namespaces will be watched by the Operator.</p>
+
+
+<h4 id="_set_the_watch_namespace_to_the_operators_install_namespace">Set the Watch Namespace to the Operator&#8217;s Install Namespace</h4>
+<div class="section">
+<p>When installing the Operator using the Helm chart, there is a convenience value that can be set if the
+Operator should only monitor the same namespace that it is installed into.
+By setting the <code>onlySameNamespace</code> value to <code>true</code> the watch namespace will be set to the installation namespace.
+If the <code>onlySameNamespace</code> value is set to <code>true</code> then any value set for the <code>watchNamespaces</code> value will be ignored.</p>
+
+<p>For example, the command below will set <code>onlySameNamespace</code> to true, and the Operator will be installed into,
+and only monitor the <code>coh-testing</code> namespace.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace coh-testing \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<p>In the example below, the <code>onlySameNamespace</code> is set to true, so the Operator will be installed into,
+and only monitor the <code>coh-testing</code> namespace. Even though the <code>watchNamespaces</code> value is set, it will be ignored.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace coh-testing \
+    --set watchNamespaces=payments,catalog,customers \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+</div>
 </div>
 </div>
 
