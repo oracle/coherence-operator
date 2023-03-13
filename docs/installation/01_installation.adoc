@@ -301,12 +301,45 @@ To set the watch namespaces when installing with helm set the `watchNamespaces` 
 ----
 helm install  \
     --namespace <namespace> \
-    --set watchNamespaces=payments,catalog,customers <1>
+    --set watchNamespaces=payments,catalog,customers \
     coherence-operator \
     coherence/coherence-operator
 ----
 
-<1> The `payments`, `catalog` and `customers` namespaces will be watched by the Operator.
+The `payments`, `catalog` and `customers` namespaces will be watched by the Operator.
+
+==== Set the Watch Namespace to the Operator's Install Namespace
+
+When installing the Operator using the Helm chart, there is a convenience value that can be set if the
+Operator should only monitor the same namespace that it is installed into.
+By setting the `onlySameNamespace` value to `true` the watch namespace will be set to the installation namespace.
+If the `onlySameNamespace` value is set to `true` then any value set for the `watchNamespaces` value will be ignored.
+
+For example, the command below will set `onlySameNamespace` to true, and the Operator will be installed into,
+and only monitor the `coh-testing` namespace.
+
+[source,bash]
+----
+helm install  \
+    --namespace coh-testing \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+In the example below, the `onlySameNamespace` is set to true, so the Operator will be installed into,
+and only monitor the `coh-testing` namespace. Even though the `watchNamespaces` value is set, it will be ignored.
+
+[source,bash]
+----
+helm install  \
+    --namespace coh-testing \
+    --set watchNamespaces=payments,catalog,customers \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
 
 == Set the Operator Image
 

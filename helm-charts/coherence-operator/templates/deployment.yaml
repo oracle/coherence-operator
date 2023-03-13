@@ -132,10 +132,14 @@ spec:
         - name: OPERATOR_IMAGE
           value: {{ .Values.defaultCoherenceUtilsImage | quote }}
         - name: WATCH_NAMESPACE
-{{- if .Values.clusterRoles }}
-          value: {{ .Values.watchNamespaces | quote }}
-{{- else }}
+{{- if .Values.onlySameNamespace }}
           value: {{ .Release.Namespace | quote }}
+{{- else }}
+{{-   if .Values.clusterRoles }}
+          value: {{ .Values.watchNamespaces | quote }}
+{{-   else }}
+          value: {{ .Release.Namespace | quote }}
+{{-   end }}
 {{- end }}
         image: {{ .Values.image }}
         ports:
