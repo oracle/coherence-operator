@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -72,6 +72,9 @@ const (
 	FlagWebhookCertDir        = "webhook-cert-dir"
 	FlagWebhookSecret         = "webhook-secret"
 	FlagWebhookService        = "webhook-service"
+
+	// EnvVarWatchNamespace is the environment variable to use to set the watch namespace(s)
+	EnvVarWatchNamespace = "WATCH_NAMESPACE"
 
 	// OCI Node Labels
 
@@ -385,10 +388,9 @@ func GetWatchNamespace() []string {
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which specifies the Namespace to watch.
 	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
 	var watches []string
 
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	ns, found := os.LookupEnv(EnvVarWatchNamespace)
 	if !found || ns == "" || strings.TrimSpace(ns) == "" {
 		return watches
 	}
