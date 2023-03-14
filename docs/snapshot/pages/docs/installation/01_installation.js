@@ -8,7 +8,7 @@
 <v-card-text>
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
-<dd slot="desc"><p>The Coherence Operator is available as a Docker image <code>oracle/coherence-operator:3.2.10</code> that can
+<dd slot="desc"><p>The Coherence Operator is available as a Docker image <code>oracle/coherence-operator:3.2.11</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -148,7 +148,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator:3.2.10</code> - The Operator image.</p>
+<p><code>ghcr.io/oracle/coherence-operator:3.2.11</code> - The Operator image.</p>
 
 </li>
 </ul>
@@ -215,7 +215,7 @@ Operators trying to remove finalizers and delete a Coherence cluster.</p>
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.2.10/coherence-operator.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.2.11/coherence-operator.yaml</markup>
 
 <p>This will create a namespace called <code>coherence</code> and install the Operator into it along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources. The <code>coherence</code> namespace can be changed by downloading and editing the yaml file.</p>
 
@@ -524,13 +524,13 @@ lang="bash"
 <div class="section">
 <p>If you want to use yaml directly to install the operator, with something like <code>kubectl</code>, you can use the manifest files
 published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.2.10/coherence-operator-manifests.tar.gz">3.2.10 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.2.11/coherence-operator-manifests.tar.gz">3.2.11 Manifests</a></p>
 
 <p>These manifest files are for use with a tool called Kustomize, which is built into <code>kubectl</code>
 see the documentation here: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/</a></p>
 
 <p>Download the
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.2.10/coherence-operator-manifests.tar.gz">3.2.10 Manifests</a>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.2.11/coherence-operator-manifests.tar.gz">3.2.11 Manifests</a>
 from the release page and unpack the file, which should produce a directory called <code>manifests</code> with a structure like this:</p>
 
 <markup
@@ -590,7 +590,7 @@ that you are using for the Operator, for example if you have the images in a cus
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.2.10</markup>
+>cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.2.11</markup>
 
 <p>Change the name of the Operator image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image</p>
@@ -598,7 +598,7 @@ that you are using for the Operator utilities image</p>
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.2.10</markup>
+>cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.2.11</markup>
 
 <p>Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
 does not need to change.</p>
@@ -677,11 +677,11 @@ using a standalone Carvel <a id="" title="" target="_blank" href="https://carvel
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-package:3.2.10</code> - the Coherence Operator package</p>
+<p><code>ghcr.io/oracle/coherence-operator-package:3.2.11</code> - the Coherence Operator package</p>
 
 </li>
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-repo:3.2.10</code> - the Coherence Operator repository</p>
+<p><code>ghcr.io/oracle/coherence-operator-repo:3.2.11</code> - the Coherence Operator repository</p>
 
 </li>
 </ul>
@@ -695,7 +695,7 @@ This can be done using the Tanzu CLI.</p>
 lang="bash"
 
 >tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.2.10 \
+    --url ghcr.io/oracle/coherence-operator-repo:3.2.11 \
     --namespace coherence \
     --create-namespace</markup>
 
@@ -727,7 +727,7 @@ lang="bash"
 lang="bash"
 
 >NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
-coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.2.10</markup>
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.2.11</markup>
 
 </div>
 
@@ -740,7 +740,7 @@ lang="bash"
 
 >tanzu package install coherence \
     --package-name coherence-operator.oracle.github.com \
-    --version 3.2.10 \
+    --version 3.2.11 \
     --namespace coherence</markup>
 
 <p>The Tanzu CLI will display the various steps it is going through to install the package and if all goes well, finally display <code>Added installed package 'coherence'</code>
@@ -757,7 +757,7 @@ lang="bash"
 lang="bash"
 
 >NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
-coherence  coherence-operator.oracle.github.com  3.2.10            Reconcile succeeded</markup>
+coherence  coherence-operator.oracle.github.com  3.2.11            Reconcile succeeded</markup>
 
 <p>The Operator is now installed and ready to mage Coherence clusters.</p>
 
