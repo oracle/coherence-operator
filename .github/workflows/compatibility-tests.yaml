@@ -37,6 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.2.10
         - 3.2.9
         - 3.2.8
         - 3.2.7
@@ -44,6 +45,10 @@ jobs:
         - 3.2.5
         - 3.1.5
         include:
+        - compatibilityVersion: 3.2.10
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
         - compatibilityVersion: 3.2.9
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence

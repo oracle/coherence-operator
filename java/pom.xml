@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-
-    Copyright (c) 2019, 2023, Oracle and/or its affiliates.
-    Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
-
--->
+  Copyright (c) 2023, Oracle and/or its affiliates.
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+  -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -31,7 +29,7 @@
     </modules>
 
     <properties>
-        <revision>3.2.10</revision>
+        <revision>3.2.11</revision>
         <operator.version>${project.version}</operator.version>
 
         <build.java.version>17</build.java.version>
