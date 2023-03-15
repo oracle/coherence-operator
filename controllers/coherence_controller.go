@@ -106,7 +106,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	deleteTime := deployment.GetDeletionTimestamp()
 	if deleteTime != nil {
 		// Check whether finalization needs to be run
-		if utils.StringArrayContains(deployment.GetFinalizers(), coh.CoherenceFinalizer) {
+		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
 			log.Info("Coherence resource deleted at " + deleteTime.String() + ", running finalizer")
 			// Run finalization logic.
 			// If the finalization logic fails, don't remove the finalizer so
@@ -141,10 +141,22 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return ctrl.Result{Requeue: true}, err
 	}
 
-	// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
-	// Coherence resource was added when the Operator was uninstalled)
-	if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
-		return ctrl.Result{Requeue: true}, err
+	if deployment.Spec.AllowUnsafeDelete != nil && *deployment.Spec.AllowUnsafeDelete {
+		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
+			err := in.ensureFinalizerRemoved(ctx, deployment)
+			if err != nil && !apierrors.IsNotFound(err) {
+				return ctrl.Result{Requeue: true}, errors.Wrap(err, "failed to remove finalizer")
+			}
+			log.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
+		} else {
+			log.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
+		}
+	} else {
+		// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
+		// Coherence resource was added when the Operator was uninstalled)
+		if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
+			return ctrl.Result{Requeue: true}, err
+		}
 	}
 
 	// ensure that the deployment has an initial status
@@ -402,7 +414,7 @@ func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Contex
 }
 
 func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	if utils.StringArrayDoesNotContain(c.GetFinalizers(), coh.CoherenceFinalizer) {
+	if controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
 		// Re-fetch the Coherence resource to ensure we have the most recent copy
 		latest := &coh.Coherence{}
 		c.DeepCopyInto(latest)
@@ -420,6 +432,17 @@ func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *co
 		return applied, nil
 	}
 	return false, nil
+}
+
+func (in *CoherenceReconciler) ensureFinalizerRemoved(ctx context.Context, c *coh.Coherence) error {
+	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
+		err := in.GetClient().Update(ctx, c)
+		if err != nil {
+			in.Log.Info("Failed to remove the finalizer from the Coherence resource, it looks like it had already been deleted")
+			return err
+		}
+	}
+	return nil
 }
 
 func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {

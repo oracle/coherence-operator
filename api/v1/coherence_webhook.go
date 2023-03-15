@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -49,7 +49,16 @@ func (in *Coherence) Default() {
 	if in.Status.Phase == "" {
 		logger.Info("Setting defaults for new resource")
 		// ensure the operator finalizer is present
-		controllerutil.AddFinalizer(in, CoherenceFinalizer)
+		if in.Spec.AllowUnsafeDelete != nil && *in.Spec.AllowUnsafeDelete {
+			if controllerutil.ContainsFinalizer(in, CoherenceFinalizer) {
+				controllerutil.RemoveFinalizer(in, CoherenceFinalizer)
+				logger.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
+			} else {
+				logger.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
+			}
+		} else {
+			controllerutil.AddFinalizer(in, CoherenceFinalizer)
+		}
 
 		// set the default replicas if not present
 		if in.Spec.Replicas == nil {
