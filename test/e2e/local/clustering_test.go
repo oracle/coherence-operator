@@ -23,7 +23,15 @@ import (
 func TestMinimalDeployment(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
+	g := NewWithT(t)
+
+	deployments, _ := helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
+
+	data, ok := deployments["minimal-cluster"]
+	g.Expect(ok).To(BeTrue(), "did not find expected 'minimal-cluster' deployment")
+
+	hasFinalizer := controllerutil.ContainsFinalizer(&data, coh.CoherenceFinalizer)
+	g.Expect(hasFinalizer).To(BeTrue())
 }
 
 // Test that a deployment works with a replica count of 1
