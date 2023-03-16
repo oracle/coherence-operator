@@ -20,7 +20,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 17,
-  "iteration": 1678936677366,
+  "iteration": 1678950341915,
   "links": [
     {
       "icon": "dashboard",
@@ -811,9 +811,9 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "vendor:coherence_federation_destination_msg_apply_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}",
+          "expr": "vendor:coherence_federation_destination_msg_apply_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName',name='$Destination'}",
           "interval": "",
-          "legendFormat": "{{member}}",
+          "legendFormat": "Node: {{node_id}}",
           "range": true,
           "refId": "A"
         }
@@ -909,9 +909,9 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "vendor:coherence_federation_destination_msg_network_round_trip_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}",
+          "expr": "vendor:coherence_federation_destination_msg_network_round_trip_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name='$Destination'}",
           "interval": "",
-          "legendFormat": "{{member}}",
+          "legendFormat": "Node: {{node_id}}",
           "range": true,
           "refId": "A"
         }
@@ -1007,9 +1007,9 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "vendor:coherence_federation_destination_record_backlog_delay_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}",
+          "expr": "vendor:coherence_federation_destination_record_backlog_delay_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName',name='$Destination'}",
           "interval": "",
-          "legendFormat": "{{member}}",
+          "legendFormat": "Node: {{node_id}}",
           "range": true,
           "refId": "A"
         }
@@ -2159,6 +2159,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 4,
+  "version": 9,
   "weekStart": ""
 }
