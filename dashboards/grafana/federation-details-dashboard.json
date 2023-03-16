@@ -19,8 +19,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 20,
-  "iteration": 1678408307716,
+  "id": 17,
+  "iteration": 1678936677366,
   "links": [
     {
       "icon": "dashboard",
@@ -93,8 +93,8 @@
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 8,
-        "desc": true
+        "col": 3,
+        "desc": false
       },
       "styles": [
         {
@@ -274,24 +274,76 @@
           "decimals": 0,
           "mappingType": 1,
           "pattern": "Value #G",
-          "thresholds": [],
+          "thresholds": [
+            ""
+          ],
           "type": "string",
           "unit": "percent",
           "valueMaps": [
             {
               "$$hashKey": "object:707",
-              "text": "OK",
+              "text": "INITIAL",
               "value": "0"
             },
             {
               "$$hashKey": "object:708",
-              "text": "WARNING",
+              "text": "STARTING",
               "value": "1"
             },
             {
               "$$hashKey": "object:709",
-              "text": "ERROR",
+              "text": "CONNECTING",
               "value": "2"
+            },
+            {
+              "$$hashKey": "object:2149",
+              "text": "CONNECT_WAIT",
+              "value": "3"
+            },
+            {
+              "$$hashKey": "object:2151",
+              "text": "IDLE",
+              "value": "4"
+            },
+            {
+              "$$hashKey": "object:2153",
+              "text": "READY",
+              "value": "5"
+            },
+            {
+              "$$hashKey": "object:2155",
+              "text": "SENDING",
+              "value": "6"
+            },
+            {
+              "$$hashKey": "object:2157",
+              "text": "STOPPED",
+              "value": "7"
+            },
+            {
+              "$$hashKey": "object:2159",
+              "text": "PAUSED",
+              "value": "8"
+            },
+            {
+              "$$hashKey": "object:2161",
+              "text": "ERROR",
+              "value": "9"
+            },
+            {
+              "$$hashKey": "object:2163",
+              "text": "YIELDING",
+              "value": "10"
+            },
+            {
+              "$$hashKey": "object:2165",
+              "text": "DISCONNECTED",
+              "value": "11"
+            },
+            {
+              "$$hashKey": "object:2167",
+              "text": "DISCONNECTING",
+              "value": "12"
             }
           ]
         },
@@ -300,13 +352,15 @@
           "alias": "Node Id",
           "align": "auto",
           "colors": [
-            "rgba(245, 54, 54, 0.9)",
+            "rgba(50, 172, 45, 0.97)",
             "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
+            "rgba(245, 54, 54, 0.9)"
           ],
           "decimals": 0,
           "pattern": "node_id",
-          "thresholds": [],
+          "thresholds": [
+            ""
+          ],
           "type": "number",
           "unit": "short"
         },
@@ -394,7 +448,7 @@
             "type": "prometheus",
             "uid": "P1809F7CD0C75ACF3"
           },
-          "expr": "avg(vendor:coherence_federation_destination_status{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
+          "expr": "avg(vendor:coherence_federation_destination_state_code{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -700,6 +754,300 @@
     },
     {
       "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 23
+      },
+      "hiddenSeries": false,
+      "id": 25,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": false
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.13",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "vendor:coherence_federation_destination_msg_apply_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}",
+          "interval": "",
+          "legendFormat": "{{member}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Average Apply Time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:8059",
+          "format": "ms",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:8060",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 23
+      },
+      "hiddenSeries": false,
+      "id": 26,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": false
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.13",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "vendor:coherence_federation_destination_msg_network_round_trip_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}",
+          "interval": "",
+          "legendFormat": "{{member}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Average Roundtrip",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:8059",
+          "format": "ms",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:8060",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 23
+      },
+      "hiddenSeries": false,
+      "id": 27,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": false
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.13",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "vendor:coherence_federation_destination_record_backlog_delay_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}",
+          "interval": "",
+          "legendFormat": "{{member}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Average Backlog Delay",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:8059",
+          "format": "ms",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:8060",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
       "bars": true,
       "dashLength": 10,
       "dashes": false,
@@ -720,7 +1068,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 33
       },
       "hiddenSeries": false,
       "id": 7,
@@ -813,7 +1161,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 33
       },
       "hiddenSeries": false,
       "id": 16,
@@ -906,7 +1254,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 41
       },
       "hiddenSeries": false,
       "id": 17,
@@ -1002,7 +1350,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 41
       },
       "hiddenSeries": false,
       "id": 12,
@@ -1094,7 +1442,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 49
       },
       "id": 13,
       "links": [],
@@ -1116,7 +1464,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 51
       },
       "id": 8,
       "links": [],
@@ -1376,7 +1724,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 57
       },
       "id": 15,
       "links": [],
@@ -1613,7 +1961,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 63
       },
       "hiddenSeries": false,
       "id": 14,
@@ -1811,6 +2159,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 1,
+  "version": 4,
   "weekStart": ""
 }
