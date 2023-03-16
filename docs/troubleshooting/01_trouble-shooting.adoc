@@ -17,7 +17,7 @@ This page will be updated and maintained over time to include common issues we s
 
 * <<no-operator,I Uninstalled the Operator and Cannot Delete the Coherence Clusters>>
 
-* <<ns-delete,Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending>>
+* <<ns-delete,Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending Deletion>>
 
 * <<#restart,Why Does the Operator Pod Restart>>
 
@@ -58,7 +58,7 @@ kubectl -n <NAMESPACE> delete coherence/<COHERENCE_RESOURCE_NAME>
 ----
 
 [#ns-delete]
-=== Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending
+=== Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending Deletion
 
 If you have tried to delete a namespace using `kubectl delete` and the namespace is now stuck pending deletion, this
 could be related to the issue above. This is especially true if the Operator is either not running, or it is in the
