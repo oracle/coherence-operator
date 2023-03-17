@@ -414,7 +414,7 @@ func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Contex
 }
 
 func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	if controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
+	if !controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
 		// Re-fetch the Coherence resource to ensure we have the most recent copy
 		latest := &coh.Coherence{}
 		c.DeepCopyInto(latest)
