@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,7 +16,6 @@ import (
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/fakes"
 	"github.com/oracle/coherence-operator/pkg/operator"
-	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
@@ -25,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
@@ -215,7 +215,7 @@ func (in *fakeReconcileChain) ReconcileExisting(names ...apitypes.NamespacedName
 			return results, err
 		}
 
-		if utils.StringArrayDoesNotContain(c.GetFinalizers(), coh.CoherenceFinalizer) {
+		if !controllerutil.ContainsFinalizer(&c, coh.CoherenceFinalizer) {
 			// there is no finalizer, so we need to do a call first that will just add the finalizer
 			_, err := in.r.Reconcile(ctx, request)
 			if err != nil {

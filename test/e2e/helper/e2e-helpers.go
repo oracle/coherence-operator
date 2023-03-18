@@ -38,6 +38,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -1675,14 +1676,18 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
 	}
 
-	// Assert that the finalizer has been added to all the deployments
+	// Assert that the finalizer has been added to all the deployments that do not have AllowUnsafeDelete=false
 	for _, d := range deployments {
 		ctx.Logf("Deploying %s", d.Name)
 		// deploy the Coherence resource
 		actual := &coh.Coherence{}
 		err = ctx.Client.Get(ctx.Context, d.GetNamespacedName(), actual)
 		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(actual.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
+		if d.Spec.AllowUnsafeDelete != nil && *d.Spec.AllowUnsafeDelete {
+			g.Expect(controllerutil.ContainsFinalizer(actual, coh.CoherenceFinalizer)).To(BeFalse())
+		} else {
+			g.Expect(controllerutil.ContainsFinalizer(actual, coh.CoherenceFinalizer)).To(BeTrue())
+		}
 	}
 
 	// Get all the Pods in the cluster

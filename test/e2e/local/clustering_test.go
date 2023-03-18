@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"testing"
 	"time"
 )
@@ -22,7 +23,15 @@ import (
 func TestMinimalDeployment(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
-	helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
+	g := NewWithT(t)
+
+	deployments, _ := helper.AssertDeployments(testContext, t, "deployment-minimal.yaml")
+
+	data, ok := deployments["minimal-cluster"]
+	g.Expect(ok).To(BeTrue(), "did not find expected 'minimal-cluster' deployment")
+
+	hasFinalizer := controllerutil.ContainsFinalizer(&data, coh.CoherenceFinalizer)
+	g.Expect(hasFinalizer).To(BeTrue())
 }
 
 // Test that a deployment works with a replica count of 1
@@ -140,4 +149,17 @@ func TestDeploymentWithZeroReplicas(t *testing.T) {
 	err = testContext.Client.Get(context.TODO(), deployment.GetNamespacedName(), sts)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(apierrors.IsNotFound(err)).To(BeTrue())
+}
+
+func TestAllowUnsafeDelete(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	g := NewWithT(t)
+
+	deployments, _ := helper.AssertDeployments(testContext, t, "deployment-unsafe.yaml")
+	data, ok := deployments["unsafe-cluster"]
+	g.Expect(ok).To(BeTrue(), "did not find expected 'unsafe-cluster' deployment")
+
+	hasFinalizer := controllerutil.ContainsFinalizer(&data, coh.CoherenceFinalizer)
+	g.Expect(hasFinalizer).To(BeFalse())
 }
