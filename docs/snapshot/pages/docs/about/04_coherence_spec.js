@@ -699,6 +699,12 @@ For example:<br>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>allowUnsafeDelete</code></td>
+<td class="">AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is <code>false</code>. The primary use for setting this flag to <code>true</code> is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to <code>true</code> in a production environment, especially when using Coherence persistence features.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>

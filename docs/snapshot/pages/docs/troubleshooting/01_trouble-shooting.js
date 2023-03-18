@@ -15,6 +15,10 @@ This page will be updated and maintained over time to include common issues we s
 
 </li>
 <li>
+<p><router-link to="#ns-delete" @click.native="this.scrollFix('#ns-delete')">Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending Deletion</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#restart" @click.native="this.scrollFix('#restart')">Why Does the Operator Pod Restart</router-link></p>
 
 </li>
@@ -69,6 +73,45 @@ lang="bash"
 >kubectl -n &lt;NAMESPACE&gt; patch coherence/&lt;COHERENCE_RESOURCE_NAME&gt; -p '{"metadata":{"finalizers":[]}}' --type=merge
 kubectl -n &lt;NAMESPACE&gt; delete coherence/&lt;COHERENCE_RESOURCE_NAME&gt;</markup>
 
+</div>
+
+<h3 id="ns-delete">Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending Deletion</h3>
+<div class="section">
+<p>If you have tried to delete a namespace using <code>kubectl delete</code> and the namespace is now stuck pending deletion, this
+could be related to the issue above. This is especially true if the Operator is either not running, or it is in the
+same namespace that is being deleted.</p>
+
+<p>If deleting a namespace containing the Operator and a running Coherence cluster, or deleting a namespace containing
+a running Coherence cluster when the Operator is stopped will mean the finalizers the Operator added to the Coherence
+resources cannot be removed so the namespace will remain in a pending deletion state. The solution to this is the same
+as the point above in <router-link to="#no-operator" @click.native="this.scrollFix('#no-operator')">I Uninstalled the Operator and Cannot Delete the Coherence Clusters</router-link></p>
+
+<p>Alternatively, if you are running the Operator in a CI/CD environment and just want to be able to clean up after
+tests you can run Coherence clusters with the <code>allowUnsafeDelete</code> option enabled.
+By setting the <code>allowUnsafeDelete</code> field to <code>true</code> in the <code>Coherence</code> resource the Operator will not add a finalizer
+to that Coherence resource, allowing it to be deleted if its namespace is deleted.</p>
+
+<p>For example:</p>
+
+<markup
+lang="yaml"
+title="cluster.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: unsafe-cluster
+spec:
+  allowUnsafeDelete: true</markup>
+
+<div class="admonition caution">
+<p class="admonition-textlabel">Caution</p>
+<p ><p>Setting the <code>allowUnsafeDelete</code> field to <code>true</code> will mean that the Operator will not be able to intercept the deletion
+and shutdown of a Coherence cluster and ensure it has a clean, safe shutdown. This is usually ok in CI/CD environments
+where the cluster and namespace are being cleaned up at the end of a test. This options should not be used in
+a production cluster, especially where features such as Coherence persistence are being used, otherwise the cluster may
+not cleanly shut down and will then not be able to be restarted using the persisted data.</p>
+</p>
+</div>
 </div>
 
 <h3 id="restart">Why Does the Operator Pod Restart After Installation</h3>
