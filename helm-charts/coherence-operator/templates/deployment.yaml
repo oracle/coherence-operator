@@ -124,13 +124,21 @@ spec:
         - name: CERT_TYPE
           value: {{ default "self-signed" .Values.webhookCertType | quote }}
         - name: COHERENCE_IMAGE
+{{- if kindIs "string" .Values.defaultCoherenceImage }}
           value: {{ .Values.defaultCoherenceImage | quote }}
+{{- else }}
+          value: {{ printf "%s/%s:%s" .Values.defaultCoherenceImage.registry .Values.defaultCoherenceImage.name .Values.defaultCoherenceImage.tag | quote }}
+{{- end }}
         - name: RACK_LABEL
           value: {{ .Values.rackLabel | quote }}
         - name: SITE_LABEL
           value: {{ .Values.siteLabel | quote }}
         - name: OPERATOR_IMAGE
-          value: {{ .Values.defaultCoherenceUtilsImage | quote }}
+{{- if kindIs "string" .Values.image }}
+          value: {{ .Values.image | quote }}
+{{- else }}
+          value: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.name .Values.image.tag | quote }}
+{{- end }}
         - name: WATCH_NAMESPACE
 {{- if .Values.onlySameNamespace }}
           value: {{ .Release.Namespace | quote }}
@@ -141,7 +149,11 @@ spec:
           value: {{ .Release.Namespace | quote }}
 {{-   end }}
 {{- end }}
-        image: {{ .Values.image }}
+{{- if kindIs "string" .Values.image }}
+        image: {{ .Values.image | quote }}
+{{- else }}
+        image: {{ printf "%s/%s:%s" .Values.image.registry .Values.image.name .Values.image.tag | quote }}
+{{- end }}
         ports:
         - containerPort: 8000
           name: operator

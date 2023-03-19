@@ -9,6 +9,7 @@ package helper
 import (
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	"io"
 	corev1 "k8s.io/api/core/v1"
@@ -35,7 +36,17 @@ const (
 	TestClientNamespaceEnv = "OPERATOR_NAMESPACE_CLIENT"
 	// PrometheusNamespaceEnv is environment variable holding the name of the Prometheus k8s namespace.
 	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
-	// OperatorImageEnv is environment variable holding the name of the Operator image.
+	// OperatorImageRegistryEnv is environment variable holding the registry of the Operator image.
+	OperatorImageRegistryEnv = "OPERATOR_IMAGE_REGISTRY"
+	// OperatorImageNameEnv is environment variable holding the name part of the Operator image.
+	OperatorImageNameEnv = "OPERATOR_IMAGE_NAME"
+	// CoherenceImageRegistryEnv is environment variable holding the registry of the default Coherence image.
+	CoherenceImageRegistryEnv = "COHERENCE_IMAGE_REGISTRY"
+	// CoherenceImageNameEnv is environment variable holding the name part of the default Coherence image.
+	CoherenceImageNameEnv = "COHERENCE_IMAGE_NAME"
+	// CoherenceImageTagEnv is environment variable holding the tag part of the default Coherence image.
+	CoherenceImageTagEnv = "COHERENCE_IMAGE_TAG"
+	// OperatorImageEnv is environment variable holding the full name of the Operator image.
 	OperatorImageEnv = "OPERATOR_IMAGE"
 	// ClientImageEnv is environment variable holding the name of the client test image.
 	ClientImageEnv = "TEST_APPLICATION_IMAGE_CLIENT"
@@ -49,6 +60,8 @@ const (
 	CoherenceVersionEnv = "COHERENCE_VERSION"
 	// BuildOutputEnv is environment variable holding the build output directory.
 	BuildOutputEnv = "BUILD_OUTPUT"
+	// VersionEnv is environment variable holding the version the Operator.
+	VersionEnv = "VERSION"
 
 	defaultNamespace        = "operator-test"
 	defaultClusterNamespace = "coherence-test"
@@ -83,9 +96,59 @@ func ensureEnvVar(key, value string) {
 	}
 }
 
-// GetOperatorImage returns the name of the Operator image.
+// GetOperatorVersionEnvVar returns the Operator version.
+func GetOperatorVersionEnvVar() string {
+	return os.Getenv(VersionEnv)
+}
+
+// GetOperatorImage returns the full name of the Operator image.
 func GetOperatorImage() string {
 	return os.Getenv(OperatorImageEnv)
+}
+
+// GetOperatorImageRegistry returns the registry name of the Operator image.
+func GetOperatorImageRegistry() string {
+	if s, found := os.LookupEnv(OperatorImageRegistryEnv); found {
+		return s
+	}
+	return "ghcr.io/oracle"
+}
+
+// GetOperatorImageName returns the name part of the Operator image.
+func GetOperatorImageName() string {
+	if s, found := os.LookupEnv(OperatorImageNameEnv); found {
+		return s
+	}
+	return "coherence-operator"
+}
+
+// GetDefaultCoherenceImage returns the full name of the default Coherence image.
+func GetDefaultCoherenceImage() string {
+	return os.Getenv(operator.EnvVarCoherenceImage)
+}
+
+// GetDefaultCoherenceImageRegistry returns the registry name of the default Coherence image.
+func GetDefaultCoherenceImageRegistry() string {
+	if s, found := os.LookupEnv(CoherenceImageRegistryEnv); found {
+		return s
+	}
+	return "ghcr.io/oracle"
+}
+
+// GetDefaultCoherenceImageName returns the name part of the default Coherence image.
+func GetDefaultCoherenceImageName() string {
+	if s, found := os.LookupEnv(CoherenceImageNameEnv); found {
+		return s
+	}
+	return "coherence"
+}
+
+// GetDefaultCoherenceImageTag returns the tag part of the default Coherence image.
+func GetDefaultCoherenceImageTag() string {
+	if s, found := os.LookupEnv(CoherenceImageTagEnv); found {
+		return s
+	}
+	return ""
 }
 
 // GetClientImage returns the name of the client test image
