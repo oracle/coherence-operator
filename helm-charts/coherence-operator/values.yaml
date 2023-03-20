@@ -3,15 +3,17 @@
 # http://oss.oracle.com/licenses/upl.
 
 # image is the Coherence Operator image
-image: "${OPERATOR_IMAGE}"
+image:
+  registry: "${OPERATOR_IMAGE_REGISTRY}"
+  name: "${OPERATOR_IMAGE_NAME}"
+  tag: "${VERSION}"
 
 # defaultCoherenceImage is the default application image that will be used if a Coherence
 # resource does not specify an image name.
-defaultCoherenceImage: "${COHERENCE_IMAGE}"
-
-# defaultCoherenceUtilsImage is the Coherence Operator image that will be used when running
-# Coherence Pods. This image version should typically match the Operator version.
-defaultCoherenceUtilsImage: "${OPERATOR_IMAGE}"
+defaultCoherenceImage:
+  registry: "${COHERENCE_IMAGE_REGISTRY}"
+  name: "${COHERENCE_IMAGE_NAME}"
+  tag: "${COHERENCE_IMAGE_TAG}"
 
 # watchNamespaces is the comma delimited list of namespaces that the operator should
 # manage Coherence resources in. The default is to manage all namespaces.

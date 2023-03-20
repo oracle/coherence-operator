@@ -38,7 +38,10 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION ?= 21.12.5
 # The default Coherence image the Operator will run if no image is specified
-COHERENCE_IMAGE ?= ghcr.io/oracle/coherence-ce:22.06.3
+COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
+COHERENCE_IMAGE_NAME     ?= coherence-ce
+COHERENCE_IMAGE_TAG      ?= 22.06.3
+COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
 BUILD_JAVA_VERSION        ?= 11
@@ -87,15 +90,16 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-RELEASE_IMAGE_PREFIX   ?= ghcr.io/oracle/
-OPERATOR_IMAGE_NAME    := coherence-operator
-OPERATOR_BASE_IMAGE    ?= scratch
-OPERATOR_OL_BASE_IMAGE ?= container-registry.oracle.com/java/jdk:17
-OPERATOR_IMAGE_REPO    := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
-OPERATOR_IMAGE         := $(OPERATOR_IMAGE_REPO):$(VERSION)
-OPERATOR_IMAGE_DELVE   := $(OPERATOR_IMAGE_REPO):delve
-OPERATOR_IMAGE_DEBUG   := $(OPERATOR_IMAGE_REPO):debug
-TEST_BASE_IMAGE        ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
+OPERATOR_IMAGE_REGISTRY ?= ghcr.io/oracle
+RELEASE_IMAGE_PREFIX    ?= $(OPERATOR_IMAGE_REGISTRY)/
+OPERATOR_IMAGE_NAME     := coherence-operator
+OPERATOR_BASE_IMAGE     ?= scratch
+OPERATOR_OL_BASE_IMAGE  ?= container-registry.oracle.com/java/jdk:17
+OPERATOR_IMAGE_REPO     := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
+OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REPO):$(VERSION)
+OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REPO):delve
+OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REPO):debug
+TEST_BASE_IMAGE         ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
 # The Operator images to push
 OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
 OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
@@ -387,6 +391,12 @@ $(BUILD_PROPS):
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
+	COHERENCE_IMAGE_REGISTRY=$(COHERENCE_IMAGE_REGISTRY)\n\
+	COHERENCE_IMAGE_NAME=$(COHERENCE_IMAGE_NAME)\n\
+	COHERENCE_IMAGE_TAG=$(COHERENCE_IMAGE_TAG)\n\
+	OPERATOR_IMAGE_REGISTRY=$(OPERATOR_IMAGE_REGISTRY)\n\
+	RELEASE_IMAGE_PREFIX=$(RELEASE_IMAGE_PREFIX)\n\
+	OPERATOR_IMAGE_NAME=$(OPERATOR_IMAGE_NAME)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	VERSION=$(VERSION)\n\
 	OPERATOR_PACKAGE_IMAGE=$(OPERATOR_PACKAGE_IMAGE)\n" > $(BUILD_PROPS)
@@ -962,7 +972,14 @@ e2e-client-test: build-operator-images build-client-image reset-namespace create
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the end-to-end Helm chart tests.
 # ----------------------------------------------------------------------------------------------------------------------
+e2e-helm-test: export OPERATOR_IMAGE_REGISTRY := $(OPERATOR_IMAGE_REGISTRY)
+e2e-helm-test: export OPERATOR_IMAGE_NAME := $(OPERATOR_IMAGE_NAME)
+e2e-helm-test: export VERSION := $(VERSION)
 e2e-helm-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-helm-test: export COHERENCE_IMAGE_REGISTRY := $(COHERENCE_IMAGE_REGISTRY)
+e2e-helm-test: export COHERENCE_IMAGE_NAME := $(COHERENCE_IMAGE_NAME)
+e2e-helm-test: export COHERENCE_IMAGE_TAG := $(COHERENCE_IMAGE_TAG)
+e2e-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...

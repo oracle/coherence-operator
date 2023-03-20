@@ -194,6 +194,144 @@ func TestSetWatchNamespaces(t *testing.T) {
 	g.Expect(c.Env).To(matchers.HaveEnvVar(corev1.EnvVar{Name: operator.EnvVarWatchNamespace, Value: "foo"}))
 }
 
+func TestSetOperatorImageInFull(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "image=foo.com/bar:1.0.0")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	g.Expect(c.Image).To(Equal("foo.com/bar:1.0.0"))
+}
+
+func TestSetOperatorImageRegistry(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "image.registry=foo.com")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	expected := fmt.Sprintf("foo.com/%s:%s", helper.GetOperatorImageName(), helper.GetOperatorVersionEnvVar())
+	g.Expect(c.Image).To(Equal(expected))
+}
+
+func TestSetOperatorImageNamePart(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "image.name=foo")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	expected := fmt.Sprintf("%s/foo:%s", helper.GetOperatorImageRegistry(), helper.GetOperatorVersionEnvVar())
+	g.Expect(c.Image).To(Equal(expected))
+}
+
+func TestSetOperatorImageTag(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "image.tag=1.0.0")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	expected := fmt.Sprintf("%s/%s:1.0.0", helper.GetOperatorImageRegistry(), helper.GetOperatorImageName())
+	g.Expect(c.Image).To(Equal(expected))
+}
+
+func TestSetDefaultCoherenceImageInFull(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "defaultCoherenceImage=foo.com/bar:1.0.0")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	g.Expect(c.Env).NotTo(BeNil())
+	g.Expect(c.Env).To(matchers.HaveEnvVar(corev1.EnvVar{Name: operator.EnvVarCoherenceImage, Value: "foo.com/bar:1.0.0"}))
+}
+
+func TestSetDefaultCoherenceImageRegistry(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "defaultCoherenceImage.registry=foo.com")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	expected := fmt.Sprintf("foo.com/%s:%s", helper.GetDefaultCoherenceImageName(), helper.GetDefaultCoherenceImageTag())
+	g.Expect(c.Env).NotTo(BeNil())
+	g.Expect(c.Env).To(matchers.HaveEnvVar(corev1.EnvVar{Name: operator.EnvVarCoherenceImage, Value: expected}))
+}
+
+func TestSetDefaultCoherenceImageNamePart(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "defaultCoherenceImage.name=foo")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	expected := fmt.Sprintf("%s/foo:%s", helper.GetDefaultCoherenceImageRegistry(), helper.GetDefaultCoherenceImageTag())
+	g.Expect(c.Env).NotTo(BeNil())
+	g.Expect(c.Env).To(matchers.HaveEnvVar(corev1.EnvVar{Name: operator.EnvVarCoherenceImage, Value: expected}))
+}
+
+func TestSetDefaultCoherenceImageTag(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "defaultCoherenceImage.tag=1.0.0")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	expected := fmt.Sprintf("%s/%s:1.0.0", helper.GetDefaultCoherenceImageRegistry(), helper.GetDefaultCoherenceImageName())
+	g.Expect(c.Env).NotTo(BeNil())
+	g.Expect(c.Env).To(matchers.HaveEnvVar(corev1.EnvVar{Name: operator.EnvVarCoherenceImage, Value: expected}))
+}
+
 func TestBasicHelmInstall(t *testing.T) {
 	g := NewGomegaWithT(t)
 	cmd, err := createHelmCommand()

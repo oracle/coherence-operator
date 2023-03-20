@@ -75,6 +75,8 @@ const (
 
 	// EnvVarWatchNamespace is the environment variable to use to set the watch namespace(s)
 	EnvVarWatchNamespace = "WATCH_NAMESPACE"
+	// EnvVarCoherenceImage is the environment variable to use to set the default Coherence image
+	EnvVarCoherenceImage = "COHERENCE_IMAGE"
 
 	// OCI Node Labels
 
