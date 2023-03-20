@@ -8,7 +8,7 @@
 <v-card-text>
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
-<dd slot="desc"><p>The Coherence Operator is available as a Docker image <code>oracle/coherence-operator:3.2.11</code> that can
+<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>ghcr.io/oracle/coherence-operator:3.2.11</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -49,7 +49,28 @@ easily be installed into a Kubernetes cluster.</p>
 </li>
 <li>
 <p><router-link to="#helm" @click.native="this.scrollFix('#helm')">Install the Helm chart</router-link></p>
+<ul class="ulist">
+<li>
+<p><router-link to="#helm-operator-image" @click.native="this.scrollFix('#helm-operator-image')">Set the Operator Image</router-link></p>
 
+</li>
+<li>
+<p><router-link to="#helm-pull-secrets" @click.native="this.scrollFix('#helm-pull-secrets')">Image Pull Secrets</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#helm-watch-ns" @click.native="this.scrollFix('#helm-watch-ns')">Set the Watch Namespaces</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#helm-sec-context" @click.native="this.scrollFix('#helm-sec-context')">Install the Operator with a Security Context</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#helm-uninstall" @click.native="this.scrollFix('#helm-uninstall')">Uninstall the Coherence Operator Helm chart</router-link></p>
+
+</li>
+</ul>
 </li>
 <li>
 <p><router-link to="#kubectl" @click.native="this.scrollFix('#kubectl')">Kubectl with Kustomize</router-link></p>
@@ -73,7 +94,7 @@ easily be installed into a Kubernetes cluster.</p>
 
 </li>
 <li>
-<p>Access to a Kubernetes v1.18.0+ cluster. The Operator test pipeline is run using Kubernetes versions v1.18 upto v1.24</p>
+<p>Access to a Kubernetes v1.19.0+ cluster. The Operator test pipeline is run using Kubernetes versions v1.19 upto v1.26</p>
 
 </li>
 <li>
@@ -144,7 +165,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <h2 id="images">Coherence Operator Images</h2>
 <div class="section">
-<p>The Coherence Operator uses a single images, the Operator also runs as an init-container in the Coherence cluster Pods.</p>
+<p>The Coherence Operator uses a single image, the Operator also runs as an init-container in the Coherence cluster Pods.</p>
 
 <ul class="ulist">
 <li>
@@ -262,13 +283,13 @@ lang="bash"
 </div>
 </div>
 
-<h2 id="_installing_with_helm">Installing With Helm</h2>
+<h2 id="helm">Installing With Helm</h2>
 <div class="section">
 <p>For more flexibility but the simplest way to install the Coherence Operator is to use the Helm chart.
 This ensures that all the correct resources will be created in Kubernetes.</p>
 
 
-<h3 id="helm">Add the Coherence Helm Repository</h3>
+<h3 id="_add_the_coherence_helm_repository">Add the Coherence Helm Repository</h3>
 <div class="section">
 <p>Add the <code>coherence</code> helm repository using the following commands:</p>
 
@@ -303,6 +324,109 @@ lang="bash"
 </ul>
 </div>
 
+<h3 id="helm-operator-image">Set the Operator Image</h3>
+<div class="section">
+<p>The Helm chart uses a default Operator image from <code>ghcr.io/oracle/coherence-operator:3.2.11</code>.
+If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
+Either set the individual <code>image.registry</code>, <code>image.name</code> and <code>image.tag</code> values, or set the whole image name by setting the <code>image</code> value.</p>
+
+<p>For example, if the Operator image has been deployed into a private registry named <code>foo.com</code> but
+with the same image name <code>coherence-operator</code> and tag <code>3.2.11</code> as the default image,
+then just the <code>image.registry</code> needs to be specified.</p>
+
+<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.2.11</code>.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set image.registry=foo.com \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<p>All three of the image parts can be specified individually using <code>--set</code> options.
+In the example below, the image used to run the Operator will
+be <code>foo.com/operator:1.2.3</code>.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set image.registry=foo.com \
+    --set image.name=operator \
+    --set image.tag=1.2.3
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<p>Alternatively, the image can be set using a single <code>image</code> value.
+For example, the command below will set the Operator image to <code>images.com/coherence-operator:0.1.2</code>.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set image=images.com/coherence-operator:0.1.2 \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+</div>
+
+<h3 id="helm-pull-secrets">Image Pull Secrets</h3>
+<div class="section">
+<p>If the image is to be pulled from a secure repository that requires credentials then the image pull secrets
+can be specified.
+See the Kubernetes documentation on <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">Pulling from a Private Registry</a>.</p>
+
+
+<h4 id="_add_pull_secrets_using_a_values_file">Add Pull Secrets Using a Values File</h4>
+<div class="section">
+<p>Create a values file that specifies the secrets, for example the <code>private-repo-values.yaml</code> file below:</p>
+
+<markup
+lang="yaml"
+title="private-repo-values.yaml"
+>imagePullSecrets:
+- name: registry-secrets</markup>
+
+<p>Now use that file in the Helm install command:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    -f private-repo-values.yaml <span class="conum" data-value="1" />
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<ul class="colist">
+<li data-value="1">the <code>private-repo-values.yaml</code> values fle will be used by Helm to inject the settings into the Operator deployment</li>
+</ul>
+</div>
+
+<h4 id="_add_pull_secrets_using_set">Add Pull Secrets Using --set</h4>
+<div class="section">
+<p>Although the <code>imagePullSecrets</code> field in the values file is an array of <code>name</code> to value pairs it is possible to set
+these values with the normal Helm <code>--set</code> parameter.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set imagePullSecrets[0].name=registry-secrets <span class="conum" data-value="1" />
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<ul class="colist">
+<li data-value="1">this creates the same imagePullSecrets as the values file above.</li>
+</ul>
+</div>
+</div>
+
 <h3 id="_change_the_operator_replica_count_2">Change the Operator Replica Count</h3>
 <div class="section">
 <p>To change the replica count when installing the Operator using Helm, the <code>replicas</code> value can be set.</p>
@@ -320,7 +444,58 @@ lang="bash"
 
 </div>
 
-<h3 id="_install_the_operator_with_a_security_context">Install the Operator with a Security Context</h3>
+<h3 id="helm-watch-ns">Set the Watch Namespaces</h3>
+<div class="section">
+<p>To set the watch namespaces when installing with helm set the <code>watchNamespaces</code> value, for example:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set watchNamespaces=payments,catalog,customers \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<p>The <code>payments</code>, <code>catalog</code> and <code>customers</code> namespaces will be watched by the Operator.</p>
+
+
+<h4 id="_set_the_watch_namespace_to_the_operators_install_namespace">Set the Watch Namespace to the Operator&#8217;s Install Namespace</h4>
+<div class="section">
+<p>When installing the Operator using the Helm chart, there is a convenience value that can be set if the
+Operator should only monitor the same namespace that it is installed into.
+By setting the <code>onlySameNamespace</code> value to <code>true</code> the watch namespace will be set to the installation namespace.
+If the <code>onlySameNamespace</code> value is set to <code>true</code> then any value set for the <code>watchNamespaces</code> value will be ignored.</p>
+
+<p>For example, the command below will set <code>onlySameNamespace</code> to true, and the Operator will be installed into,
+and only monitor the <code>coh-testing</code> namespace.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace coh-testing \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+<p>In the example below, the <code>onlySameNamespace</code> is set to true, so the Operator will be installed into,
+and only monitor the <code>coh-testing</code> namespace. Even though the <code>watchNamespaces</code> value is set, it will be ignored.</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace coh-testing \
+    --set watchNamespaces=payments,catalog,customers \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator</markup>
+
+</div>
+</div>
+
+<h3 id="helm-sec-context">Install the Operator with a Security Context</h3>
 <div class="section">
 <p>The Operator container can be configured with a Pod <code>securityContext</code> or a container <code>securityContext</code>,
 so that it runs as a non-root user.</p>
@@ -384,7 +559,7 @@ lang="bash"
 
 </div>
 
-<h3 id="_uninstall_the_coherence_operator_helm_chart">Uninstall the Coherence Operator Helm chart</h3>
+<h3 id="helm-uninstall">Uninstall the Coherence Operator Helm chart</h3>
 <div class="section">
 <p>To uninstall the operator:</p>
 
@@ -393,130 +568,6 @@ lang="bash"
 
 >helm delete coherence-operator --namespace &lt;namespace&gt;</markup>
 
-</div>
-
-<h3 id="_set_the_watch_namespaces">Set the Watch Namespaces</h3>
-<div class="section">
-<p>To set the watch namespaces when installing with helm set the <code>watchNamespaces</code> value, for example:</p>
-
-<markup
-lang="bash"
-
->helm install  \
-    --namespace &lt;namespace&gt; \
-    --set watchNamespaces=payments,catalog,customers \
-    coherence-operator \
-    coherence/coherence-operator</markup>
-
-<p>The <code>payments</code>, <code>catalog</code> and <code>customers</code> namespaces will be watched by the Operator.</p>
-
-
-<h4 id="_set_the_watch_namespace_to_the_operators_install_namespace">Set the Watch Namespace to the Operator&#8217;s Install Namespace</h4>
-<div class="section">
-<p>When installing the Operator using the Helm chart, there is a convenience value that can be set if the
-Operator should only monitor the same namespace that it is installed into.
-By setting the <code>onlySameNamespace</code> value to <code>true</code> the watch namespace will be set to the installation namespace.
-If the <code>onlySameNamespace</code> value is set to <code>true</code> then any value set for the <code>watchNamespaces</code> value will be ignored.</p>
-
-<p>For example, the command below will set <code>onlySameNamespace</code> to true, and the Operator will be installed into,
-and only monitor the <code>coh-testing</code> namespace.</p>
-
-<markup
-lang="bash"
-
->helm install  \
-    --namespace coh-testing \
-    --set onlySameNamespace=true \
-    coherence-operator \
-    coherence/coherence-operator</markup>
-
-<p>In the example below, the <code>onlySameNamespace</code> is set to true, so the Operator will be installed into,
-and only monitor the <code>coh-testing</code> namespace. Even though the <code>watchNamespaces</code> value is set, it will be ignored.</p>
-
-<markup
-lang="bash"
-
->helm install  \
-    --namespace coh-testing \
-    --set watchNamespaces=payments,catalog,customers \
-    --set onlySameNamespace=true \
-    coherence-operator \
-    coherence/coherence-operator</markup>
-
-</div>
-</div>
-</div>
-
-<h2 id="_set_the_operator_image">Set the Operator Image</h2>
-<div class="section">
-<p>The Helm chart uses a default registry to pull the Operator image from.
-If the image needs to be pulled from a different location (for example an internal registry) then the <code>image</code> field
-in the values file can be set, for example:</p>
-
-<markup
-lang="bash"
-
->helm install  \
-    --namespace &lt;namespace&gt; \
-    --set image=images.com/coherence-operator:0.1.2 <span class="conum" data-value="1" />
-    coherence-operator \
-    coherence/coherence-operator</markup>
-
-<ul class="colist">
-<li data-value="1">The image used to run the Operator will be <code>images.com/coherence-operator:0.1.2</code>.</li>
-</ul>
-
-<h3 id="_image_pull_secrets">Image Pull Secrets</h3>
-<div class="section">
-<p>If the image is to be pulled from a secure repository that requires credentials then the image pull secrets
-can be specified.
-See the Kubernetes documentation on <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">Pulling from a Private Registry</a>.</p>
-
-
-<h4 id="_add_pull_secrets_using_a_values_file">Add Pull Secrets Using a Values File</h4>
-<div class="section">
-<p>Create a values file that specifies the secrets, for example the <code>private-repo-values.yaml</code> file below:</p>
-
-<markup
-lang="yaml"
-title="private-repo-values.yaml"
->imagePullSecrets:
-- name: registry-secrets</markup>
-
-<p>Now use that file in the Helm install command:</p>
-
-<markup
-lang="bash"
-
->helm install  \
-    --namespace &lt;namespace&gt; \
-    -f private-repo-values.yaml <span class="conum" data-value="1" />
-    coherence-operator \
-    coherence/coherence-operator</markup>
-
-<ul class="colist">
-<li data-value="1">the <code>private-repo-values.yaml</code> values fle will be used by Helm to inject the settings into the Operator deployment</li>
-</ul>
-</div>
-
-<h4 id="_add_pull_secrets_using_set">Add Pull Secrets Using --set</h4>
-<div class="section">
-<p>Although the <code>imagePullSecrets</code> field in the values file is an array of <code>name</code> to value pairs it is possible to set
-these values with the normal Helm <code>--set</code> parameter.</p>
-
-<markup
-lang="bash"
-
->helm install  \
-    --namespace &lt;namespace&gt; \
-    --set imagePullSecrets[0].name=registry-secrets <span class="conum" data-value="1" />
-    coherence-operator \
-    coherence/coherence-operator</markup>
-
-<ul class="colist">
-<li data-value="1">this creates the same imagePullSecrets as the values file above.</li>
-</ul>
-</div>
 </div>
 </div>
 
