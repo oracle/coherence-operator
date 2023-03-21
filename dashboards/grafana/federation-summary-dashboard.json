@@ -53,8 +53,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
-  "iteration": 1678407866434,
+  "id": 10,
+  "iteration": 1678937419832,
   "links": [
     {
       "icon": "dashboard",
@@ -122,6 +122,7 @@
       },
       "styles": [
         {
+          "$$hashKey": "object:338",
           "alias": "Time",
           "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -129,6 +130,7 @@
           "type": "hidden"
         },
         {
+          "$$hashKey": "object:339",
           "alias": "Destination",
           "align": "auto",
           "colors": [
@@ -145,6 +147,7 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:340",
           "alias": "Service",
           "align": "auto",
           "colors": [
@@ -164,6 +167,7 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:341",
           "alias": "Members",
           "align": "auto",
           "colors": [
@@ -183,6 +187,7 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:342",
           "alias": "Type",
           "align": "auto",
           "colors": [
@@ -199,6 +204,7 @@
           "unit": "short"
         },
         {
+          "$$hashKey": "object:343",
           "alias": "Status",
           "align": "auto",
           "colors": [
@@ -214,14 +220,17 @@
           "unit": "short",
           "valueMaps": [
             {
+              "$$hashKey": "object:440",
               "text": "OK",
               "value": "0"
             },
             {
+              "$$hashKey": "object:441",
               "text": "WARNING",
               "value": "1"
             },
             {
+              "$$hashKey": "object:442",
               "text": "ERROR",
               "value": "2"
             }
@@ -485,7 +494,7 @@
         "x": 8,
         "y": 8
       },
-      "id": 29,
+      "id": 31,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
@@ -508,14 +517,14 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"FlashJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"RamJournalRM\"})",
           "interval": "",
-          "legendFormat": "Flash Journal",
+          "legendFormat": "RAM Journal",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Current Flash Journal Used",
+      "title": "Current RAM Journal Used",
       "type": "stat"
     },
     {
@@ -548,7 +557,7 @@
         "x": 16,
         "y": 8
       },
-      "id": 31,
+      "id": 29,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
@@ -571,14 +580,14 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"RamJournalRM\"})",
+          "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"FlashJournalRM\"})",
           "interval": "",
-          "legendFormat": "RAM Journal",
+          "legendFormat": "Flash Journal",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Current RAM Journal Used",
+      "title": "Current Flash Journal Used",
       "type": "stat"
     },
     {
@@ -1801,9 +1810,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
         "datasource": {
           "type": "prometheus",
