@@ -323,6 +323,10 @@ func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
 	var ns string
 	var svc string
 
+	if in == nil || in.WKA != nil || len(in.WKA.Addresses) > 0 {
+		return strings.Join(in.WKA.Addresses, ",")
+	}
+
 	if in == nil || in.WKA == nil || in.WKA.Deployment == "" {
 		// there is no WKA override so return the deployment name
 		ns = deployment.Namespace
@@ -467,11 +471,18 @@ func (in *CoherenceSpec) GetPersistenceSpec() *PersistenceSpec {
 // +k8s:openapi-gen=true
 type CoherenceWKASpec struct {
 	// The name of the existing Coherence deployment to use for WKA.
+	// +optional
 	Deployment string `json:"deployment"`
 	// The optional namespace of the existing Coherence deployment to use for WKA
 	// if different from this deployment's namespace.
 	// +optional
 	Namespace string `json:"namespace,omitempty"`
+	// A list of addresses to be used for WKA.
+	// If this field is set, the WKA property for the Coherence cluster will be set using this
+	// value and the other WKA fields will be ignored.
+	// +listType=atomic
+	// +optional
+	Addresses []string `json:"addresses,omitempty"`
 }
 
 // ----- CoherenceTracingSpec struct ----------------------------------------

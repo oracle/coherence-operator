@@ -7,6 +7,7 @@
 package v1_test
 
 import (
+	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -359,6 +360,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaDifferentNamespace(t *testing.
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			WKA: &coh.CoherenceWKASpec{
+				Addresses:  []string{},
 				Deployment: "storage",
 				Namespace:  "data",
 			},
@@ -370,6 +372,58 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaDifferentNamespace(t *testing.
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	expectedWka := deployment.GetWKA()
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithWkaAddress(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			WKA: &coh.CoherenceWKASpec{
+				Addresses:  []string{"storage.foo.bar.local"},
+				Namespace:  "data",
+				Deployment: "bad-cluster",
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	expectedWka := "storage.foo.bar.local"
+	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
+	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithCoherenceSpecWithMultipleWkaAddresses(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	spec := coh.CoherenceResourceSpec{
+		Coherence: &coh.CoherenceSpec{
+			WKA: &coh.CoherenceWKASpec{
+				Addresses:  []string{"storage.one.bar.local", "storage.two.bar.local"},
+				Namespace:  "data",
+				Deployment: "bad-cluster",
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	expectedWka := "storage.one.bar.local,storage.two.bar.local"
+	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
