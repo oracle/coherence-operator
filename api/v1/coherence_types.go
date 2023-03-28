@@ -323,7 +323,7 @@ func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
 	var ns string
 	var svc string
 
-	if in == nil || in.WKA != nil || len(in.WKA.Addresses) > 0 {
+	if in != nil && in.WKA != nil && len(in.WKA.Addresses) > 0 {
 		return strings.Join(in.WKA.Addresses, ",")
 	}
 
