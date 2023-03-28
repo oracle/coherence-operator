@@ -188,4 +188,51 @@ name that the members of the <code>web-store</code> deployment will be configure
 any deployment that depends on it is deployed.</p>
 </div>
 </div>
+
+<h2 id="_override_the_wka_addresses">Override the WKA Address(es)</h2>
+<div class="section">
+<p>It is possible to fully override the WKA address that will be configured by the Operator.
+This is useful where a different service exists that will perform the DNS resolution
+(for example when using Submariner[<a id="" title="" target="_blank" href="https://submariner.io">https://submariner.io</a>] to communicate over k8s clusters).
+In this case set the <code>spec.coherence.wka.addresses</code> field to be the WKA address (which is a list of string values).</p>
+
+<markup
+lang="yaml"
+title="web-store-deployment.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web-store
+  namespace: front-end
+spec:
+  cluster: `shop`
+  coherence:
+    wka:
+      addresses:
+        - data.back-end.svc</markup>
+
+<p>In the example above, the the Coherence WKA list would be configured as
+<code>COHERENCE_WKA=data.back-end.svc</code>.
+It is possible to use multiple addresses for WKA in the addresses field.</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web-store
+  namespace: front-end
+spec:
+  cluster: `shop`
+  coherence:
+    wka:
+      addresses:
+        - data-01.back-end.svc
+        - data-02.back-end.svc</markup>
+
+<p>In the example above, the Coherence WKA list would be configured as
+<code>COHERENCE_WKA=data-01.back-end.svc,data-02.back-end.svc</code></p>
+
+</div>
 </doc-view>
