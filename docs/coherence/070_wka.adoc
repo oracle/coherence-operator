@@ -190,3 +190,51 @@ name that the members of the `web-store` deployment will be configured to use fo
 
 WARNING: When using WKA in this way the `Coherence` deployment that is providing the WKA `Service` should be running before
 any deployment that depends on it is deployed.
+
+== Override the WKA Address(es)
+
+It is possible to fully override the WKA address that will be configured by the Operator.
+This is useful where a different service exists that will perform the DNS resolution
+(for example when using Submariner[https://submariner.io] to communicate over k8s clusters).
+In this case set the `spec.coherence.wka.addresses` field to be the WKA address (which is a list of string values).
+
+
+[source,yaml]
+.web-store-deployment.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web-store
+  namespace: front-end
+spec:
+  cluster: `shop`
+  coherence:
+    wka:
+      addresses:
+        - data.back-end.svc
+----
+
+In the example above, the the Coherence WKA list would be configured as
+`COHERENCE_WKA=data.back-end.svc`.
+It is possible to use multiple addresses for WKA in the addresses field.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: web-store
+  namespace: front-end
+spec:
+  cluster: `shop`
+  coherence:
+    wka:
+      addresses:
+        - data-01.back-end.svc
+        - data-02.back-end.svc
+----
+
+In the example above, the Coherence WKA list would be configured as
+`COHERENCE_WKA=data-01.back-end.svc,data-02.back-end.svc`
+
