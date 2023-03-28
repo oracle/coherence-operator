@@ -47,9 +47,9 @@ jobs:
 #          - matrixName: v1.26
 #            k8s: v1.26.1
           - matrixName: v1.25
-            k8s: v1.25.4
+            k8s: 1.25.4
           - matrixName: v1.24
-            k8s: v1.24.7
+            k8s: 1.24.7
 
     steps:
     - uses: actions/checkout@v3
@@ -95,21 +95,13 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-    - name: Start Minikube
-      uses: ./.github/actions/setup-minikube
-      id: minikube
-      with:
-        minikube version: 'v1.29.0'
-        driver: docker
-        kubernetes version: ${{ matrix.k8s }}
-        github token: ${{ secrets.GITHUB_TOKEN }}
-        start args: "--cni=calico"
-
     - name: Certification Tests
       shell: bash
       run: |
-        export SHELL=/bin/bash
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+        export SHELL=/bin/bash
+        export MINIKUBE_K8S=${{ matrix.k8s }}
+        make minikube
         eval $(minikube -p minikube docker-env)
         minikube version
         minikube status
