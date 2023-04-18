@@ -40,7 +40,7 @@ COHERENCE_VERSION ?= 21.12.5
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
-COHERENCE_IMAGE_TAG      ?= 22.06.3
+COHERENCE_IMAGE_TAG      ?= 22.06.4
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
@@ -587,6 +587,10 @@ config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) 
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:artifacts:config=config/crd/bases
+	cp -R config/crd/ config/crd-small
+	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
+	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
+	  output:crd:artifacts:config=config/crd-small/bases
 	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
 	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
 
@@ -1399,6 +1403,8 @@ $(BUILD_MANIFESTS_PKG): kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)/crd
 	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
+	mkdir -p $(BUILD_MANIFESTS)/crd-small
+	$(KUSTOMIZE) build config/crd-small > $(BUILD_MANIFESTS)/crd-small/coherence.oracle.com_coherence.yaml
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac

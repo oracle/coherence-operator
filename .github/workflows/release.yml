@@ -113,6 +113,17 @@ jobs:
         asset_name: coherence.oracle.com_coherence.yaml
         asset_content_type: text/plain
 
+    - name: Upload Release Small CRD
+      id: upload-release-small-crd
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/manifests/crd-small/coherence.oracle.com_coherence.yaml
+        asset_name: coherence.oracle.com_coherence_small.yaml
+        asset_content_type: text/plain
+
     - name: Upload Release Dashboards
       id: upload-release-dashboards
       uses: actions/upload-release-asset@v1

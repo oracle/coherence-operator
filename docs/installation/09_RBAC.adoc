@@ -49,6 +49,29 @@ The CRD can be installed with kubectl
 ----
 kubectl create -f crd/coherence.oracle.com_coherence.yaml
 ----
+
+To update an existing CRD install use the replace command:
+
+[source,bash]
+----
+kubectl replace -f crd/coherence.oracle.com_coherence.yaml
+----
+
+
+*Installing the CRD Using `kubectl apply`*
+
+The default Coherence CRD cannot be installed using `kubectl apply` as it is larger than the 1MB limit imposed by Etcd.
+For customers who cannot use the `kubectl create/replace` combination, a smaller version of the CRD is available.
+This small CRD has no `description` fields which makes is smaller to install, but less useful for validating the yaml
+in an IDE.
+
+The small CRD can be found in the coherence-operator-manifests.tar.gz file in the `crd-small/` directory.
+
+[source,bash]
+----
+kubectl apply -f crd-small/coherence.oracle.com_coherence.yaml
+----
+
 ====
 
 === Install Using Helm
