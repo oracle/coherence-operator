@@ -46,27 +46,27 @@ jobs:
         - 3.1.5
         include:
         - compatibilityVersion: 3.2.10
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
         - compatibilityVersion: 3.2.9
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.8
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.7
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.6
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.2.5
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
         - compatibilityVersion: 3.1.5
