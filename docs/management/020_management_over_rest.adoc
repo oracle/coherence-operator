@@ -191,7 +191,7 @@ Which should result in a response similar to the following:
 
 === Access the Swagger Endpoint
 
-Issue the following `curl` command to access the Sagger endpoint, which documents all the REST API's available.
+Issue the following `curl` command to access the Swagger endpoint, which documents all the REST APIs available.
 
 [source,bash]
 ----
