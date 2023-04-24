@@ -56,7 +56,7 @@ spec:
 The `name` field in the `Coherence` CRD's port spec maps to the `name` field in the Container port spec.
 <2> The `port` field in the `Coherence` CRD's port spec maps to the `containerPort` in the Container port spec.
 
-For each additional port the Operator will create a `Service` of tyep `ClusterIP` with a default configuration.
+For each additional port the Operator will create a `Service` of type `ClusterIP` with a default configuration.
 The name of the service will be the `Coherence` resource's name with the port name appended to it,
 so in this case it will be `test-cluster-rest`. The `Service` might look like this:
 
