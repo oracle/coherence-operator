@@ -26,6 +26,8 @@ easily be installed into a Kubernetes cluster.
 *** <<helm-pull-secrets,Image Pull Secrets>>
 *** <<helm-watch-ns,Set the Watch Namespaces>>
 *** <<helm-sec-context,Install the Operator with a Security Context>>
+*** <<helm-labels,Set Additional Labels>>
+*** <<helm-annotations,Set Additional Annotations>>
 *** <<helm-uninstall,Uninstall the Coherence Operator Helm chart>>
 ** <<kubectl,Kubectl with Kustomize>>
 ** <<tanzu,VMWare Tanzu Package (kapp-controller)>>
