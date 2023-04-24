@@ -156,13 +156,13 @@ spec:
       - "-Dcoherence.log.logger=com.oracle.coherence"
       - "-Djava.util.logging.config.file=/coherence-operator/utils/logging/logging.properties"
   volumes:
-    - name: logs           <span class="conum" data-value="1" />
+    - name: logs
       emptyDir: {}
   volumeMounts:
-    - name: logs           <span class="conum" data-value="2" />
+    - name: logs
       mountPath: /logs
   sideCars:
-    - name: fluentd                                                                    <span class="conum" data-value="1" />
+    - name: fluentd                                     <span class="conum" data-value="1" />
       image: "fluent/fluentd-kubernetes-daemonset:v1.14-debian-elasticsearch7-1"
       args:
         - "-c"

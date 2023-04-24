@@ -130,7 +130,7 @@ spec:
 <h3 id="_scaling_statusha_probe">Scaling StatusHA Probe</h3>
 <div class="section">
 <p>The StatusHA check performed by the Operator uses a http endpoint that the Operator runs on a well-known port in the
-Coherence JVM. This endpoint does performs a simple check to verify that none of the partitioned cache services known
+Coherence JVM. This endpoint performs a simple check to verify that none of the partitioned cache services known
 about by Coherence have an endangered status. If an application has a different concept of what "safe" means it can
 implement a different method to check the status during scaling.</p>
 
@@ -141,7 +141,7 @@ types of probe to be configured.</p>
 
 <h4 id="_using_a_http_get_probe">Using a HTTP Get Probe</h4>
 <div class="section">
-<p>A HTTP get probe works the same way as a
+<p>An HTTP get probe works the same way as a
 <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-http-request">Kubernetes liveness http request</a></p>
 
 <p>The probe can be configured as follows</p>
@@ -193,7 +193,7 @@ spec:
 
 <h4 id="_using_an_exec_command_probe">Using an Exec Command Probe</h4>
 <div class="section">
-<p>A TCP probe works the same way as a
+<p>An exec probe works the same way as a
 <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command">Kubernetes Exec liveness probe</a></p>
 
 <p>The probe can be configured as follows</p>
