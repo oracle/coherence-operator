@@ -433,6 +433,196 @@ helm install  \
     coherence/coherence-operator
 ----
 
+[#helm-labels]
+=== Set Additional Labels
+
+When installing the Operator with Helm, it is possible to set additional labels to be applied to the Operator Pods
+and to the Operator Deployment.
+
+==== Adding Pod Labels
+
+To add labels to the Operator Pods set the `labels` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `labels` will only apply the additional labels to the Operator Pods, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set labels.one=value-one \
+    --set labels.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional labels `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: coherence-operator
+  labels:
+    one: value-one
+    two: value-two
+----
+
+The same labels could also be specified in a values file:
+
+[source]
+.add-labels-values.yaml
+----
+labels:
+  one: value-one
+  two: value-two
+----
+
+==== Adding Deployment Labels
+
+To add labels to the Operator Deployment set the `deploymentLabels` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `deploymentLabels` will only apply the additional labels to the Deployment, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set deploymentLabels.one=value-one \
+    --set deploymentLabels.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional labels `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coherence-operator
+  labels:
+    one: value-one
+    two: value-two
+----
+
+The same labels could also be specified in a values file:
+
+[source]
+.add-labels-values.yaml
+----
+deploymentLabels:
+  one: value-one
+  two: value-two
+----
+
+
+[#helm-annotations]
+=== Set Additional Annotations
+
+When installing the Operator with Helm, it is possible to set additional annotations to be applied to the Operator Pods
+and to the Operator Deployment.
+
+==== Adding Pod Annotations
+
+To add annotations to the Operator Pods set the `annotations` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `annotations` will only apply the additional annotations to the Operator Pods, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set annotations.one=value-one \
+    --set annotations.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional annotations `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: coherence-operator
+  annotations:
+    one: value-one
+    two: value-two
+----
+
+The same annotations could also be specified in a values file:
+
+[source]
+.add-annotations-values.yaml
+----
+annotations:
+  one: value-one
+  two: value-two
+----
+
+==== Adding Deployment Annotations
+
+To add annotations to the Operator Deployment set the `deploymentAnnotations` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `deploymentAnnotations` will only apply the additional annotations to the Deployment, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set deploymentAnnotations.one=value-one \
+    --set deploymentAnnotations.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional annotations `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coherence-operator
+  annotations:
+    one: value-one
+    two: value-two
+----
+
+The same annotations could also be specified in a values file:
+
+[source]
+.add-annotations-values.yaml
+----
+deploymentAnnotations:
+  one: value-one
+  two: value-two
+----
+
+
 [#helm-uninstall]
 === Uninstall the Coherence Operator Helm chart
 

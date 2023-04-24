@@ -69,6 +69,13 @@ metadata:
     app.kubernetes.io/part-of: coherence-operator
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/created-by: controller-manager
+{{- if .Values.deploymentLabels }}
+{{ toYaml .Values.deploymentLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deploymentAnnotations | indent 4 }}
+{{- end }}
 spec:
   replicas: {{ default 3 .Values.replicas }}
   selector:
@@ -85,6 +92,13 @@ spec:
         app.kubernetes.io/part-of: coherence-operator
         app.kubernetes.io/managed-by: helm
         app.kubernetes.io/created-by: controller-manager
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 8 }}
+{{- end }}
+{{- if .Values.annotations }}
+      annotations:
+{{ toYaml .Values.annotations | indent 8 }}
+{{- end }}
     spec:
       serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}
 {{- if .Values.podSecurityContext }}

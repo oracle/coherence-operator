@@ -45,6 +45,22 @@ replicas: 3
 imagePullSecrets:
 
 # ---------------------------------------------------------------------------
+# Additional labels that are added to the Operator Pods.
+labels:
+
+# ---------------------------------------------------------------------------
+# Additional annotations that are added to the Operator Pods.
+annotations:
+
+# ---------------------------------------------------------------------------
+# Additional labels that are added to the Operator Deployment.
+deploymentLabels:
+
+# ---------------------------------------------------------------------------
+# Additional annotations that are added to the Operator Deployment.
+deploymentAnnotations:
+
+# ---------------------------------------------------------------------------
 # Operator Pod securityContext
 # This sets the securityContext configuration for the Pod, for example
 # to run as a non-root user:
