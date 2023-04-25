@@ -1619,7 +1619,7 @@ kind-load-compatibility:   ## Load the compatibility test images into the KinD c
 
 # the version of minikube to install
 MINIKUBE_VERSION ?= latest
-MINIKUBE_K8S     ?= 1.25.4
+MINIKUBE_K8S     ?= 1.25.8
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start Minikube

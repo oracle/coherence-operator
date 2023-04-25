@@ -40,16 +40,19 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
-#          - v1.26
+          - v1.27
+          - v1.26
           - v1.25
           - v1.24
         include:
-#          - matrixName: v1.26
-#            k8s: v1.26.1
+          - matrixName: v1.27
+            k8s: v1.27.1
+          - matrixName: v1.26
+            k8s: v1.26.3
           - matrixName: v1.25
-            k8s: 1.25.4
+            k8s: 1.25.8
           - matrixName: v1.24
-            k8s: 1.24.7
+            k8s: 1.24.12
 
     steps:
     - uses: actions/checkout@v3
