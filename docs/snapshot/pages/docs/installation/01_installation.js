@@ -67,6 +67,14 @@ easily be installed into a Kubernetes cluster.</p>
 
 </li>
 <li>
+<p><router-link to="#helm-labels" @click.native="this.scrollFix('#helm-labels')">Set Additional Labels</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#helm-annotations" @click.native="this.scrollFix('#helm-annotations')">Set Additional Annotations</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#helm-uninstall" @click.native="this.scrollFix('#helm-uninstall')">Uninstall the Coherence Operator Helm chart</router-link></p>
 
 </li>
@@ -557,6 +565,200 @@ lang="bash"
     coherence \
     coherence/coherence-operator</markup>
 
+</div>
+
+<h3 id="helm-labels">Set Additional Labels</h3>
+<div class="section">
+<p>When installing the Operator with Helm, it is possible to set additional labels to be applied to the Operator Pods
+and to the Operator Deployment.</p>
+
+
+<h4 id="_adding_pod_labels">Adding Pod Labels</h4>
+<div class="section">
+<p>To add labels to the Operator Pods set the <code>labels</code> value, either on the command line using <code>--set</code> or in the values file.</p>
+
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>Setting <code>labels</code> will only apply the additional labels to the Operator Pods, they will not be applied to any other resource created by the Helm chart.</p>
+</p>
+</div>
+<p>For example, using the command line:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set labels.one=value-one \
+    --set labels.two=value-two \
+    coherence \
+    coherence/coherence-operator</markup>
+
+<p>The command above would add the following additional labels <code>one</code> and <code>two</code> to the Operator Pod as shown below:</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: v1
+kind: Pod
+metadata:
+  name: coherence-operator
+  labels:
+    one: value-one
+    two: value-two</markup>
+
+<p>The same labels could also be specified in a values file:</p>
+
+<markup
+
+title="add-labels-values.yaml"
+>labels:
+  one: value-one
+  two: value-two</markup>
+
+</div>
+
+<h4 id="_adding_deployment_labels">Adding Deployment Labels</h4>
+<div class="section">
+<p>To add labels to the Operator Deployment set the <code>deploymentLabels</code> value, either on the command line using <code>--set</code> or in the values file.</p>
+
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>Setting <code>deploymentLabels</code> will only apply the additional labels to the Deployment, they will not be applied to any other resource created by the Helm chart.</p>
+</p>
+</div>
+<p>For example, using the command line:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set deploymentLabels.one=value-one \
+    --set deploymentLabels.two=value-two \
+    coherence \
+    coherence/coherence-operator</markup>
+
+<p>The command above would add the following additional labels <code>one</code> and <code>two</code> to the Operator Pod as shown below:</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coherence-operator
+  labels:
+    one: value-one
+    two: value-two</markup>
+
+<p>The same labels could also be specified in a values file:</p>
+
+<markup
+
+title="add-labels-values.yaml"
+>deploymentLabels:
+  one: value-one
+  two: value-two</markup>
+
+</div>
+</div>
+
+<h3 id="helm-annotations">Set Additional Annotations</h3>
+<div class="section">
+<p>When installing the Operator with Helm, it is possible to set additional annotations to be applied to the Operator Pods
+and to the Operator Deployment.</p>
+
+
+<h4 id="_adding_pod_annotations">Adding Pod Annotations</h4>
+<div class="section">
+<p>To add annotations to the Operator Pods set the <code>annotations</code> value, either on the command line using <code>--set</code> or in the values file.</p>
+
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>Setting <code>annotations</code> will only apply the additional annotations to the Operator Pods, they will not be applied to any other resource created by the Helm chart.</p>
+</p>
+</div>
+<p>For example, using the command line:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set annotations.one=value-one \
+    --set annotations.two=value-two \
+    coherence \
+    coherence/coherence-operator</markup>
+
+<p>The command above would add the following additional annotations <code>one</code> and <code>two</code> to the Operator Pod as shown below:</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: v1
+kind: Pod
+metadata:
+  name: coherence-operator
+  annotations:
+    one: value-one
+    two: value-two</markup>
+
+<p>The same annotations could also be specified in a values file:</p>
+
+<markup
+
+title="add-annotations-values.yaml"
+>annotations:
+  one: value-one
+  two: value-two</markup>
+
+</div>
+
+<h4 id="_adding_deployment_annotations">Adding Deployment Annotations</h4>
+<div class="section">
+<p>To add annotations to the Operator Deployment set the <code>deploymentAnnotations</code> value, either on the command line using <code>--set</code> or in the values file.</p>
+
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>Setting <code>deploymentAnnotations</code> will only apply the additional annotations to the Deployment, they will not be applied to any other resource created by the Helm chart.</p>
+</p>
+</div>
+<p>For example, using the command line:</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set deploymentAnnotations.one=value-one \
+    --set deploymentAnnotations.two=value-two \
+    coherence \
+    coherence/coherence-operator</markup>
+
+<p>The command above would add the following additional annotations <code>one</code> and <code>two</code> to the Operator Pod as shown below:</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coherence-operator
+  annotations:
+    one: value-one
+    two: value-two</markup>
+
+<p>The same annotations could also be specified in a values file:</p>
+
+<markup
+
+title="add-annotations-values.yaml"
+>deploymentAnnotations:
+  one: value-one
+  two: value-two</markup>
+
+</div>
 </div>
 
 <h3 id="helm-uninstall">Uninstall the Coherence Operator Helm chart</h3>
