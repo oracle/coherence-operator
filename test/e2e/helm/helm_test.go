@@ -364,6 +364,194 @@ func TestSetNonRootUser(t *testing.T) {
 	AssertHelmInstallWithSubTest(t, "basic", cmd, g, AssertThreeReplicas)
 }
 
+func TestSetAdditionalPodLabel(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "labels.foo=bar")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels := dep.Spec.Template.Labels
+	actual, found := labels["control-plane"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("coherence"))
+	actual, found = labels["foo"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("bar"))
+
+	labels = dep.Labels
+	_, found = labels["foo"]
+	g.Expect(found).To(BeFalse())
+}
+
+func TestSetAdditionalPodLabels(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "labels.one=value-one", "--set", "labels.two=value-two")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels := dep.Spec.Template.Labels
+	actual, found := labels["control-plane"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("coherence"))
+	actual, found = labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-two"))
+
+	labels = dep.Labels
+	_, found = labels["one"]
+	g.Expect(found).To(BeFalse())
+	_, found = labels["two"]
+	g.Expect(found).To(BeFalse())
+}
+
+func TestSetAdditionalPodAnnotation(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "annotations.foo=bar")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations := dep.Spec.Template.Annotations
+	g.Expect(len(annotations)).To(Equal(1))
+	actual, found := annotations["foo"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("bar"))
+
+	annotations = dep.Annotations
+	g.Expect(len(annotations)).To(BeZero())
+}
+
+func TestSetAdditionalPodAnnotations(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "annotations.one=value-one", "--set", "annotations.two=value-two")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations := dep.Spec.Template.Annotations
+	g.Expect(len(annotations)).To(Equal(2))
+	actual, found := annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-two"))
+
+	annotations = dep.Annotations
+	g.Expect(len(annotations)).To(BeZero())
+}
+
+func TestSetAdditionalDeploymentLabel(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "deploymentLabels.foo=bar")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels := dep.Labels
+	actual, found := labels["control-plane"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("coherence"))
+	actual, found = labels["foo"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("bar"))
+
+	labels = dep.Spec.Template.Labels
+	_, found = labels["foo"]
+	g.Expect(found).To(BeFalse())
+}
+
+func TestSetAdditionalDeploymentLabels(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "deploymentLabels.one=value-one", "--set", "deploymentLabels.two=value-two")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels := dep.Labels
+	actual, found := labels["control-plane"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("coherence"))
+	actual, found = labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-two"))
+
+	labels = dep.Spec.Template.Labels
+	_, found = labels["one"]
+	g.Expect(found).To(BeFalse())
+	_, found = labels["two"]
+	g.Expect(found).To(BeFalse())
+}
+
+func TestSetAdditionalDeploymentAnnotation(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "deploymentAnnotations.foo=bar")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations := dep.Annotations
+	g.Expect(len(annotations)).To(Equal(1))
+	actual, found := annotations["foo"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("bar"))
+
+	annotations = dep.Spec.Template.Annotations
+	g.Expect(len(annotations)).To(BeZero())
+}
+
+func TestSetAdditionalDeploymentAnnotations(t *testing.T) {
+	g := NewGomegaWithT(t)
+	result, err := helmInstall("--set", "deploymentAnnotations.one=value-one", "--set", "deploymentAnnotations.two=value-two")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations := dep.Annotations
+	g.Expect(len(annotations)).To(Equal(2))
+	actual, found := annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("value-two"))
+
+	annotations = dep.Spec.Template.Annotations
+	g.Expect(len(annotations)).To(BeZero())
+}
+
 func AssertResources() error {
 	ns := helper.GetTestNamespace()
 	pods, err := helper.ListOperatorPods(testContext, ns)
