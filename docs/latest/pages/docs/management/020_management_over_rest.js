@@ -200,7 +200,7 @@ lang="json"
 
 <h3 id="_access_the_swagger_endpoint">Access the Swagger Endpoint</h3>
 <div class="section">
-<p>Issue the following <code>curl</code> command to access the Sagger endpoint, which documents all the REST API&#8217;s available.</p>
+<p>Issue the following <code>curl</code> command to access the Swagger endpoint, which documents all the REST APIs available.</p>
 
 <markup
 lang="bash"

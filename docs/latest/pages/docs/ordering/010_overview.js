@@ -6,7 +6,7 @@
 Sometimes this behaviour is not suitable if, for example, when application code running in one deployment depends on the
 availability of another deployment.
 Typically, this might be storage disabled members having functionality that relies on the storage members being ready first.
-The <code>Coherence</code> CRD allows can be configured with a <code>startQuorum</code> that defines a deployment&#8217;s dependency on other
+The <code>Coherence</code> CRD can be configured with a <code>startQuorum</code> that defines a deployment&#8217;s dependency on other
 deployments in the cluster.</p>
 
 <div class="admonition note">

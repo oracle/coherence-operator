@@ -1024,6 +1024,12 @@ NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>addresses</code></td>
+<td class="">A list of addresses to be used for WKA. If this field is set, the WKA property for the Coherence cluster will be set using this value and the other WKA fields will be ignored.</td>
+<td class=""><code>[]string</code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>

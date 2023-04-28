@@ -52,7 +52,7 @@ spec:
 The <code>name</code> field in the <code>Coherence</code> CRD&#8217;s port spec maps to the <code>name</code> field in the Container port spec.</li>
 <li data-value="2">The <code>port</code> field in the <code>Coherence</code> CRD&#8217;s port spec maps to the <code>containerPort</code> in the Container port spec.</li>
 </ul>
-<p>For each additional port the Operator will create a <code>Service</code> of tyep <code>ClusterIP</code> with a default configuration.
+<p>For each additional port the Operator will create a <code>Service</code> of type <code>ClusterIP</code> with a default configuration.
 The name of the service will be the <code>Coherence</code> resource&#8217;s name with the port name appended to it,
 so in this case it will be <code>test-cluster-rest</code>. The <code>Service</code> might look like this:</p>
 
