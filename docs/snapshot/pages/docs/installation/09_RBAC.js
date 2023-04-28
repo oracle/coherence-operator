@@ -46,7 +46,7 @@
 <p ><p>Before installing the Operator, with either method described below, the CRDs MUST be manually installed from the Operator manifest files.</p>
 
 <p>The manifest files are published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.2.11/coherence-operator-manifests.tar.gz">3.2.11 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.2.12/coherence-operator-manifests.tar.gz">3.2.12 Manifests</a></p>
 
 <p>You MUST ensure that the CRD manifests match the version of the Operator being installed.</p>
 
