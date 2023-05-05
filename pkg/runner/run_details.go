@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -142,8 +142,9 @@ func (in *RunDetails) getShellName(s string) (string, int) {
 	}
 	// Scan alphanumerics.
 	var i int
-	for i = 0; i < len(s) && in.isAlphaNum(s[i]); i++ {
-	}
+	// for i = 0; i < len(s) && in.isAlphaNum(s[i]); i++ {
+	//	// empty ??
+	// }
 	return s[:i], i
 }
 
@@ -157,10 +158,10 @@ func (in *RunDetails) isShellSpecialVar(c uint8) bool {
 	return false
 }
 
-// isAlphaNum reports whether the byte is an ASCII letter, number, or underscore
-func (in *RunDetails) isAlphaNum(c uint8) bool {
-	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
-}
+// // isAlphaNum reports whether the byte is an ASCII letter, number, or underscore
+// func (in *RunDetails) isAlphaNum(c uint8) bool {
+//     return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
+// }
 
 func (in *RunDetails) getenvOrDefault(name string, defaultValue string) string {
 	if in.env != nil && in.env.IsSet(name) {

@@ -84,10 +84,8 @@ func networkTestServerCommand() *cobra.Command {
 // netTestOperator runs a network test server
 func netTestServer(_ *cobra.Command) error {
 	test := nettesting.NewServerRunner()
-	if err := test.Run(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	err := test.Run(context.Background())
+	return err
 }
 
 // networkTestServerCommand creates the network test operator simulator sub-command
@@ -110,6 +108,7 @@ func networkTestOperatorCommand() *cobra.Command {
 
 // netTestOperator runs a network test Operator simulator
 func netTestOperator(cmd *cobra.Command) error {
+	var err error
 	flagSet := cmd.Flags()
 
 	hostName, err := flagSet.GetString(ArgClusterHostName)
@@ -118,10 +117,8 @@ func netTestOperator(cmd *cobra.Command) error {
 	}
 
 	test := nettesting.NewOperatorSimulatorRunner(hostName)
-	if err := test.Run(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	err = test.Run(context.Background())
+	return err
 }
 
 // networkTestClusterCommand creates the network test Coherence cluster member simulator sub-command
@@ -145,7 +142,7 @@ func networkTestClusterCommand() *cobra.Command {
 
 // netTestCluster runs a network test Coherence cluster member simulator
 func netTestCluster(cmd *cobra.Command) error {
-
+	var err error
 	flagSet := cmd.Flags()
 
 	operatorHost, err := flagSet.GetString(ArgOperatorHostName)
@@ -159,10 +156,8 @@ func netTestCluster(cmd *cobra.Command) error {
 	}
 
 	test := nettesting.NewClusterMemberRunner(operatorHost, clusterHost)
-	if err := test.Run(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	err = test.Run(context.Background())
+	return err
 }
 
 // networkTestClusterCommand creates the network test Coherence cluster member simulator sub-command
@@ -185,7 +180,7 @@ func networkWebHookClientCommand() *cobra.Command {
 
 // netTestWebHook runs a web-hook connectivity test
 func netTestWebHook(cmd *cobra.Command) error {
-
+	var err error
 	flagSet := cmd.Flags()
 
 	operatorHost, err := flagSet.GetString(ArgOperatorHostName)
@@ -194,10 +189,8 @@ func netTestWebHook(cmd *cobra.Command) error {
 	}
 
 	test := nettesting.NewWebHookClientRunner(operatorHost)
-	if err := test.Run(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	err = test.Run(context.Background())
+	return err
 }
 
 // networkTestClusterCommand creates the network test Coherence cluster member simulator sub-command
@@ -222,7 +215,7 @@ func networkSimpleClientCommand() *cobra.Command {
 
 // netTestClient runs a connectivity test client
 func netTestClient(cmd *cobra.Command) error {
-
+	var err error
 	flagSet := cmd.Flags()
 
 	host, err := flagSet.GetString(ArgHostName)
@@ -241,8 +234,6 @@ func netTestClient(cmd *cobra.Command) error {
 	}
 
 	test := nettesting.NewSimpleClientRunner(host, port, protocol)
-	if err := test.Run(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	err = test.Run(context.Background())
+	return err
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -126,14 +127,14 @@ var _ webhook.Validator = &Coherence{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateCreate() error {
+	var err error
 	webhookLogger.Info("validate create", "name", in.Name)
-	if err := in.validateReplicas(); err != nil {
+	err = in.validateReplicas()
+	if err != nil {
 		return err
 	}
-	if err := in.validateNodePorts(); err != nil {
-		return err
-	}
-	return nil
+	err = in.validateNodePorts()
+	return err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -154,11 +155,21 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 		return err
 	}
 
-	sts := in.Spec.CreateStatefulSet(in)
-	stsOld := prev.Spec.CreateStatefulSet(prev)
-	errorList := ValidateStatefulSetUpdate(&sts, &stsOld)
-	if len(errorList) > 0 {
-		return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
+	if in.Spec.IsRunAsJob() != prev.Spec.IsRunAsJob() {
+		if prev.Spec.IsRunAsJob() {
+			return fmt.Errorf("rejecting update as the previous deployment was a Job and cannot be converted to a StatefulSet")
+		}
+		return fmt.Errorf("rejecting update as the previous deployment was a StatefulSet and cannot be converted to a Job")
+	}
+
+	if !in.Spec.IsRunAsJob() {
+		sts := in.Spec.CreateStatefulSet(in)
+		stsOld := prev.Spec.CreateStatefulSet(prev)
+		errorList := ValidateStatefulSetUpdate(&sts, &stsOld)
+
+		if len(errorList) > 0 {
+			return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
+		}
 	}
 
 	return nil
@@ -251,5 +262,26 @@ func ValidateStatefulSetUpdate(statefulSet, oldStatefulSet *appsv1.StatefulSet) 
 		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec"), "updates to statefulset spec for fields other than 'replicas', 'template', 'updateStrategy', 'persistentVolumeClaimRetentionPolicy' and 'minReadySeconds' are forbidden"))
 	}
 
+	return allErrs
+}
+
+// ValidateJobUpdate tests if required fields in the Job are set.
+func ValidateJobUpdate(job, oldJob *batchv1.Job) field.ErrorList {
+	var allErrs field.ErrorList
+
+	newJobClone := job.DeepCopy()
+	newJobClone.Spec.ActiveDeadlineSeconds = oldJob.Spec.ActiveDeadlineSeconds     // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.BackoffLimit = oldJob.Spec.BackoffLimit                       // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.CompletionMode = oldJob.Spec.CompletionMode                   // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.Parallelism = oldJob.Spec.Parallelism                         // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.Suspend = oldJob.Spec.Suspend                                 // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.Template = oldJob.Spec.Template                               // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.TTLSecondsAfterFinished = oldJob.Spec.TTLSecondsAfterFinished // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.PodFailurePolicy = oldJob.Spec.PodFailurePolicy               // +k8s:verify-mutation:reason=clone
+	newJobClone.Spec.Completions = oldJob.Spec.Completions                         // +k8s:verify-mutation:reason=clone
+
+	if !apiequality.Semantic.DeepEqual(newJobClone.Spec, oldJob.Spec) {
+		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec"), "updates to Job spec for fields 'selector', 'manualSelector', are forbidden"))
+	}
 	return allErrs
 }

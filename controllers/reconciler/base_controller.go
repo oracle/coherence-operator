@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,6 +15,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +29,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sort"
+	"strings"
 	"sync"
 )
 
@@ -252,6 +255,104 @@ func (in *CommonReconciler) MaybeFindStatefulSet(ctx context.Context, namespace,
 	default:
 		return sts, true, nil
 	}
+}
+
+// MaybeFindJob finds the required Job, returning the StatefulSet and a flag indicating whether it was found.
+func (in *CommonReconciler) MaybeFindJob(ctx context.Context, namespace, name string) (*batchv1.Job, bool, error) {
+	job := &batchv1.Job{}
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, job)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		return nil, false, nil
+	case err != nil:
+		return job, false, err
+	default:
+		return job, true, nil
+	}
+}
+
+// UpdateDeploymentStatusActionsState updates the Coherence resource's status ActionsExecuted flag.
+func (in *CommonReconciler) UpdateDeploymentStatusActionsState(ctx context.Context, key types.NamespacedName, actionExecuted bool) error {
+	deployment := &coh.Coherence{}
+	err := in.GetClient().Get(ctx, key, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", key.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		if deployment.Status.ActionsExecuted != actionExecuted {
+			updated := deployment.DeepCopy()
+			updated.Status.ActionsExecuted = actionExecuted
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
+			if err != nil {
+				return errors.Wrap(err, "creating Coherence resource status patch")
+			}
+			if patch != nil {
+				err = in.GetClient().Status().Patch(ctx, deployment, patch)
+				if err != nil {
+					return errors.Wrap(err, "updating Coherence resource status")
+				}
+			}
+		}
+	}
+	return err
+}
+
+// CanCreate determines whether any specified start quorum has been met.
+func (in *CommonReconciler) CanCreate(ctx context.Context, deployment *coh.Coherence) (bool, string) {
+	if deployment.Spec.StartQuorum == nil || len(deployment.Spec.StartQuorum) == 0 {
+		// there is no start quorum
+		return true, ""
+	}
+
+	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
+	logger.Info("Checking deployment start quorum")
+
+	var quorum []string
+
+	for _, q := range deployment.Spec.StartQuorum {
+		if q.Deployment == "" {
+			// this start-quorum does not have a dependency name so skip it
+			continue
+		}
+		// work out which Namespace to look for the dependency in
+		var namespace string
+		if q.Namespace == "" {
+			// start-quorum does not specify a namespace so use the same one as the deployment
+			namespace = deployment.Namespace
+		} else {
+			// start-quorum does specify a namespace so use it
+			namespace = q.Namespace
+		}
+		dep, found, err := in.MaybeFindDeployment(ctx, namespace, q.Deployment)
+		switch {
+		case err != nil:
+			// cannot create due to an error looking up the deployment
+			quorum = append(quorum, fmt.Sprintf("error finding deployment '%s' - %s", q.Deployment, err.Error()))
+		case !found:
+			// cannot create as the deployment does not yet exist
+			quorum = append(quorum, fmt.Sprintf("deployment '%s/%s' does not exist", namespace, q.Deployment))
+		case found && q.PodCount > 0 && dep.Status.ReadyReplicas < q.PodCount:
+			// deployment exists and quorum requires a specific number of ready Pods
+			quorum = append(quorum, fmt.Sprintf("role '%s/%s' to have %d ready Pods (ready=%d)", namespace, q.Deployment, q.PodCount, dep.Status.ReadyReplicas))
+		case found && dep.Status.Phase != coh.ConditionTypeReady:
+			// deployment exists and quorum requires all pods ready
+			quorum = append(quorum, fmt.Sprintf("deployment '%s' is not ready", q.Deployment))
+		}
+	}
+
+	if len(quorum) > 0 {
+		reason := "Waiting for start quorum to be met: \"" + strings.Join(quorum, "\" and \"") + "\""
+		logger.Info(reason)
+		return false, reason
+	}
+	return true, ""
 }
 
 // TwoWayPatch performs a two-way merge patch on the resource.
@@ -492,6 +593,122 @@ func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, 
 	default:
 		// the deployment exists
 		return deployment, true, nil
+	}
+}
+
+// BlankContainerFields blanks out any fields that we do not want to include in the patch
+// Typically these are fields where we changed the default behaviour in the newer Operator versions
+func (in *CommonReconciler) BlankContainerFields(deployment *coh.Coherence, template *corev1.PodTemplateSpec) {
+	if deployment.Spec.Affinity == nil {
+		// affinity not set by user so do not diff on it
+		template.Spec.Affinity = nil
+	}
+	in.BlankOperatorInitContainerFields(template)
+	in.BlankCoherenceContainerFields(template)
+}
+
+// BlankOperatorInitContainerFields blanks out any fields that may have been set by a previous Operator version.
+// DO NOT blank out anything that the user has control over as they may have
+// updated them, so we need to include them in the patch
+func (in *CommonReconciler) BlankOperatorInitContainerFields(template *corev1.PodTemplateSpec) {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		if c.Name == coh.ContainerNameOperatorInit {
+			// This is the Operator init-container
+			// blank out the container command field
+			c.Command = []string{}
+			// set the updated init-container back into the StatefulSet
+			template.Spec.InitContainers[i] = c
+		}
+	}
+}
+
+// BlankCoherenceContainerFields blanks out any fields that may have been set by a previous Operator version.
+// DO NOT blank out anything that the user has control over as they may have
+// updated them, so we need to include them in the patch
+func (in *CommonReconciler) BlankCoherenceContainerFields(template *corev1.PodTemplateSpec) {
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		if c.Name == coh.ContainerNameCoherence {
+			// This is the Coherence Container
+			// blank out the container command field
+			c.Command = []string{}
+			// blank the WKA env var
+			for e := range c.Env {
+				ev := c.Env[e]
+				if ev.Name == coh.EnvVarCohWka {
+					ev.Value = ""
+					c.Env[e] = ev
+				}
+			}
+			// set the updated container back into the StatefulSet
+			template.Spec.Containers[i] = c
+		}
+	}
+}
+
+// SortEnvForAllContainers sorts the environment variable slice for all containers.
+func (in *CommonReconciler) SortEnvForAllContainers(template *corev1.PodTemplateSpec) {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		in.SortEnvForContainer(&c)
+		template.Spec.InitContainers[i] = c
+	}
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		in.SortEnvForContainer(&c)
+		template.Spec.Containers[i] = c
+	}
+}
+
+// SortEnvForContainer sorts the environment variable slice for a container.
+func (in *CommonReconciler) SortEnvForContainer(c *corev1.Container) {
+	sort.Slice(c.Env, func(i, j int) bool {
+		return c.Env[i].Name < c.Env[j].Name
+	})
+}
+
+// GetOperatorImage gets the Operator image name from the init container.
+func (in *CommonReconciler) GetOperatorImage(template *corev1.PodTemplateSpec) string {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		if c.Name == coh.ContainerNameOperatorInit {
+			return c.Image
+		}
+	}
+	return ""
+}
+
+// SetOperatorImage sets the Operator image name in the init container.
+func (in *CommonReconciler) SetOperatorImage(template *corev1.PodTemplateSpec, image string) {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		if c.Name == coh.ContainerNameOperatorInit {
+			c.Image = image
+			template.Spec.InitContainers[i] = c
+		}
+	}
+}
+
+// GetCoherenceImage gets the Coherence image name from the coherence container.
+func (in *CommonReconciler) GetCoherenceImage(template *corev1.PodTemplateSpec) string {
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		if c.Name == coh.ContainerNameCoherence {
+			return c.Image
+		}
+	}
+	return ""
+}
+
+// SetCoherenceImage sets the Coherence image name in the coherence container.
+func (in *CommonReconciler) SetCoherenceImage(template *corev1.PodTemplateSpec, image string) {
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		if c.Name == coh.ContainerNameCoherence {
+			c.Image = image
+			template.Spec.Containers[i] = c
+		}
 	}
 }
 

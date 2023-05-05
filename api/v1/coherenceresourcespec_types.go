@@ -374,7 +374,14 @@ type CoherenceResourceSpec struct {
 	// any Coherence resources deployed into that namespace.
 	// It is not recommended to set this flag to `true` in a production environment, especially when
 	// using Coherence persistence features.
+	// +optional
 	AllowUnsafeDelete *bool `json:"allowUnsafeDelete,omitempty"`
+	// RunAsJob when set to true, specifies the deployment runs as a Job instead of a StatefulSet.
+	// +optional
+	RunAsJob *bool `json:"runAsJob,omitempty"`
+	// JobSpec specifies additional configuration when running a Job instead of a StatefulSet.
+	// +optional
+	JobSpec *CoherenceJob `json:"jobSpec,omitempty"`
 }
 
 // Action is an action to execute when the StatefulSet becomes ready.
@@ -421,6 +428,11 @@ func (in *CoherenceResourceSpec) SetReplicas(replicas int32) {
 	if in != nil {
 		in.Replicas = &replicas
 	}
+}
+
+// IsRunAsJob returns true if the deployment is a Job instead of a StatefulSet
+func (in *CoherenceResourceSpec) IsRunAsJob() bool {
+	return in != nil && in.RunAsJob != nil && *in.RunAsJob
 }
 
 // GetCoherenceImage returns the name of the application image to use
@@ -586,11 +598,15 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resour
 		res = append(res, in.CreateWKAService(d))
 	}
 
-	// Create the headless Service
-	res = append(res, in.CreateHeadlessService(d))
-
-	// Create the StatefulSet
-	res = append(res, in.CreateStatefulSetResource(d))
+	if in.IsRunAsJob() {
+		// Create the Job
+		res = append(res, in.CreateJobResource(d))
+	} else {
+		// Create the headless Service
+		res = append(res, in.CreateHeadlessService(d))
+		// Create the StatefulSet
+		res = append(res, in.CreateStatefulSetResource(d))
+	}
 
 	// Create the Services for each port (and optionally ServiceMonitors)
 	res = append(res, in.CreateServicesForPort(d)...)
@@ -770,25 +786,8 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1
 		},
 	}
 
-	// Create the PodSpec labels
-	podLabels := in.CreatePodSelectorLabels(deployment)
-	// Add the WKA member label
-	podLabels[LabelCoherenceWKAMember] = strconv.FormatBool(in.Coherence.IsWKAMember())
-	// Add any labels specified for the deployment
-	for k, v := range in.Labels {
-		podLabels[k] = v
-	}
-
 	replicas := in.GetReplicas()
-	cohContainer := in.CreateCoherenceContainer(deployment)
-
-	// Add additional ports
-	for _, p := range in.Ports {
-		cohContainer.Ports = append(cohContainer.Ports, p.CreatePort(deployment))
-	}
-
-	// append any additional VolumeMounts
-	cohContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
+	podTemplate := in.CreatePodTemplateSpec(deployment)
 
 	// Add the component label
 	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
@@ -803,72 +802,142 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1
 		Selector: &metav1.LabelSelector{
 			MatchLabels: in.CreatePodSelectorLabels(deployment),
 		},
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels:      podLabels,
-				Annotations: in.Annotations,
-			},
-			Spec: corev1.PodSpec{
-				Affinity:                     in.EnsurePodAffinity(deployment),
-				ActiveDeadlineSeconds:        in.ActiveDeadlineSeconds,
-				AutomountServiceAccountToken: in.AutomountServiceAccountToken,
-				EnableServiceLinks:           in.EnableServiceLinks,
-				HostIPC:                      notNilBool(in.HostIPC),
-				ImagePullSecrets:             in.GetImagePullSecrets(),
-				PreemptionPolicy:             in.PreemptionPolicy,
-				PriorityClassName:            notNilString(in.PriorityClassName),
-				NodeSelector:                 in.NodeSelector,
-				ReadinessGates:               in.ReadinessGates,
-				RuntimeClassName:             in.RuntimeClassName,
-				SchedulerName:                notNilString(in.SchedulerName),
-				SecurityContext:              in.SecurityContext,
-				ServiceAccountName:           in.GetServiceAccountName(),
-				ShareProcessNamespace:        in.ShareProcessNamespace,
-				Tolerations:                  in.Tolerations,
-				TopologySpreadConstraints:    in.TopologySpreadConstraints,
-				InitContainers: []corev1.Container{
-					in.CreateOperatorInitContainer(deployment),
-				},
-				Containers: []corev1.Container{cohContainer},
-				Volumes: []corev1.Volume{
-					{Name: VolumeNameUtils, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-				},
-			},
-		},
+		Template: podTemplate,
 	}
 
-	if in.RestartPolicy != nil {
-		sts.Spec.Template.Spec.RestartPolicy = *in.RestartPolicy
-	}
-
-	// Add any network settings
-	in.Network.UpdateStatefulSet(&sts)
-	// Add any JVM settings
-	in.JVM.UpdateStatefulSet(&sts)
 	// Add any Coherence settings
 	in.Coherence.UpdateStatefulSet(deployment, &sts)
 
-	// Add any additional init-containers and any additional containers
-	in.ProcessSideCars(deployment, &sts)
-
-	// Add any ConfigMap Volumes
-	for _, cmv := range in.ConfigMapVolumes {
-		cmv.AddVolumes(&sts)
-	}
-
-	// Add any Secret Volumes
-	for _, sv := range in.SecretVolumes {
-		sv.AddVolumes(&sts)
-	}
-
-	// append any additional Volumes
-	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, in.Volumes...)
 	// append any additional PVCs
 	for _, v := range in.VolumeClaimTemplates {
 		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, v.ToPVC())
 	}
 
 	return sts
+}
+
+// CreateJobResource creates the deployment's Job resource.
+func (in *CoherenceResourceSpec) CreateJobResource(deployment *Coherence) Resource {
+	job := in.CreateJob(deployment)
+
+	return Resource{
+		Kind: ResourceTypeJob,
+		Name: job.GetName(),
+		Spec: &job,
+	}
+}
+
+// CreateJob creates the deployment's Job.
+func (in *CoherenceResourceSpec) CreateJob(deployment *Coherence) batchv1.Job {
+	job := batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:   deployment.GetNamespace(),
+			Name:        deployment.GetName(),
+			Labels:      deployment.CreateCommonLabels(),
+			Annotations: deployment.CreateAnnotations(),
+		},
+	}
+
+	replicas := in.GetReplicas()
+	podTemplate := in.CreatePodTemplateSpec(deployment)
+
+	// Add the component label
+	job.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
+
+	job.Spec = batchv1.JobSpec{
+		Parallelism: &replicas,
+		Selector: &metav1.LabelSelector{
+			MatchLabels: in.CreatePodSelectorLabels(deployment),
+		},
+		Template: podTemplate,
+	}
+
+	in.JobSpec.UpdateJob(&job.Spec)
+
+	return job
+}
+
+func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment *Coherence) corev1.PodTemplateSpec {
+	// Create the PodSpec labels
+	podLabels := in.CreatePodSelectorLabels(deployment)
+	// Add the WKA member label
+	podLabels[LabelCoherenceWKAMember] = strconv.FormatBool(in.Coherence.IsWKAMember())
+	// Add any labels specified for the deployment
+	for k, v := range in.Labels {
+		podLabels[k] = v
+	}
+
+	cohContainer := in.CreateCoherenceContainer(deployment)
+
+	// Add additional ports
+	for _, p := range in.Ports {
+		cohContainer.Ports = append(cohContainer.Ports, p.CreatePort(deployment))
+	}
+
+	// append any additional VolumeMounts
+	cohContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
+
+	podTemplate := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      podLabels,
+			Annotations: in.Annotations,
+		},
+		Spec: corev1.PodSpec{
+			Affinity:                     in.EnsurePodAffinity(deployment),
+			ActiveDeadlineSeconds:        in.ActiveDeadlineSeconds,
+			AutomountServiceAccountToken: in.AutomountServiceAccountToken,
+			EnableServiceLinks:           in.EnableServiceLinks,
+			HostIPC:                      notNilBool(in.HostIPC),
+			ImagePullSecrets:             in.GetImagePullSecrets(),
+			PreemptionPolicy:             in.PreemptionPolicy,
+			PriorityClassName:            notNilString(in.PriorityClassName),
+			NodeSelector:                 in.NodeSelector,
+			ReadinessGates:               in.ReadinessGates,
+			RuntimeClassName:             in.RuntimeClassName,
+			SchedulerName:                notNilString(in.SchedulerName),
+			SecurityContext:              in.SecurityContext,
+			ServiceAccountName:           in.GetServiceAccountName(),
+			ShareProcessNamespace:        in.ShareProcessNamespace,
+			Tolerations:                  in.Tolerations,
+			TopologySpreadConstraints:    in.TopologySpreadConstraints,
+			InitContainers: []corev1.Container{
+				in.CreateOperatorInitContainer(deployment),
+			},
+			Containers: []corev1.Container{cohContainer},
+			Volumes: []corev1.Volume{
+				{Name: VolumeNameUtils, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+			},
+		},
+	}
+
+	// Add any network settings
+	in.Network.UpdatePodTemplate(&podTemplate)
+	// Add any JVM settings
+	in.JVM.UpdatePodTemplate(&podTemplate)
+	// Add any Coherence settings
+	in.Coherence.UpdatePodTemplateSpec(&podTemplate)
+
+	// Add any additional init-containers and any additional containers
+	in.ProcessSideCars(deployment, &podTemplate)
+
+	// append any additional Volumes
+	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, in.Volumes...)
+
+	if in.RestartPolicy != nil {
+		podTemplate.Spec.RestartPolicy = *in.RestartPolicy
+	}
+
+	// Add any ConfigMap Volumes
+	for _, cmv := range in.ConfigMapVolumes {
+		cmv.AddVolumes(&podTemplate)
+	}
+
+	// Add any Secret Volumes
+	for _, sv := range in.SecretVolumes {
+		sv.AddVolumes(&podTemplate)
+	}
+
+	return podTemplate
 }
 
 func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
@@ -1215,7 +1284,7 @@ func (in *CoherenceResourceSpec) GetManagementPort() int32 {
 // ProcessSideCars adds any additional init-containers or additional containers to the StatefulSet.
 // This will add any common environment variables to te container too, unless those variable names
 // have already been specified in the container spec
-func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *appsv1.StatefulSet) {
+func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, podTemplate *corev1.PodTemplateSpec) {
 	if in == nil {
 		return
 	}
@@ -1223,13 +1292,13 @@ func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *app
 	for i := range in.InitContainers {
 		c := in.InitContainers[i]
 		in.processAdditionalContainer(deployment, &c)
-		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, c)
+		podTemplate.Spec.InitContainers = append(podTemplate.Spec.InitContainers, c)
 	}
 
 	for i := range in.SideCars {
 		c := in.SideCars[i]
 		in.processAdditionalContainer(deployment, &c)
-		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, c)
+		podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, c)
 	}
 }
 

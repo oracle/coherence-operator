@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -46,16 +47,24 @@ func stringPtr(x string) *string {
 }
 
 func assertEnvironmentVariables(t *testing.T, stsActual, stsExpected *appsv1.StatefulSet) {
+	assertEnvironmentVariablesForPodTemplate(t, &stsActual.Spec.Template, &stsExpected.Spec.Template)
+}
+
+func assertEnvironmentVariablesForJob(t *testing.T, actual, expected *batchv1.Job) {
+	assertEnvironmentVariablesForPodTemplate(t, &actual.Spec.Template, &expected.Spec.Template)
+}
+
+func assertEnvironmentVariablesForPodTemplate(t *testing.T, actual, expected *corev1.PodTemplateSpec) {
 	g := NewGomegaWithT(t)
 
-	for _, contExpected := range stsExpected.Spec.Template.Spec.InitContainers {
-		contActual := coh.FindInitContainer(contExpected.Name, stsActual)
+	for _, contExpected := range expected.Spec.InitContainers {
+		contActual := coh.FindInitContainerInPodTemplate(contExpected.Name, actual)
 		g.Expect(contActual).NotTo(BeNil(), "Error asserting environment variables, could not find init-container with name "+contExpected.Name)
 		assertEnvironmentVariablesForContainer(t, contActual, &contExpected)
 	}
 
-	for _, contExpected := range stsExpected.Spec.Template.Spec.Containers {
-		contActual := coh.FindContainer(contExpected.Name, stsActual)
+	for _, contExpected := range expected.Spec.Containers {
+		contActual := coh.FindContainerInPodTemplate(contExpected.Name, actual)
 		g.Expect(contActual).NotTo(BeNil(), "Error asserting environment variables, could not find container with name "+contExpected.Name)
 		assertEnvironmentVariablesForContainer(t, contActual, &contExpected)
 	}
@@ -134,6 +143,61 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	}
 }
 
+func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
+	g := NewGomegaWithT(t)
+
+	dir, err := helper.EnsureLogsDir(t.Name())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Kind).To(Equal(coh.ResourceTypeJob))
+	g.Expect(res.Name).To(Equal(expected.GetName()))
+
+	stsActual := res.Spec.(*batchv1.Job)
+
+	// sort env vars before diff
+	sortEnvVarsForJob(stsActual)
+	sortEnvVarsForJob(expected)
+
+	// sort volume mounts before diff
+	sortVolumeMountsForJob(stsActual)
+	sortVolumeMountsForJob(expected)
+
+	// sort volumes before diff
+	sortVolumesForJob(stsActual)
+	sortVolumesForJob(expected)
+
+	// sort ports before diff
+	sortPortsForJob(stsActual)
+	sortPortsForJob(expected)
+
+	// Dump the json for the actual StatefulSet for debugging failures
+	jsonActual, err := json.MarshalIndent(stsActual, "", "    ")
+	g.Expect(err).NotTo(HaveOccurred())
+	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Dump the json for the expected StatefulSet for debugging failures
+	jsonExpected, err := json.MarshalIndent(expected, "", "    ")
+	g.Expect(err).NotTo(HaveOccurred())
+	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	assertEnvironmentVariablesForJob(t, stsActual, expected)
+	assertEnvironmentVariablesForJob(t, stsActual, expected)
+
+	diffs := deep.Equal(*stsActual, *expected)
+	msg := "StatefulSets not equal:"
+	if len(diffs) > 0 {
+		// Dump the diffs
+		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		g.Expect(err).NotTo(HaveOccurred())
+		for _, diff := range diffs {
+			msg = msg + "\n" + diff
+		}
+		t.Errorf(msg)
+	}
+}
+
 // Create the expected default StatefulSet for a spec with nothing but the minimal fields set.
 func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.StatefulSet {
 	spec := deployment.Spec
@@ -141,6 +205,63 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 	labels[coh.LabelComponent] = coh.LabelComponentCoherenceStatefulSet
 	selector := deployment.CreateCommonLabels()
 	selector[coh.LabelComponent] = coh.LabelComponentCoherencePod
+	podTemplate := createMinimalExpectedPodSpec(deployment)
+
+	// The StatefulSet
+	sts := appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   deployment.Name,
+			Labels: labels,
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Replicas: pointer.Int32(spec.GetReplicas()),
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selector,
+			},
+			ServiceName:          deployment.GetHeadlessServiceName(),
+			RevisionHistoryLimit: pointer.Int32(5),
+			UpdateStrategy:       appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType},
+			PodManagementPolicy:  appsv1.ParallelPodManagement,
+			Template:             podTemplate,
+		},
+		Status: appsv1.StatefulSetStatus{
+			Replicas: 0,
+		},
+	}
+
+	return &sts
+}
+
+// Create the expected default Job for a spec with nothing but the minimal fields set.
+func createMinimalExpectedJob(deployment *coh.Coherence) *batchv1.Job {
+	spec := deployment.Spec
+	labels := deployment.CreateCommonLabels()
+	labels[coh.LabelComponent] = coh.LabelComponentCoherenceStatefulSet
+	selector := deployment.CreateCommonLabels()
+	selector[coh.LabelComponent] = coh.LabelComponentCoherencePod
+	podTemplate := createMinimalExpectedPodSpec(deployment)
+
+	sts := batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   deployment.Name,
+			Labels: labels,
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism: pointer.Int32(spec.GetReplicas()),
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selector,
+			},
+			Template: podTemplate,
+		},
+		Status: batchv1.JobStatus{},
+	}
+
+	return &sts
+}
+
+// Create the expected default PodTemplateSpec for a spec with nothing but the minimal fields set.
+func createMinimalExpectedPodSpec(deployment *coh.Coherence) corev1.PodTemplateSpec {
+	spec := deployment.Spec
 	podLabels := deployment.CreateCommonLabels()
 	podLabels[coh.LabelComponent] = coh.LabelComponentCoherencePod
 	podLabels[coh.LabelCoherenceWKAMember] = "true"
@@ -303,56 +424,49 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 		initContainer.Image = *operatorImage
 	}
 
-	// The StatefulSet
-	sts := appsv1.StatefulSet{
+	podTemplate := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   deployment.Name,
-			Labels: labels,
+			Labels: podLabels,
 		},
-		Spec: appsv1.StatefulSetSpec{
-			Replicas: pointer.Int32(spec.GetReplicas()),
-			Selector: &metav1.LabelSelector{
-				MatchLabels: selector,
-			},
-			ServiceName:          deployment.GetHeadlessServiceName(),
-			RevisionHistoryLimit: pointer.Int32(5),
-			UpdateStrategy:       appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType},
-			PodManagementPolicy:  appsv1.ParallelPodManagement,
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
+		Spec: corev1.PodSpec{
+			InitContainers: []corev1.Container{initContainer},
+			Containers:     []corev1.Container{cohContainer},
+			Volumes: []corev1.Volume{
+				{
+					Name:         coh.VolumeNameJVM,
+					VolumeSource: emptyVolume,
 				},
-				Spec: corev1.PodSpec{
-					InitContainers: []corev1.Container{initContainer},
-					Containers:     []corev1.Container{cohContainer},
-					Volumes: []corev1.Volume{
-						{
-							Name:         coh.VolumeNameJVM,
-							VolumeSource: emptyVolume,
-						},
-						{
-							Name:         coh.VolumeNameUtils,
-							VolumeSource: emptyVolume,
-						},
-					},
-					Affinity: spec.CreateDefaultPodAffinity(deployment),
+				{
+					Name:         coh.VolumeNameUtils,
+					VolumeSource: emptyVolume,
 				},
 			},
-		},
-		Status: appsv1.StatefulSetStatus{
-			Replicas: 0,
+			Affinity: spec.CreateDefaultPodAffinity(deployment),
 		},
 	}
-	return &sts
+
+	return podTemplate
 }
 
 func sortEnvVars(sts *appsv1.StatefulSet) {
-	for _, c := range sts.Spec.Template.Spec.InitContainers {
+	if sts != nil {
+		sortEnvVarsForPodSpec(&sts.Spec.Template)
+	}
+}
+
+func sortEnvVarsForJob(job *batchv1.Job) {
+	if job != nil {
+		sortEnvVarsForPodSpec(&job.Spec.Template)
+	}
+}
+
+func sortEnvVarsForPodSpec(template *corev1.PodTemplateSpec) {
+	for _, c := range template.Spec.InitContainers {
 		sort.SliceStable(c.Env, func(i, j int) bool {
 			return c.Env[i].Name < c.Env[j].Name
 		})
 	}
-	for _, c := range sts.Spec.Template.Spec.Containers {
+	for _, c := range template.Spec.Containers {
 		sort.SliceStable(c.Env, func(i, j int) bool {
 			return c.Env[i].Name < c.Env[j].Name
 		})
@@ -360,12 +474,24 @@ func sortEnvVars(sts *appsv1.StatefulSet) {
 }
 
 func sortVolumeMounts(sts *appsv1.StatefulSet) {
-	for _, c := range sts.Spec.Template.Spec.InitContainers {
+	if sts != nil {
+		sortVolumeMountsForPodSpec(&sts.Spec.Template)
+	}
+}
+
+func sortVolumeMountsForJob(job *batchv1.Job) {
+	if job != nil {
+		sortVolumeMountsForPodSpec(&job.Spec.Template)
+	}
+}
+
+func sortVolumeMountsForPodSpec(template *corev1.PodTemplateSpec) {
+	for _, c := range template.Spec.InitContainers {
 		sort.SliceStable(c.VolumeMounts, func(i, j int) bool {
 			return c.VolumeMounts[i].Name < c.VolumeMounts[j].Name
 		})
 	}
-	for _, c := range sts.Spec.Template.Spec.Containers {
+	for _, c := range template.Spec.Containers {
 		sort.SliceStable(c.VolumeMounts, func(i, j int) bool {
 			return c.VolumeMounts[i].Name < c.VolumeMounts[j].Name
 		})
@@ -373,18 +499,42 @@ func sortVolumeMounts(sts *appsv1.StatefulSet) {
 }
 
 func sortVolumes(sts *appsv1.StatefulSet) {
-	sort.SliceStable(sts.Spec.Template.Spec.Volumes, func(i, j int) bool {
-		return sts.Spec.Template.Spec.Volumes[i].Name < sts.Spec.Template.Spec.Volumes[j].Name
+	if sts != nil {
+		sortVolumesForPodTemplate(&sts.Spec.Template)
+	}
+}
+
+func sortVolumesForJob(job *batchv1.Job) {
+	if job != nil {
+		sortVolumesForPodTemplate(&job.Spec.Template)
+	}
+}
+
+func sortVolumesForPodTemplate(template *corev1.PodTemplateSpec) {
+	sort.SliceStable(template.Spec.Volumes, func(i, j int) bool {
+		return template.Spec.Volumes[i].Name < template.Spec.Volumes[j].Name
 	})
 }
 
 func sortPorts(sts *appsv1.StatefulSet) {
-	for _, c := range sts.Spec.Template.Spec.InitContainers {
+	if sts != nil {
+		sortPortsForPodTemplate(&sts.Spec.Template)
+	}
+}
+
+func sortPortsForJob(job *batchv1.Job) {
+	if job != nil {
+		sortPortsForPodTemplate(&job.Spec.Template)
+	}
+}
+
+func sortPortsForPodTemplate(template *corev1.PodTemplateSpec) {
+	for _, c := range template.Spec.InitContainers {
 		sort.SliceStable(c.Ports, func(i, j int) bool {
 			return c.Ports[i].Name < c.Ports[j].Name
 		})
 	}
-	for _, c := range sts.Spec.Template.Spec.Containers {
+	for _, c := range template.Spec.Containers {
 		sort.SliceStable(c.Ports, func(i, j int) bool {
 			return c.Ports[i].Name < c.Ports[j].Name
 		})
@@ -392,16 +542,28 @@ func sortPorts(sts *appsv1.StatefulSet) {
 }
 
 func addEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...corev1.EnvVar) {
-	for i, c := range sts.Spec.Template.Spec.InitContainers {
+	if sts != nil {
+		addEnvVarsToPodSpec(&sts.Spec.Template, containerName, envVars...)
+	}
+}
+
+// func addEnvVarsToJob(job *batchv1.Job, containerName string, envVars ...corev1.EnvVar) {
+//	if job != nil {
+//		addEnvVarsToPodSpec(&job.Spec.Template, containerName, envVars...)
+//	}
+//}
+
+func addEnvVarsToPodSpec(template *corev1.PodTemplateSpec, containerName string, envVars ...corev1.EnvVar) {
+	for i, c := range template.Spec.InitContainers {
 		if c.Name == containerName {
 			addEnvVarsToContainer(&c, envVars...)
-			sts.Spec.Template.Spec.InitContainers[i] = c
+			template.Spec.InitContainers[i] = c
 		}
 	}
-	for i, c := range sts.Spec.Template.Spec.Containers {
+	for i, c := range template.Spec.Containers {
 		if c.Name == containerName {
 			addEnvVarsToContainer(&c, envVars...)
-			sts.Spec.Template.Spec.Containers[i] = c
+			template.Spec.Containers[i] = c
 		}
 	}
 }
@@ -425,16 +587,28 @@ func addEnvVarsToContainer(c *corev1.Container, envVars ...corev1.EnvVar) {
 }
 
 func addPorts(sts *appsv1.StatefulSet, containerName string, ports ...corev1.ContainerPort) {
-	for i, c := range sts.Spec.Template.Spec.InitContainers {
+	if sts != nil {
+		addPortsToPodSpec(&sts.Spec.Template, containerName, ports...)
+	}
+}
+
+// func addPortsForJob(job *batchv1.Job, containerName string, ports ...corev1.ContainerPort) {
+//	if job != nil {
+//		addPortsToPodSpec(&job.Spec.Template, containerName, ports...)
+//	}
+//}
+
+func addPortsToPodSpec(template *corev1.PodTemplateSpec, containerName string, ports ...corev1.ContainerPort) {
+	for i, c := range template.Spec.InitContainers {
 		if c.Name == containerName {
 			addPortsToContainer(&c, ports...)
-			sts.Spec.Template.Spec.InitContainers[i] = c
+			template.Spec.InitContainers[i] = c
 		}
 	}
-	for i, c := range sts.Spec.Template.Spec.Containers {
+	for i, c := range template.Spec.Containers {
 		if c.Name == containerName {
 			addPortsToContainer(&c, ports...)
-			sts.Spec.Template.Spec.Containers[i] = c
+			template.Spec.Containers[i] = c
 		}
 	}
 }
@@ -474,4 +648,22 @@ func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpec
 
 	res := deployment.Spec.CreateStatefulSetResource(deployment)
 	assertStatefulSet(t, res, stsExpected)
+}
+
+func assertJobCreation(t *testing.T, deployment *coh.Coherence, jobExpected *batchv1.Job) {
+	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
+	viper.Set(operator.FlagOperatorImage, testOperatorImage)
+
+	res := deployment.Spec.CreateJobResource(deployment)
+	assertJob(t, res, jobExpected)
+}
+
+func assertResourceCreation(t *testing.T, deployment *coh.Coherence) coh.Resources {
+	g := NewGomegaWithT(t)
+	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
+	viper.Set(operator.FlagOperatorImage, testOperatorImage)
+
+	res, err := deployment.Spec.CreateKubernetesResources(deployment)
+	g.Expect(err).NotTo(HaveOccurred())
+	return res
 }

@@ -17,15 +17,12 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sort"
 	"strings"
 	"time"
 )
@@ -196,39 +193,6 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	return result, nil
 }
 
-// UpdateDeploymentStatusActionsState updates the Coherence resource's status ActionsExecuted flag.
-func (in *ReconcileStatefulSet) UpdateDeploymentStatusActionsState(ctx context.Context, key types.NamespacedName, actionExecuted bool) error {
-	deployment := &coh.Coherence{}
-	err := in.GetClient().Get(ctx, key, deployment)
-	switch {
-	case err != nil && apierrors.IsNotFound(err):
-		// deployment not found - possibly deleted
-		err = nil
-	case err != nil:
-		// an error occurred
-		err = errors.Wrapf(err, "getting deployment %s", key.Name)
-	case deployment.GetDeletionTimestamp() != nil:
-		// deployment is being deleted
-		err = nil
-	default:
-		if deployment.Status.ActionsExecuted != actionExecuted {
-			updated := deployment.DeepCopy()
-			updated.Status.ActionsExecuted = actionExecuted
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
-			if err != nil {
-				return errors.Wrap(err, "creating Coherence resource status patch")
-			}
-			if patch != nil {
-				err = in.GetClient().Status().Patch(ctx, deployment, patch)
-				if err != nil {
-					return errors.Wrap(err, "updating Coherence resource status")
-				}
-			}
-		}
-	}
-	return err
-}
-
 // execActions executes actions
 func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.StatefulSet, deployment *coh.Coherence) {
 	coherenceProbe := CoherenceProbe{
@@ -288,7 +252,7 @@ func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh
 func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Creating StatefulSet")
 
-	ok, reason := in.canCreate(ctx, deployment)
+	ok, reason := in.CanCreate(ctx, deployment)
 
 	if !ok {
 		// start quorum not met, send event and update deployment status
@@ -317,57 +281,6 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 
 	logger.Info("Created statefulSet")
 	return reconcile.Result{}, err
-}
-
-// canCreate determines whether any specified start quorum has been met.
-func (in *ReconcileStatefulSet) canCreate(ctx context.Context, deployment *coh.Coherence) (bool, string) {
-	if deployment.Spec.StartQuorum == nil || len(deployment.Spec.StartQuorum) == 0 {
-		// there is no start quorum
-		return true, ""
-	}
-
-	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
-	logger.Info("Checking deployment start quorum")
-
-	var quorum []string
-
-	for _, q := range deployment.Spec.StartQuorum {
-		if q.Deployment == "" {
-			// this start-quorum does not have a dependency name so skip it
-			continue
-		}
-		// work out which Namespace to look for the dependency in
-		var namespace string
-		if q.Namespace == "" {
-			// start-quorum does not specify a namespace so use the same one as the deployment
-			namespace = deployment.Namespace
-		} else {
-			// start-quorum does specify a namespace so use it
-			namespace = q.Namespace
-		}
-		dep, found, err := in.MaybeFindDeployment(ctx, namespace, q.Deployment)
-		switch {
-		case err != nil:
-			// cannot create due to an error looking up the deployment
-			quorum = append(quorum, fmt.Sprintf("error finding deployment '%s' - %s", q.Deployment, err.Error()))
-		case !found:
-			// cannot create as the deployment does not yet exist
-			quorum = append(quorum, fmt.Sprintf("deployment '%s/%s' does not exist", namespace, q.Deployment))
-		case found && q.PodCount > 0 && dep.Status.ReadyReplicas < q.PodCount:
-			// deployment exists and quorum requires a specific number of ready Pods
-			quorum = append(quorum, fmt.Sprintf("role '%s/%s' to have %d ready Pods (ready=%d)", namespace, q.Deployment, q.PodCount, dep.Status.ReadyReplicas))
-		case found && dep.Status.Phase != coh.ConditionTypeReady:
-			// deployment exists and quorum requires all pods ready
-			quorum = append(quorum, fmt.Sprintf("deployment '%s' is not ready", q.Deployment))
-		}
-	}
-
-	if len(quorum) > 0 {
-		reason := "Waiting for start quorum to be met: \"" + strings.Join(quorum, "\" and \"") + "\""
-		logger.Info(reason)
-		return false, reason
-	}
-	return true, ""
 }
 
 func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deployment *coh.Coherence, current *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
@@ -470,32 +383,36 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	current.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 	original.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 
+	desiredPodSpec := desired.Spec.Template
+	currentPodSpec := desired.Spec.Template
+	originalPodSpec := desired.Spec.Template
+
 	// ensure we do not patch any fields that may be set by a previous version of the Operator
 	// as this will cause a rolling update of the Pods, typically these are fields where
 	// the Operator sets defaults, and we changed the default behaviour
-	in.blankContainerFields(deployment, desired)
-	in.blankContainerFields(deployment, current)
-	in.blankContainerFields(deployment, original)
+	in.BlankContainerFields(deployment, &desiredPodSpec)
+	in.BlankContainerFields(deployment, &currentPodSpec)
+	in.BlankContainerFields(deployment, &originalPodSpec)
 
-	// Sort the environment variables so we do not patch on just a re-ordering of env vars
-	in.sortEnvForAllContainers(desired)
-	in.sortEnvForAllContainers(current)
-	in.sortEnvForAllContainers(original)
+	// Sort the environment variables, so we do not patch on just a re-ordering of env vars
+	in.SortEnvForAllContainers(&desiredPodSpec)
+	in.SortEnvForAllContainers(&currentPodSpec)
+	in.SortEnvForAllContainers(&originalPodSpec)
 
 	// ensure the Coherence image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
 	if deployment.Spec.Image == nil {
-		cohImage := in.getCoherenceImage(desired)
-		in.setCoherenceImage(original, cohImage)
-		in.setCoherenceImage(current, cohImage)
+		cohImage := in.GetCoherenceImage(&desiredPodSpec)
+		in.SetCoherenceImage(&originalPodSpec, cohImage)
+		in.SetCoherenceImage(&currentPodSpec, cohImage)
 	}
 
 	// ensure the Operator image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
 	if deployment.Spec.CoherenceUtils == nil || deployment.Spec.CoherenceUtils.Image == nil {
-		operatorImage := in.getOperatorImage(desired)
-		in.setOperatorImage(original, operatorImage)
-		in.setOperatorImage(current, operatorImage)
+		operatorImage := in.GetOperatorImage(&desiredPodSpec)
+		in.SetOperatorImage(&originalPodSpec, operatorImage)
+		in.SetOperatorImage(&currentPodSpec, operatorImage)
 	}
 
 	// a callback function that the 3-way patch method will call just before it applies a patch
@@ -580,116 +497,6 @@ func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment 
 		Config: in.GetManager().GetConfig(),
 	}
 	return probe.SuspendServices(ctx, deployment, current)
-}
-
-func (in *ReconcileStatefulSet) sortEnvForAllContainers(sts *appsv1.StatefulSet) {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		in.sortEnvForContainer(&c)
-		sts.Spec.Template.Spec.InitContainers[i] = c
-	}
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		in.sortEnvForContainer(&c)
-		sts.Spec.Template.Spec.Containers[i] = c
-	}
-}
-
-func (in *ReconcileStatefulSet) sortEnvForContainer(c *corev1.Container) {
-	sort.Slice(c.Env, func(i, j int) bool {
-		return c.Env[i].Name < c.Env[j].Name
-	})
-}
-
-func (in *ReconcileStatefulSet) getOperatorImage(sts *appsv1.StatefulSet) string {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameOperatorInit {
-			return c.Image
-		}
-	}
-	return ""
-}
-
-func (in *ReconcileStatefulSet) setOperatorImage(sts *appsv1.StatefulSet, image string) {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameOperatorInit {
-			c.Image = image
-			sts.Spec.Template.Spec.InitContainers[i] = c
-		}
-	}
-}
-
-func (in *ReconcileStatefulSet) getCoherenceImage(sts *appsv1.StatefulSet) string {
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		if c.Name == coh.ContainerNameCoherence {
-			return c.Image
-		}
-	}
-	return ""
-}
-
-func (in *ReconcileStatefulSet) setCoherenceImage(sts *appsv1.StatefulSet, image string) {
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		if c.Name == coh.ContainerNameCoherence {
-			c.Image = image
-			sts.Spec.Template.Spec.Containers[i] = c
-		}
-	}
-}
-
-// Blank out any fields that we do not want to include in the patch
-// Typically these are fields where we changed the default behaviour in the newer Operator versions
-func (in *ReconcileStatefulSet) blankContainerFields(deployment *coh.Coherence, sts *appsv1.StatefulSet) {
-	if deployment.Spec.Affinity == nil {
-		// affinity not set by user so do not diff on it
-		sts.Spec.Template.Spec.Affinity = nil
-	}
-	in.blankOperatorInitContainerFields(sts)
-	in.blankCoherenceContainerFields(sts)
-}
-
-// Blanks out any fields that may have been set by a previous Operator version.
-// DO NOT blank out anything that the user has control over as they may have
-// updated them, so we need to include them in the patch
-func (in *ReconcileStatefulSet) blankOperatorInitContainerFields(sts *appsv1.StatefulSet) {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameOperatorInit {
-			// This is the Operator init-container
-			// blank out the container command field
-			c.Command = []string{}
-			// set the updated init-container back into the StatefulSet
-			sts.Spec.Template.Spec.InitContainers[i] = c
-		}
-	}
-}
-
-// Blanks out any fields that may have been set by a previous Operator version.
-// DO NOT blank out anything that the user has control over as they may have
-// updated them, so we need to include them in the patch
-func (in *ReconcileStatefulSet) blankCoherenceContainerFields(sts *appsv1.StatefulSet) {
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		if c.Name == coh.ContainerNameCoherence {
-			// This is the Coherence Container
-			// blank out the container command field
-			c.Command = []string{}
-			// blank the WKA env var
-			for e := range c.Env {
-				ev := c.Env[e]
-				if ev.Name == coh.EnvVarCohWka {
-					ev.Value = ""
-					c.Env[e] = ev
-				}
-			}
-			// set the updated container back into the StatefulSet
-			sts.Spec.Template.Spec.Containers[i] = c
-		}
-	}
 }
 
 // Scale will scale a StatefulSet up or down

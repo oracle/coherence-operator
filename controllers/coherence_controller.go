@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/oracle/coherence-operator/controllers/job"
 	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
@@ -307,6 +308,7 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		reconciler.NewServiceReconciler(mgr),
 		servicemonitor.NewServiceMonitorReconciler(mgr),
 		statefulset.NewStatefulSetReconciler(mgr),
+		job.NewJobReconciler(mgr),
 	}
 
 	in.reconcilers = reconcilers
@@ -328,6 +330,7 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // Watch the resources to be reconciled
 func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryResourceReconciler) error {
+	var err error
 	if !s.CanWatch() {
 		// this reconciler does not do watches
 		return nil
@@ -342,11 +345,8 @@ func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryReso
 	src := &source.Kind{Type: s.GetTemplate()}
 	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.Coherence{}}
 	p := predicates.SecondaryPredicate{}
-	if err := c.Watch(src, h, p); err != nil {
-		return err
-	}
-
-	return nil
+	err = c.Watch(src, h, p)
+	return err
 }
 
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }

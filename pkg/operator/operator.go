@@ -133,9 +133,8 @@ func SetupFlags(cmd *cobra.Command) {
 	if err := viper.ReadConfig(f); err != nil {
 		setupLog.Error(err, "reading configuration file")
 		os.Exit(1)
-	} else {
-		_ = f.Close()
 	}
+	_ = f.Close()
 
 	cmd.Flags().Duration(
 		FlagCACertRotateBefore,

@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,6 +75,16 @@ func EnsureContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	return c
 }
 
+// EnsureContainerInPod ensures that the Pod has a container with the specified name
+func EnsureContainerInPod(name string, podTemplate *corev1.PodTemplateSpec) *corev1.Container {
+	c := FindContainerInPodTemplate(name, podTemplate)
+	if c == nil {
+		c = &corev1.Container{Name: name}
+		podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, *c)
+	}
+	return c
+}
+
 // ReplaceContainer ensures that the StatefulSet has a container with the specified name
 func ReplaceContainer(sts *appsv1.StatefulSet, cNew *corev1.Container) {
 	for i, c := range sts.Spec.Template.Spec.Containers {
@@ -83,6 +94,17 @@ func ReplaceContainer(sts *appsv1.StatefulSet, cNew *corev1.Container) {
 		}
 	}
 	sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, *cNew)
+}
+
+// ReplaceContainerInPod ensures that the Pod has a container with the specified name
+func ReplaceContainerInPod(podTemplate *corev1.PodTemplateSpec, cNew *corev1.Container) {
+	for i, c := range podTemplate.Spec.Containers {
+		if c.Name == cNew.Name {
+			podTemplate.Spec.Containers[i] = *cNew
+			return
+		}
+	}
+	podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, *cNew)
 }
 
 // FindContainer finds the StatefulSet container with the specified name.
@@ -95,9 +117,49 @@ func FindContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	return nil
 }
 
+// FindContainerForJob finds the Job container with the specified name.
+func FindContainerForJob(name string, job *batchv1.Job) *corev1.Container {
+	for _, c := range job.Spec.Template.Spec.Containers {
+		if c.Name == name {
+			return &c
+		}
+	}
+	return nil
+}
+
+// FindContainerInPodTemplate finds the Job container with the specified name.
+func FindContainerInPodTemplate(name string, pod *corev1.PodTemplateSpec) *corev1.Container {
+	for _, c := range pod.Spec.Containers {
+		if c.Name == name {
+			return &c
+		}
+	}
+	return nil
+}
+
 // FindInitContainer finds the StatefulSet init-container with the specified name.
 func FindInitContainer(name string, sts *appsv1.StatefulSet) *corev1.Container {
 	for _, c := range sts.Spec.Template.Spec.InitContainers {
+		if c.Name == name {
+			return &c
+		}
+	}
+	return nil
+}
+
+// FindInitContainerInJob finds the Job init-container with the specified name.
+func FindInitContainerInJob(name string, job *batchv1.Job) *corev1.Container {
+	for _, c := range job.Spec.Template.Spec.InitContainers {
+		if c.Name == name {
+			return &c
+		}
+	}
+	return nil
+}
+
+// FindInitContainerInPodTemplate finds the PodTemplateSpec init-container with the specified name.
+func FindInitContainerInPodTemplate(name string, template *corev1.PodTemplateSpec) *corev1.Container {
+	for _, c := range template.Spec.InitContainers {
 		if c.Name == name {
 			return &c
 		}
@@ -367,9 +429,17 @@ func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
 
 // UpdateStatefulSet applies Coherence settings to the StatefulSet.
 func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.StatefulSet) {
+	if in != nil {
+		in.AddPersistenceVolumes(sts)
+		in.AddPersistencePVCs(deployment, sts)
+	}
+}
+
+// UpdatePodTemplateSpec applies Coherence settings to the PodTemplateSpec.
+func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSpec) {
 	// Get the Coherence container
-	c := EnsureContainer(ContainerNameCoherence, sts)
-	defer ReplaceContainer(sts, c)
+	c := EnsureContainerInPod(ContainerNameCoherence, podTemplate)
+	defer ReplaceContainerInPod(podTemplate, c)
 
 	if in == nil {
 		// we're nil so disable management and metrics/
@@ -420,10 +490,10 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: "TRUE"})
 	}
 
-	in.Management.AddSSLVolumes(sts, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
+	in.Management.AddSSLVolumesForPod(podTemplate, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
 	c.Env = append(c.Env, in.Management.CreateEnvVars(EnvVarCohMgmtPrefix, VolumeMountPathManagementCerts, DefaultManagementPort)...)
 
-	in.Metrics.AddSSLVolumes(sts, c, VolumeNameMetricsSSL, VolumeMountPathMetricsCerts)
+	in.Metrics.AddSSLVolumesForPod(podTemplate, c, VolumeNameMetricsSSL, VolumeMountPathMetricsCerts)
 	c.Env = append(c.Env, in.Metrics.CreateEnvVars(EnvVarCohMetricsPrefix, VolumeMountPathMetricsCerts, DefaultMetricsPort)...)
 
 	// set the persistence mode
@@ -432,8 +502,6 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 	}
 
 	in.AddPersistenceVolumeMounts(c)
-	in.AddPersistenceVolumes(sts)
-	in.AddPersistencePVCs(deployment, sts)
 }
 
 // GetMetricsPort returns the metrics port number.
@@ -556,10 +624,10 @@ type JVMSpec struct {
 	UseJibClasspath *bool `json:"useJibClasspath,omitempty"`
 }
 
-// UpdateStatefulSet updates the StatefulSet with any JVM specific settings
-func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
-	c := EnsureContainer(ContainerNameCoherence, sts)
-	defer ReplaceContainer(sts, c)
+// UpdatePodTemplate updates the StatefulSet with any JVM specific settings
+func (in *JVMSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
+	c := EnsureContainerInPod(ContainerNameCoherence, podTemplate)
+	defer ReplaceContainerInPod(podTemplate, c)
 
 	var gc *JvmGarbageCollectorSpec
 
@@ -607,12 +675,12 @@ func (in *JVMSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 
 	// Add diagnostic volume if specified otherwise use an empty-volume
 	if in != nil && in.DiagnosticsVolume != nil {
-		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+		podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, corev1.Volume{
 			Name:         VolumeNameJVM,
 			VolumeSource: *in.DiagnosticsVolume,
 		})
 	} else {
-		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+		podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, corev1.Volume{
 			Name:         VolumeNameJVM,
 			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 		})
@@ -1704,6 +1772,13 @@ func (in *PortSpecWithSSL) CreateEnvVars(prefix, secretMount string, defaultPort
 
 // AddSSLVolumes adds the SSL secret volume and volume mount if required
 func (in *PortSpecWithSSL) AddSSLVolumes(sts *appsv1.StatefulSet, c *corev1.Container, volName, path string) {
+	if sts != nil {
+		in.AddSSLVolumesForPod(&sts.Spec.Template, c, volName, path)
+	}
+}
+
+// AddSSLVolumesForPod adds the SSL secret volume and volume mount if required
+func (in *PortSpecWithSSL) AddSSLVolumesForPod(podTemplate *corev1.PodTemplateSpec, c *corev1.Container, volName, path string) {
 	if in == nil || !notNilBool(in.Enabled) || in.SSL == nil || !notNilBool(in.SSL.Enabled) {
 		// the port spec is nil or disabled or SSL is nil or disabled
 		return
@@ -1716,7 +1791,7 @@ func (in *PortSpecWithSSL) AddSSLVolumes(sts *appsv1.StatefulSet, c *corev1.Cont
 			MountPath: path,
 		})
 
-		sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, corev1.Volume{
+		podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, corev1.Volume{
 			Name: volName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
@@ -2150,23 +2225,23 @@ type NetworkSpec struct {
 	Subdomain *string `json:"subdomain,omitempty"`
 }
 
-// UpdateStatefulSet updates the specified StatefulSet's network settings.
-func (in *NetworkSpec) UpdateStatefulSet(sts *appsv1.StatefulSet) {
+// UpdatePodTemplate updates the specified StatefulSet's network settings.
+func (in *NetworkSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 	if in == nil {
 		return
 	}
 
-	in.DNSConfig.UpdateStatefulSet(sts)
+	in.DNSConfig.UpdatePodTemplate(podTemplate)
 
 	if in.DNSPolicy != nil {
-		sts.Spec.Template.Spec.DNSPolicy = *in.DNSPolicy
+		podTemplate.Spec.DNSPolicy = *in.DNSPolicy
 	}
 
-	sts.Spec.Template.Spec.HostAliases = in.HostAliases
-	sts.Spec.Template.Spec.HostNetwork = notNilBool(in.HostNetwork)
-	sts.Spec.Template.Spec.Hostname = notNilString(in.Hostname)
-	sts.Spec.Template.Spec.SetHostnameAsFQDN = in.SetHostnameAsFQDN
-	sts.Spec.Template.Spec.Subdomain = notNilString(in.Subdomain)
+	podTemplate.Spec.HostAliases = in.HostAliases
+	podTemplate.Spec.HostNetwork = notNilBool(in.HostNetwork)
+	podTemplate.Spec.Hostname = notNilString(in.Hostname)
+	podTemplate.Spec.SetHostnameAsFQDN = in.SetHostnameAsFQDN
+	podTemplate.Spec.Subdomain = notNilString(in.Subdomain)
 }
 
 // ----- PodDNSConfig -------------------------------------------------------
@@ -2197,7 +2272,7 @@ type PodDNSConfig struct {
 	Options []corev1.PodDNSConfigOption `json:"options,omitempty"`
 }
 
-func (in *PodDNSConfig) UpdateStatefulSet(sts *appsv1.StatefulSet) {
+func (in *PodDNSConfig) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 	if in == nil {
 		return
 	}
@@ -2206,17 +2281,17 @@ func (in *PodDNSConfig) UpdateStatefulSet(sts *appsv1.StatefulSet) {
 
 	if in.Nameservers != nil && len(in.Nameservers) > 0 {
 		cfg.Nameservers = in.Nameservers
-		sts.Spec.Template.Spec.DNSConfig = &cfg
+		podTemplate.Spec.DNSConfig = &cfg
 	}
 
 	if in.Searches != nil && len(in.Searches) > 0 {
 		cfg.Searches = in.Searches
-		sts.Spec.Template.Spec.DNSConfig = &cfg
+		podTemplate.Spec.DNSConfig = &cfg
 	}
 
 	if in.Options != nil && len(in.Options) > 0 {
 		cfg.Options = in.Options
-		sts.Spec.Template.Spec.DNSConfig = &cfg
+		podTemplate.Spec.DNSConfig = &cfg
 	}
 }
 
@@ -2309,23 +2384,23 @@ type ConfigMapVolumeSpec struct {
 }
 
 // AddVolumes adds the Volume and VolumeMount for this ConfigMap spec.
-func (in *ConfigMapVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
+func (in *ConfigMapVolumeSpec) AddVolumes(podTemplate *corev1.PodTemplateSpec) {
 	if in == nil {
 		return
 	}
 	// Add the volume mount to the init-containers
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		cc := sts.Spec.Template.Spec.InitContainers[i]
+	for i := range podTemplate.Spec.InitContainers {
+		cc := podTemplate.Spec.InitContainers[i]
 		in.AddVolumeMounts(&cc)
 		// replace the updated container in the init-container array
-		sts.Spec.Template.Spec.InitContainers[i] = cc
+		podTemplate.Spec.InitContainers[i] = cc
 	}
 	// Add the volume mount to the containers
-	for i := range sts.Spec.Template.Spec.Containers {
-		cc := sts.Spec.Template.Spec.Containers[i]
+	for i := range podTemplate.Spec.Containers {
+		cc := podTemplate.Spec.Containers[i]
 		in.AddVolumeMounts(&cc)
 		// replace the updated container in the container array
-		sts.Spec.Template.Spec.Containers[i] = cc
+		podTemplate.Spec.Containers[i] = cc
 	}
 	var volName string
 	if in.VolumeName == "" {
@@ -2346,7 +2421,7 @@ func (in *ConfigMapVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
 			},
 		},
 	}
-	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
+	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, vol)
 }
 
 func (in *ConfigMapVolumeSpec) AddVolumeMounts(c *corev1.Container) {
@@ -2431,23 +2506,23 @@ type SecretVolumeSpec struct {
 }
 
 // AddVolumes adds the Volume and VolumeMount for this Secret spec.
-func (in *SecretVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
+func (in *SecretVolumeSpec) AddVolumes(podTemplate *corev1.PodTemplateSpec) {
 	if in == nil {
 		return
 	}
 	// Add the volume mount to the init-containers
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		cc := sts.Spec.Template.Spec.InitContainers[i]
+	for i := range podTemplate.Spec.InitContainers {
+		cc := podTemplate.Spec.InitContainers[i]
 		in.AddVolumeMounts(&cc)
 		// replace the updated container in the init-container array
-		sts.Spec.Template.Spec.InitContainers[i] = cc
+		podTemplate.Spec.InitContainers[i] = cc
 	}
 	// Add the volume mount to the containers
-	for i := range sts.Spec.Template.Spec.Containers {
-		cc := sts.Spec.Template.Spec.Containers[i]
+	for i := range podTemplate.Spec.Containers {
+		cc := podTemplate.Spec.Containers[i]
 		in.AddVolumeMounts(&cc)
 		// replace the updated container in the container array
-		sts.Spec.Template.Spec.Containers[i] = cc
+		podTemplate.Spec.Containers[i] = cc
 	}
 	var volName string
 	if in.VolumeName == "" {
@@ -2466,7 +2541,7 @@ func (in *SecretVolumeSpec) AddVolumes(sts *appsv1.StatefulSet) {
 			},
 		},
 	}
-	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vol)
+	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, vol)
 }
 
 func (in *SecretVolumeSpec) AddVolumeMounts(c *corev1.Container) {
@@ -2505,6 +2580,7 @@ const (
 	ResourceTypeService        ResourceType = "Service"
 	ResourceTypeServiceMonitor ResourceType = ServiceMonitorKind
 	ResourceTypeStatefulSet    ResourceType = "StatefulSet"
+	ResourceTypeJob            ResourceType = "Job"
 )
 
 func ToResourceType(kind string) (ResourceType, error) {
@@ -2524,6 +2600,8 @@ func ToResourceType(kind string) (ResourceType, error) {
 		t = ResourceTypeServiceMonitor
 	case ResourceTypeStatefulSet.Name():
 		t = ResourceTypeStatefulSet
+	case ResourceTypeJob.Name():
+		t = ResourceTypeJob
 	default:
 		err = fmt.Errorf("attempt to obtain ResourceType unsupported kind %s", kind)
 	}
@@ -2547,6 +2625,8 @@ func (t ResourceType) toObject() (client.Object, error) {
 		o = &monitoringv1.ServiceMonitor{}
 	case ResourceTypeStatefulSet:
 		o = &appsv1.StatefulSet{}
+	case ResourceTypeJob:
+		o = &batchv1.Job{}
 	default:
 		err = fmt.Errorf("attempt to obtain runtime.Object for unsupported type %s", t)
 	}
@@ -2856,6 +2936,108 @@ func (in *PersistentVolumeClaimObjectMeta) toObjectMeta() metav1.ObjectMeta {
 		Annotations: in.Annotations,
 		Labels:      in.Labels,
 	}
+}
+
+// ----- CoherenceJob struct ------------------------------------------------
+
+// CoherenceJob is the Job specification if the Cluster should be created as a Kubernetes Job
+// instead of a StatefulSet.
+type CoherenceJob struct {
+	// Specifies the desired number of successfully finished pods the
+	// job should be run with.  Setting to nil means that the success of any
+	// pod signals the success of all pods, and allows parallelism to have any positive
+	// value.  Setting to 1 means that parallelism is limited to 1 and the success of that
+	// pod signals the success of the job.
+	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
+	// +optional
+	Completions *int32 `json:"completions,omitempty"`
+
+	// Specifies the duration in seconds relative to the startTime that the job
+	// may be continuously active before the system tries to terminate it; value
+	// must be positive integer. If a Job is suspended (at creation or through an
+	// update), this timer will effectively be stopped and reset when the Job is
+	// resumed again.
+	// +optional
+	ActiveDeadlineSeconds *int64 `json:"activeDeadlineSeconds,omitempty"`
+
+	// Specifies the policy of handling failed pods. In particular, it allows to
+	// specify the set of actions and conditions which need to be
+	// satisfied to take the associated action.
+	// If empty, the default behaviour applies - the counter of failed pods,
+	// represented by the jobs's .status.failed field, is incremented and it is
+	// checked against the backoffLimit. This field cannot be used in combination
+	// with restartPolicy=OnFailure.
+	//
+	// This field is alpha-level. To use this field, you must enable the
+	// `JobPodFailurePolicy` feature gate (disabled by default).
+	// +optional
+	PodFailurePolicy *batchv1.PodFailurePolicy `json:"podFailurePolicy,omitempty"`
+
+	// Specifies the number of retries before marking this job failed.
+	// Defaults to 6
+	// +optional
+	BackoffLimit *int32 `json:"backoffLimit,omitempty"`
+
+	// ttlSecondsAfterFinished limits the lifetime of a Job that has finished
+	// execution (either Complete or Failed). If this field is set,
+	// ttlSecondsAfterFinished after the Job finishes, it is eligible to be
+	// automatically deleted. When the Job is being deleted, its lifecycle
+	// guarantees (e.g. finalizers) will be honored. If this field is unset,
+	// the Job won't be automatically deleted. If this field is set to zero,
+	// the Job becomes eligible to be deleted immediately after it finishes.
+	// +optional
+	TTLSecondsAfterFinished *int32 `json:"ttlSecondsAfterFinished,omitempty"`
+
+	// CompletionMode specifies how Pod completions are tracked. It can be
+	// `NonIndexed` (default) or `Indexed`.
+	//
+	// `NonIndexed` means that the Job is considered complete when there have
+	// been .spec.completions successfully completed Pods. Each Pod completion is
+	// homologous to each other.
+	//
+	// `Indexed` means that the Pods of a
+	// Job get an associated completion index from 0 to (.spec.completions - 1),
+	// available in the annotation batch.kubernetes.io/job-completion-index.
+	// The Job is considered complete when there is one successfully completed Pod
+	// for each index.
+	// When value is `Indexed`, .spec.completions must be specified and
+	// `.spec.parallelism` must be less than or equal to 10^5.
+	// In addition, The Pod name takes the form
+	// `$(job-name)-$(index)-$(random-string)`,
+	// the Pod hostname takes the form `$(job-name)-$(index)`.
+	//
+	// More completion modes can be added in the future.
+	// If the Job controller observes a mode that it doesn't recognize, which
+	// is possible during upgrades due to version skew, the controller
+	// skips updates for the Job.
+	// +optional
+	CompletionMode *batchv1.CompletionMode `json:"completionMode,omitempty"`
+
+	// Suspend specifies whether the Job controller should create Pods or not. If
+	// a Job is created with suspend set to true, no Pods are created by the Job
+	// controller. If a Job is suspended after creation (i.e. the flag goes from
+	// false to true), the Job controller will delete all active Pods associated
+	// with this Job. Users must design their workload to gracefully handle this.
+	// Suspending a Job will reset the StartTime field of the Job, effectively
+	// resetting the ActiveDeadlineSeconds timer too. Defaults to false.
+	//
+	// +optional
+	Suspend *bool `json:"suspend,omitempty"`
+}
+
+// UpdateJob updates a JobSpec from the fields in this CoherenceJob
+func (in *CoherenceJob) UpdateJob(spec *batchv1.JobSpec) {
+	if in == nil {
+		return
+	}
+
+	spec.Completions = in.Completions
+	spec.ActiveDeadlineSeconds = in.ActiveDeadlineSeconds
+	spec.PodFailurePolicy = in.PodFailurePolicy
+	spec.BackoffLimit = in.BackoffLimit
+	spec.TTLSecondsAfterFinished = in.TTLSecondsAfterFinished
+	spec.CompletionMode = in.CompletionMode
+	spec.Suspend = in.Suspend
 }
 
 // ----- helper methods -----------------------------------------------------

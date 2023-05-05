@@ -30,6 +30,7 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<CoherenceResourceSpec,CoherenceResourceSpec>>
 * <<ApplicationSpec,ApplicationSpec>>
 * <<CloudNativeBuildPackSpec,CloudNativeBuildPackSpec>>
+* <<CoherenceJob,CoherenceJob>>
 * <<CoherenceSpec,CoherenceSpec>>
 * <<CoherenceTracingSpec,CoherenceTracingSpec>>
 * <<CoherenceWKASpec,CoherenceWKASpec>>
@@ -194,6 +195,7 @@ m| topologySpreadConstraints | TopologySpreadConstraints describes how a group o
 m| rackLabel | RackLabel is an optional Node label to use for the value of the Coherence member's rack name. The default labels to use are determined by the Operator. m| &#42;string | false
 m| siteLabel | SiteLabel is an optional Node label to use for the value of the Coherence member's site name The default labels to use are determined by the Operator. m| &#42;string | false
 m| allowUnsafeDelete | AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is `false`. The primary use for setting this flag to `true` is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to `true` in a production environment, especially when using Coherence persistence features. m| &#42;bool | false
+m| runAsJob | RunAsJob specifies that the cluster should be created as a Job instead of a StatefulSet. m| &#42;<<CoherenceJob,CoherenceJob>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -224,6 +226,32 @@ CloudNativeBuildPackSpec is the configuration when using a Cloud Native Buildpac
 | Field | Description | Type | Required
 m| enabled | Enable or disable buildpack detection. The operator will automatically detect Cloud Native Buildpack images but if this auto-detection fails to work correctly for a specific image then this field can be set to true to signify that the image is a buildpack image or false to signify that it is not a buildpack image. m| &#42;bool | false
 m| launcher | &#160; m| &#42;string | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== CoherenceJob
+
+CoherenceJob is the Job specification if the Cluster should be created as a Kubernetes Job instead of a StatefulSet.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| completions | Specifies the desired number of successfully finished pods the job should be run with.  Setting to nil means that the success of any pod signals the success of all pods, and allows parallelism to have any positive value.  Setting to 1 means that parallelism is limited to 1 and the success of that pod signals the success of the job. More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/ m| &#42;int32 | false
+m| activeDeadlineSeconds | Specifies the duration in seconds relative to the startTime that the job may be continuously active before the system tries to terminate it; value must be positive integer. If a Job is suspended (at creation or through an update), this timer will effectively be stopped and reset when the Job is resumed again. m| &#42;int64 | false
+m| podFailurePolicy | Specifies the policy of handling failed pods. In particular, it allows to specify the set of actions and conditions which need to be satisfied to take the associated action. If empty, the default behaviour applies - the counter of failed pods, represented by the jobs's .status.failed field, is incremented and it is checked against the backoffLimit. This field cannot be used in combination with restartPolicy=OnFailure. +
+ +
+This field is alpha-level. To use this field, you must enable the `JobPodFailurePolicy` feature gate (disabled by default). m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podfailurepolicy-v1-batch[batchv1.PodFailurePolicy] | false
+m| backoffLimit | Specifies the number of retries before marking this job failed. Defaults to 6 m| &#42;int32 | false
+m| ttlSecondsAfterFinished | ttlSecondsAfterFinished limits the lifetime of a Job that has finished execution (either Complete or Failed). If this field is set, ttlSecondsAfterFinished after the Job finishes, it is eligible to be automatically deleted. When the Job is being deleted, its lifecycle guarantees (e.g. finalizers) will be honored. If this field is unset, the Job won't be automatically deleted. If this field is set to zero, the Job becomes eligible to be deleted immediately after it finishes. m| &#42;int32 | false
+m| completionMode | CompletionMode specifies how Pod completions are tracked. It can be `NonIndexed` (default) or `Indexed`. +
+ +
+`NonIndexed` means that the Job is considered complete when there have been .spec.completions successfully completed Pods. Each Pod completion is homologous to each other. +
+ +
+`Indexed` means that the Pods of a Job get an associated completion index from 0 to (.spec.completions - 1), available in the annotation batch.kubernetes.io/job-completion-index. The Job is considered complete when there is one successfully completed Pod for each index. When value is `Indexed`, .spec.completions must be specified and `.spec.parallelism` must be less than or equal to 10^5. In addition, The Pod name takes the form `$(job-name)-$(index)-$(random-string)`, the Pod hostname takes the form `$(job-name)-$(index)`. +
+ +
+More completion modes can be added in the future. If the Job controller observes a mode that it doesn't recognize, which is possible during upgrades due to version skew, the controller skips updates for the Job. m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#completionmode-v1-batch[batchv1.CompletionMode] | false
+m| suspend | Suspend specifies whether the Job controller should create Pods or not. If a Job is created with suspend set to true, no Pods are created by the Job controller. If a Job is suspended after creation (i.e. the flag goes from false to true), the Job controller will delete all active Pods associated with this Job. Users must design their workload to gracefully handle this. Suspending a Job will reset the StartTime field of the Job, effectively resetting the ActiveDeadlineSeconds timer too. Defaults to false. m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>
