@@ -195,7 +195,8 @@ m| topologySpreadConstraints | TopologySpreadConstraints describes how a group o
 m| rackLabel | RackLabel is an optional Node label to use for the value of the Coherence member's rack name. The default labels to use are determined by the Operator. m| &#42;string | false
 m| siteLabel | SiteLabel is an optional Node label to use for the value of the Coherence member's site name The default labels to use are determined by the Operator. m| &#42;string | false
 m| allowUnsafeDelete | AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is `false`. The primary use for setting this flag to `true` is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to `true` in a production environment, especially when using Coherence persistence features. m| &#42;bool | false
-m| runAsJob | RunAsJob specifies that the cluster should be created as a Job instead of a StatefulSet. m| &#42;<<CoherenceJob,CoherenceJob>> | false
+m| runAsJob | RunAsJob when set to true, specifies the deployment runs as a Job instead of a StatefulSet. m| &#42;bool | false
+m| jobSpec | JobSpec specifies additional configuration when running a Job instead of a StatefulSet. m| &#42;<<CoherenceJob,CoherenceJob>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
