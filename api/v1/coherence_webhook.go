@@ -162,14 +162,18 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 		return fmt.Errorf("rejecting update as the previous deployment was a StatefulSet and cannot be converted to a Job")
 	}
 
-	if !in.Spec.IsRunAsJob() {
+	var errorList field.ErrorList
+
+	if in.IsRunAsJob() {
+		errorList = in.validateJob()
+	} else {
 		sts := in.Spec.CreateStatefulSet(in)
 		stsOld := prev.Spec.CreateStatefulSet(prev)
-		errorList := ValidateStatefulSetUpdate(&sts, &stsOld)
+		errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
+	}
 
-		if len(errorList) > 0 {
-			return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
-		}
+	if len(errorList) > 0 {
+		return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
 	}
 
 	return nil
@@ -182,27 +186,32 @@ func (in *Coherence) ValidateDelete() error {
 }
 
 // validateReplicas validates that spec.replicas >= 0
-func (in *Coherence) validateJob() error {
+func (in *Coherence) validateJob() field.ErrorList {
 	if in == nil {
 		return nil
 	}
 
+	var errorList field.ErrorList
+
 	spec := in.Spec
 	if spec.IsRunAsJob() {
 		if spec.Cluster == nil {
-			return fmt.Errorf("the Coherence resource \"%s\" is invalid: the cluster field is required when the runAsJob field is set to true", in.Name)
+			errorList = append(errorList, field.Forbidden(field.NewPath("spec.cluster"),
+				fmt.Sprintf("the Coherence resource \"%s\" is invalid: the cluster field is required when the runAsJob field is set to true", in.Name)))
 		}
 
 		if spec.VolumeClaimTemplates != nil {
-			return fmt.Errorf("the Coherence resource \"%s\" volumeClaimTemplates cannot be specified when the runAsJob field is set to true", in.Name)
+			errorList = append(errorList, field.Forbidden(field.NewPath("spec.volumeClaimTemplates"),
+				fmt.Sprintf("the Coherence resource \"%s\" is invalid: volumeClaimTemplates cannot be specified when the runAsJob field is set to true", in.Name)))
 		}
 
 		if spec.Actions != nil {
-			return fmt.Errorf("the Coherence resource \"%s\" actions cannot be specified when the runAsJob field is set to true", in.Name)
+			errorList = append(errorList, field.Forbidden(field.NewPath("spec.actions"),
+				fmt.Sprintf("the Coherence resource \"%s\" is invalid: actions cannot be specified when the runAsJob field is set to true", in.Name)))
 		}
 	}
 
-	return nil
+	return errorList
 }
 
 // validateReplicas validates that spec.replicas >= 0
