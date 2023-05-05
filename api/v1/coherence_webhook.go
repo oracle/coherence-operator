@@ -182,6 +182,30 @@ func (in *Coherence) ValidateDelete() error {
 }
 
 // validateReplicas validates that spec.replicas >= 0
+func (in *Coherence) validateJob() error {
+	if in == nil {
+		return nil
+	}
+
+	spec := in.Spec
+	if spec.IsRunAsJob() {
+		if spec.Cluster == nil {
+			return fmt.Errorf("the Coherence resource \"%s\" is invalid: the cluster field is required when the runAsJob field is set to true", in.Name)
+		}
+
+		if spec.VolumeClaimTemplates != nil {
+			return fmt.Errorf("the Coherence resource \"%s\" volumeClaimTemplates cannot be specified when the runAsJob field is set to true", in.Name)
+		}
+
+		if spec.Actions != nil {
+			return fmt.Errorf("the Coherence resource \"%s\" actions cannot be specified when the runAsJob field is set to true", in.Name)
+		}
+	}
+
+	return nil
+}
+
+// validateReplicas validates that spec.replicas >= 0
 func (in *Coherence) validateReplicas() error {
 	replicas := in.GetReplicas()
 	if replicas < 0 {

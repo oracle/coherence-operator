@@ -253,6 +253,11 @@ func (in *Coherence) IsBeforeVersion(version string) bool {
 	return true
 }
 
+// IsRunAsJob returns true if this resource should run as a Job instead of a StatefulSet
+func (in *Coherence) IsRunAsJob() bool {
+	return in != nil && in.Spec.IsRunAsJob()
+}
+
 // ----- CoherenceList type ------------------------------------------------------------------------
 
 // +kubebuilder:object:root=true

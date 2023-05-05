@@ -179,11 +179,6 @@ func (in *CoherenceJob) DeepCopyInto(out *CoherenceJob) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.ActiveDeadlineSeconds != nil {
-		in, out := &in.ActiveDeadlineSeconds, &out.ActiveDeadlineSeconds
-		*out = new(int64)
-		**out = **in
-	}
 	if in.PodFailurePolicy != nil {
 		in, out := &in.PodFailurePolicy, &out.PodFailurePolicy
 		*out = new(batchv1.PodFailurePolicy)

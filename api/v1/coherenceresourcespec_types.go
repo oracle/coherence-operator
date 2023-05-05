@@ -852,6 +852,8 @@ func (in *CoherenceResourceSpec) CreateJob(deployment *Coherence) batchv1.Job {
 		Template: podTemplate,
 	}
 
+	job.Spec.ActiveDeadlineSeconds = in.ActiveDeadlineSeconds
+
 	in.JobSpec.UpdateJob(&job.Spec)
 
 	return job

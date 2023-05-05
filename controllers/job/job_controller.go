@@ -82,10 +82,15 @@ func (in *ReconcileJob) Reconcile(ctx context.Context, request reconcile.Request
 // ReconcileAllResourceOfKind will process the specified reconcile request for the specified deployment.
 // The previous state being reconciled can be obtained from the storage parameter.
 func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+	result := reconcile.Result{}
+
+	if !deployment.IsRunAsJob() {
+		// Noting to do, not running as a Job
+		return result, nil
+	}
+
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
 	logger.Info("Reconciling Job for deployment")
-
-	result := reconcile.Result{}
 
 	// Fetch the Job's current state
 	stsCurrent, stsExists, err := in.MaybeFindJob(ctx, request.Namespace, request.Name)

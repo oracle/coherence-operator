@@ -2952,14 +2952,6 @@ type CoherenceJob struct {
 	// +optional
 	Completions *int32 `json:"completions,omitempty"`
 
-	// Specifies the duration in seconds relative to the startTime that the job
-	// may be continuously active before the system tries to terminate it; value
-	// must be positive integer. If a Job is suspended (at creation or through an
-	// update), this timer will effectively be stopped and reset when the Job is
-	// resumed again.
-	// +optional
-	ActiveDeadlineSeconds *int64 `json:"activeDeadlineSeconds,omitempty"`
-
 	// Specifies the policy of handling failed pods. In particular, it allows to
 	// specify the set of actions and conditions which need to be
 	// satisfied to take the associated action.
@@ -3032,7 +3024,6 @@ func (in *CoherenceJob) UpdateJob(spec *batchv1.JobSpec) {
 	}
 
 	spec.Completions = in.Completions
-	spec.ActiveDeadlineSeconds = in.ActiveDeadlineSeconds
 	spec.PodFailurePolicy = in.PodFailurePolicy
 	spec.BackoffLimit = in.BackoffLimit
 	spec.TTLSecondsAfterFinished = in.TTLSecondsAfterFinished
