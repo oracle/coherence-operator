@@ -80,7 +80,7 @@ jobs:
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
 
-    - name: Image Scan
+    - name: Documentation Link Check
       shell: bash
       run: |
         make build-operator
