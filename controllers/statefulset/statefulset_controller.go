@@ -389,8 +389,8 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	original.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 
 	desiredPodSpec := desired.Spec.Template
-	currentPodSpec := desired.Spec.Template
-	originalPodSpec := desired.Spec.Template
+	currentPodSpec := current.Spec.Template
+	originalPodSpec := original.Spec.Template
 
 	// ensure we do not patch any fields that may be set by a previous version of the Operator
 	// as this will cause a rolling update of the Pods, typically these are fields where

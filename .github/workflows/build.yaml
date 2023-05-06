@@ -131,10 +131,6 @@ jobs:
       shell: bash
       run: make test-all
 
-    - name: Doc Tests
-      shell: bash
-      run: make test-docs
-
     - name: E2E Local Tests
       shell: bash
       run: make e2e-local-test

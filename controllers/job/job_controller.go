@@ -334,8 +334,8 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 	original.Status = batchv1.JobStatus{}
 
 	desiredPodSpec := desired.Spec.Template
-	currentPodSpec := desired.Spec.Template
-	originalPodSpec := desired.Spec.Template
+	currentPodSpec := current.Spec.Template
+	originalPodSpec := original.Spec.Template
 
 	// ensure we do not patch any fields that may be set by a previous version of the Operator
 	// as this will cause a rolling update of the Pods, typically these are fields where
