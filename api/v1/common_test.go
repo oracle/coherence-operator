@@ -186,7 +186,7 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 	assertEnvironmentVariablesForJob(t, stsActual, expected)
 
 	diffs := deep.Equal(*stsActual, *expected)
-	msg := "StatefulSets not equal:"
+	msg := "Jobs not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
 		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
@@ -237,26 +237,23 @@ func createMinimalExpectedJob(deployment *coh.Coherence) *batchv1.Job {
 	spec := deployment.Spec
 	labels := deployment.CreateCommonLabels()
 	labels[coh.LabelComponent] = coh.LabelComponentCoherenceStatefulSet
-	selector := deployment.CreateCommonLabels()
-	selector[coh.LabelComponent] = coh.LabelComponentCoherencePod
 	podTemplate := createMinimalExpectedPodSpec(deployment)
 
-	sts := batchv1.Job{
+	podTemplate.Spec.RestartPolicy = corev1.RestartPolicyNever
+
+	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   deployment.Name,
 			Labels: labels,
 		},
 		Spec: batchv1.JobSpec{
 			Parallelism: pointer.Int32(spec.GetReplicas()),
-			Selector: &metav1.LabelSelector{
-				MatchLabels: selector,
-			},
-			Template: podTemplate,
+			Template:    podTemplate,
 		},
 		Status: batchv1.JobStatus{},
 	}
 
-	return &sts
+	return &job
 }
 
 // Create the expected default PodTemplateSpec for a spec with nothing but the minimal fields set.

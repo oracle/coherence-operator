@@ -443,10 +443,8 @@ func (in *CoherenceResourceSpec) GetRestartPolicy() *corev1.RestartPolicy {
 	if in == nil {
 		return nil
 	}
-	if in.IsRunAsJob() {
-		if in.RestartPolicy == nil {
-			return in.RestartPolicyPointer(corev1.RestartPolicyNever)
-		}
+	if in.IsRunAsJob() && in.RestartPolicy == nil {
+		return in.RestartPolicyPointer(corev1.RestartPolicyNever)
 	}
 	return in.RestartPolicy
 }
@@ -942,10 +940,9 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment *Coherence) co
 	// append any additional Volumes
 	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, in.Volumes...)
 
-	if in.RestartPolicy != nil {
-		podTemplate.Spec.RestartPolicy = *in.RestartPolicy
-	} else if in.IsRunAsJob() {
-		podTemplate.Spec.RestartPolicy = corev1.RestartPolicyNever
+	restartPolicy := in.GetRestartPolicy()
+	if restartPolicy != nil {
+		podTemplate.Spec.RestartPolicy = *restartPolicy
 	}
 
 	// Add any ConfigMap Volumes
