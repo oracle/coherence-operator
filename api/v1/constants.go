@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,6 +11,8 @@ import "github.com/oracle/coherence-operator/pkg/operator"
 const (
 	// DefaultReplicas is the default number of replicas that will be created for a deployment if no value is specified in the spec
 	DefaultReplicas int32 = 3
+	// DefaultJobReplicas is the default number of replicas that will be created for a Job deployment if no value is specified in the spec
+	DefaultJobReplicas int32 = 1
 	// WKAServiceNameSuffix is the suffix appended to a deployment name to give the WKA service name
 	WKAServiceNameSuffix = "-wka"
 	// HeadlessServiceNameSuffix is the suffix appended to a deployment name to give the StatefulSet headless-service name

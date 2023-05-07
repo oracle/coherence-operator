@@ -17,6 +17,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"os"
@@ -168,7 +169,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The StatefulSet and parent resource has been deleted so no more to do
-			_, err = in.UpdateDeploymentStatus(ctx, request)
+			_, err = in.updateDeploymentStatus(ctx, request)
 			return reconcile.Result{}, err
 		}
 	case !stsExists:
@@ -181,7 +182,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 
 	var updated *coh.Coherence
 	if err == nil {
-		if updated, err = in.UpdateDeploymentStatus(ctx, request); err == nil {
+		if updated, err = in.updateDeploymentStatus(ctx, request); err == nil {
 			if updated.Status.Phase == coh.ConditionTypeReady && !updated.Status.ActionsExecuted && deployment.GetReplicas() != 0 {
 				in.execActions(ctx, stsCurrent, deployment)
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, true)
@@ -617,4 +618,42 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment *c
 	events.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
 
 	return reconcile.Result{}, nil
+}
+
+// updateDeploymentStatus updates the Coherence resource's status.
+func (in *ReconcileStatefulSet) updateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
+	var err error
+	var sts *appsv1.StatefulSet
+	sts, _, err = in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
+	if err != nil {
+		// an error occurred
+		err = errors.Wrapf(err, "getting StatefulSet %s", request.Name)
+		return nil, err
+	}
+
+	deployment := &coh.Coherence{}
+	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", request.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		updated := deployment.DeepCopy()
+		var stsStatus *appsv1.StatefulSetStatus
+		if sts == nil {
+			stsStatus = nil
+		} else {
+			stsStatus = &sts.Status
+		}
+		if updated.Status.Update(deployment, stsStatus) {
+			err = in.GetClient().Status().Update(ctx, updated)
+		}
+	}
+	return deployment, err
 }

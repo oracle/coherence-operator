@@ -418,6 +418,9 @@ func (in *CoherenceResourceSpec) GetReplicas() int32 {
 		return 0
 	}
 	if in.Replicas == nil {
+		if in.IsRunAsJob() {
+			return DefaultJobReplicas
+		}
 		return DefaultReplicas
 	}
 	return *in.Replicas
@@ -433,6 +436,23 @@ func (in *CoherenceResourceSpec) SetReplicas(replicas int32) {
 // IsRunAsJob returns true if the deployment is a Job instead of a StatefulSet
 func (in *CoherenceResourceSpec) IsRunAsJob() bool {
 	return in != nil && in.RunAsJob != nil && *in.RunAsJob
+}
+
+// GetRestartPolicy returns the name of the application image to use
+func (in *CoherenceResourceSpec) GetRestartPolicy() *corev1.RestartPolicy {
+	if in == nil {
+		return nil
+	}
+	if in.IsRunAsJob() {
+		if in.RestartPolicy == nil {
+			return in.RestartPolicyPointer(corev1.RestartPolicyNever)
+		}
+	}
+	return in.RestartPolicy
+}
+
+func (in *CoherenceResourceSpec) RestartPolicyPointer(policy corev1.RestartPolicy) *corev1.RestartPolicy {
+	return &policy
 }
 
 // GetCoherenceImage returns the name of the application image to use
@@ -846,15 +866,12 @@ func (in *CoherenceResourceSpec) CreateJob(deployment *Coherence) batchv1.Job {
 
 	job.Spec = batchv1.JobSpec{
 		Parallelism: &replicas,
-		Selector: &metav1.LabelSelector{
-			MatchLabels: in.CreatePodSelectorLabels(deployment),
-		},
-		Template: podTemplate,
+		Template:    podTemplate,
 	}
 
 	job.Spec.ActiveDeadlineSeconds = in.ActiveDeadlineSeconds
 
-	in.JobSpec.UpdateJob(&job.Spec)
+	in.JobSpec.UpdateJob(&job.Spec, in)
 
 	return job
 }
@@ -927,6 +944,8 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment *Coherence) co
 
 	if in.RestartPolicy != nil {
 		podTemplate.Spec.RestartPolicy = *in.RestartPolicy
+	} else if in.IsRunAsJob() {
+		podTemplate.Spec.RestartPolicy = corev1.RestartPolicyNever
 	}
 
 	// Add any ConfigMap Volumes

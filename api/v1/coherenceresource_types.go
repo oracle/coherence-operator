@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -377,6 +378,51 @@ func (in *CoherenceResourceStatus) Update(deployment *Coherence, sts *appsv1.Sta
 			if in.Phase != ConditionTypeRollingUpgrade {
 				updated = in.setPhase(ConditionTypeRollingUpgrade)
 			}
+		}
+	} else {
+		// update CurrentReplicas to zero
+		if in.CurrentReplicas != 0 {
+			in.CurrentReplicas = 0
+			updated = true
+		}
+		// update ReadyReplicas to zero
+		if in.ReadyReplicas != 0 {
+			in.ReadyReplicas = 0
+			updated = true
+		}
+	}
+
+	if deployment.Spec.GetReplicas() == 0 {
+		// scaled to zero
+		if in.Phase != ConditionTypeStopped {
+			updated = in.setPhase(ConditionTypeStopped)
+		}
+	}
+
+	return updated
+}
+
+// UpdateFromJob the status based on the condition of the Job status.
+func (in *CoherenceResourceStatus) UpdateFromJob(deployment *Coherence, jobStatus *batchv1.JobStatus) bool {
+	// ensure that there is an Initialized condition
+	updated := in.ensureInitialized(deployment)
+
+	if jobStatus != nil {
+		count := jobStatus.Active + jobStatus.Succeeded
+		// update CurrentReplicas from Job if required
+		if in.CurrentReplicas != count {
+			in.CurrentReplicas = count
+			updated = true
+		}
+
+		// update ReadyReplicas from Job if required
+		if jobStatus.Ready != nil && in.ReadyReplicas != *jobStatus.Ready {
+			in.ReadyReplicas = *jobStatus.Ready
+			updated = true
+		}
+
+		if in.Phase != ConditionTypeReady && in.Replicas == in.ReadyReplicas && in.Replicas == in.CurrentReplicas {
+			updated = in.setPhase(ConditionTypeReady)
 		}
 	} else {
 		// update CurrentReplicas to zero

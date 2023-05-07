@@ -349,9 +349,44 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 
 	if err != nil && sts != nil {
 		d, _ := json.MarshalIndent(sts, "", "    ")
-		ctx.Logf("Error waiting for StatefulSet%s", string(d))
+		ctx.Logf("Error waiting for StatefulSet %s", string(d))
 	}
 	return sts, err
+}
+
+// WaitForJob waits for a Job to be created with the specified number of replicas.
+func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration) (*batchv1.Job, error) {
+	var job *batchv1.Job
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		job, err = ctx.KubeClient.BatchV1().Jobs(namespace).Get(ctx.Context, stsName, metav1.GetOptions{})
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				ctx.Logf("Waiting for availability of Job %s - NotFound", stsName)
+				return false, nil
+			}
+			ctx.Logf("Waiting for availability of %s Job - %s", stsName, err.Error())
+			return false, err
+		}
+
+		ready := job.Status.Succeeded
+		if job.Status.Ready != nil {
+			ready = ready + job.Status.Active
+		}
+
+		if ready == replicas {
+			ctx.Logf("Job %s replicas = (%d/%d)", stsName, ready, replicas)
+			return true, nil
+		}
+		ctx.Logf("Waiting for full availability of Job %s (%d/%d)", stsName, ready, replicas)
+		return false, nil
+	})
+
+	if err != nil && job != nil {
+		d, _ := json.MarshalIndent(job, "", "    ")
+		ctx.Logf("Error waiting for Job %s", string(d))
+	}
+	return job, err
 }
 
 // WaitForEndpoints waits for Enpoints for a Service to be created.
@@ -1020,6 +1055,7 @@ func DumpState(ctx TestContext, namespace, dir string) {
 	dumpEvents(namespace, dir, ctx)
 	dumpCoherences(namespace, dir, ctx)
 	dumpStatefulSets(namespace, dir, ctx)
+	dumpJobs(namespace, dir, ctx)
 	dumpServices(namespace, dir, ctx)
 	dumpPods(namespace, dir, ctx)
 	dumpRbacRoles(namespace, dir, ctx)
@@ -1666,14 +1702,22 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
-	// Assert that a StatefulSet of the correct number or replicas is created for each roleSpec in the cluster
+	// Assert that a StatefulSet or Job of the correct number or replicas is created for each roleSpec in the cluster
 	for _, d := range deployments {
-		ctx.Logf("Waiting for StatefulSet for deployment %s", d.Name)
-		// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
-		sts, err := WaitForStatefulSet(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
-		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
+		if d.IsRunAsJob() {
+			ctx.Logf("Waiting for Job for deployment %s", d.Name)
+			// Wait for the Job for the roleSpec to be ready - wait five minutes max
+			_, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
+			g.Expect(err).NotTo(HaveOccurred())
+			ctx.Logf("Have Job for deployment %s", d.Name)
+		} else {
+			ctx.Logf("Waiting for StatefulSet for deployment %s", d.Name)
+			// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
+			sts, err := WaitForStatefulSet(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
+			ctx.Logf("Have StatefulSet for deployment %s", d.Name)
+		}
 	}
 
 	// Assert that the finalizer has been added to all the deployments that do not have AllowUnsafeDelete=false

@@ -179,6 +179,11 @@ func (in *CoherenceJob) DeepCopyInto(out *CoherenceJob) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.SyncCompletionsToReplicas != nil {
+		in, out := &in.SyncCompletionsToReplicas, &out.SyncCompletionsToReplicas
+		*out = new(bool)
+		**out = **in
+	}
 	if in.PodFailurePolicy != nil {
 		in, out := &in.PodFailurePolicy, &out.PodFailurePolicy
 		*out = new(batchv1.PodFailurePolicy)

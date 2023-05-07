@@ -12,6 +12,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -46,6 +47,14 @@ var _ webhook.Defaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (in *Coherence) Default() {
+	if in.IsRunAsJob() {
+		in.SetJobDefaults()
+	}
+	in.SetCommonDefaults()
+}
+
+// SetCommonDefaults sets defaults common to both a Job and StatefulSet
+func (in *Coherence) SetCommonDefaults() {
 	logger := webhookLogger.WithValues("namespace", in.Namespace, "name", in.Name)
 	if in.Status.Phase == "" {
 		logger.Info("Setting defaults for new resource")
@@ -63,7 +72,7 @@ func (in *Coherence) Default() {
 
 		// set the default replicas if not present
 		if in.Spec.Replicas == nil {
-			in.Spec.SetReplicas(3)
+			in.Spec.SetReplicas(in.Spec.GetReplicas())
 		}
 
 		// set the default Coherence local port and local port adjust if not present
@@ -106,6 +115,25 @@ func (in *Coherence) Default() {
 	}
 }
 
+// SetJobDefaults sets defaults for Jobs
+func (in *Coherence) SetJobDefaults() {
+	coherenceSpec := in.Spec.Coherence
+	if in.Spec.Coherence == nil {
+		coherenceSpec = &CoherenceSpec{}
+		in.Spec.Coherence = coherenceSpec
+	}
+
+	// default to storage disabled to false
+	if coherenceSpec.StorageEnabled == nil {
+		coherenceSpec.StorageEnabled = pointer.Bool(false)
+	}
+
+	// default the restart policy to never
+	if in.Spec.RestartPolicy == nil {
+		in.Spec.RestartPolicy = in.Spec.RestartPolicyPointer(corev1.RestartPolicyNever)
+	}
+}
+
 func (in *Coherence) AddAnnotation(key, value string) {
 	if in != nil {
 		if in.Annotations == nil {
@@ -134,6 +162,12 @@ func (in *Coherence) ValidateCreate() error {
 		return err
 	}
 	err = in.validateNodePorts()
+	if in.IsRunAsJob() {
+		errorList := in.validateJob()
+		if len(errorList) > 0 {
+			err = fmt.Errorf("rejecting update as it would have resulted in an invalid Job: %v", errorList)
+		}
+	}
 	return err
 }
 
@@ -163,17 +197,20 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	}
 
 	var errorList field.ErrorList
+	var deploymentType string
 
 	if in.IsRunAsJob() {
 		errorList = in.validateJob()
+		deploymentType = "Job"
 	} else {
+		deploymentType = "StatefulSet"
 		sts := in.Spec.CreateStatefulSet(in)
 		stsOld := prev.Spec.CreateStatefulSet(prev)
 		errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
 	}
 
 	if len(errorList) > 0 {
-		return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
+		return fmt.Errorf("rejecting update as it would have resulted in an invalid %s: %v", deploymentType, errorList)
 	}
 
 	return nil

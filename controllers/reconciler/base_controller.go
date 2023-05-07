@@ -133,44 +133,6 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 	}
 }
 
-// UpdateDeploymentStatus updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
-	var err error
-	var sts *appsv1.StatefulSet
-	sts, _, err = in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
-	if err != nil {
-		// an error occurred
-		err = errors.Wrapf(err, "getting StatefulSet %s", request.Name)
-		return nil, err
-	}
-
-	deployment := &coh.Coherence{}
-	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
-	switch {
-	case err != nil && apierrors.IsNotFound(err):
-		// deployment not found - possibly deleted
-		err = nil
-	case err != nil:
-		// an error occurred
-		err = errors.Wrapf(err, "getting deployment %s", request.Name)
-	case deployment.GetDeletionTimestamp() != nil:
-		// deployment is being deleted
-		err = nil
-	default:
-		updated := deployment.DeepCopy()
-		var stsStatus *appsv1.StatefulSetStatus
-		if sts == nil {
-			stsStatus = nil
-		} else {
-			stsStatus = &sts.Status
-		}
-		if updated.Status.Update(deployment, stsStatus) {
-			err = in.GetClient().Status().Update(ctx, updated)
-		}
-	}
-	return deployment, err
-}
-
 // UpdateDeploymentStatusPhase updates the Coherence resource's status.
 func (in *CommonReconciler) UpdateDeploymentStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
 	return in.UpdateDeploymentStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
@@ -854,7 +816,7 @@ func (in *ReconcileSecondaryResource) Create(ctx context.Context, name string, s
 
 // Delete the resource
 func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, name string, logger logr.Logger) error {
-	logger.Info("Deleting StatefulSet")
+	logger.Info("Deleting")
 	// create a new resource from copying the empty template
 	resource := in.NewFromTemplate(namespace, name)
 

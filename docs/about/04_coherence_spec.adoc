@@ -239,6 +239,7 @@ CoherenceJob is the Job specification if the Cluster should be created as a Kube
 |===
 | Field | Description | Type | Required
 m| completions | Specifies the desired number of successfully finished pods the job should be run with.  Setting to nil means that the success of any pod signals the success of all pods, and allows parallelism to have any positive value.  Setting to 1 means that parallelism is limited to 1 and the success of that pod signals the success of the job. More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/ m| &#42;int32 | false
+m| syncCompletionsToReplicas | SyncCompletions is a flag to indicate that the Operator should always set the Completions value to be the same as the Replicas value. When a Job is then scaled, the Completions value will also be changed. m| &#42;bool | false
 m| podFailurePolicy | Specifies the policy of handling failed pods. In particular, it allows to specify the set of actions and conditions which need to be satisfied to take the associated action. If empty, the default behaviour applies - the counter of failed pods, represented by the jobs's .status.failed field, is incremented and it is checked against the backoffLimit. This field cannot be used in combination with restartPolicy=OnFailure. +
  +
 This field is alpha-level. To use this field, you must enable the `JobPodFailurePolicy` feature gate (disabled by default). m| &#42;https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#podfailurepolicy-v1-batch[batchv1.PodFailurePolicy] | false

@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -26,10 +27,7 @@ const (
 	controllerName = "controllers.Job"
 
 	CreateMessage        string = "successfully created Job for Coherence resource '%s'"
-	FailedToScaleMessage string = "failed to scale Coherence resource %s from %d to %d due to error\n%s"
 	FailedToPatchMessage string = "failed to patch Coherence resource %s due to error\n%s"
-
-	EventReasonScale string = "Scaling"
 )
 
 // blank assignment to verify that ReconcileServiceMonitor implements reconcile.Reconciler.
@@ -93,21 +91,21 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 	logger.Info("Reconciling Job for deployment")
 
 	// Fetch the Job's current state
-	stsCurrent, stsExists, err := in.MaybeFindJob(ctx, request.Namespace, request.Name)
+	jobCurrent, jobExists, err := in.MaybeFindJob(ctx, request.Namespace, request.Name)
 	if err != nil {
 		logger.Info("Finished reconciling Job for deployment. Error getting Job", "error", err.Error())
 		return result, errors.Wrapf(err, "getting Job %s/%s", request.Namespace, request.Name)
 	}
 
-	if stsExists && stsCurrent.GetDeletionTimestamp() != nil {
+	if jobExists && jobCurrent.GetDeletionTimestamp() != nil {
 		logger.Info("Finished reconciling Job. The Job is being deleted")
 		// The Job exists but is being deleted
 		return result, nil
 	}
 
-	if stsExists && deployment == nil {
+	if jobExists && deployment == nil {
 		// find the owning Coherence resource
-		if deployment, err = in.FindOwningCoherenceResource(ctx, stsCurrent); err != nil {
+		if deployment, err = in.FindOwningCoherenceResource(ctx, jobCurrent); err != nil {
 			logger.Info("Finished reconciling Job. Error finding parent Coherence resource", "error", err.Error())
 			return reconcile.Result{}, err
 		}
@@ -116,7 +114,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 	switch {
 	case deployment == nil || deployment.GetReplicas() == 0:
 		// The Coherence resource does not exist, or it exists and is scaling down to zero replicas
-		if stsExists {
+		if jobExists {
 			// The Job does exist though, so it needs to be deleted.
 			if deployment != nil {
 				// If we get here, we must be scaling down to zero as the Coherence resource exists
@@ -133,15 +131,15 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The Job and parent resource has been deleted so no more to do
-			_, err = in.UpdateDeploymentStatus(ctx, request)
+			_, err = in.updateDeploymentStatus(ctx, request)
 			return reconcile.Result{}, err
 		}
-	case !stsExists:
+	case !jobExists:
 		// Job does not exist but deployment does so create the Job (checking any start quorum)
 		result, err = in.createJob(ctx, deployment, storage, logger)
 	default:
 		// Both Job and deployment exists so this is maybe an update
-		result, err = in.updateJob(ctx, deployment, stsCurrent, storage, logger)
+		result, err = in.updateJob(ctx, deployment, jobCurrent, storage, logger)
 	}
 
 	if err != nil {
@@ -190,9 +188,6 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment *coh.Coherence
 func (in *ReconcileJob) updateJob(ctx context.Context, deployment *coh.Coherence, current *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Updating job")
 
-	var err error
-	result := reconcile.Result{}
-
 	// get the desired resource state from the store
 	resource, found := storage.GetLatest().GetResource(coh.ResourceTypeJob, current.Name)
 	if !found {
@@ -207,91 +202,7 @@ func (in *ReconcileJob) updateJob(ctx context.Context, deployment *coh.Coherence
 	}
 
 	desired := resource.Spec.(*batchv1.Job)
-	desiredReplicas := in.getReplicas(desired)
-	currentReplicas := in.getReplicas(current)
-
-	switch {
-	case currentReplicas < desiredReplicas:
-		// scale up - if also updating we do the rolling upgrade first followed by the
-		// scale up so that we do not do a rolling upgrade of the bigger scaled up cluster
-
-		// try the patch first
-		result, err = in.patchJob(ctx, deployment, current, desired, storage, logger)
-		if err == nil && !result.Requeue {
-			// there was nothing else to patch, so we can do the scale up
-			result, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
-		}
-	case currentReplicas > desiredReplicas:
-		// scale down - if also updating we scale down followed by a rolling upgrade so that
-		// we do the rolling upgrade on the smaller scaled down cluster.
-
-		// do the scale down
-		_, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
-		// requeue the request so that we do any upgrade next time around
-		result.Requeue = true
-	default:
-		// just an update
-		result, err = in.patchJob(ctx, deployment, current, desired, storage, logger)
-	}
-
-	return result, err
-}
-
-// A nil safe method to get the number of replicas for a Job
-func (in *ReconcileJob) getReplicas(sts *batchv1.Job) int32 {
-	if sts == nil || sts.Spec.Parallelism == nil {
-		return 1
-	}
-	return *sts.Spec.Parallelism
-}
-
-func (in *ReconcileJob) scale(ctx context.Context, deployment *coh.Coherence, job *batchv1.Job, current, desired int32) (reconcile.Result, error) {
-	// if the Job is not stable we cannot scale (e.g. it might already be in the middle of a rolling upgrade)
-	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
-	logger.Info("Scaling Job", "Current", current, "Desired", desired)
-
-	// ensure that the deployment has a Scaling status
-	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
-		logger.Error(err, "Error updating deployment status to Scaling")
-	}
-
-	return in.parallelScale(ctx, deployment, job, desired)
-}
-
-// parallelScale will scale the Job by the required amount in one request.
-func (in *ReconcileJob) parallelScale(ctx context.Context, deployment *coh.Coherence, sts *batchv1.Job, replicas int32) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
-	logger.Info("Scaling Job", "Replicas", replicas)
-
-	events := in.GetEventRecorder()
-
-	// Update this Coherence resource's status
-	deployment.Status.Phase = coh.ConditionTypeScaling
-	deployment.Status.Replicas = replicas
-
-	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
-		logger.Error(err, "Error updating deployment status to Scaling")
-	}
-
-	// Create the desired state
-	stsDesired := &batchv1.Job{}
-	sts.DeepCopyInto(stsDesired)
-	stsDesired.Spec.Parallelism = &replicas
-
-	// ThreeWayPatch theJob to trigger it to scale
-	_, err := in.ThreeWayPatch(ctx, sts.Name, sts, sts, stsDesired)
-	if err != nil {
-		// send a failed scale event
-		msg := fmt.Sprintf("failed to scale Job %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
-		events.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
-		return reconcile.Result{}, errors.Wrap(err, msg)
-	}
-
-	// send a successful scale event
-	msg := fmt.Sprintf("scaled Job %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
-	events.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
-
-	return reconcile.Result{}, nil
+	return in.patchJob(ctx, deployment, current, desired, storage, logger)
 }
 
 // Patch the Job if required, returning a bool to indicate whether a patch was applied.
@@ -317,11 +228,6 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
 		return reconcile.Result{Requeue: false}, fmt.Errorf(msg)
 	}
-
-	// We NEVER change the replicas or Status in an update.
-	// Replicas is handled by scaling, so we always set the desired replicas to match the current replicas
-	desired.Spec.Parallelism = current.Spec.Parallelism
-	original.Spec.Parallelism = current.Spec.Parallelism
 
 	// We NEVER patch finalizers
 	original.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
@@ -406,4 +312,42 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 	}
 
 	return reconcile.Result{}, nil
+}
+
+// updateDeploymentStatus updates the Coherence resource's status.
+func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
+	var err error
+	var job *batchv1.Job
+	job, _, err = in.MaybeFindJob(ctx, request.Namespace, request.Name)
+	if err != nil {
+		// an error occurred
+		err = errors.Wrapf(err, "getting Job %s", request.Name)
+		return nil, err
+	}
+
+	deployment := &coh.Coherence{}
+	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", request.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		updated := deployment.DeepCopy()
+		var jobStatus *batchv1.JobStatus
+		if job == nil {
+			jobStatus = nil
+		} else {
+			jobStatus = &job.Status
+		}
+		if updated.Status.UpdateFromJob(deployment, jobStatus) {
+			err = in.GetClient().Status().Update(ctx, updated)
+		}
+	}
+	return deployment, err
 }

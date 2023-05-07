@@ -2952,6 +2952,12 @@ type CoherenceJob struct {
 	// +optional
 	Completions *int32 `json:"completions,omitempty"`
 
+	// SyncCompletions is a flag to indicate that the Operator should always set the
+	// Completions value to be the same as the Replicas value.
+	// When a Job is then scaled, the Completions value will also be changed.
+	// +optional
+	SyncCompletionsToReplicas *bool `json:"syncCompletionsToReplicas,omitempty"`
+
 	// Specifies the policy of handling failed pods. In particular, it allows to
 	// specify the set of actions and conditions which need to be
 	// satisfied to take the associated action.
@@ -3018,17 +3024,30 @@ type CoherenceJob struct {
 }
 
 // UpdateJob updates a JobSpec from the fields in this CoherenceJob
-func (in *CoherenceJob) UpdateJob(spec *batchv1.JobSpec) {
+func (in *CoherenceJob) UpdateJob(spec *batchv1.JobSpec, c *CoherenceResourceSpec) {
 	if in == nil {
 		return
 	}
 
-	spec.Completions = in.Completions
+	if in.IsSyncCompletions() {
+		spec.Completions = pointer.Int32(c.GetReplicas())
+	} else {
+		spec.Completions = in.Completions
+	}
+
 	spec.PodFailurePolicy = in.PodFailurePolicy
 	spec.BackoffLimit = in.BackoffLimit
 	spec.TTLSecondsAfterFinished = in.TTLSecondsAfterFinished
 	spec.CompletionMode = in.CompletionMode
 	spec.Suspend = in.Suspend
+}
+
+// IsSyncCompletions returns true if Completions should always match Parallelism
+func (in *CoherenceJob) IsSyncCompletions() bool {
+	if in == nil {
+		return false
+	}
+	return in.SyncCompletionsToReplicas != nil && *in.SyncCompletionsToReplicas
 }
 
 // ----- helper methods -----------------------------------------------------
