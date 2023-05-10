@@ -49,7 +49,14 @@ const (
 	ConditionTypeRollingUpgrade ConditionType = "RollingUpgrade"
 	ConditionTypeFailed         ConditionType = "Failed"
 	ConditionTypeStopped        ConditionType = "Stopped"
+	ConditionTypeCompleted      ConditionType = "Completed"
+
+	CoherenceTypeUnknown     CoherenceType = "Unknown"
+	CoherenceTypeStatefulSet CoherenceType = "StatefulSet"
+	CoherenceTypeJob         CoherenceType = "Job"
 )
+
+type CoherenceType string
 
 // The package init function that will automatically register the Coherence resource types with
 // the default k8s Scheme.
@@ -70,6 +77,11 @@ func init() {
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The status of this deployment"
+// +kubebuilder:printcolumn:name="Type",priority=1,type="string",JSONPath=".status.type",description="The type of the Coherence resource"
+// +kubebuilder:printcolumn:name="Active",priority=1,type="integer",JSONPath=".status.active",description="When the Coherence resource is running a Job, the number of pending and running pods"
+// +kubebuilder:printcolumn:name="Succeeded",priority=1,type="integer",JSONPath=".status.succeeded",description="When the Coherence resource is running a Job, the number of pods which reached phase Succeeded"
+// +kubebuilder:printcolumn:name="Failed",priority=1,type="integer",JSONPath=".status.failed",description="When the Coherence resource is running a Job, the number of pods which reached phase Failed"
+// +kubebuilder:printcolumn:name="Image",priority=1,type="string",JSONPath=".spec.image",description="The image name"
 type Coherence struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -225,6 +237,18 @@ func (in *Coherence) GetRoleName() string {
 	}
 }
 
+// GetType returns the type for a deployment.
+func (in *Coherence) GetType() CoherenceType {
+	switch {
+	case in == nil:
+		return CoherenceTypeUnknown
+	case in.IsRunAsJob():
+		return CoherenceTypeJob
+	default:
+		return CoherenceTypeStatefulSet
+	}
+}
+
 // GetWKA returns the host name Coherence should for WKA.
 func (in *Coherence) GetWKA() string {
 	if in == nil {
@@ -287,6 +311,7 @@ type CoherenceResourceStatus struct {
 	// Scaling:        The number of replicas in the deployment is being scaled up or down.
 	// RollingUpgrade: The StatefulSet is performing a rolling upgrade.
 	// Stopped:        The replica count has been set to zero.
+	// Completed:      The Coherence resource is running a Job and the Job has completed.
 	// Failed:         An error occurred reconciling the deployment and its secondary resources.
 	//
 	// +optional
@@ -294,6 +319,9 @@ type CoherenceResourceStatus struct {
 	// The name of the Coherence cluster that this deployment is part of.
 	// +optional
 	CoherenceCluster string `json:"coherenceCluster,omitempty"`
+	// The type of the Coherence resource.
+	// +optional
+	Type CoherenceType `json:"type,omitempty"`
 	// Replicas is the desired number of members in the Coherence deployment
 	// represented by the Coherence resource.
 	// +optional
@@ -306,6 +334,15 @@ type CoherenceResourceStatus struct {
 	// represented by the Coherence resource that are in the ready state.
 	// +optional
 	ReadyReplicas int32 `json:"readyReplicas"`
+	// When the Coherence resource is running a Job, the number of pending and running pods.
+	// +optional
+	Active int32 `json:"active,omitempty"`
+	// When the Coherence resource is running a Job, the number of pods which reached phase Succeeded.
+	// +optional
+	Succeeded int32 `json:"succeeded,omitempty"`
+	// When the Coherence resource is running a Job, the number of pods which reached phase Failed.
+	// +optional
+	Failed int32 `json:"failed,omitempty"`
 	// The effective role name for this deployment.
 	// This will come from the Spec.Role field if set otherwise the deployment name
 	// will be used for the role name
@@ -407,6 +444,8 @@ func (in *CoherenceResourceStatus) UpdateFromJob(deployment *Coherence, jobStatu
 	// ensure that there is an Initialized condition
 	updated := in.ensureInitialized(deployment)
 
+	fmt.Printf("***** UpdateFromJob %v\n", jobStatus)
+
 	if jobStatus != nil {
 		count := jobStatus.Active + jobStatus.Succeeded
 		// update CurrentReplicas from Job if required
@@ -424,6 +463,25 @@ func (in *CoherenceResourceStatus) UpdateFromJob(deployment *Coherence, jobStatu
 		if in.Phase != ConditionTypeReady && in.Replicas == in.ReadyReplicas && in.Replicas == in.CurrentReplicas {
 			updated = in.setPhase(ConditionTypeReady)
 		}
+
+		if jobStatus.CompletionTime != nil {
+			updated = in.setPhase(ConditionTypeCompleted)
+		}
+
+		if in.Active != jobStatus.Active {
+			in.Active = jobStatus.Active
+			updated = true
+		}
+
+		if in.Succeeded != jobStatus.Succeeded {
+			in.Succeeded = jobStatus.Succeeded
+			updated = true
+		}
+
+		if in.Failed != jobStatus.Failed {
+			in.Failed = jobStatus.Failed
+			updated = true
+		}
 	} else {
 		// update CurrentReplicas to zero
 		if in.CurrentReplicas != 0 {
@@ -433,6 +491,21 @@ func (in *CoherenceResourceStatus) UpdateFromJob(deployment *Coherence, jobStatu
 		// update ReadyReplicas to zero
 		if in.ReadyReplicas != 0 {
 			in.ReadyReplicas = 0
+			updated = true
+		}
+
+		if in.Active != 0 {
+			in.Active = 0
+			updated = true
+		}
+
+		if in.Succeeded != 0 {
+			in.Succeeded = 0
+			updated = true
+		}
+
+		if in.Failed != 0 {
+			in.Failed = 0
 			updated = true
 		}
 	}
@@ -470,7 +543,12 @@ func (in *CoherenceResourceStatus) setPhase(phase ConditionType) bool {
 		// we're transitioning out of Stopped state
 		in.Conditions.SetCondition(Condition{Type: ConditionTypeStopped, Status: coreV1.ConditionFalse})
 	}
-	in.Phase = phase
+
+	// if we're complete we don't change the phase again
+	if in.Phase != ConditionTypeCompleted {
+		in.Phase = phase
+	}
+
 	in.Conditions.SetCondition(Condition{Type: phase, Status: coreV1.ConditionTrue})
 	return true
 }
@@ -512,6 +590,13 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment *Coherence) bool
 	// update Role if required
 	if in.Role != deployment.GetRoleName() {
 		in.Role = deployment.GetRoleName()
+		updated = true
+	}
+
+	// update the type if required
+	t := deployment.GetType()
+	if in.Type != t {
+		in.Type = t
 		updated = true
 	}
 

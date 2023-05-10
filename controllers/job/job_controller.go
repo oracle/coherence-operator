@@ -82,8 +82,8 @@ func (in *ReconcileJob) Reconcile(ctx context.Context, request reconcile.Request
 func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	result := reconcile.Result{}
 
-	if !deployment.IsRunAsJob() {
-		// Noting to do, not running as a Job
+	if !storage.IsJob(request) {
+		// Nothing to do, not running as a Job
 		return result, nil
 	}
 
@@ -95,6 +95,11 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 	if err != nil {
 		logger.Info("Finished reconciling Job for deployment. Error getting Job", "error", err.Error())
 		return result, errors.Wrapf(err, "getting Job %s/%s", request.Namespace, request.Name)
+	}
+
+	jobCompleted := false
+	if jobExists {
+		jobCompleted = jobCurrent.Status.CompletionTime != nil
 	}
 
 	if jobExists && jobCurrent.GetDeletionTimestamp() != nil {
@@ -137,6 +142,10 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 	case !jobExists:
 		// Job does not exist but deployment does so create the Job (checking any start quorum)
 		result, err = in.createJob(ctx, deployment, storage, logger)
+	case jobCompleted:
+		// Nothing to do, the job is complete
+		_, err = in.updateDeploymentStatus(ctx, request)
+		return reconcile.Result{}, err
 	default:
 		// Both Job and deployment exists so this is maybe an update
 		result, err = in.updateJob(ctx, deployment, jobCurrent, storage, logger)
@@ -144,6 +153,11 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 
 	if err != nil {
 		logger.Info("Finished reconciling Job with error", "error", err.Error())
+		return result, err
+	}
+
+	_, err = in.updateDeploymentStatus(ctx, request)
+	if err != nil {
 		return result, err
 	}
 

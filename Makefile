@@ -756,7 +756,7 @@ run-clean: reset-namespace run ## run the Operator locally after resetting the n
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-debug: create-namespace ## run the Operator locally with Delve debugger
-	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
+	dlv debug ./runner --headless --listen=:2345 --api-version=2 --accept-multiclient \
 		-- --skip-service-suspend=true --coherence-dev-mode=true \
 		--cert-type=self-signed --webhook-service=host.docker.internal
 

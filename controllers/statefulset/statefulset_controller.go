@@ -109,8 +109,8 @@ func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile
 func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
 	result := reconcile.Result{}
 
-	if deployment.IsRunAsJob() {
-		// Noting to do, running as a Job instead of a StatefulSet
+	if storage.IsJob(request) {
+		// Nothing to do, running as a Job instead of a StatefulSet
 		return result, nil
 	}
 
