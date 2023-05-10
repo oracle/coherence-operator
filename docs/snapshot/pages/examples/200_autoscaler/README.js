@@ -131,15 +131,15 @@ cd coherence-operator/examples</markup>
 <div class="section">
 <ul class="ulist">
 <li>
-<p>Java 11+ JDK either [OpenJDK](<a id="" title="" target="_blank" href="https://adoptopenjdk.net/">https://adoptopenjdk.net/</a>) or [Oracle JDK](<a id="" title="" target="_blank" href="https://www.oracle.com/java/technologies/javase-downloads.html">https://www.oracle.com/java/technologies/javase-downloads.html</a>)</p>
+<p>Java 11+ JDK either <a id="" title="" target="_blank" href="https://adoptopenjdk.net/">OpenJDK</a> or <a id="" title="" target="_blank" href="https://www.oracle.com/java/technologies/javase-downloads.html">Oracle JDK</a></p>
 
 </li>
 <li>
-<p>[Docker](<a id="" title="" target="_blank" href="https://docs.docker.com/install/">https://docs.docker.com/install/</a>) version 17.03+.</p>
+<p><a id="" title="" target="_blank" href="https://docs.docker.com/install/">Docker</a> version 17.03+.</p>
 
 </li>
 <li>
-<p>[kubectl](<a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">https://kubernetes.io/docs/tasks/tools/install-kubectl/</a>) version v1.13.0+ .</p>
+<p><a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">kubectl</a> version v1.13.0+ .</p>
 
 </li>
 <li>
@@ -147,11 +147,11 @@ cd coherence-operator/examples</markup>
 
 </li>
 <li>
-<p>[Helm](<a id="" title="" target="_blank" href="https://helm.sh/docs/intro/install/">https://helm.sh/docs/intro/install/</a>) version 3.2.4+</p>
+<p><a id="" title="" target="_blank" href="https://helm.sh/docs/intro/install/">Helm</a> version 3.2.4+</p>
 
 </li>
 </ul>
-<p>Building the project requires [Maven](<a id="" title="" target="_blank" href="https://maven.apache.org">https://maven.apache.org</a>) version 3.6.0+.
+<p>Building the project requires <a id="" title="" target="_blank" href="https://maven.apache.org">Maven</a> version 3.6.0+.
 The commands below use the Maven Wrapper to run the commands, which will install Maven if it is not
 already on the development machine. If you already have a suitable version of Maven installed feel free to replace
 the use of <code>./mvnw</code> in the examples with your normal Maven command (typically just <code>mvn</code>).</p>
