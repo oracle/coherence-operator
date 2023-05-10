@@ -101,13 +101,13 @@ cd coherence-operator/examples
 === Build the Examples
 
 ==== Prerequisites
-* Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
-* [Docker](https://docs.docker.com/install/) version 17.03+.
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.13.0+ .
+* Java 11+ JDK either https://adoptopenjdk.net/[OpenJDK] or https://www.oracle.com/java/technologies/javase-downloads.html[Oracle JDK]
+* https://docs.docker.com/install/[Docker] version 17.03+.
+* https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version v1.13.0+ .
 * Access to a Kubernetes v1.14.0+ cluster.
-* [Helm](https://helm.sh/docs/intro/install/) version 3.2.4+
+* https://helm.sh/docs/intro/install/[Helm] version 3.2.4+
 
-Building the project requires [Maven](https://maven.apache.org) version 3.6.0+.
+Building the project requires https://maven.apache.org[Maven] version 3.6.0+.
 The commands below use the Maven Wrapper to run the commands, which will install Maven if it is not
 already on the development machine. If you already have a suitable version of Maven installed feel free to replace
 the use of `./mvnw` in the examples with your normal Maven command (typically just `mvn`).
