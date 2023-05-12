@@ -178,6 +178,17 @@ func ReplaceVolume(sts *appsv1.StatefulSet, volNew corev1.Volume) {
 	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, volNew)
 }
 
+// ReplaceVolume ensures that the StatefulSet has a volume with the specified name
+func ReplaceVolumeInJob(job *batchv1.Job, volNew corev1.Volume) {
+	for i, v := range job.Spec.Template.Spec.Volumes {
+		if v.Name == volNew.Name {
+			job.Spec.Template.Spec.Volumes[i] = volNew
+			return
+		}
+	}
+	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volNew)
+}
+
 // ----- ApplicationSpec struct ---------------------------------------------
 
 // ApplicationSpec is the specification of the application deployed into the Coherence.
@@ -421,16 +432,15 @@ func (in *CoherenceSpec) AddPersistencePVCs(deployment *Coherence, sts *appsv1.S
 }
 
 // AddPersistenceVolumes adds the persistence and snapshot volumes
-func (in *CoherenceSpec) AddPersistenceVolumes(sts *appsv1.StatefulSet) {
+func (in *CoherenceSpec) AddPersistenceVolumes(podTemplate *corev1.PodTemplateSpec) {
 	// Add the persistence volume if required
 	vols := in.Persistence.CreatePersistenceVolumes()
-	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, vols...)
+	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, vols...)
 }
 
 // UpdateStatefulSet applies Coherence settings to the StatefulSet.
 func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.StatefulSet) {
 	if in != nil {
-		in.AddPersistenceVolumes(sts)
 		in.AddPersistencePVCs(deployment, sts)
 	}
 }
@@ -502,6 +512,7 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 	}
 
 	in.AddPersistenceVolumeMounts(c)
+	in.AddPersistenceVolumes(podTemplate)
 }
 
 // GetMetricsPort returns the metrics port number.
@@ -2580,6 +2591,7 @@ func (t ResourceType) Name() string {
 
 const (
 	ResourceTypeCoherence      ResourceType = "Coherence"
+	ResourceTypeCoherenceJob   ResourceType = "CoherenceJob"
 	ResourceTypeConfigMap      ResourceType = "ConfigMap"
 	ResourceTypeSecret         ResourceType = "Secret"
 	ResourceTypeService        ResourceType = "Service"

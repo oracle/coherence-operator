@@ -152,44 +152,44 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 	g.Expect(res.Kind).To(Equal(coh.ResourceTypeJob))
 	g.Expect(res.Name).To(Equal(expected.GetName()))
 
-	stsActual := res.Spec.(*batchv1.Job)
+	jobActual := res.Spec.(*batchv1.Job)
 
 	// sort env vars before diff
-	sortEnvVarsForJob(stsActual)
+	sortEnvVarsForJob(jobActual)
 	sortEnvVarsForJob(expected)
 
 	// sort volume mounts before diff
-	sortVolumeMountsForJob(stsActual)
+	sortVolumeMountsForJob(jobActual)
 	sortVolumeMountsForJob(expected)
 
 	// sort volumes before diff
-	sortVolumesForJob(stsActual)
+	sortVolumesForJob(jobActual)
 	sortVolumesForJob(expected)
 
 	// sort ports before diff
-	sortPortsForJob(stsActual)
+	sortPortsForJob(jobActual)
 	sortPortsForJob(expected)
 
 	// Dump the json for the actual StatefulSet for debugging failures
-	jsonActual, err := json.MarshalIndent(stsActual, "", "    ")
+	jsonActual, err := json.MarshalIndent(jobActual, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, jobActual.Name), jsonActual, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Dump the json for the expected StatefulSet for debugging failures
 	jsonExpected, err := json.MarshalIndent(expected, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, jobActual.Name), jsonExpected, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	assertEnvironmentVariablesForJob(t, stsActual, expected)
-	assertEnvironmentVariablesForJob(t, stsActual, expected)
+	assertEnvironmentVariablesForJob(t, jobActual, expected)
+	assertEnvironmentVariablesForJob(t, jobActual, expected)
 
-	diffs := deep.Equal(*stsActual, *expected)
+	diffs := deep.Equal(*jobActual, *expected)
 	msg := "Jobs not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
-		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, jobActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
 		g.Expect(err).NotTo(HaveOccurred())
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
@@ -544,11 +544,11 @@ func addEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...corev1
 	}
 }
 
-// func addEnvVarsToJob(job *batchv1.Job, containerName string, envVars ...corev1.EnvVar) {
-//	if job != nil {
-//		addEnvVarsToPodSpec(&job.Spec.Template, containerName, envVars...)
-//	}
-//}
+func addEnvVarsToJob(job *batchv1.Job, containerName string, envVars ...corev1.EnvVar) {
+	if job != nil {
+		addEnvVarsToPodSpec(&job.Spec.Template, containerName, envVars...)
+	}
+}
 
 func addEnvVarsToPodSpec(template *corev1.PodTemplateSpec, containerName string, envVars ...corev1.EnvVar) {
 	for i, c := range template.Spec.InitContainers {
@@ -589,11 +589,11 @@ func addPorts(sts *appsv1.StatefulSet, containerName string, ports ...corev1.Con
 	}
 }
 
-// func addPortsForJob(job *batchv1.Job, containerName string, ports ...corev1.ContainerPort) {
-//	if job != nil {
-//		addPortsToPodSpec(&job.Spec.Template, containerName, ports...)
-//	}
-//}
+func addPortsForJob(job *batchv1.Job, containerName string, ports ...corev1.ContainerPort) {
+	if job != nil {
+		addPortsToPodSpec(&job.Spec.Template, containerName, ports...)
+	}
+}
 
 func addPortsToPodSpec(template *corev1.PodTemplateSpec, containerName string, ports ...corev1.ContainerPort) {
 	for i, c := range template.Spec.InitContainers {

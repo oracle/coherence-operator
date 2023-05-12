@@ -525,11 +525,14 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment co
 }
 
 // FindOwningCoherenceResource finds the owning Coherence resource.
-func (in *CommonReconciler) FindOwningCoherenceResource(ctx context.Context, o client.Object) (*coh.Coherence, error) {
+func (in *CommonReconciler) FindOwningCoherenceResource(ctx context.Context, o client.Object) (coh.CoherenceResource, error) {
 	if o != nil {
 		for _, ref := range o.GetOwnerReferences() {
 			if ref.Kind == coh.ResourceTypeCoherence.Name() {
 				return in.FindDeployment(ctx, o.GetNamespace(), ref.Name)
+			}
+			if ref.Kind == coh.ResourceTypeCoherenceJob.Name() {
+				return in.FindCoherenceJob(ctx, o.GetNamespace(), ref.Name)
 			}
 		}
 	}
@@ -545,6 +548,30 @@ func (in *CommonReconciler) FindDeployment(ctx context.Context, namespace, name 
 // MaybeFindDeployment possibly finds a Coherence resource.
 func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, name string) (*coh.Coherence, bool, error) {
 	deployment := &coh.Coherence{}
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, deployment)
+
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// the deployment does not exist
+		return nil, false, nil
+	case err != nil:
+		// an error occurred
+		return deployment, false, err
+	default:
+		// the deployment exists
+		return deployment, true, nil
+	}
+}
+
+// FindCoherenceJob finds the CoherenceJob resource.
+func (in *CommonReconciler) FindCoherenceJob(ctx context.Context, namespace, name string) (*coh.CoherenceJob, error) {
+	deployment, _, err := in.MaybeFindCoherenceJob(ctx, namespace, name)
+	return deployment, err
+}
+
+// MaybeFindCoherenceJob possibly finds a CoherenceJob resource.
+func (in *CommonReconciler) MaybeFindCoherenceJob(ctx context.Context, namespace, name string) (*coh.CoherenceJob, bool, error) {
+	deployment := &coh.CoherenceJob{}
 	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, deployment)
 
 	switch {
@@ -740,7 +767,7 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 	resource, exists, err := in.FindResource(ctx, namespace, name)
 	if err != nil {
 		// Error reading the object - requeue the request.
-		// We can't call the error handler as we do not even have a owning Coherence resource.
+		// We can't call the error handler as we do not even have an owning Coherence resource.
 		// We log the error and do not requeue the request.
 		return errors.Wrapf(err, "getting %s %s/%s", in.Kind, namespace, name)
 	}
