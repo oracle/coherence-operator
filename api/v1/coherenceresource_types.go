@@ -81,10 +81,6 @@ var _ CoherenceResource = &Coherence{}
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The status of this deployment"
-// +kubebuilder:printcolumn:name="Type",priority=1,type="string",JSONPath=".status.type",description="The type of the Coherence resource"
-// +kubebuilder:printcolumn:name="Active",priority=1,type="integer",JSONPath=".status.active",description="When the Coherence resource is running a Job, the number of pending and running pods"
-// +kubebuilder:printcolumn:name="Succeeded",priority=1,type="integer",JSONPath=".status.succeeded",description="When the Coherence resource is running a Job, the number of pods which reached phase Succeeded"
-// +kubebuilder:printcolumn:name="Failed",priority=1,type="integer",JSONPath=".status.failed",description="When the Coherence resource is running a Job, the number of pods which reached phase Failed"
 // +kubebuilder:printcolumn:name="Image",priority=1,type="string",JSONPath=".spec.image",description="The image name"
 type Coherence struct {
 	metav1.TypeMeta   `json:",inline"`

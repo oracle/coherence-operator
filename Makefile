@@ -19,13 +19,13 @@ VERSION ?= 3.2.12
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.10
+PREV_VERSION ?= 3.2.11
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  = 3.2.6
+COMPATIBLE_VERSION  ?= 3.2.11
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = control-plane=coherence
 
