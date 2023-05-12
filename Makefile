@@ -595,6 +595,7 @@ config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) 
 	  output:crd:dir=config/crd-small/bases
 	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
 	$(KUSTOMIZE) build config/crd -o $(BUILD_ASSETS)/
+	cd config/crd-small && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values

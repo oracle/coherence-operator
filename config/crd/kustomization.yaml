@@ -29,6 +29,12 @@ patchesJson6902:
     kind: CustomResourceDefinition
     name: coherence.coherence.oracle.com
     version: v1
+- path: patches/coherence.oracle.com_coherence_crd_patch.json
+  target:
+    group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    name: coherencejob.coherence.oracle.com
+    version: v1
 
 commonLabels:
   app.kubernetes.io/component: crd
