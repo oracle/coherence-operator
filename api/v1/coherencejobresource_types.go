@@ -66,8 +66,13 @@ func (in *CoherenceJob) GetSpec() *CoherenceResourceSpec {
 }
 
 // GetJobResourceSpec returns this resource's CoherenceJobResourceSpec
-func (in *CoherenceJob) GetJobResourceSpec() *CoherenceJobResourceSpec {
-	return &in.Spec
+func (in *CoherenceJob) GetJobResourceSpec() (*CoherenceJobResourceSpec, bool) {
+	return &in.Spec, true
+}
+
+// GetStatefulSetSpec always returns nil and false
+func (in *CoherenceJob) GetStatefulSetSpec() (*CoherenceStatefulSetResourceSpec, bool) {
+	return nil, false
 }
 
 func (in *CoherenceJob) AddAnnotation(key, value string) {

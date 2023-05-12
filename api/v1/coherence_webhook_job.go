@@ -36,7 +36,7 @@ var _ webhook.Defaulter = &CoherenceJob{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (in *CoherenceJob) Default() {
-	spec := in.GetJobResourceSpec()
+	spec, _ := in.GetJobResourceSpec()
 	coherenceSpec := spec.Coherence
 	if spec.Coherence == nil {
 		coherenceSpec = &CoherenceSpec{}

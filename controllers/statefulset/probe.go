@@ -79,10 +79,9 @@ func (in *CoherenceProbe) IsStatusHA(ctx context.Context, deployment coh.Coheren
 	log.Info("Checking StatefulSet "+sts.Name+" for StatusHA",
 		"Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 
-	if deployment.GetType() == coh.CoherenceTypeStatefulSet {
-		c := deployment.(*coh.Coherence)
-		s := c.GetStatefulSetSpec()
-		p := s.GetScalingProbe()
+	spec, found := deployment.GetStatefulSetSpec()
+	if found {
+		p := spec.GetScalingProbe()
 		return in.ExecuteProbe(ctx, deployment, sts, p)
 	}
 	return true
@@ -110,7 +109,7 @@ func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment coh.Co
 	}
 
 	c := deployment.(*coh.Coherence)
-	stsSpec := c.GetStatefulSetSpec()
+	stsSpec, _ := c.GetStatefulSetSpec()
 
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+

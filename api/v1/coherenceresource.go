@@ -65,6 +65,12 @@ type CoherenceResource interface {
 	IsBeforeVersion(version string) bool
 	// GetSpec returns this resource's CoherenceResourceSpec
 	GetSpec() *CoherenceResourceSpec
+	// GetJobResourceSpec returns this resource's CoherenceJobResourceSpec.
+	// If the spec is not a CoherenceJobResourceSpec the bool return value will be false.
+	GetJobResourceSpec() (*CoherenceJobResourceSpec, bool)
+	// GetStatefulSetSpec returns this resource's CoherenceStatefulSetResourceSpec
+	// If the spec is not a CoherenceStatefulSetResourceSpec the bool return value will be false.
+	GetStatefulSetSpec() (*CoherenceStatefulSetResourceSpec, bool)
 	// GetStatus returns this resource's CoherenceResourceStatus
 	GetStatus() *CoherenceResourceStatus
 	// AddAnnotation adds an annotation to this resource

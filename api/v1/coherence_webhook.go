@@ -45,7 +45,7 @@ var _ webhook.Defaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (in *Coherence) Default() {
-	spec := in.GetStatefulSetSpec()
+	spec, _ := in.GetStatefulSetSpec()
 	// set the default replicas if not present
 	if spec.Replicas == nil {
 		spec.SetReplicas(spec.GetReplicas())
@@ -61,9 +61,8 @@ func SetCommonDefaults(in CoherenceResource) {
 	if status.Phase == "" {
 		logger.Info("Setting defaults for new resource")
 
-		if in.GetType() == CoherenceTypeStatefulSet {
-			var s interface{} = *spec
-			stsSpec := s.(CoherenceStatefulSetResourceSpec)
+		stsSpec, found := in.GetStatefulSetSpec()
+		if found {
 			// ensure the operator finalizer is present
 			if stsSpec.AllowUnsafeDelete != nil && *stsSpec.AllowUnsafeDelete {
 				if controllerutil.ContainsFinalizer(in, CoherenceFinalizer) {

@@ -112,8 +112,13 @@ func (in *Coherence) GetSpec() *CoherenceResourceSpec {
 }
 
 // GetStatefulSetSpec returns this resource's CoherenceStatefulSetResourceSpec
-func (in *Coherence) GetStatefulSetSpec() *CoherenceStatefulSetResourceSpec {
-	return &in.Spec
+func (in *Coherence) GetStatefulSetSpec() (*CoherenceStatefulSetResourceSpec, bool) {
+	return &in.Spec, true
+}
+
+// GetJobResourceSpec always returns nil and false
+func (in *Coherence) GetJobResourceSpec() (*CoherenceJobResourceSpec, bool) {
+	return nil, false
 }
 
 // GetStatus returns this resource's CoherenceResourceSpec

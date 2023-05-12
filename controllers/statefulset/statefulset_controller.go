@@ -153,8 +153,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				if err != nil {
 					logger.Info("Error updating deployment status", "error", err.Error())
 				}
-				c := deployment.(*coh.Coherence)
-				stsSpec := c.GetStatefulSetSpec()
+				stsSpec, _ := deployment.GetStatefulSetSpec()
 				if stsSpec.IsSuspendServicesOnShutdown() {
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
@@ -203,24 +202,26 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 
 // execActions executes actions
 func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.StatefulSet, deployment coh.CoherenceResource) {
-	coherenceProbe := CoherenceProbe{
-		Client: in.GetClient(),
-		Config: in.GetManager().GetConfig(),
-	}
-
-	spec := deployment.(*coh.Coherence).GetStatefulSetSpec()
-	for _, action := range spec.Actions {
-		if action.Probe != nil {
-			if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
-				log.Info("Action probe execution failed.", "probe", action.Probe)
-			}
+	spec, found := deployment.GetStatefulSetSpec()
+	if found {
+		coherenceProbe := CoherenceProbe{
+			Client: in.GetClient(),
+			Config: in.GetManager().GetConfig(),
 		}
-		if action.Job != nil {
-			job := buildActionJob(action.Name, action.Job, deployment)
-			if err := in.GetClient().Create(ctx, job); err != nil {
-				log.Info("Action job creation failed", "error", err.Error())
-			} else {
-				log.Info(fmt.Sprintf("Created action job '%s'", job.Name))
+
+		for _, action := range spec.Actions {
+			if action.Probe != nil {
+				if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
+					log.Info("Action probe execution failed.", "probe", action.Probe)
+				}
+			}
+			if action.Job != nil {
+				job := buildActionJob(action.Name, action.Job, deployment)
+				if err := in.GetClient().Create(ctx, job); err != nil {
+					log.Info("Action job creation failed", "error", err.Error())
+				} else {
+					log.Info(fmt.Sprintf("Created action job '%s'", job.Name))
+				}
 			}
 		}
 	}
@@ -413,8 +414,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 
 	// ensure the Coherence image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
-	c := deployment.(*coh.Coherence)
-	deploymentSpec := c.GetStatefulSetSpec()
+	deploymentSpec, _ := deployment.GetStatefulSetSpec()
 	if deploymentSpec.Image == nil {
 		cohImage := in.GetCoherenceImage(&desiredPodSpec)
 		in.SetCoherenceImage(&originalPodSpec, cohImage)
@@ -519,8 +519,7 @@ func (in *ReconcileStatefulSet) scale(ctx context.Context, deployment coh.Cohere
 	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	logger.Info("Scaling StatefulSet", "Current", current, "Desired", desired)
 
-	c := deployment.(*coh.Coherence)
-	spec := c.GetStatefulSetSpec()
+	spec, _ := deployment.GetStatefulSetSpec()
 	policy := spec.GetEffectiveScalingPolicy()
 
 	// ensure that the deployment has a Scaling status

@@ -857,10 +857,8 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment CoherenceResource) 
 		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.GetName() + "@" + deployment.GetNamespace()})
 	}
 
-	if deployment.GetType() == CoherenceTypeStatefulSet {
-		var s interface{} = *spec
-		stsSpec := s.(CoherenceStatefulSetResourceSpec)
-
+	stsSpec, found := deployment.GetStatefulSetSpec()
+	if found {
 		if stsSpec.ResumeServicesOnStartup != nil {
 			env = append(env, corev1.EnvVar{Name: EnvVarOperatorAllowResume, Value: BoolPtrToString(stsSpec.ResumeServicesOnStartup)})
 		}

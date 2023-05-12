@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -36,11 +36,11 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 	err = mgr.Client.List(ctx, &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(len(crdList.Items)).To(Equal(1))
+	g.Expect(len(crdList.Items)).To(Equal(2))
 
-	expected := map[string]bool{
-		"coherence.coherence.oracle.com": false,
-	}
+	expected := make(map[string]bool)
+	expected["coherence.coherence.oracle.com"] = false
+	expected["coherencejob.coherence.oracle.com"] = false
 
 	for _, crd := range crdList.Items {
 		expected[crd.Name] = true
@@ -62,9 +62,9 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	err = crdv1.AddToScheme(mgr.Scheme)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	oldCRDs := map[string]*crdv1.CustomResourceDefinition{
-		"coherence.coherence.oracle.com": nil,
-	}
+	oldCRDs := make(map[string]*crdv1.CustomResourceDefinition)
+	oldCRDs["coherence.coherence.oracle.com"] = nil
+	oldCRDs["coherencejob.coherence.oracle.com"] = nil
 
 	for name := range oldCRDs {
 		crd := crdv1.CustomResourceDefinition{}
@@ -84,7 +84,7 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	err = mgr.Client.List(ctx, &crdList)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(len(crdList.Items)).To(Equal(1))
+	g.Expect(len(crdList.Items)).To(Equal(2))
 
 	for _, crd := range crdList.Items {
 		oldCRD := oldCRDs[crd.Name]

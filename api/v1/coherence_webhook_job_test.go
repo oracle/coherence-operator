@@ -45,8 +45,7 @@ func TestJobShouldAddFinalizer(t *testing.T) {
 	c := coh.CoherenceJob{}
 	c.Default()
 	finalizers := c.GetFinalizers()
-	g.Expect(len(finalizers)).To(Equal(1))
-	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
+	g.Expect(len(finalizers)).To(Equal(0))
 }
 
 func TestJobShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
@@ -73,10 +72,9 @@ func TestJobShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
 	}
 	c.Default()
 	finalizers := c.GetFinalizers()
-	g.Expect(len(finalizers)).To(Equal(3))
+	g.Expect(len(finalizers)).To(Equal(2))
 	g.Expect(finalizers).To(ContainElement("foo"))
 	g.Expect(finalizers).To(ContainElement("bar"))
-	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
 }
 
 func TestJobDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
