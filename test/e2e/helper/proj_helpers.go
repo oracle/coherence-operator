@@ -309,6 +309,30 @@ func createCoherenceFromYaml(namespace string, file string) ([]coh.Coherence, er
 	return l.loadYaml(namespace, file)
 }
 
+// NewSingleCoherenceJobFromYaml creates a single new CoherenceJob resource from a yaml file.
+func NewSingleCoherenceJobFromYaml(namespace string, file string) (coh.CoherenceJob, error) {
+	deps, err := NewCoherenceJobFromYaml(namespace, file)
+	switch {
+	case err == nil && len(deps) == 0:
+		return coh.CoherenceJob{}, fmt.Errorf("no deployments created from yaml %s", file)
+	case err != nil:
+		return coh.CoherenceJob{}, err
+	default:
+		return deps[0], err
+	}
+}
+
+// NewCoherenceJobFromYaml creates a new CoherenceJob resource from a yaml file.
+func NewCoherenceJobFromYaml(namespace string, file string) ([]coh.CoherenceJob, error) {
+	return createCoherenceJobFromYaml(namespace, file)
+}
+
+// createCoherenceJobFromYaml creates a new CoherenceJob resource from a yaml file.
+func createCoherenceJobFromYaml(namespace string, file string) ([]coh.CoherenceJob, error) {
+	l := CoherenceLoader{}
+	return l.loadJobYaml(namespace, file)
+}
+
 // CoherenceLoader can load Coherence resources from yaml files.
 type CoherenceLoader struct {
 }
@@ -361,6 +385,54 @@ func (in *CoherenceLoader) loadYaml(namespace, file string) ([]coh.Coherence, er
 	return deployments, err
 }
 
+func (in *CoherenceLoader) loadJobYaml(namespace, file string) ([]coh.CoherenceJob, error) {
+	var deployments []coh.CoherenceJob
+
+	if in == nil {
+		return deployments, nil
+	}
+
+	// try loading common-coherence-deployment.yaml first as this contains various values common
+	// to all test structures as well as values replaced by test environment variables.
+	_, c, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(c)
+	common := dir + string(os.PathSeparator) + "common-coherencejob-deployment.yaml"
+	templates, err := in.loadJobYamlFromFile(coh.CoherenceJob{}, common)
+	if err != nil {
+		return deployments, err
+	}
+
+	if len(templates) == 0 {
+		return deployments, fmt.Errorf("could not load any deployment templates")
+	}
+	template := templates[0]
+
+	if namespace != "" {
+		template.SetNamespace(namespace)
+	}
+
+	// Append any pull secrets
+	secrets := GetImagePullSecrets()
+	template.Spec.ImagePullSecrets = append(template.Spec.ImagePullSecrets, secrets...)
+
+	if file != "" {
+		deployments, err = in.loadJobYamlFromFile(template, file)
+	} else {
+		deployments = append(deployments, template)
+	}
+
+	// add environment variables
+	skipSite := os.Getenv(coh.EnvVarCohSkipSite)
+	if skipSite == "true" {
+		for i, d := range deployments {
+			d.Spec.AddEnvVarIfAbsent(corev1.EnvVar{Name: coh.EnvVarCohSkipSite, Value: "true"})
+			deployments[i] = d
+		}
+	}
+
+	return deployments, err
+}
+
 func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string) ([]coh.Coherence, error) {
 	var deployments []coh.Coherence
 	if in == nil || file == "" {
@@ -387,6 +459,46 @@ func (in *CoherenceLoader) loadYamlFromFile(template coh.Coherence, file string)
 
 	for err == nil {
 		deployment := coh.Coherence{}
+		template.DeepCopyInto(&deployment)
+		err = decoder.Decode(&deployment)
+		if err == nil && deployment.Name != "" {
+			deployments = append(deployments, deployment)
+		}
+	}
+
+	if err != io.EOF {
+		return deployments, errors.New("Failed to parse yaml file " + actualFile + " caused by " + err.Error())
+	}
+
+	return deployments, nil
+}
+
+func (in *CoherenceLoader) loadJobYamlFromFile(template coh.CoherenceJob, file string) ([]coh.CoherenceJob, error) {
+	var deployments []coh.CoherenceJob
+	if in == nil || file == "" {
+		return deployments, nil
+	}
+
+	actualFile, err := FindActualFile(file)
+	if err != nil {
+		return deployments, err
+	}
+
+	// read the whole file
+	data, err := os.ReadFile(actualFile)
+	if err != nil {
+		return deployments, errors.New("Failed to read file " + actualFile + " caused by " + err.Error())
+	}
+
+	// expand any ${env-var} references in the yaml file
+
+	s := os.ExpandEnv(string(data))
+
+	// Get the yaml decoder
+	decoder := yaml.NewYAMLToJSONDecoder(strings.NewReader(s))
+
+	for err == nil {
+		deployment := coh.CoherenceJob{}
 		template.DeepCopyInto(&deployment)
 		err = decoder.Decode(&deployment)
 		if err == nil && deployment.Name != "" {

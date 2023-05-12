@@ -15,7 +15,6 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
-	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
@@ -46,6 +45,10 @@ type CoherenceJobReconciler struct {
 	Scheme      *runtime.Scheme
 	reconcilers []reconciler.SecondaryResourceReconciler
 }
+
+var (
+	jobControllerName = "controllers.CoherenceJob"
+)
 
 // blank assignment to verify that CoherenceJobReconciler implements reconcile.Reconciler
 // There will be a compile-time error here if this breaks
@@ -118,17 +121,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 		return ctrl.Result{Requeue: true}, err
 	}
 
-	spec := deployment.GetSpec()
-
-	if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
-		err := in.ensureFinalizerRemoved(ctx, deployment)
-		if err != nil && !apierrors.IsNotFound(err) {
-			return ctrl.Result{Requeue: true}, errors.Wrap(err, "failed to remove finalizer")
-		}
-		log.Info("Removed Finalizer from CoherenceJob resource as AllowUnsafeDelete has been set to true")
-	} else {
-		log.Info("Finalizer not added to CoherenceJob resource as AllowUnsafeDelete has been set to true")
-	}
+	spec, _ := deployment.GetJobResourceSpec()
 
 	// ensure that the deployment has an initial status
 	status := deployment.GetStatus()
@@ -179,24 +172,6 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 		// Create the desired resources the deployment
 		if desiredResources, err = deployment.CreateKubernetesResources(); err != nil {
 			return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
-		}
-
-		if found {
-			// The "storeHash" is not "", so it must have been processed by the Operator (could have been a previous version).
-			// There was a bug prior to 3.2.8 where the hash was calculated at the wrong point in the defaulting web-hook,
-			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
-			if deployment.IsBeforeVersion("3.2.8") {
-				// the AnnotationOperatorVersion annotation was added in the 3.2.8 web-hook, so if it is missing
-				// the CoherenceJob resource was added or updated prior to 3.2.8
-				// In this case we just ignore the difference in hash.
-				// There is an edge case where the CoherenceJob resource could have legitimately been updated whilst
-				// the Operator and web-hooks were uninstalled. In that case we would ignore the update until another
-				// update is made. The simplest way for the customer to work around this is to add the
-				// AnnotationOperatorVersion annotation with some value, which will then be overwritten by the web-hook
-				// and the CoherenceJob resource will be correctly processes.
-				desiredResources = storage.GetLatest()
-				log.Info("Ignoring hash difference for pre-3.2.8 resource", "hash", hash, "store", storeHash)
-			}
 		}
 	} else {
 		// storage state was saved with the current hash so is already in the desired state
@@ -278,12 +253,11 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		secret.NewSecretReconciler(mgr),
 		reconciler.NewServiceReconciler(mgr),
 		servicemonitor.NewServiceMonitorReconciler(mgr),
-		statefulset.NewStatefulSetReconciler(mgr),
 		job.NewJobReconciler(mgr),
 	}
 
 	in.reconcilers = reconcilers
-	in.SetCommonReconciler(controllerName, mgr)
+	in.SetCommonReconciler(jobControllerName, mgr)
 	in.SetPatchType(types.MergePatchType)
 
 	// Watch for changes to secondary resources
@@ -402,17 +376,17 @@ func (in *CoherenceJobReconciler) ensureVersionAnnotationApplied(ctx context.Con
 //	}
 //	return false, nil
 //}
-
-func (in *CoherenceJobReconciler) ensureFinalizerRemoved(ctx context.Context, c coh.CoherenceResource) error {
-	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
-		err := in.GetClient().Update(ctx, c)
-		if err != nil {
-			in.Log.Info("Failed to remove the finalizer from the CoherenceJob resource, it looks like it had already been deleted")
-			return err
-		}
-	}
-	return nil
-}
+//
+//func (in *CoherenceJobReconciler) ensureFinalizerRemoved(ctx context.Context, c coh.CoherenceResource) error {
+//	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
+//		err := in.GetClient().Update(ctx, c)
+//		if err != nil {
+//			in.Log.Info("Failed to remove the finalizer from the CoherenceJob resource, it looks like it had already been deleted")
+//			return err
+//		}
+//	}
+//	return nil
+//}
 
 // ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
 func (in *CoherenceJobReconciler) ensureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {

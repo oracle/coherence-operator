@@ -258,6 +258,15 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		if err != nil {
 			return TestContext{}, err
 		}
+
+		// Create the CoherenceJob controller
+		err = (&controllers.CoherenceJobReconciler{
+			Client: k8sManager.GetClient(),
+			Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
+		}).SetupWithManager(k8sManager)
+		if err != nil {
+			return TestContext{}, err
+		}
 	}
 
 	// Start the manager, which will start the controller and REST server

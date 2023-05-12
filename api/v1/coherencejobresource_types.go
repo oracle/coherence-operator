@@ -121,13 +121,10 @@ func (in *CoherenceJob) GetHeadlessServiceName() string {
 // return either the actual Replicas value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
 func (in *CoherenceJob) GetReplicas() int32 {
-	if in == nil {
-		return 0
+	if in == nil || in.Spec.Replicas == nil {
+		return DefaultJobReplicas
 	}
-	if in.Spec.Replicas == nil {
-		return DefaultReplicas
-	}
-	return *in.Spec.Replicas
+	return in.Spec.GetReplicas()
 }
 
 // SetReplicas sets the number of replicas required for a deployment.

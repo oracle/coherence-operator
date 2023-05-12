@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/oracle/coherence-operator/controllers/job"
 	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
@@ -308,7 +307,6 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		reconciler.NewServiceReconciler(mgr),
 		servicemonitor.NewServiceMonitorReconciler(mgr),
 		statefulset.NewStatefulSetReconciler(mgr),
-		job.NewJobReconciler(mgr),
 	}
 
 	in.reconcilers = reconcilers
