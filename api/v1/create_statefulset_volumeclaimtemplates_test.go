@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,12 +14,12 @@ import (
 
 func TestCreateStatefulSetWithEmptyVolumeClaimTemplates(t *testing.T) {
 
-	spec := coh.CoherenceResourceSpec{
+	spec := coh.CoherenceStatefulSetResourceSpec{
 		VolumeClaimTemplates: []coh.PersistentVolumeClaim{},
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 
@@ -39,12 +39,12 @@ func TestCreateStatefulSetWithOneVolumeClaimTemplate(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceResourceSpec{
+	spec := coh.CoherenceStatefulSetResourceSpec{
 		VolumeClaimTemplates: []coh.PersistentVolumeClaim{volumeOne},
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.VolumeClaimTemplates = append(stsExpected.Spec.VolumeClaimTemplates, volumeOne.ToPVC())
@@ -75,12 +75,12 @@ func TestCreateStatefulSetWithTwoVolumeClaimTemplates(t *testing.T) {
 		},
 	}
 
-	spec := coh.CoherenceResourceSpec{
+	spec := coh.CoherenceStatefulSetResourceSpec{
 		VolumeClaimTemplates: []coh.PersistentVolumeClaim{volumeOne, volumeTwo},
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.VolumeClaimTemplates = append(stsExpected.Spec.VolumeClaimTemplates, volumeOne.ToPVC(), volumeTwo.ToPVC())

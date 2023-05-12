@@ -381,7 +381,7 @@ func (in *CoherenceSpec) RequiresWKAService() bool {
 }
 
 // GetWKA returns the host name Coherence should for WKA.
-func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
+func (in *CoherenceSpec) GetWKA(deployment CoherenceResource) string {
 	var ns string
 	var svc string
 
@@ -391,14 +391,14 @@ func (in *CoherenceSpec) GetWKA(deployment *Coherence) string {
 
 	if in == nil || in.WKA == nil || in.WKA.Deployment == "" {
 		// there is no WKA override so return the deployment name
-		ns = deployment.Namespace
-		svc = deployment.Name + WKAServiceNameSuffix
+		ns = deployment.GetNamespace()
+		svc = deployment.GetName() + WKAServiceNameSuffix
 	} else {
 		if in.WKA.Namespace != "" {
 			// A WKA override is specified with a namespace
 			ns = in.WKA.Namespace
 		} else {
-			ns = deployment.Namespace
+			ns = deployment.GetNamespace()
 		}
 		svc = in.WKA.Deployment + WKAServiceNameSuffix
 	}
@@ -1040,7 +1040,7 @@ type NamedPortSpec struct {
 
 // GetServiceName returns the name of the Service used to expose this port, or returns
 // empty string and false if there is no service for this port.
-func (in *NamedPortSpec) GetServiceName(deployment *Coherence) (string, bool) {
+func (in *NamedPortSpec) GetServiceName(deployment CoherenceResource) (string, bool) {
 	if in == nil || !in.IsEnabled() {
 		return "", false
 	}
@@ -1048,13 +1048,13 @@ func (in *NamedPortSpec) GetServiceName(deployment *Coherence) (string, bool) {
 	if in.Service != nil && in.Service.Name != nil {
 		name = in.Service.GetName()
 	} else {
-		name = fmt.Sprintf("%s-%s", deployment.Name, in.Name)
+		name = fmt.Sprintf("%s-%s", deployment.GetName(), in.Name)
 	}
 	return name, true
 }
 
 // CreateService creates the Kubernetes service to expose this port.
-func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
+func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Service {
 	if in == nil || !in.IsEnabled() {
 		return nil
 	}
@@ -1084,11 +1084,11 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 		ann = in.Service.Annotations
 	}
 
-	// Create the Service spec
-	spec := in.Service.createServiceSpec()
+	// Create the Service serviceSpec
+	serviceSpec := in.Service.createServiceSpec()
 
 	// Add the port
-	spec.Ports = []corev1.ServicePort{
+	serviceSpec.Ports = []corev1.ServicePort{
 		{
 			Name:       portName,
 			Protocol:   in.GetProtocol(),
@@ -1099,11 +1099,12 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 	}
 
 	if in.AppProtocol != nil {
-		spec.Ports[0].AppProtocol = in.AppProtocol
+		serviceSpec.Ports[0].AppProtocol = in.AppProtocol
 	}
 
 	// Add the service selector
-	spec.Selector = deployment.Spec.CreatePodSelectorLabels(deployment)
+	spec := deployment.GetSpec()
+	serviceSpec.Selector = spec.CreatePodSelectorLabels(deployment)
 
 	svc := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1112,14 +1113,14 @@ func (in *NamedPortSpec) CreateService(deployment *Coherence) *corev1.Service {
 			Labels:      svcLabels,
 			Annotations: ann,
 		},
-		Spec: spec,
+		Spec: serviceSpec,
 	}
 
 	return &svc
 }
 
 // CreateServiceMonitor creates the Prometheus ServiceMonitor to expose this port if enabled.
-func (in *NamedPortSpec) CreateServiceMonitor(deployment *Coherence) *monitoringv1.ServiceMonitor {
+func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *monitoringv1.ServiceMonitor {
 	if in == nil || !in.IsEnabled() {
 		return nil
 	}
@@ -1131,7 +1132,7 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment *Coherence) *monitoring
 	if in.Service != nil && in.Service.Name != nil {
 		name = in.Service.GetName()
 	} else {
-		name = fmt.Sprintf("%s-%s", deployment.Name, in.Name)
+		name = fmt.Sprintf("%s-%s", deployment.GetName(), in.Name)
 	}
 
 	// The labels for the ServiceMonitor
@@ -1179,22 +1180,24 @@ func (in *NamedPortSpec) GetProtocol() corev1.Protocol {
 	return *in.Protocol
 }
 
-func (in *NamedPortSpec) GetPort(d *Coherence) int32 {
+func (in *NamedPortSpec) GetPort(d CoherenceResource) int32 {
 	switch {
 	case in == nil:
 		return 0
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
 		// special case for well known port - metrics
-		return d.Spec.GetMetricsPort()
+		spec := d.GetSpec()
+		return spec.GetMetricsPort()
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
 		// special case for well known port - management
-		return d.Spec.GetManagementPort()
+		spec := d.GetSpec()
+		return spec.GetManagementPort()
 	default:
 		return in.Port
 	}
 }
 
-func (in *NamedPortSpec) GetServicePort(d *Coherence) int32 {
+func (in *NamedPortSpec) GetServicePort(d CoherenceResource) int32 {
 	switch {
 	case in == nil:
 		return 0
@@ -1202,10 +1205,12 @@ func (in *NamedPortSpec) GetServicePort(d *Coherence) int32 {
 		return *in.Service.Port
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
 		// special case for well known port - metrics
-		return d.Spec.GetMetricsPort()
+		spec := d.GetSpec()
+		return spec.GetMetricsPort()
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
 		// special case for well known port - management
-		return d.Spec.GetManagementPort()
+		spec := d.GetSpec()
+		return spec.GetManagementPort()
 	default:
 		return in.Port
 	}
@@ -1218,7 +1223,7 @@ func (in *NamedPortSpec) GetNodePort() int32 {
 	return *in.NodePort
 }
 
-func (in *NamedPortSpec) CreatePort(d *Coherence) corev1.ContainerPort {
+func (in *NamedPortSpec) CreatePort(d CoherenceResource) corev1.ContainerPort {
 	return corev1.ContainerPort{
 		Name:          in.Name,
 		ContainerPort: in.GetPort(d),
@@ -2936,118 +2941,6 @@ func (in *PersistentVolumeClaimObjectMeta) toObjectMeta() metav1.ObjectMeta {
 		Annotations: in.Annotations,
 		Labels:      in.Labels,
 	}
-}
-
-// ----- CoherenceJob struct ------------------------------------------------
-
-// CoherenceJob is the Job specification if the Cluster should be created as a Kubernetes Job
-// instead of a StatefulSet.
-type CoherenceJob struct {
-	// Specifies the desired number of successfully finished pods the
-	// job should be run with.  Setting to nil means that the success of any
-	// pod signals the success of all pods, and allows parallelism to have any positive
-	// value.  Setting to 1 means that parallelism is limited to 1 and the success of that
-	// pod signals the success of the job.
-	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
-	// +optional
-	Completions *int32 `json:"completions,omitempty"`
-
-	// SyncCompletions is a flag to indicate that the Operator should always set the
-	// Completions value to be the same as the Replicas value.
-	// When a Job is then scaled, the Completions value will also be changed.
-	// +optional
-	SyncCompletionsToReplicas *bool `json:"syncCompletionsToReplicas,omitempty"`
-
-	// Specifies the policy of handling failed pods. In particular, it allows to
-	// specify the set of actions and conditions which need to be
-	// satisfied to take the associated action.
-	// If empty, the default behaviour applies - the counter of failed pods,
-	// represented by the jobs's .status.failed field, is incremented and it is
-	// checked against the backoffLimit. This field cannot be used in combination
-	// with restartPolicy=OnFailure.
-	//
-	// This field is alpha-level. To use this field, you must enable the
-	// `JobPodFailurePolicy` feature gate (disabled by default).
-	// +optional
-	PodFailurePolicy *batchv1.PodFailurePolicy `json:"podFailurePolicy,omitempty"`
-
-	// Specifies the number of retries before marking this job failed.
-	// Defaults to 6
-	// +optional
-	BackoffLimit *int32 `json:"backoffLimit,omitempty"`
-
-	// ttlSecondsAfterFinished limits the lifetime of a Job that has finished
-	// execution (either Complete or Failed). If this field is set,
-	// ttlSecondsAfterFinished after the Job finishes, it is eligible to be
-	// automatically deleted. When the Job is being deleted, its lifecycle
-	// guarantees (e.g. finalizers) will be honored. If this field is unset,
-	// the Job won't be automatically deleted. If this field is set to zero,
-	// the Job becomes eligible to be deleted immediately after it finishes.
-	// +optional
-	TTLSecondsAfterFinished *int32 `json:"ttlSecondsAfterFinished,omitempty"`
-
-	// CompletionMode specifies how Pod completions are tracked. It can be
-	// `NonIndexed` (default) or `Indexed`.
-	//
-	// `NonIndexed` means that the Job is considered complete when there have
-	// been .spec.completions successfully completed Pods. Each Pod completion is
-	// homologous to each other.
-	//
-	// `Indexed` means that the Pods of a
-	// Job get an associated completion index from 0 to (.spec.completions - 1),
-	// available in the annotation batch.kubernetes.io/job-completion-index.
-	// The Job is considered complete when there is one successfully completed Pod
-	// for each index.
-	// When value is `Indexed`, .spec.completions must be specified and
-	// `.spec.parallelism` must be less than or equal to 10^5.
-	// In addition, The Pod name takes the form
-	// `$(job-name)-$(index)-$(random-string)`,
-	// the Pod hostname takes the form `$(job-name)-$(index)`.
-	//
-	// More completion modes can be added in the future.
-	// If the Job controller observes a mode that it doesn't recognize, which
-	// is possible during upgrades due to version skew, the controller
-	// skips updates for the Job.
-	// +optional
-	CompletionMode *batchv1.CompletionMode `json:"completionMode,omitempty"`
-
-	// Suspend specifies whether the Job controller should create Pods or not. If
-	// a Job is created with suspend set to true, no Pods are created by the Job
-	// controller. If a Job is suspended after creation (i.e. the flag goes from
-	// false to true), the Job controller will delete all active Pods associated
-	// with this Job. Users must design their workload to gracefully handle this.
-	// Suspending a Job will reset the StartTime field of the Job, effectively
-	// resetting the ActiveDeadlineSeconds timer too. Defaults to false.
-	//
-	// +optional
-	Suspend *bool `json:"suspend,omitempty"`
-}
-
-// UpdateJob updates a JobSpec from the fields in this CoherenceJob
-func (in *CoherenceJob) UpdateJob(spec *batchv1.JobSpec, c *CoherenceResourceSpec) {
-	if in == nil {
-		return
-	}
-
-	if in.IsSyncCompletions() {
-		spec.Completions = pointer.Int32(c.GetReplicas())
-	} else {
-		spec.Completions = in.Completions
-	}
-
-	spec.PodFailurePolicy = in.PodFailurePolicy
-	spec.BackoffLimit = in.BackoffLimit
-	spec.TTLSecondsAfterFinished = in.TTLSecondsAfterFinished
-	spec.CompletionMode = in.CompletionMode
-	spec.Suspend = in.Suspend
-}
-
-// IsSyncCompletions returns true if Completions should always match Parallelism
-func (in *CoherenceJob) IsSyncCompletions() bool {
-	if in == nil {
-		return false
-	}
-	return in.SyncCompletionsToReplicas != nil && *in.SyncCompletionsToReplicas
 }
 
 // ----- helper methods -----------------------------------------------------

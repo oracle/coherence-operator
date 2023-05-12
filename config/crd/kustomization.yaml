@@ -6,6 +6,7 @@ kind: Kustomization
 # It should be run by config/default
 resources:
 - bases/coherence.oracle.com_coherence.yaml
+- bases/coherence.oracle.com_coherencejob.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 # patches here are for enabling the conversion webhook for each CRD

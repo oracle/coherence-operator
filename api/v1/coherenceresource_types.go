@@ -11,9 +11,11 @@ import (
 	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
-	coreV1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
 )
 
 // Coherence resource Condition Types
@@ -61,10 +63,12 @@ type CoherenceType string
 // The package init function that will automatically register the Coherence resource types with
 // the default k8s Scheme.
 func init() {
-	SchemeBuilder.Register(&Coherence{}, &CoherenceList{})
+	SchemeBuilder.Register(&Coherence{}, &CoherenceList{}, &CoherenceJob{}, &CoherenceJobList{})
 }
 
 // ----- Coherence type ------------------------------------------------------------------
+
+var _ CoherenceResource = &Coherence{}
 
 // Coherence is the top level schema for the Coherence API and custom resource definition (CRD).
 //
@@ -86,8 +90,8 @@ type Coherence struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   CoherenceResourceSpec   `json:"spec,omitempty"`
-	Status CoherenceResourceStatus `json:"status,omitempty"`
+	Spec   CoherenceStatefulSetResourceSpec `json:"spec,omitempty"`
+	Status CoherenceResourceStatus          `json:"status,omitempty"`
 }
 
 // GetCoherenceClusterName obtains the Coherence cluster name for the Coherence resource.
@@ -100,6 +104,41 @@ func (in *Coherence) GetCoherenceClusterName() string {
 		return in.Name
 	}
 	return *in.Spec.Cluster
+}
+
+// GetSpec returns this resource's CoherenceResourceSpec
+func (in *Coherence) GetSpec() *CoherenceResourceSpec {
+	return &in.Spec.CoherenceResourceSpec
+}
+
+// GetStatefulSetSpec returns this resource's CoherenceStatefulSetResourceSpec
+func (in *Coherence) GetStatefulSetSpec() *CoherenceStatefulSetResourceSpec {
+	return &in.Spec
+}
+
+// GetStatus returns this resource's CoherenceResourceSpec
+func (in *Coherence) GetStatus() *CoherenceResourceStatus {
+	return &in.Status
+}
+
+// CreateKubernetesResources returns this resource's CoherenceResourceSpec
+func (in *Coherence) CreateKubernetesResources() (Resources, error) {
+	res := in.Spec.CreateKubernetesResources(in)
+
+	// Create the headless Service
+	res = append(res, in.Spec.CreateHeadlessService(in))
+	// Create the StatefulSet
+	res = append(res, in.Spec.CreateStatefulSetResource(in))
+	return Resources{Items: res}, nil
+}
+
+// GetAPIVersion returns the TypeMeta API version
+func (in *Coherence) GetAPIVersion() string {
+	return in.APIVersion
+}
+
+func (in *Coherence) DeepCopyResource() CoherenceResource {
+	return in.DeepCopy()
 }
 
 // GetWkaServiceName returns the name of the headless Service used for Coherence WKA.
@@ -126,16 +165,16 @@ func (in *Coherence) GetReplicas() int32 {
 	if in == nil {
 		return 0
 	}
-	if in.Spec.Replicas == nil {
+	if in.Spec.CoherenceResourceSpec.Replicas == nil {
 		return DefaultReplicas
 	}
-	return *in.Spec.Replicas
+	return *in.Spec.CoherenceResourceSpec.Replicas
 }
 
 // SetReplicas sets the number of replicas required for a deployment.
 func (in *Coherence) SetReplicas(replicas int32) {
 	if in != nil {
-		in.Spec.Replicas = &replicas
+		in.Spec.CoherenceResourceSpec.Replicas = &replicas
 	}
 }
 
@@ -215,7 +254,16 @@ func (in *Coherence) CreateAnnotations() map[string]string {
 	return annotations
 }
 
-// GetNamespacedName returns the namespace/name key to lookup this resource.
+func (in *Coherence) AddAnnotation(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		in.Annotations[key] = value
+	}
+}
+
+// GetNamespacedName returns the namespace/name key to look up this resource.
 func (in *Coherence) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Namespace: in.Namespace,
@@ -239,14 +287,7 @@ func (in *Coherence) GetRoleName() string {
 
 // GetType returns the type for a deployment.
 func (in *Coherence) GetType() CoherenceType {
-	switch {
-	case in == nil:
-		return CoherenceTypeUnknown
-	case in.IsRunAsJob():
-		return CoherenceTypeJob
-	default:
-		return CoherenceTypeStatefulSet
-	}
+	return CoherenceTypeStatefulSet
 }
 
 // GetWKA returns the host name Coherence should for WKA.
@@ -278,9 +319,223 @@ func (in *Coherence) IsBeforeVersion(version string) bool {
 	return true
 }
 
-// IsRunAsJob returns true if this resource should run as a Job instead of a StatefulSet
-func (in *Coherence) IsRunAsJob() bool {
-	return in != nil && in.Spec.IsRunAsJob()
+// ----- CoherenceStatefulSetResourceSpec type -----------------------------------------------------
+
+// CoherenceStatefulSetResourceSpec defines the specification of a Coherence resource. A Coherence resource is
+// typically one or more Pods that perform the same functionality, for example storage members.
+// +k8s:openapi-gen=true
+type CoherenceStatefulSetResourceSpec struct {
+	CoherenceResourceSpec `json:",inline"`
+	// StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster
+	// `StatefulSet` as annotations.
+	// Any annotations should be placed BELOW this "annotations:" key, for example:
+	//
+	// The default behaviour is to copy all annotations from the `Coherence` resource to the
+	// `StatefulSet`, specifying any annotations in the `StatefulSetAnnotations` will override
+	// this behaviour and only include the `StatefulSetAnnotations`.
+	//
+	// annotations:
+	//   foo.io/one: "value1"
+	//   foo.io/two: "value2"
+	//
+	// see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
+	// +optional
+	StatefulSetAnnotations map[string]string `json:"statefulSetAnnotations,omitempty"`
+	// VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
+	// The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec
+	// as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+	// Every claim in this list must have at least one matching (by name) volumeMount in one
+	// container in the template. A claim in this list takes precedence over any volumes in the
+	// template, with the same name.
+	// +listType=atomic
+	// +optional
+	VolumeClaimTemplates []PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
+	// The configuration to control safe scaling.
+	// +optional
+	Scaling *ScalingSpec `json:"scaling,omitempty"`
+	// The configuration of the probe used to signal that services must be suspended
+	// before a deployment is stopped.
+	// +optional
+	SuspendProbe *Probe `json:"suspendProbe,omitempty"`
+	// A flag controlling whether storage enabled cache services in this deployment
+	// will be suspended before the deployment is shutdown or scaled to zero.
+	// The action of suspending storage enabled services when the whole deployment is being
+	// stopped ensures that cache services with persistence enabled will shut down cleanly
+	// without the possibility of Coherence trying to recover and re-balance partitions
+	// as Pods are stopped.
+	// The default value if not specified is true.
+	// +optional
+	SuspendServicesOnShutdown *bool `json:"suspendServicesOnShutdown,omitempty"`
+	// ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when
+	// the Coherence container is started. This only applies to storage enabled distributed cache
+	// services. This ensures that services that are suspended due to the shutdown of a storage
+	// tier, but those services are still running (albeit suspended) in other storage disabled
+	// deployments, will be resumed when storage comes back.
+	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
+	// The default value if not specified is true.
+	// +optional
+	ResumeServicesOnStartup *bool `json:"resumeServicesOnStartup,omitempty"`
+	// AutoResumeServices is a map of Coherence service names to allow more fine-grained control over
+	// which services may be auto-resumed by the operator when a Coherence Pod starts.
+	// The key to the map is the name of the Coherence service. This should be the fully qualified name
+	// if scoped services are being used in Coherence. The value is a bool, set to `true` to allow the
+	// service to be auto-resumed or `false` to not allow the service to be auto-resumed.
+	// Adding service names to this list will override any value set in `ResumeServicesOnStartup`, so if the
+	// `ResumeServicesOnStartup` field is `false` but there are service names in the `AutoResumeServices`, mapped
+	// to `true`, those services will still be resumed.
+	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
+	// +optional
+	AutoResumeServices map[string]bool `json:"autoResumeServices,omitempty"`
+	// SuspendServiceTimeout sets the number of seconds to wait for the service suspend
+	// call to return (the default is 60 seconds)
+	// +optional
+	SuspendServiceTimeout *int `json:"suspendServiceTimeout,omitempty"`
+	// Whether to perform a StatusHA test on the cluster before performing an update or deletion.
+	// This field can be set to "false" to force through an update even when a Coherence deployment is in
+	// an unstable state.
+	// The default is true, to always check for StatusHA before updating a Coherence deployment.
+	// +optional
+	HABeforeUpdate *bool `json:"haBeforeUpdate,omitempty"`
+	// AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource
+	// so that it can intercept deletion of the resource and initiate a controlled shutdown of the
+	// Coherence cluster. The default value is `false`.
+	// The primary use for setting this flag to `true` is in CI/CD environments so that cleanup jobs
+	// can delete a whole namespace without requiring the Operator to have removed finalizers from
+	// any Coherence resources deployed into that namespace.
+	// It is not recommended to set this flag to `true` in a production environment, especially when
+	// using Coherence persistence features.
+	// +optional
+	AllowUnsafeDelete *bool `json:"allowUnsafeDelete,omitempty"`
+	// Actions to execute once all the Pods are ready after an initial deployment
+	// +optional
+	Actions []Action `json:"actions,omitempty"`
+}
+
+// CreateStatefulSetResource creates the deployment's StatefulSet resource.
+func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSetResource(deployment *Coherence) Resource {
+	sts := in.CreateStatefulSet(deployment)
+
+	return Resource{
+		Kind: ResourceTypeStatefulSet,
+		Name: sts.GetName(),
+		Spec: &sts,
+	}
+}
+
+// CreateStatefulSet creates the deployment's StatefulSet.
+func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1.StatefulSet {
+	sts := appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:   deployment.GetNamespace(),
+			Name:        deployment.GetName(),
+			Labels:      deployment.CreateCommonLabels(),
+			Annotations: deployment.CreateAnnotations(),
+		},
+	}
+
+	replicas := in.GetReplicas()
+	podTemplate := in.CreatePodTemplateSpec(deployment)
+
+	// Add the component label
+	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
+	sts.Spec = appsv1.StatefulSetSpec{
+		Replicas:            &replicas,
+		PodManagementPolicy: appsv1.ParallelPodManagement,
+		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
+			Type: appsv1.RollingUpdateStatefulSetStrategyType,
+		},
+		RevisionHistoryLimit: pointer.Int32(5),
+		ServiceName:          deployment.GetHeadlessServiceName(),
+		Selector: &metav1.LabelSelector{
+			MatchLabels: in.CreatePodSelectorLabels(deployment),
+		},
+		Template: podTemplate,
+	}
+
+	// Add any Coherence settings
+	in.Coherence.UpdateStatefulSet(deployment, &sts)
+
+	// append any additional PVCs
+	for _, v := range in.VolumeClaimTemplates {
+		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, v.ToPVC())
+	}
+
+	return sts
+}
+
+// CheckHABeforeUpdate returns true if a StatusHA check should be made before updating a deployment.
+func (in *CoherenceStatefulSetResourceSpec) CheckHABeforeUpdate() bool {
+	return in.HABeforeUpdate == nil || *in.HABeforeUpdate
+}
+
+// IsSuspendServicesOnShutdown returns true if services should be suspended before a cluster is shutdown.
+func (in *CoherenceStatefulSetResourceSpec) IsSuspendServicesOnShutdown() bool {
+	return in.SuspendServicesOnShutdown == nil || *in.SuspendServicesOnShutdown
+}
+
+// GetEffectiveScalingPolicy returns the scaling policy to be used.
+func (in *CoherenceStatefulSetResourceSpec) GetEffectiveScalingPolicy() ScalingPolicy {
+	if in == nil {
+		return SafeScaling
+	}
+
+	var policy ScalingPolicy
+
+	if in.Scaling == nil || in.Scaling.Policy == nil {
+		// the scaling policy is not set the look at the storage enabled flag
+		if in.Coherence == nil || in.Coherence.StorageEnabled == nil || *in.Coherence.StorageEnabled {
+			// storage enabled is either not set or is true so do safe scaling
+			policy = ParallelUpSafeDownScaling
+		} else {
+			// storage enabled is false so do parallel scaling
+			policy = ParallelScaling
+		}
+	} else {
+		// scaling policy is set so use it
+		policy = *in.Scaling.Policy
+	}
+
+	return policy
+}
+
+// GetScalingProbe returns the Probe to use for checking Phase HA for the deployment.
+// This method will not return nil.
+func (in *CoherenceStatefulSetResourceSpec) GetScalingProbe() *Probe {
+	if in == nil || in.Scaling == nil || in.Scaling.Probe == nil {
+		return in.GetDefaultScalingProbe()
+	}
+	return in.Scaling.Probe
+}
+
+// GetSuspendProbe returns the Probe to use for signaling to a deployment that services should be suspended
+// prior to the deployment being stopped.
+// This method will not return nil.
+func (in *CoherenceStatefulSetResourceSpec) GetSuspendProbe() *Probe {
+	if in == nil || in.SuspendProbe == nil {
+		return in.GetDefaultSuspendProbe()
+	}
+	return in.SuspendProbe
+}
+
+// GetDefaultSuspendProbe returns the default Suspend probe
+func (in *CoherenceStatefulSetResourceSpec) GetDefaultSuspendProbe() *Probe {
+	timeout := in.SuspendServiceTimeout
+	if timeout == nil {
+		oneMinute := 60
+		timeout = &oneMinute
+	}
+
+	probe := Probe{
+		TimeoutSeconds: timeout,
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/suspend",
+				Port: intstr.FromString(PortNameHealth),
+			},
+		},
+	}
+
+	return probe.DeepCopy()
 }
 
 // ----- CoherenceList type ------------------------------------------------------------------------
@@ -305,7 +560,7 @@ type CoherenceResourceStatus struct {
 	// There are eight possible phase values:
 	//
 	// Initialized:    The deployment has been accepted by the Kubernetes system.
-	// Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created.
+	// Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc.) have been created.
 	// Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas.
 	// Waiting:        The deployment's start quorum conditions have not yet been met.
 	// Scaling:        The number of replicas in the deployment is being scaled up or down.
@@ -370,7 +625,7 @@ type CoherenceResourceStatus struct {
 // UpdatePhase updates the current Phase
 // TODO not used?
 func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase ConditionType) bool {
-	return in.SetCondition(deployment, Condition{Type: phase, Status: coreV1.ConditionTrue})
+	return in.SetCondition(deployment, Condition{Type: phase, Status: corev1.ConditionTrue})
 }
 
 // SetCondition sets the current Status Condition
@@ -529,19 +784,19 @@ func (in *CoherenceResourceStatus) setPhase(phase ConditionType) bool {
 	switch {
 	case in.Phase == ConditionTypeReady && phase != ConditionTypeReady:
 		// we're transitioning out of Ready state
-		in.Conditions.SetCondition(Condition{Type: ConditionTypeReady, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeReady, Status: corev1.ConditionFalse})
 	case in.Phase == ConditionTypeScaling && phase != ConditionTypeScaling:
 		// we're transitioning out of Scaling state
-		in.Conditions.SetCondition(Condition{Type: ConditionTypeScaling, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeScaling, Status: corev1.ConditionFalse})
 	case in.Phase == ConditionTypeRollingUpgrade && phase != ConditionTypeRollingUpgrade:
 		// we're transitioning out of Upgrading state
-		in.Conditions.SetCondition(Condition{Type: ConditionTypeRollingUpgrade, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeRollingUpgrade, Status: corev1.ConditionFalse})
 	case in.Phase == ConditionTypeWaiting && phase != ConditionTypeWaiting:
 		// we're transitioning out of Waiting state
-		in.Conditions.SetCondition(Condition{Type: ConditionTypeWaiting, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeWaiting, Status: corev1.ConditionFalse})
 	case in.Phase == ConditionTypeStopped && phase != ConditionTypeStopped:
 		// we're transitioning out of Stopped state
-		in.Conditions.SetCondition(Condition{Type: ConditionTypeStopped, Status: coreV1.ConditionFalse})
+		in.Conditions.SetCondition(Condition{Type: ConditionTypeStopped, Status: corev1.ConditionFalse})
 	}
 
 	// if we're complete we don't change the phase again
@@ -549,7 +804,7 @@ func (in *CoherenceResourceStatus) setPhase(phase ConditionType) bool {
 		in.Phase = phase
 	}
 
-	in.Conditions.SetCondition(Condition{Type: phase, Status: coreV1.ConditionTrue})
+	in.Conditions.SetCondition(Condition{Type: phase, Status: corev1.ConditionTrue})
 	return true
 }
 

@@ -75,11 +75,17 @@ func (in *CoherenceProbe) TranslatePort(name string, port int) int {
 // The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *CoherenceProbe) IsStatusHA(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet) bool {
+func (in *CoherenceProbe) IsStatusHA(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet) bool {
 	log.Info("Checking StatefulSet "+sts.Name+" for StatusHA",
-		"Namespace", deployment.Namespace, "Name", deployment.Name)
-	p := deployment.Spec.GetScalingProbe()
-	return in.ExecuteProbe(ctx, deployment, sts, p)
+		"Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
+
+	if deployment.GetType() == coh.CoherenceTypeStatefulSet {
+		c := deployment.(*coh.Coherence)
+		s := c.GetStatefulSetSpec()
+		p := s.GetScalingProbe()
+		return in.ExecuteProbe(ctx, deployment, sts, p)
+	}
+	return true
 }
 
 type ServiceSuspendStatus int
@@ -95,38 +101,49 @@ const ( // iota is reset to 0
 // The number of Pods matching the StatefulSet selector must match the StatefulSet replica count
 // ALl Pods must be in the ready state
 // All Pods must pass the StatusHA check
-func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet) ServiceSuspendStatus {
+func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet) ServiceSuspendStatus {
+	ns := deployment.GetNamespace()
+	name := deployment.GetName()
+
+	if deployment.GetType() != coh.CoherenceTypeStatefulSet {
+		return ServiceSuspendSkipped
+	}
+
+	c := deployment.(*coh.Coherence)
+	stsSpec := c.GetStatefulSetSpec()
+
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			operator.FlagSkipServiceSuspend+" is set to true",
-			"Namespace", deployment.Namespace, "Name", deployment.Name)
+			"Namespace", ns, "Name", name)
 		return ServiceSuspendSkipped
 	}
 
 	// check whether the Coherence deployment supports service suspension
-	if deployment.Annotations[coh.AnnotationFeatureSuspend] != "true" {
+	ann := deployment.GetAnnotations()
+	if ann[coh.AnnotationFeatureSuspend] != "true" {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			coh.AnnotationFeatureSuspend+" annotation is missing or not set to true",
-			"Namespace", deployment.Namespace, "Name", deployment.Name)
+			"Namespace", ns, "Name", name)
 		return ServiceSuspendSkipped
 	}
 
-	if !deployment.Spec.IsSuspendServicesOnShutdown() {
+	if !stsSpec.IsSuspendServicesOnShutdown() {
 		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
 			" spec.SuspendServicesOnShutdown is set to false",
-			"Namespace", deployment.Namespace, "Name", deployment.Name)
+			"Namespace", ns, "Name", name)
 		return ServiceSuspendSkipped
 	}
 
-	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", deployment.Namespace, "Name", deployment.Name)
-	if in.ExecuteProbe(ctx, deployment, sts, deployment.Spec.GetSuspendProbe()) {
+	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", ns, "Name", name)
+	if in.ExecuteProbe(ctx, deployment, sts, stsSpec.GetSuspendProbe()) {
 		return ServiceSuspendSuccessful
 	}
 	return ServiceSuspendFailed
 }
 
-func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
-	logger := log.WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
+func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
+	logger := log.WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	list := corev1.PodList{}
 
 	labels := client.MatchingLabels{}
@@ -134,7 +151,7 @@ func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment *coh.Cohe
 		labels[k] = v
 	}
 
-	err := in.Client.List(ctx, &list, client.InNamespace(deployment.Namespace), labels)
+	err := in.Client.List(ctx, &list, client.InNamespace(deployment.GetNamespace()), labels)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
 		return false

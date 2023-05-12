@@ -25,15 +25,17 @@ func TestCreateDeploymentWithPort(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Ports: []coh.NamedPortSpec{
-				{
-					Name:     "extend",
-					Port:     20000,
-					Protocol: &tcp,
-					NodePort: pointer.Int32(80),
-					HostPort: pointer.Int32(8080),
-					HostIP:   pointer.String("10.10.10.1"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Ports: []coh.NamedPortSpec{
+					{
+						Name:     "extend",
+						Port:     20000,
+						Protocol: &tcp,
+						NodePort: pointer.Int32(80),
+						HostPort: pointer.Int32(8080),
+						HostIP:   pointer.String("10.10.10.1"),
+					},
 				},
 			},
 		},
@@ -46,7 +48,7 @@ func TestCreateDeploymentWithPort(t *testing.T) {
 	g.Expect(len(resources)).To(Equal(7))
 
 	// Resource 5 = Service for the port
-	svc2, err := toService(mgr, resources[5])
+	svc2, err := toService(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(svc2.GetName()).To(Equal(deployment.Name + "-extend"))
 	g.Expect(len(svc2.Spec.Ports)).To(Equal(1))

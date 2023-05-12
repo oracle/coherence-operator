@@ -20,10 +20,12 @@ func TestJvmHeapSize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					HeapSize: pointer.String("10g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						HeapSize: pointer.String("10g"),
+					},
 				},
 			},
 		},
@@ -50,10 +52,12 @@ func TestJvmInitialHeapSize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					InitialHeapSize: pointer.String("10g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						InitialHeapSize: pointer.String("10g"),
+					},
 				},
 			},
 		},
@@ -80,10 +84,12 @@ func TestJvmMaxHeapSize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					MaxHeapSize: pointer.String("10g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						MaxHeapSize: pointer.String("10g"),
+					},
 				},
 			},
 		},
@@ -110,12 +116,14 @@ func TestJvmHeapSizeOverridesInitialAndMaxHeapSize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					HeapSize:        pointer.String("5g"),
-					InitialHeapSize: pointer.String("1g"),
-					MaxHeapSize:     pointer.String("10g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						HeapSize:        pointer.String("5g"),
+						InitialHeapSize: pointer.String("1g"),
+						MaxHeapSize:     pointer.String("10g"),
+					},
 				},
 			},
 		},
@@ -142,10 +150,12 @@ func TestJvmMaxRam(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					MaxRAM: pointer.String("10g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						MaxRAM: pointer.String("10g"),
+					},
 				},
 			},
 		},
@@ -173,10 +183,12 @@ func TestJvmRamPercent(t *testing.T) {
 	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					Percentage: &pct,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						Percentage: &pct,
+					},
 				},
 			},
 		},
@@ -205,10 +217,12 @@ func TestJvmInitialRamPercent(t *testing.T) {
 	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					InitialRAMPercentage: &pct,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						InitialRAMPercentage: &pct,
+					},
 				},
 			},
 		},
@@ -236,10 +250,12 @@ func TestJvmMaxRamPercent(t *testing.T) {
 	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					MaxRAMPercentage: &pct,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						MaxRAMPercentage: &pct,
+					},
 				},
 			},
 		},
@@ -267,10 +283,12 @@ func TestJvmMinRamPercent(t *testing.T) {
 	pct := resource.MustParse("5.5")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					MinRAMPercentage: &pct,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						MinRAMPercentage: &pct,
+					},
 				},
 			},
 		},
@@ -301,13 +319,15 @@ func TestJvmRamPercentOverridesInitialMaxAndMin(t *testing.T) {
 	pctMax := resource.MustParse("10")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					Percentage:           &pct,
-					InitialRAMPercentage: &pctInit,
-					MinRAMPercentage:     &pctMin,
-					MaxRAMPercentage:     &pctMax,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						Percentage:           &pct,
+						InitialRAMPercentage: &pctInit,
+						MinRAMPercentage:     &pctMin,
+						MaxRAMPercentage:     &pctMax,
+					},
 				},
 			},
 		},
@@ -335,10 +355,12 @@ func TestJvmStackSize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					StackSize: pointer.String("500k"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						StackSize: pointer.String("500k"),
+					},
 				},
 			},
 		},
@@ -365,10 +387,12 @@ func TestJvmMetaspaceSize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					MetaspaceSize: pointer.String("5g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						MetaspaceSize: pointer.String("5g"),
+					},
 				},
 			},
 		},
@@ -395,10 +419,12 @@ func TestJvmDirectMemorySize(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					DirectMemorySize: pointer.String("5g"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						DirectMemorySize: pointer.String("5g"),
+					},
 				},
 			},
 		},
@@ -425,10 +451,12 @@ func TestJvmNativeMemoryTracking(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					NativeMemoryTracking: pointer.String("detail"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						NativeMemoryTracking: pointer.String("detail"),
+					},
 				},
 			},
 		},
@@ -455,11 +483,13 @@ func TestJvmOOMHeapDumpOff(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					OnOutOfMemory: &coh.JvmOutOfMemorySpec{
-						HeapDump: pointer.Bool(false),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						OnOutOfMemory: &coh.JvmOutOfMemorySpec{
+							HeapDump: pointer.Bool(false),
+						},
 					},
 				},
 			},
@@ -487,11 +517,13 @@ func TestJvmOOMExitOff(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Memory: &coh.JvmMemorySpec{
-					OnOutOfMemory: &coh.JvmOutOfMemorySpec{
-						Exit: pointer.Bool(false),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Memory: &coh.JvmMemorySpec{
+						OnOutOfMemory: &coh.JvmOutOfMemorySpec{
+							Exit: pointer.Bool(false),
+						},
 					},
 				},
 			},

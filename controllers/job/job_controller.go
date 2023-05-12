@@ -79,7 +79,7 @@ func (in *ReconcileJob) Reconcile(ctx context.Context, request reconcile.Request
 
 // ReconcileAllResourceOfKind will process the specified reconcile request for the specified deployment.
 // The previous state being reconciled can be obtained from the storage parameter.
-func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	result := reconcile.Result{}
 
 	if !storage.IsJob(request) {
@@ -165,7 +165,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 	return result, nil
 }
 
-func (in *ReconcileJob) createJob(ctx context.Context, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceResource, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Creating Job")
 
 	ok, reason := in.CanCreate(ctx, deployment)
@@ -182,7 +182,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment *coh.Coherence
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
 	}
 
-	err := in.Create(ctx, deployment.Name, storage, logger)
+	err := in.Create(ctx, deployment.GetName(), storage, logger)
 	if err == nil {
 		// ensure that the deployment has a Created status
 		err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
@@ -191,7 +191,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment *coh.Coherence
 		}
 
 		// send a successful creation event
-		msg := fmt.Sprintf(CreateMessage, deployment.Name)
+		msg := fmt.Sprintf(CreateMessage, deployment.GetName())
 		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, reconciler.EventReasonCreated, msg)
 	}
 
@@ -199,7 +199,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment *coh.Coherence
 	return reconcile.Result{}, err
 }
 
-func (in *ReconcileJob) updateJob(ctx context.Context, deployment *coh.Coherence, current *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceResource, current *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Updating job")
 
 	// get the desired resource state from the store
@@ -220,7 +220,7 @@ func (in *ReconcileJob) updateJob(ctx context.Context, deployment *coh.Coherence
 }
 
 // Patch the Job if required, returning a bool to indicate whether a patch was applied.
-func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence, current, desired *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceResource, current, desired *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeJob, current.GetName())
 	original := &batchv1.Job{}
@@ -228,7 +228,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 	if resource.IsPresent() {
 		err := resource.As(original)
 		if err != nil {
-			return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)
+			return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 		}
 	} else {
 		// there was no previous
@@ -271,7 +271,8 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 
 	// ensure the Coherence image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
-	if deployment.Spec.Image == nil {
+	spec := deployment.GetSpec()
+	if spec.Image == nil {
 		cohImage := in.GetCoherenceImage(&desiredPodSpec)
 		in.SetCoherenceImage(&originalPodSpec, cohImage)
 		in.SetCoherenceImage(&currentPodSpec, cohImage)
@@ -279,7 +280,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 
 	// ensure the Operator image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
-	if deployment.Spec.CoherenceUtils == nil || deployment.Spec.CoherenceUtils.Image == nil {
+	if spec.CoherenceUtils == nil || spec.CoherenceUtils.Image == nil {
 		operatorImage := in.GetOperatorImage(&desiredPodSpec)
 		in.SetOperatorImage(&originalPodSpec, operatorImage)
 		in.SetOperatorImage(&currentPodSpec, operatorImage)
@@ -316,7 +317,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment *coh.Coherence,
 	switch {
 	case err != nil:
 		logger.Info("Error patching Job " + err.Error())
-		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)
+		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 	case !patched:
 		return reconcile.Result{Requeue: true}, nil
 	}

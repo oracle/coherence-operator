@@ -19,10 +19,12 @@ func TestServerWithPersistenceMode(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode: pointer.String("active"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode: pointer.String("active"),
+					},
 				},
 			},
 		},

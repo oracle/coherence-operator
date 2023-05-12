@@ -19,38 +19,39 @@ import (
 	"testing"
 )
 
-func TestDefaultReplicasIsSet(t *testing.T) {
+func TestJobDefaultReplicasIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
-	g.Expect(c.Spec.CoherenceResourceSpec.Replicas).NotTo(BeNil())
-	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
+	g.Expect(c.Spec.Replicas).NotTo(BeNil())
+	g.Expect(*c.Spec.Replicas).To(Equal(coh.DefaultJobReplicas))
 }
 
-func TestAddVersionAnnotation(t *testing.T) {
+func TestJobAddVersionAnnotation(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
-	an := c.GetAnnotations()
-	g.Expect(an).NotTo(BeNil())
-	g.Expect(an[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
-	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
+	g.Expect(c.Annotations).NotTo(BeNil())
+	g.Expect(c.Annotations[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
+	g.Expect(c.Spec).NotTo(BeNil())
+	replicas := c.Spec.CoherenceResourceSpec.Replicas
+	g.Expect(*replicas).To(Equal(coh.DefaultJobReplicas))
 }
 
-func TestShouldAddFinalizer(t *testing.T) {
+func TestJobShouldAddFinalizer(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(1))
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
 }
 
-func TestShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
+func TestJobShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c := coh.Coherence{
+	c := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       "foo",
 			Finalizers: []string{coh.CoherenceFinalizer},
@@ -62,9 +63,9 @@ func TestShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
 }
 
-func TestShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
+func TestJobShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c := coh.Coherence{
+	c := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       "foo",
 			Finalizers: []string{"foo", "bar"},
@@ -78,12 +79,12 @@ func TestShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
 }
 
-func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
+func TestJobDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	var replicas int32 = 19
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	c := coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: &replicas,
 			},
@@ -94,22 +95,22 @@ func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g.Expect(*c.Spec.Replicas).To(Equal(replicas))
 }
 
-func TestCoherenceLocalPortIsSet(t *testing.T) {
+func TestJobCoherenceLocalPortIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(coh.DefaultUnicastPort))
 }
 
-func TestCoherenceLocalPortIsNotOverridden(t *testing.T) {
+func TestJobCoherenceLocalPortIsNotOverridden(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	var port int32 = 1234
 
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	c := coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					LocalPort: int32Ptr(port),
@@ -122,31 +123,33 @@ func TestCoherenceLocalPortIsNotOverridden(t *testing.T) {
 	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(port))
 }
 
-func TestCoherenceLocalPortIsNotSetOnUpdate(t *testing.T) {
+func TestJobCoherenceLocalPortIsNotSetOnUpdate(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Status.Phase = coh.ConditionTypeReady
 	c.Default()
-	g.Expect(c.Spec.Coherence).To(BeNil())
+	g.Expect(c.Spec.Coherence).NotTo(BeNil())
+	g.Expect(c.Spec.Coherence.LocalPort).To(BeNil())
+	g.Expect(c.Spec.Coherence.LocalPortAdjust).To(BeNil())
 }
 
-func TestCoherenceLocalPortAdjustIsSet(t *testing.T) {
+func TestJobCoherenceLocalPortAdjustIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	lpa := intstr.FromInt(int(coh.DefaultUnicastPortAdjust))
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
-	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
+	g.Expect(*c.Spec.CoherenceResourceSpec.Coherence.LocalPortAdjust).To(Equal(lpa))
 }
 
-func TestCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
+func TestJobCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	lpa := intstr.FromInt(9876)
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	c := coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					LocalPortAdjust: &lpa,
@@ -159,33 +162,34 @@ func TestCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
 	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
 }
 
-func TestCoherenceLocalPortAdjustIsNotSetOnUpdate(t *testing.T) {
+func TestJobCoherenceLocalPortAdjustIsNotSetOnUpdate(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Status.Phase = coh.ConditionTypeReady
 	c.Default()
-	g.Expect(c.Spec.Coherence).To(BeNil())
+	g.Expect(c.Spec.Coherence).NotTo(BeNil())
+	g.Expect(c.Spec.Coherence.LocalPortAdjust).To(BeNil())
 }
 
-func TestCoherenceImageIsSet(t *testing.T) {
+func TestJobCoherenceImageIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	viper.Set(operator.FlagCoherenceImage, "foo")
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
 	g.Expect(c.Spec.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.Image).To(Equal("foo"))
 }
 
-func TestCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
+func TestJobCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	viper.Set(operator.FlagCoherenceImage, "foo")
 	image := "bar"
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	c := coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Image: &image,
 			},
@@ -197,25 +201,25 @@ func TestCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g.Expect(*c.Spec.Image).To(Equal(image))
 }
 
-func TestUtilsImageIsSet(t *testing.T) {
+func TestJobUtilsImageIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	viper.Set(operator.FlagOperatorImage, "foo")
 
-	c := coh.Coherence{}
+	c := coh.CoherenceJob{}
 	c.Default()
 	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
 	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal("foo"))
 }
 
-func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
+func TestJobUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	viper.Set(operator.FlagOperatorImage, "foo")
 	image := "bar"
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	c := coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				CoherenceUtils: &coh.ImageSpec{
 					Image: &image,
@@ -230,12 +234,12 @@ func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal(image))
 }
 
-func TestPersistenceModeChangeNotAllowed(t *testing.T) {
+func TestJobPersistenceModeChangeNotAllowed(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	cm := "on-demand"
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
@@ -252,8 +256,8 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 	}
 
 	pm := "active"
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
@@ -273,12 +277,12 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
-func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
+func TestJobPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	cm := "on-demand"
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: int32Ptr(0),
 				Coherence: &coh.CoherenceSpec{
@@ -296,8 +300,8 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 	}
 
 	pm := "active"
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
@@ -317,12 +321,12 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
+func TestJobPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	cm := "on-demand"
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
@@ -339,8 +343,8 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 	}
 
 	pm := "active"
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: int32Ptr(0),
 				Coherence: &coh.CoherenceSpec{
@@ -361,12 +365,12 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
+func TestJobPersistenceVolumeChangeNotAllowed(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	cm := "on-demand"
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
@@ -388,8 +392,8 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 	}
 
 	pm := "active"
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
@@ -414,22 +418,22 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
-func TestValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
+func TestJobValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
+func TestJobValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: pointer.Int32(19),
 			},
@@ -440,11 +444,11 @@ func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
+func TestJobValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: pointer.Int32(19),
 			},
@@ -455,12 +459,12 @@ func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
+func TestJobValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: pointer.Int32(-1),
 			},
@@ -471,169 +475,102 @@ func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
-func TestValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
+func TestJobValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
+func TestJobValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: pointer.Int32(19),
 			},
 		},
 	}
 
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
+func TestJobValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+	current := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: pointer.Int32(19),
 			},
 		},
 	}
 
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
+func TestJobValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Replicas: pointer.Int32(-1),
 			},
 		},
 	}
 
-	prev := &coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	prev := &coh.CoherenceJob{
+		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
-func TestValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
+func TestJobValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
+		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	prev := &coh.Coherence{
+	prev := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
+		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
+func TestJobValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			VolumeClaimTemplates: []coh.PersistentVolumeClaim{},
-		},
-	}
-
-	prev := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
-	}
-
-	err := current.ValidateUpdate(prev)
-	g.Expect(err).NotTo(HaveOccurred())
-}
-
-func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	current := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			VolumeClaimTemplates: []coh.PersistentVolumeClaim{
-				{
-					Metadata: coh.PersistentVolumeClaimObjectMeta{Name: "foo"},
-					Spec:     corev1.PersistentVolumeClaimSpec{},
-				},
-			},
-		},
-	}
-
-	prev := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
-	}
-
-	err := current.ValidateUpdate(prev)
-	g.Expect(err).To(HaveOccurred())
-}
-
-func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	current := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
-	}
-
-	prev := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			VolumeClaimTemplates: []coh.PersistentVolumeClaim{
-				{
-					Metadata: coh.PersistentVolumeClaimObjectMeta{Name: "foo"},
-					Spec:     corev1.PersistentVolumeClaimSpec{},
-				},
-			},
-		},
-	}
-
-	err := current.ValidateUpdate(prev)
-	g.Expect(err).To(HaveOccurred())
-}
-
-func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	current := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Ports: []coh.NamedPortSpec{
 					{
@@ -655,12 +592,12 @@ func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
+func TestJobValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Ports: []coh.NamedPortSpec{
 					{
@@ -687,12 +624,12 @@ func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
-func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
+func TestJobValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Ports: []coh.NamedPortSpec{
 					{
@@ -710,21 +647,21 @@ func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 		},
 	}
 
-	prev := &coh.Coherence{
+	prev := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
+		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
+func TestJobValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	current := &coh.Coherence{
+	current := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
+		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Ports: []coh.NamedPortSpec{
 					{
@@ -747,9 +684,9 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		},
 	}
 
-	prev := &coh.Coherence{
+	prev := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceStatefulSetResourceSpec{},
+		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)

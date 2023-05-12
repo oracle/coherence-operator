@@ -122,9 +122,11 @@ func TestCreateResourcesDeploymentNotInWKA(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				ExcludeFromWKA: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					ExcludeFromWKA: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -179,11 +181,13 @@ func TestCreateResourcesDeploymentWithExistingWKA(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				WKA: &coh.CoherenceWKASpec{
-					Deployment: "foo",
-					Namespace:  "",
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					WKA: &coh.CoherenceWKASpec{
+						Deployment: "foo",
+						Namespace:  "",
+					},
 				},
 			},
 		},
@@ -234,8 +238,10 @@ func TestCreateResourcesForDeploymentWithReplicaCount(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(5),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(5),
+			},
 		},
 	}
 
@@ -263,8 +269,10 @@ func TestCreateResourcesForDeploymentWithClusterName(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Cluster: &clusterName,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Cluster: &clusterName,
+			},
 		},
 	}
 
@@ -306,8 +314,10 @@ func TestCreateResourcesForDeploymentWithHealthPort(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			HealthPort: pointer.Int32(int32(health)),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				HealthPort: pointer.Int32(int32(health)),
+			},
 		},
 	}
 

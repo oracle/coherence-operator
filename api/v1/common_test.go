@@ -233,7 +233,7 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 }
 
 // Create the expected default Job for a spec with nothing but the minimal fields set.
-func createMinimalExpectedJob(deployment *coh.Coherence) *batchv1.Job {
+func createMinimalExpectedJob(deployment *coh.CoherenceJob) *batchv1.Job {
 	spec := deployment.Spec
 	labels := deployment.CreateCommonLabels()
 	labels[coh.LabelComponent] = coh.LabelComponentCoherenceStatefulSet
@@ -257,8 +257,8 @@ func createMinimalExpectedJob(deployment *coh.Coherence) *batchv1.Job {
 }
 
 // Create the expected default PodTemplateSpec for a spec with nothing but the minimal fields set.
-func createMinimalExpectedPodSpec(deployment *coh.Coherence) corev1.PodTemplateSpec {
-	spec := deployment.Spec
+func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTemplateSpec {
+	spec := deployment.GetSpec()
 	podLabels := deployment.CreateCommonLabels()
 	podLabels[coh.LabelComponent] = coh.LabelComponentCoherencePod
 	podLabels[coh.LabelCoherenceWKAMember] = "true"
@@ -301,7 +301,7 @@ func createMinimalExpectedPodSpec(deployment *coh.Coherence) corev1.PodTemplateS
 		Env: []corev1.EnvVar{
 			{
 				Name:  "COH_CLUSTER_NAME",
-				Value: deployment.Name,
+				Value: deployment.GetName(),
 			},
 			{
 				Name:  "COH_HEALTH_PORT",
@@ -396,7 +396,7 @@ func createMinimalExpectedPodSpec(deployment *coh.Coherence) corev1.PodTemplateS
 		Env: []corev1.EnvVar{
 			{
 				Name:  "COH_CLUSTER_NAME",
-				Value: deployment.Name,
+				Value: deployment.GetName(),
 			},
 			{
 				Name:  "COH_UTIL_DIR",
@@ -631,7 +631,30 @@ func addPortsToContainer(c *corev1.Container, ports ...corev1.ContainerPort) {
 }
 
 func createTestDeployment(spec coh.CoherenceResourceSpec) *coh.Coherence {
+	s := coh.CoherenceStatefulSetResourceSpec{
+		CoherenceResourceSpec: spec,
+	}
+	return createTestCoherenceDeployment(s)
+}
+
+func createTestCoherenceDeployment(spec coh.CoherenceStatefulSetResourceSpec) *coh.Coherence {
 	return &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-deployment",
+		},
+		Spec: spec,
+	}
+}
+
+func createTestCoherenceJob(spec coh.CoherenceResourceSpec) *coh.CoherenceJob {
+	s := coh.CoherenceJobResourceSpec{
+		CoherenceResourceSpec: spec,
+	}
+	return createTestCoherenceJobDeployment(s)
+}
+
+func createTestCoherenceJobDeployment(spec coh.CoherenceJobResourceSpec) *coh.CoherenceJob {
+	return &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-deployment",
 		},
@@ -647,7 +670,7 @@ func assertStatefulSetCreation(t *testing.T, deployment *coh.Coherence, stsExpec
 	assertStatefulSet(t, res, stsExpected)
 }
 
-func assertJobCreation(t *testing.T, deployment *coh.Coherence, jobExpected *batchv1.Job) {
+func assertJobCreation(t *testing.T, deployment *coh.CoherenceJob, jobExpected *batchv1.Job) {
 	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
 	viper.Set(operator.FlagOperatorImage, testOperatorImage)
 
@@ -660,7 +683,7 @@ func assertResourceCreation(t *testing.T, deployment *coh.Coherence) coh.Resourc
 	viper.Set(operator.FlagCoherenceImage, testCoherenceImage)
 	viper.Set(operator.FlagOperatorImage, testOperatorImage)
 
-	res, err := deployment.Spec.CreateKubernetesResources(deployment)
+	res, err := deployment.CreateKubernetesResources()
 	g.Expect(err).NotTo(HaveOccurred())
 	return res
 }

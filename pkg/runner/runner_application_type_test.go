@@ -19,9 +19,11 @@ func TestApplicationTypeNone(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeNone),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeNone),
+				},
 			},
 		},
 	}
@@ -47,10 +49,12 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeNone),
-				Main: pointer.String("com.foo.Bar"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeNone),
+					Main: pointer.String("com.foo.Bar"),
+				},
 			},
 		},
 	}
@@ -76,9 +80,11 @@ func TestApplicationTypeCoherence(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeCoherence),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeCoherence),
+				},
 			},
 		},
 	}
@@ -104,10 +110,12 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeCoherence),
-				Main: pointer.String("com.foo.Bar"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeCoherence),
+					Main: pointer.String("com.foo.Bar"),
+				},
 			},
 		},
 	}
@@ -133,9 +141,11 @@ func TestApplicationTypeJava(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeJava),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeJava),
+				},
 			},
 		},
 	}
@@ -161,10 +171,12 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeJava),
-				Main: pointer.String("com.foo.Bar"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeJava),
+					Main: pointer.String("com.foo.Bar"),
+				},
 			},
 		},
 	}
@@ -190,9 +202,11 @@ func TestApplicationTypeHelidon(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeHelidon),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeHelidon),
+				},
 			},
 		},
 	}
@@ -218,10 +232,12 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeHelidon),
-				Main: pointer.String("com.foo.Bar"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeHelidon),
+					Main: pointer.String("com.foo.Bar"),
+				},
 			},
 		},
 	}

@@ -22,9 +22,11 @@ func TestJibClasspath(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					UseJibClasspath: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -50,9 +52,11 @@ func TestJibClasspathFile(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					UseJibClasspath: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -80,9 +84,11 @@ func TestJibMainClassFile(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					UseJibClasspath: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -110,9 +116,11 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				UseJibClasspath: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					UseJibClasspath: pointer.Bool(true),
+				},
 			},
 		},
 	}

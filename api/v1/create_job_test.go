@@ -14,11 +14,9 @@ import (
 
 func TestCreateJobFromMinimalRoleSpec(t *testing.T) {
 	// Create minimal spec spec
-	spec := coh.CoherenceResourceSpec{
-		RunAsJob: pointer.Bool(true),
-	}
+	spec := coh.CoherenceResourceSpec{}
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)
 	// assert that the Job is as expected
@@ -29,11 +27,10 @@ func TestCreateJobWithReplicas(t *testing.T) {
 	// Create minimal spec spec
 	spec := coh.CoherenceResourceSpec{
 		Replicas: pointer.Int32(19),
-		RunAsJob: pointer.Bool(true),
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceJob(spec)
 
 	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)
@@ -45,16 +42,15 @@ func TestCreateJobWithReplicas(t *testing.T) {
 
 func TestCreateJobWithReplicasAndCompletions(t *testing.T) {
 	// Create minimal spec spec
-	spec := coh.CoherenceResourceSpec{
-		Replicas: pointer.Int32(19),
-		RunAsJob: pointer.Bool(true),
-		JobSpec: &coh.CoherenceJob{
-			Completions: pointer.Int32(21),
+	spec := coh.CoherenceJobResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32(19),
 		},
+		Completions: pointer.Int32(21),
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceJobDeployment(spec)
 
 	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)
@@ -67,16 +63,15 @@ func TestCreateJobWithReplicasAndCompletions(t *testing.T) {
 
 func TestCreateJobWithReplicasAndSyncedCompletions(t *testing.T) {
 	// Create minimal spec spec
-	spec := coh.CoherenceResourceSpec{
-		Replicas: pointer.Int32(19),
-		RunAsJob: pointer.Bool(true),
-		JobSpec: &coh.CoherenceJob{
-			SyncCompletionsToReplicas: pointer.Bool(true),
+	spec := coh.CoherenceJobResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32(19),
 		},
+		SyncCompletionsToReplicas: pointer.Bool(true),
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceJobDeployment(spec)
 
 	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)
@@ -89,17 +84,16 @@ func TestCreateJobWithReplicasAndSyncedCompletions(t *testing.T) {
 
 func TestCreateJobWithReplicasAndSyncedCompletionsOverride(t *testing.T) {
 	// Create minimal spec spec
-	spec := coh.CoherenceResourceSpec{
-		Replicas: pointer.Int32(19),
-		RunAsJob: pointer.Bool(true),
-		JobSpec: &coh.CoherenceJob{
-			Completions:               pointer.Int32(21),
-			SyncCompletionsToReplicas: pointer.Bool(true),
+	spec := coh.CoherenceJobResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Replicas: pointer.Int32(19),
 		},
+		Completions:               pointer.Int32(21),
+		SyncCompletionsToReplicas: pointer.Bool(true),
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceJobDeployment(spec)
 
 	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)

@@ -21,9 +21,11 @@ func TestApplicationArgsEmpty(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Args: []string{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Args: []string{},
+				},
 			},
 		},
 	}
@@ -49,9 +51,11 @@ func TestApplicationArgs(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Args: []string{"Foo", "Bar"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Args: []string{"Foo", "Bar"},
+				},
 			},
 		},
 	}
@@ -77,13 +81,15 @@ func TestApplicationArgsWithEnvVarExpansion(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Args: []string{"${FOO}", "$BAR"},
-			},
-			Env: []corev1.EnvVar{
-				{Name: "FOO", Value: "foo-value"},
-				{Name: "BAR", Value: "bar-value"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Args: []string{"${FOO}", "$BAR"},
+				},
+				Env: []corev1.EnvVar{
+					{Name: "FOO", Value: "foo-value"},
+					{Name: "BAR", Value: "bar-value"},
+				},
 			},
 		},
 	}
@@ -109,9 +115,11 @@ func TestApplicationMain(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Main: pointer.String("com.oracle.test.Main"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Main: pointer.String("com.oracle.test.Main"),
+				},
 			},
 		},
 	}
@@ -140,9 +148,11 @@ func TestApplicationWorkingDirectory(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				WorkingDir: &wd,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					WorkingDir: &wd,
+				},
 			},
 		},
 	}

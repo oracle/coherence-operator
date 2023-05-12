@@ -11,8 +11,6 @@ import (
 	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -47,56 +45,60 @@ var _ webhook.Defaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (in *Coherence) Default() {
-	if in.IsRunAsJob() {
-		in.SetJobDefaults()
+	spec := in.GetStatefulSetSpec()
+	// set the default replicas if not present
+	if spec.Replicas == nil {
+		spec.SetReplicas(spec.GetReplicas())
 	}
-	in.SetCommonDefaults()
+	SetCommonDefaults(in)
 }
 
 // SetCommonDefaults sets defaults common to both a Job and StatefulSet
-func (in *Coherence) SetCommonDefaults() {
-	logger := webhookLogger.WithValues("namespace", in.Namespace, "name", in.Name)
-	if in.Status.Phase == "" {
+func SetCommonDefaults(in CoherenceResource) {
+	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
+	status := in.GetStatus()
+	spec := in.GetSpec()
+	if status.Phase == "" {
 		logger.Info("Setting defaults for new resource")
-		// ensure the operator finalizer is present
-		if in.Spec.AllowUnsafeDelete != nil && *in.Spec.AllowUnsafeDelete {
-			if controllerutil.ContainsFinalizer(in, CoherenceFinalizer) {
-				controllerutil.RemoveFinalizer(in, CoherenceFinalizer)
-				logger.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
-			} else {
-				logger.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
-			}
-		} else {
-			controllerutil.AddFinalizer(in, CoherenceFinalizer)
-		}
 
-		// set the default replicas if not present
-		if in.Spec.Replicas == nil {
-			in.Spec.SetReplicas(in.Spec.GetReplicas())
+		if in.GetType() == CoherenceTypeStatefulSet {
+			var s interface{} = *spec
+			stsSpec := s.(CoherenceStatefulSetResourceSpec)
+			// ensure the operator finalizer is present
+			if stsSpec.AllowUnsafeDelete != nil && *stsSpec.AllowUnsafeDelete {
+				if controllerutil.ContainsFinalizer(in, CoherenceFinalizer) {
+					controllerutil.RemoveFinalizer(in, CoherenceFinalizer)
+					logger.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
+				} else {
+					logger.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
+				}
+			} else {
+				controllerutil.AddFinalizer(in, CoherenceFinalizer)
+			}
 		}
 
 		// set the default Coherence local port and local port adjust if not present
-		if in.Spec.Coherence == nil {
+		if spec.Coherence == nil {
 			lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
-			in.Spec.Coherence = &CoherenceSpec{
+			spec.Coherence = &CoherenceSpec{
 				LocalPort:       pointer.Int32(DefaultUnicastPort),
 				LocalPortAdjust: &lpa,
 			}
 		} else {
-			if in.Spec.Coherence.LocalPort == nil {
-				in.Spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
+			if spec.Coherence.LocalPort == nil {
+				spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
 			}
-			if in.Spec.Coherence.LocalPort == nil {
+			if spec.Coherence.LocalPortAdjust == nil {
 				lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
-				in.Spec.Coherence.LocalPortAdjust = &lpa
+				spec.Coherence.LocalPortAdjust = &lpa
 			}
 		}
 
 		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
-		in.Spec.EnsureCoherenceImage(&coherenceImage)
+		spec.EnsureCoherenceImage(&coherenceImage)
 		operatorImage := operator.GetDefaultOperatorImage()
-		in.Spec.EnsureCoherenceOperatorImage(&operatorImage)
+		spec.EnsureCoherenceOperatorImage(&operatorImage)
 
 		// Set the features supported by this version
 		in.AddAnnotation(AnnotationFeatureSuspend, "true")
@@ -115,34 +117,6 @@ func (in *Coherence) SetCommonDefaults() {
 	}
 }
 
-// SetJobDefaults sets defaults for Jobs
-func (in *Coherence) SetJobDefaults() {
-	coherenceSpec := in.Spec.Coherence
-	if in.Spec.Coherence == nil {
-		coherenceSpec = &CoherenceSpec{}
-		in.Spec.Coherence = coherenceSpec
-	}
-
-	// default to storage disabled to false
-	if coherenceSpec.StorageEnabled == nil {
-		coherenceSpec.StorageEnabled = pointer.Bool(false)
-	}
-
-	// default the restart policy to never
-	if in.Spec.RestartPolicy == nil {
-		in.Spec.RestartPolicy = in.Spec.RestartPolicyPointer(corev1.RestartPolicyNever)
-	}
-}
-
-func (in *Coherence) AddAnnotation(key, value string) {
-	if in != nil {
-		if in.Annotations == nil {
-			in.Annotations = make(map[string]string)
-		}
-		in.Annotations[key] = value
-	}
-}
-
 // The path in this annotation MUST match the const below
 // +kubebuilder:webhook:verbs=create;update,path=/validate-coherence-oracle-com-v1-coherence,mutating=false,failurePolicy=fail,groups=coherence.oracle.com,resources=coherence,versions=v1,name=vcoherence.kb.io
 
@@ -152,65 +126,45 @@ const ValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherence"
 // An anonymous var to ensure that the Coherence struct implements webhook.Validator
 // there will be a compile time error here if this fails.
 var _ webhook.Validator = &Coherence{}
+var commonWebHook = CommonWebHook{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateCreate() error {
 	var err error
 	webhookLogger.Info("validate create", "name", in.Name)
-	err = in.validateReplicas()
+	err = commonWebHook.validateReplicas(in)
 	if err != nil {
 		return err
 	}
-	err = in.validateNodePorts()
-	if in.IsRunAsJob() {
-		errorList := in.validateJob()
-		if len(errorList) > 0 {
-			err = fmt.Errorf("rejecting update as it would have resulted in an invalid Job: %v", errorList)
-		}
-	}
+	err = commonWebHook.validateNodePorts(in)
 	return err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	webhookLogger.Info("validate update", "name", in.Name)
-	if err := in.validateReplicas(); err != nil {
+	if err := commonWebHook.validateReplicas(in); err != nil {
 		return err
 	}
 	prev := previous.(*Coherence)
 
-	if err := in.validatePersistence(prev); err != nil {
+	if err := commonWebHook.validatePersistence(in, prev); err != nil {
 		return err
 	}
 	if err := in.validateVolumeClaimTemplates(prev); err != nil {
 		return err
 	}
-	if err := in.validateNodePorts(); err != nil {
+	if err := commonWebHook.validateNodePorts(in); err != nil {
 		return err
 	}
 
-	if in.Spec.IsRunAsJob() != prev.Spec.IsRunAsJob() {
-		if prev.Spec.IsRunAsJob() {
-			return fmt.Errorf("rejecting update as the previous deployment was a Job and cannot be converted to a StatefulSet")
-		}
-		return fmt.Errorf("rejecting update as the previous deployment was a StatefulSet and cannot be converted to a Job")
-	}
-
 	var errorList field.ErrorList
-	var deploymentType string
-
-	if in.IsRunAsJob() {
-		errorList = in.validateJob()
-		deploymentType = "Job"
-	} else {
-		deploymentType = "StatefulSet"
-		sts := in.Spec.CreateStatefulSet(in)
-		stsOld := prev.Spec.CreateStatefulSet(prev)
-		errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
-	}
+	sts := in.Spec.CreateStatefulSet(in)
+	stsOld := prev.Spec.CreateStatefulSet(prev)
+	errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
 
 	if len(errorList) > 0 {
-		return fmt.Errorf("rejecting update as it would have resulted in an invalid %s: %v", deploymentType, errorList)
+		return fmt.Errorf("rejecting update as it would have resulted in an invalid StatefulSet: %v", errorList)
 	}
 
 	return nil
@@ -219,60 +173,6 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateDelete() error {
 	// we do not need to validate deletions
-	return nil
-}
-
-// validateReplicas validates that spec.replicas >= 0
-func (in *Coherence) validateJob() field.ErrorList {
-	if in == nil {
-		return nil
-	}
-
-	var errorList field.ErrorList
-
-	spec := in.Spec
-	if spec.IsRunAsJob() {
-		if spec.Cluster == nil {
-			errorList = append(errorList, field.Forbidden(field.NewPath("spec.cluster"),
-				fmt.Sprintf("the Coherence resource \"%s\" is invalid: the cluster field is required when the runAsJob field is set to true", in.Name)))
-		}
-
-		if spec.VolumeClaimTemplates != nil {
-			errorList = append(errorList, field.Forbidden(field.NewPath("spec.volumeClaimTemplates"),
-				fmt.Sprintf("the Coherence resource \"%s\" is invalid: volumeClaimTemplates cannot be specified when the runAsJob field is set to true", in.Name)))
-		}
-
-		if spec.Actions != nil {
-			errorList = append(errorList, field.Forbidden(field.NewPath("spec.actions"),
-				fmt.Sprintf("the Coherence resource \"%s\" is invalid: actions cannot be specified when the runAsJob field is set to true", in.Name)))
-		}
-	}
-
-	return errorList
-}
-
-// validateReplicas validates that spec.replicas >= 0
-func (in *Coherence) validateReplicas() error {
-	replicas := in.GetReplicas()
-	if replicas < 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: "+
-			"must be greater than or equal to 0", in.Name, replicas)
-	}
-	return nil
-}
-
-func (in *Coherence) validatePersistence(previous *Coherence) error {
-	if in.GetReplicas() == 0 || previous.GetReplicas() == 0 {
-		// changes are allowed if current or previous replicas == 0
-		return nil
-	}
-
-	diff := deep.Equal(previous.Spec.GetCoherencePersistence(), in.Spec.GetCoherencePersistence())
-	if len(diff) != 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
-			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous"+
-			" instance of the resource has spec.replicas == 0", in.Name)
-	}
 	return nil
 }
 
@@ -296,10 +196,42 @@ func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {
 	return nil
 }
 
-func (in *Coherence) validateNodePorts() error {
-	var badPorts []string
+// ----- Common Validator ---------------------------------------------------
 
-	for _, port := range in.Spec.Ports {
+type CommonWebHook struct {
+}
+
+// validateReplicas validates that spec.replicas >= 0
+func (in *CommonWebHook) validateReplicas(c CoherenceResource) error {
+	replicas := c.GetReplicas()
+	if replicas < 0 {
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: "+
+			"must be greater than or equal to 0", c.GetName(), replicas)
+	}
+	return nil
+}
+
+func (in *CommonWebHook) validatePersistence(current, previous CoherenceResource) error {
+	if current.GetReplicas() == 0 || previous.GetReplicas() == 0 {
+		// changes are allowed if current or previous replicas == 0
+		return nil
+	}
+
+	currentSpec := current.GetSpec()
+	previousSpec := previous.GetSpec()
+	diff := deep.Equal(previousSpec.GetCoherencePersistence(), currentSpec.GetCoherencePersistence())
+	if len(diff) != 0 {
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
+			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous"+
+			" instance of the resource has spec.replicas == 0", current.GetName())
+	}
+	return nil
+}
+
+func (in *CommonWebHook) validateNodePorts(current CoherenceResource) error {
+	var badPorts []string
+	spec := current.GetSpec()
+	for _, port := range spec.Ports {
 		if port.NodePort != nil {
 			p := *port.NodePort
 			if p < 30000 || p > 32767 {
@@ -332,26 +264,5 @@ func ValidateStatefulSetUpdate(statefulSet, oldStatefulSet *appsv1.StatefulSet) 
 		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec"), "updates to statefulset spec for fields other than 'replicas', 'template', 'updateStrategy', 'persistentVolumeClaimRetentionPolicy' and 'minReadySeconds' are forbidden"))
 	}
 
-	return allErrs
-}
-
-// ValidateJobUpdate tests if required fields in the Job are set.
-func ValidateJobUpdate(job, oldJob *batchv1.Job) field.ErrorList {
-	var allErrs field.ErrorList
-
-	newJobClone := job.DeepCopy()
-	newJobClone.Spec.ActiveDeadlineSeconds = oldJob.Spec.ActiveDeadlineSeconds     // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.BackoffLimit = oldJob.Spec.BackoffLimit                       // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.CompletionMode = oldJob.Spec.CompletionMode                   // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.Parallelism = oldJob.Spec.Parallelism                         // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.Suspend = oldJob.Spec.Suspend                                 // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.Template = oldJob.Spec.Template                               // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.TTLSecondsAfterFinished = oldJob.Spec.TTLSecondsAfterFinished // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.PodFailurePolicy = oldJob.Spec.PodFailurePolicy               // +k8s:verify-mutation:reason=clone
-	newJobClone.Spec.Completions = oldJob.Spec.Completions                         // +k8s:verify-mutation:reason=clone
-
-	if !apiequality.Semantic.DeepEqual(newJobClone.Spec, oldJob.Spec) {
-		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec"), "updates to Job spec for fields 'selector', 'manualSelector', are forbidden"))
-	}
 	return allErrs
 }

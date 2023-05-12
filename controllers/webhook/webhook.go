@@ -57,7 +57,7 @@ func (k *HookInstaller) uninstallWebHook() error {
 	log.Info("Uninstall webhook resources")
 
 	// We only clean up cert-manager resource here.
-	// We specifically DO NOT clean-up the web-hook resources because we do not
+	// We specifically DO NOT clean up the web-hook resources because we do not
 	// want mutations of Coherence resources to go through whilst the operator is not
 	// running as these may result in invalid configurations.
 

@@ -20,8 +20,10 @@ func TestCoherenceClusterName(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Cluster: pointer.String("test-cluster"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Cluster: pointer.String("test-cluster"),
+			},
 		},
 	}
 
@@ -47,9 +49,11 @@ func TestCoherenceCacheConfig(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				CacheConfig: pointer.String("test-config.xml"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					CacheConfig: pointer.String("test-config.xml"),
+				},
 			},
 		},
 	}
@@ -76,9 +80,11 @@ func TestCoherenceOperationalConfig(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				OverrideConfig: pointer.String("test-override.xml"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					OverrideConfig: pointer.String("test-override.xml"),
+				},
 			},
 		},
 	}
@@ -105,9 +111,11 @@ func TestCoherenceStorageEnabledTrue(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				StorageEnabled: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					StorageEnabled: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -134,9 +142,11 @@ func TestCoherenceStorageEnabledFalse(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				StorageEnabled: pointer.Bool(false),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					StorageEnabled: pointer.Bool(false),
+				},
 			},
 		},
 	}
@@ -163,9 +173,11 @@ func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				ExcludeFromWKA: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					ExcludeFromWKA: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -191,9 +203,11 @@ func TestCoherenceLogLevel(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				LogLevel: pointer.Int32(9),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					LogLevel: pointer.Int32(9),
+				},
 			},
 		},
 	}
@@ -221,9 +235,11 @@ func TestCoherenceTracingRatio(t *testing.T) {
 	ratio := resource.MustParse("0.01234")
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Tracing: &coh.CoherenceTracingSpec{Ratio: &ratio},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Tracing: &coh.CoherenceTracingSpec{Ratio: &ratio},
+				},
 			},
 		},
 	}
@@ -249,9 +265,11 @@ func TestCoherenceAllowEndangeredEmptyList(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				AllowEndangeredForStatusHA: []string{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					AllowEndangeredForStatusHA: []string{},
+				},
 			},
 		},
 	}
@@ -277,9 +295,11 @@ func TestCoherenceAllowEndangered(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				AllowEndangeredForStatusHA: []string{"foo", "bar"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					AllowEndangeredForStatusHA: []string{"foo", "bar"},
+				},
 			},
 		},
 	}
@@ -305,11 +325,13 @@ func TestCoherenceExistingWKADeploymentSameNamespace(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				WKA: &coh.CoherenceWKASpec{
-					Deployment: "data",
-					Namespace:  "foo",
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					WKA: &coh.CoherenceWKASpec{
+						Deployment: "data",
+						Namespace:  "foo",
+					},
 				},
 			},
 		},
@@ -337,11 +359,13 @@ func TestCoherenceExistingWKADeploymentDifferentNamespace(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				WKA: &coh.CoherenceWKASpec{
-					Deployment: "data",
-					Namespace:  "back-end",
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					WKA: &coh.CoherenceWKASpec{
+						Deployment: "data",
+						Namespace:  "back-end",
+					},
 				},
 			},
 		},
@@ -369,9 +393,11 @@ func TestCoherenceEnableIpMonitor(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				EnableIPMonitor: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					EnableIPMonitor: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -397,9 +423,11 @@ func TestCoherenceDisableIpMonitor(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				EnableIPMonitor: pointer.Bool(false),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					EnableIPMonitor: pointer.Bool(false),
+				},
 			},
 		},
 	}
@@ -425,9 +453,11 @@ func TestCoherenceDefaultIpMonitor(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				EnableIPMonitor: nil,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					EnableIPMonitor: nil,
+				},
 			},
 		},
 	}

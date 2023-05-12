@@ -267,18 +267,19 @@ func (in *CommonReconciler) UpdateDeploymentStatusActionsState(ctx context.Conte
 }
 
 // CanCreate determines whether any specified start quorum has been met.
-func (in *CommonReconciler) CanCreate(ctx context.Context, deployment *coh.Coherence) (bool, string) {
-	if deployment.Spec.StartQuorum == nil || len(deployment.Spec.StartQuorum) == 0 {
+func (in *CommonReconciler) CanCreate(ctx context.Context, deployment coh.CoherenceResource) (bool, string) {
+	spec := deployment.GetSpec()
+	if spec.StartQuorum == nil || len(spec.StartQuorum) == 0 {
 		// there is no start quorum
 		return true, ""
 	}
 
-	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
+	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	logger.Info("Checking deployment start quorum")
 
 	var quorum []string
 
-	for _, q := range deployment.Spec.StartQuorum {
+	for _, q := range spec.StartQuorum {
 		if q.Deployment == "" {
 			// this start-quorum does not have a dependency name so skip it
 			continue
@@ -287,7 +288,7 @@ func (in *CommonReconciler) CanCreate(ctx context.Context, deployment *coh.Coher
 		var namespace string
 		if q.Namespace == "" {
 			// start-quorum does not specify a namespace so use the same one as the deployment
-			namespace = deployment.Namespace
+			namespace = deployment.GetNamespace()
 		} else {
 			// start-quorum does specify a namespace so use it
 			namespace = q.Namespace
@@ -486,7 +487,7 @@ func (in *CommonReconciler) asVersioned(obj runtime.Object) runtime.Object {
 }
 
 // HandleErrAndRequeue is the common error handler
-func (in *CommonReconciler) HandleErrAndRequeue(ctx context.Context, err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
+func (in *CommonReconciler) HandleErrAndRequeue(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, logger logr.Logger) (reconcile.Result, error) {
 	return in.Failed(ctx, err, deployment, msg, true, logger)
 }
 
@@ -496,8 +497,8 @@ func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, d
 }
 
 // Failed is a common error handler
-// ToDo: we need to be able to add some form of back-off so that failures are requeued with a growing back-off time
-func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *coh.Coherence, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
+// ToDo: we need to be able to add some form of back-off so that failures are re-queued with a growing back-off time
+func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)
 	} else {
@@ -506,7 +507,8 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *c
 
 	if deployment != nil {
 		// update the status to failed.
-		deployment.Status.Phase = coh.ConditionTypeFailed
+		status := deployment.GetStatus()
+		status.Phase = coh.ConditionTypeFailed
 		if e := in.GetClient().Status().Update(ctx, deployment); e != nil {
 			// There isn't much we can do, we're already handling an error
 			logger.V(0).Info("failed to update deployment status due to: " + e.Error())
@@ -560,8 +562,9 @@ func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, 
 
 // BlankContainerFields blanks out any fields that we do not want to include in the patch
 // Typically these are fields where we changed the default behaviour in the newer Operator versions
-func (in *CommonReconciler) BlankContainerFields(deployment *coh.Coherence, template *corev1.PodTemplateSpec) {
-	if deployment.Spec.Affinity == nil {
+func (in *CommonReconciler) BlankContainerFields(deployment coh.CoherenceResource, template *corev1.PodTemplateSpec) {
+	spec := deployment.GetSpec()
+	if spec.Affinity == nil {
 		// affinity not set by user so do not diff on it
 		template.Spec.Affinity = nil
 	}
@@ -680,7 +683,7 @@ func (in *CommonReconciler) SetCoherenceImage(template *corev1.PodTemplateSpec, 
 type SecondaryResourceReconciler interface {
 	BaseReconciler
 	GetTemplate() client.Object
-	ReconcileAllResourceOfKind(context.Context, reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
+	ReconcileAllResourceOfKind(context.Context, reconcile.Request, coh.CoherenceResource, utils.Storage) (reconcile.Result, error)
 	CanWatch() bool
 }
 
@@ -698,7 +701,7 @@ func (in *ReconcileSecondaryResource) GetTemplate() client.Object { return in.Te
 func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.SkipWatch }
 
 // ReconcileAllResourceOfKind reconciles the state of all the desired resources of the specified Kind for the reconciler
-func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
 	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
@@ -729,7 +732,7 @@ func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage u
 }
 
 // ReconcileSingleResource reconciles a specific resource.
-func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner coh.CoherenceResource, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
 	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 

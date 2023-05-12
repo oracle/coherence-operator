@@ -588,13 +588,13 @@ $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com
 config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) controller-gen
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
-	  output:crd:artifacts:config=config/crd/bases
+	  output:crd:dir=config/crd/bases
 	cp -R config/crd/ config/crd-small
 	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
-	  output:crd:artifacts:config=config/crd-small/bases
+	  output:crd:dir=config/crd-small/bases
 	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
-	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
+	$(KUSTOMIZE) build config/crd -o $(BUILD_ASSETS)/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
