@@ -324,6 +324,12 @@ func (in *Coherence) IsBeforeVersion(version string) bool {
 // +k8s:openapi-gen=true
 type CoherenceStatefulSetResourceSpec struct {
 	CoherenceResourceSpec `json:",inline"`
+	// The optional name of the Coherence cluster that this Coherence resource belongs to.
+	// If this value is set the Pods controlled by this Coherence resource will form a cluster
+	// with other Pods controlled by Coherence resources with the same cluster name.
+	// If not set the Coherence resource's name will be used as the cluster name.
+	// +optional
+	Cluster *string `json:"cluster,omitempty"`
 	// StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster
 	// `StatefulSet` as annotations.
 	// Any annotations should be placed BELOW this "annotations:" key, for example:

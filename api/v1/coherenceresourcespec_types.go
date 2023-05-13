@@ -52,12 +52,6 @@ type CoherenceResourceSpec struct {
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
-	// The optional name of the Coherence cluster that this Coherence resource belongs to.
-	// If this value is set the Pods controlled by this Coherence resource will form a cluster
-	// with other Pods controlled by Coherence resources with the same cluster name.
-	// If not set the Coherence resource's name will be used as the cluster name.
-	// +optional
-	Cluster *string `json:"cluster,omitempty"`
 	// The name of the role that this deployment represents in a Coherence cluster.
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional
@@ -651,7 +645,7 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 	// Add any JVM settings
 	in.JVM.UpdatePodTemplate(&podTemplate)
 	// Add any Coherence settings
-	in.Coherence.UpdatePodTemplateSpec(&podTemplate)
+	in.Coherence.UpdatePodTemplateSpec(&podTemplate, deployment)
 
 	// Add any additional init-containers and any additional containers
 	in.ProcessSideCars(deployment, &podTemplate)

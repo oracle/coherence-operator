@@ -39,13 +39,17 @@ import (
 )
 
 const (
+	// The name of this controller
 	controllerName = "controllers.Coherence"
 
-	reconcileFailedMessage       string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
+	// The error message template to use to indicate a reconcile failure.
+	reconcileFailedMessage string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
+
+	// The error message template to use to indicate a resource creation failure.
 	createResourcesFailedMessage string = "create resources for Coherence resource '%s' in namespace '%s' failed\n%s"
 )
 
-// CoherenceReconciler reconciles a Coherence object
+// CoherenceReconciler reconciles a Coherence resource
 type CoherenceReconciler struct {
 	client.Client
 	reconciler.CommonReconciler
@@ -71,6 +75,9 @@ var _ reconcile.Reconciler = &CoherenceReconciler{}
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificates;issuers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 
+// Reconcile performs a full reconciliation for the Coherence resource referred to by the Request.
+// The Controller will requeue the Request to be processed again if an error is non-nil or
+// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	var err error
 
@@ -292,11 +299,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 }
 
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	gv := schema.GroupVersion{
-		Group:   coh.ServiceMonitorGroup,
-		Version: coh.ServiceMonitorVersion,
-	}
-	mgr.GetScheme().AddKnownTypes(gv, &monitoringv1.ServiceMonitor{}, &monitoringv1.ServiceMonitorList{})
+	setupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
@@ -313,40 +316,22 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	in.SetCommonReconciler(controllerName, mgr)
 	in.SetPatchType(types.MergePatchType)
 
+	template := &coh.Coherence{}
+
 	// Watch for changes to secondary resources
 	for _, sub := range reconcilers {
-		if err := in.watchSecondaryResource(sub); err != nil {
+		if err := watchSecondaryResource(sub, template); err != nil {
 			return err
 		}
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&coh.Coherence{}).
+		For(template).
 		Named("coherence").
 		Complete(in)
 }
 
-// Watch the resources to be reconciled
-func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryResourceReconciler) error {
-	var err error
-	if !s.CanWatch() {
-		// this reconciler does not do watches
-		return nil
-	}
-
-	// Create a new controller
-	c, err := controller.New(s.GetControllerName(), s.GetManager(), controller.Options{Reconciler: s.GetReconciler()})
-	if err != nil {
-		return err
-	}
-
-	src := &source.Kind{Type: s.GetTemplate()}
-	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.Coherence{}}
-	p := predicates.SecondaryPredicate{}
-	err = c.Watch(src, h, p)
-	return err
-}
-
+// GetReconciler returns this reconciler.
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 // ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
@@ -358,8 +343,7 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	}
 
 	// Re-fetch the Coherence resource to ensure we have the most recent copy
-	latest := &coh.Coherence{}
-	c.DeepCopyInto(latest)
+	latest := c.DeepCopy()
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
@@ -411,6 +395,7 @@ func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Contex
 	return false, nil
 }
 
+// ensureFinalizerApplied ensures the finalizer is applied to the Coherence resource
 func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
 	if !controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
 		// Re-fetch the Coherence resource to ensure we have the most recent copy
@@ -432,6 +417,7 @@ func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *co
 	return false, nil
 }
 
+// ensureFinalizerApplied ensures the finalizer is removed from the Coherence resource
 func (in *CoherenceReconciler) ensureFinalizerRemoved(ctx context.Context, c *coh.Coherence) error {
 	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
 		err := in.GetClient().Update(ctx, c)
@@ -443,6 +429,7 @@ func (in *CoherenceReconciler) ensureFinalizerRemoved(ctx context.Context, c *co
 	return nil
 }
 
+// finalizeDeployment performs any required finalizer tasks for the Coherence resource
 func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {
 	// determine whether we can skip service suspension
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
@@ -520,4 +507,34 @@ func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, namespa
 	}
 
 	return err
+}
+
+// watchSecondaryResource registers the secondary resource reconcilers to watch the resources to be reconciled
+func watchSecondaryResource(s reconciler.SecondaryResourceReconciler, owner coh.CoherenceResource) error {
+	var err error
+	if !s.CanWatch() {
+		// this reconciler does not do watches
+		return nil
+	}
+
+	// Create a new controller
+	c, err := controller.New(s.GetControllerName(), s.GetManager(), controller.Options{Reconciler: s.GetReconciler()})
+	if err != nil {
+		return err
+	}
+
+	src := &source.Kind{Type: s.GetTemplate()}
+	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: owner}
+	p := predicates.SecondaryPredicate{}
+	err = c.Watch(src, h, p)
+	return err
+}
+
+// setupMonitoringResources ensures the Prometheus types are registered with the manager.
+func setupMonitoringResources(mgr ctrl.Manager) {
+	gv := schema.GroupVersion{
+		Group:   coh.ServiceMonitorGroup,
+		Version: coh.ServiceMonitorVersion,
+	}
+	mgr.GetScheme().AddKnownTypes(gv, &monitoringv1.ServiceMonitor{}, &monitoringv1.ServiceMonitorList{})
 }

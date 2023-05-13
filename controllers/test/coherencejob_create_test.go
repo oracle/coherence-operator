@@ -233,9 +233,7 @@ func TestCreateJobResourcesForDeploymentWithClusterName(t *testing.T) {
 			Name: "operator-test",
 		},
 		Spec: coh.CoherenceJobResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Cluster: &clusterName,
-			},
+			Cluster: clusterName,
 		},
 	}
 

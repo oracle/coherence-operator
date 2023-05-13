@@ -446,7 +446,7 @@ func (in *CoherenceSpec) UpdateStatefulSet(deployment *Coherence, sts *appsv1.St
 }
 
 // UpdatePodTemplateSpec applies Coherence settings to the PodTemplateSpec.
-func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSpec) {
+func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSpec, deployment CoherenceResource) {
 	// Get the Coherence container
 	c := EnsureContainerInPod(ContainerNameCoherence, podTemplate)
 	defer ReplaceContainerInPod(podTemplate, c)
@@ -455,6 +455,11 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 		// we're nil so disable management and metrics/
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohMgmtPrefix + EnvVarCohEnabledSuffix, Value: "false"},
 			corev1.EnvVar{Name: EnvVarCohMetricsPrefix + EnvVarCohEnabledSuffix, Value: "false"})
+
+		// StorageEnabled is obviously not set, so if this is a CoherenceJob default to false
+		if deployment.GetType() == CoherenceTypeJob {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
+		}
 		return
 	}
 
@@ -482,6 +487,11 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	if in.StorageEnabled != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: BoolPtrToString(in.StorageEnabled)})
+	} else {
+		// StorageEnabled is nil, so if this is a CoherenceJob default to false
+		if deployment.GetType() == CoherenceTypeJob {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
+		}
 	}
 
 	if in.SkipVersionCheck != nil {

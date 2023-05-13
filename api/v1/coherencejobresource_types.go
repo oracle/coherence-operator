@@ -48,11 +48,7 @@ func (in *CoherenceJob) GetCoherenceClusterName() string {
 	if in == nil {
 		return ""
 	}
-
-	if in.Spec.Cluster == nil {
-		return in.Name
-	}
-	return *in.Spec.Cluster
+	return in.Spec.Cluster
 }
 
 func (in *CoherenceJob) GetAPIVersion() string {
@@ -271,6 +267,10 @@ func (in *CoherenceJob) IsBeforeVersion(version string) bool {
 // +k8s:openapi-gen=true
 type CoherenceJobResourceSpec struct {
 	CoherenceResourceSpec `json:",inline"`
+
+	// The name of the Coherence cluster that this CoherenceJob resource belongs to.
+	// A CoherenceJob will typically be part of an existing cluster, so this field is required.
+	Cluster string `json:"cluster,omitempty"`
 
 	// Specifies the desired number of successfully finished pods the
 	// job should be run with.  Setting to nil means that the success of any

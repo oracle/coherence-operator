@@ -343,11 +343,6 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.Cluster != nil {
-		in, out := &in.Cluster, &out.Cluster
-		*out = new(string)
-		**out = **in
-	}
 	if in.AppLabel != nil {
 		in, out := &in.AppLabel, &out.AppLabel
 		*out = new(string)
@@ -717,6 +712,11 @@ func (in *CoherenceSpec) DeepCopy() *CoherenceSpec {
 func (in *CoherenceStatefulSetResourceSpec) DeepCopyInto(out *CoherenceStatefulSetResourceSpec) {
 	*out = *in
 	in.CoherenceResourceSpec.DeepCopyInto(&out.CoherenceResourceSpec)
+	if in.Cluster != nil {
+		in, out := &in.Cluster, &out.Cluster
+		*out = new(string)
+		**out = **in
+	}
 	if in.StatefulSetAnnotations != nil {
 		in, out := &in.StatefulSetAnnotations, &out.StatefulSetAnnotations
 		*out = make(map[string]string, len(*in))

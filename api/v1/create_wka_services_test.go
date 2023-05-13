@@ -184,9 +184,7 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 			Name:      "test",
 		},
 		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Cluster: pointer.String("test-cluster"),
-			},
+			Cluster: pointer.String("test-cluster"),
 		},
 	}
 

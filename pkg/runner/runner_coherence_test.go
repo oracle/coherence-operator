@@ -21,9 +21,7 @@ func TestCoherenceClusterName(t *testing.T) {
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Cluster: pointer.String("test-cluster"),
-			},
+			Cluster: pointer.String("test-cluster"),
 		},
 	}
 

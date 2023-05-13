@@ -42,7 +42,7 @@ COHERENCE_VERSION ?= 21.12.5
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
-COHERENCE_IMAGE_TAG      ?= 22.06.4
+COHERENCE_IMAGE_TAG      ?= 22.06.3
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version

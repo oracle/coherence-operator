@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/controllers/job"
-	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
@@ -19,19 +18,14 @@ import (
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	coreV1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strconv"
 
 	coh "github.com/oracle/coherence-operator/api/v1"
@@ -239,11 +233,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 }
 
 func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	gv := schema.GroupVersion{
-		Group:   coh.ServiceMonitorGroup,
-		Version: coh.ServiceMonitorVersion,
-	}
-	mgr.GetScheme().AddKnownTypes(gv, &monitoringv1.ServiceMonitor{}, &monitoringv1.ServiceMonitorList{})
+	setupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
@@ -260,38 +250,19 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	in.SetCommonReconciler(jobControllerName, mgr)
 	in.SetPatchType(types.MergePatchType)
 
+	template := &coh.CoherenceJob{}
+
 	// Watch for changes to secondary resources
 	for _, sub := range reconcilers {
-		if err := in.watchSecondaryResource(sub); err != nil {
+		if err := watchSecondaryResource(sub, template); err != nil {
 			return err
 		}
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&coh.CoherenceJob{}).
+		For(template).
 		Named("coherencejob").
 		Complete(in)
-}
-
-// Watch the resources to be reconciled
-func (in *CoherenceJobReconciler) watchSecondaryResource(s reconciler.SecondaryResourceReconciler) error {
-	var err error
-	if !s.CanWatch() {
-		// this reconciler does not do watches
-		return nil
-	}
-
-	// Create a new controller
-	c, err := controller.New(s.GetControllerName(), s.GetManager(), controller.Options{Reconciler: s.GetReconciler()})
-	if err != nil {
-		return err
-	}
-
-	src := &source.Kind{Type: s.GetTemplate()}
-	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.CoherenceJob{}}
-	p := predicates.SecondaryPredicate{}
-	err = c.Watch(src, h, p)
-	return err
 }
 
 func (in *CoherenceJobReconciler) GetReconciler() reconcile.Reconciler { return in }

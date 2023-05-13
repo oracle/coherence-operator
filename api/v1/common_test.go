@@ -267,6 +267,98 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		EmptyDir: &corev1.EmptyDirVolumeSource{},
 	}
 
+	envVars := []corev1.EnvVar{
+		{
+			Name:  "COH_CLUSTER_NAME",
+			Value: deployment.GetName(),
+		},
+		{
+			Name:  "COH_HEALTH_PORT",
+			Value: fmt.Sprintf("%d", spec.GetHealthPort()),
+		},
+		{
+			Name: "COH_MACHINE_NAME",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "spec.nodeName",
+				},
+			},
+		},
+		{
+			Name: "COH_MEMBER_NAME",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				},
+			},
+		},
+		{
+			Name:  "COH_METRICS_ENABLED",
+			Value: "false",
+		},
+		{
+			Name:  "COH_MGMT_ENABLED",
+			Value: "false",
+		},
+		{
+			Name: "COH_POD_UID",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.uid",
+				},
+			},
+		},
+		{
+			Name:  "COH_RACK_INFO_LOCATION",
+			Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
+		},
+		{
+			Name:  "COH_ROLE",
+			Value: deployment.GetRoleName(),
+		},
+		{
+			Name:  "COH_SITE_INFO_LOCATION",
+			Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
+		},
+		{
+			Name:  "COH_UTIL_DIR",
+			Value: coh.VolumeMountPathUtils,
+		},
+		{
+			Name:  "COH_WKA",
+			Value: deployment.GetWKA(),
+		},
+		{
+			Name:  "JVM_GC_LOGGING",
+			Value: "false",
+		},
+		{
+			Name:  "JVM_USE_CONTAINER_LIMITS",
+			Value: "true",
+		},
+		{
+			Name: "OPERATOR_HOST",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
+					Key:                  coh.OperatorConfigKeyHost,
+					Optional:             pointer.Bool(true),
+				},
+			},
+		},
+		{
+			Name:  "OPERATOR_REQUEST_TIMEOUT",
+			Value: "120",
+		},
+	}
+
+	if deployment.GetType() == coh.CoherenceTypeJob {
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  "COH_STORAGE_ENABLED",
+			Value: "false",
+		})
+	}
+
 	// The Coherence Container
 	cohContainer := corev1.Container{
 		Name:    coh.ContainerNameCoherence,
@@ -298,90 +390,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 				ReadOnly:  false,
 			},
 		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "COH_CLUSTER_NAME",
-				Value: deployment.GetName(),
-			},
-			{
-				Name:  "COH_HEALTH_PORT",
-				Value: fmt.Sprintf("%d", spec.GetHealthPort()),
-			},
-			{
-				Name: "COH_MACHINE_NAME",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: "spec.nodeName",
-					},
-				},
-			},
-			{
-				Name: "COH_MEMBER_NAME",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: "metadata.name",
-					},
-				},
-			},
-			{
-				Name:  "COH_METRICS_ENABLED",
-				Value: "false",
-			},
-			{
-				Name:  "COH_MGMT_ENABLED",
-				Value: "false",
-			},
-			{
-				Name: "COH_POD_UID",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: "metadata.uid",
-					},
-				},
-			},
-			{
-				Name:  "COH_RACK_INFO_LOCATION",
-				Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
-			},
-			{
-				Name:  "COH_ROLE",
-				Value: deployment.GetRoleName(),
-			},
-			{
-				Name:  "COH_SITE_INFO_LOCATION",
-				Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
-			},
-			{
-				Name:  "COH_UTIL_DIR",
-				Value: coh.VolumeMountPathUtils,
-			},
-			{
-				Name:  "COH_WKA",
-				Value: deployment.GetWKA(),
-			},
-			{
-				Name:  "JVM_GC_LOGGING",
-				Value: "false",
-			},
-			{
-				Name:  "JVM_USE_CONTAINER_LIMITS",
-				Value: "true",
-			},
-			{
-				Name: "OPERATOR_HOST",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
-						Key:                  coh.OperatorConfigKeyHost,
-						Optional:             pointer.Bool(true),
-					},
-				},
-			},
-			{
-				Name:  "OPERATOR_REQUEST_TIMEOUT",
-				Value: "120",
-			},
-		},
+		Env: envVars,
 	}
 
 	if cohImage := spec.GetCoherenceImage(); cohImage != nil {

@@ -13,7 +13,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
 	"testing"
 )
 
@@ -184,9 +183,7 @@ func TestCreateWKAServiceForJobWithClusterName(t *testing.T) {
 			Name:      "test",
 		},
 		Spec: coh.CoherenceJobResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Cluster: pointer.String("test-cluster"),
-			},
+			Cluster: "test-cluster",
 		},
 	}
 
