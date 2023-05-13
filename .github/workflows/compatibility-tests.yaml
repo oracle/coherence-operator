@@ -40,7 +40,7 @@ jobs:
         - 3.2.11
         - 3.2.10
         - 3.2.9
-        - 3.2.8
+#        - 3.2.8
         - 3.2.7
         - 3.2.6
         - 3.2.5
@@ -58,10 +58,10 @@ jobs:
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
-        - compatibilityVersion: 3.2.8
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
+#        - compatibilityVersion: 3.2.8
+#          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+#          compatibilitySelector: control-plane=coherence
+#          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.7
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence

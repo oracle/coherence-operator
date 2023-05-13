@@ -378,9 +378,15 @@ func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retr
 			return false, err
 		}
 
-		ready := job.Status.Succeeded
-		if job.Status.Ready != nil {
-			ready = ready + job.Status.Active
+		var ready int32
+		readyPtr := job.Status.Ready
+		if readyPtr != nil {
+			ready = *readyPtr
+		} else {
+			ready = job.Status.Succeeded
+			if job.Status.Ready != nil {
+				ready = ready + job.Status.Active
+			}
 		}
 
 		if ready == replicas {
@@ -1785,6 +1791,120 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 
 	// Verify that the WKA service endpoints list for each deployment has all the required the Pod IP addresses.
 	for _, d := range deployments {
+		serviceName := d.GetWkaServiceName()
+		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(len(ep.Subsets)).NotTo(BeZero())
+
+		subset := ep.Subsets[0]
+		g.Expect(len(subset.Addresses)).To(Equal(len(wkaPods)))
+		var actualWKA []string
+		for _, address := range subset.Addresses {
+			actualWKA = append(actualWKA, address.IP)
+		}
+		g.Expect(actualWKA).To(ConsistOf(wkaPods))
+	}
+
+	return m, pods
+}
+
+// AssertCoherenceJobs tests that one or more CoherenceJobs can be created using the specified yaml.
+func AssertCoherenceJobs(ctx TestContext, t *testing.T, yamlFile string) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	return AssertCoherenceJobsInNamespace(ctx, t, yamlFile, GetTestNamespace())
+}
+
+// AssertCoherenceJobsInNamespace tests that a CoherenceJob can be created using the specified yaml.
+func AssertCoherenceJobsInNamespace(ctx TestContext, t *testing.T, yamlFile, namespace string) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	// initialise Gomega so we can use matchers
+	g := NewGomegaWithT(t)
+
+	jobs, err := NewCoherenceJobFromYaml(namespace, yamlFile)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// we must have at least one deployment
+	g.Expect(len(jobs)).NotTo(BeZero())
+
+	// assert all jobs have the same cluster name
+	clusterName := jobs[0].GetCoherenceClusterName()
+	for _, d := range jobs {
+		g.Expect(d.GetCoherenceClusterName()).To(Equal(clusterName))
+	}
+
+	// work out the expected cluster size
+	expectedClusterSize := 0
+	expectedWkaSize := 0
+	for _, d := range jobs {
+		ctx.Logf("CoherenceJob %s has replica count %d", d.Name, d.GetReplicas())
+		replicas := int(d.GetReplicas())
+		expectedClusterSize += replicas
+		if d.Spec.Coherence.IsWKAMember() {
+			expectedWkaSize += replicas
+		}
+	}
+	ctx.Logf("Expected cluster size is %d", expectedClusterSize)
+
+	for i := range jobs {
+		d := jobs[i]
+		ctx.Logf("Deploying CoherenceJob %s", d.Name)
+		// deploy the CoherencJobe resource
+		err = ctx.Client.Create(ctx.Context, &d)
+		g.Expect(err).NotTo(HaveOccurred())
+	}
+
+	// Assert that a Job with the correct number of replicas is created for each roleSpec in the cluster
+	for _, d := range jobs {
+		ctx.Logf("Waiting for Job for deployment %s", d.Name)
+		// Wait for the Job for the roleSpec to be ready - wait five minutes max
+		sts, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(sts.Status.Ready).NotTo(BeNil())
+		g.Expect(sts.Status.Ready).To(Equal(d.GetReplicas()))
+		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
+		//}
+	}
+
+	// Get all the Pods in the cluster
+	ctx.Logf("Getting all Pods for Job '%s'", clusterName)
+	pods, err := ListCoherencePodsForCluster(ctx, namespace, clusterName)
+	g.Expect(err).NotTo(HaveOccurred())
+	ctx.Logf("Found %d Pods for Job '%s'", len(pods), clusterName)
+
+	// assert that the correct number of Pods is returned
+	g.Expect(len(pods)).To(Equal(expectedClusterSize))
+
+	// Verify that the WKA service has the same number of endpoints as the cluster size.
+	serviceName := jobs[0].GetWkaServiceName()
+
+	ep, err := ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(ep.Subsets)).NotTo(BeZero())
+
+	subset := ep.Subsets[0]
+	g.Expect(len(subset.Addresses)).To(Equal(expectedWkaSize))
+
+	m := make(map[string]coh.CoherenceJob)
+	for _, d := range jobs {
+		opts := client.ObjectKey{Namespace: namespace, Name: d.Name}
+		dpl := coh.CoherenceJob{}
+		err = ctx.Client.Get(ctx.Context, opts, &dpl)
+		g.Expect(err).NotTo(HaveOccurred())
+		m[dpl.Name] = dpl
+	}
+
+	// Obtain the expected WKA list of Pod IP addresses
+	var wkaPods []string
+	for _, d := range jobs {
+		if d.Spec.Coherence.IsWKAMember() {
+			pods, err := ListCoherencePodsForDeployment(ctx, d.Namespace, d.Name)
+			g.Expect(err).NotTo(HaveOccurred())
+			for _, pod := range pods {
+				wkaPods = append(wkaPods, pod.Status.PodIP)
+			}
+		}
+	}
+
+	// Verify that the WKA service endpoints list for each deployment has all the required the Pod IP addresses.
+	for _, d := range jobs {
 		serviceName := d.GetWkaServiceName()
 		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())

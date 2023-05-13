@@ -1,9 +1,8 @@
 apiVersion: coherence.oracle.com/v1
-kind: Coherence
+kind: CoherenceJob
 metadata:
   name: minimal-job
 spec:
   cluster: test
-  runAsJob: true
 
 
