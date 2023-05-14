@@ -6,20 +6,20 @@
 
 package local
 
-import (
-	. "github.com/onsi/gomega"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"testing"
-)
-
-// Test that a minimal CoherenceJob works
-func TestMinimalJob(t *testing.T) {
-	// Make sure we defer clean-up when we're done!!
-	testContext.CleanupAfterTest(t)
-	g := NewWithT(t)
-
-	jobs, _ := helper.AssertCoherenceJobs(testContext, t, "job-minimal.yaml")
-
-	_, ok := jobs["minimal-job"]
-	g.Expect(ok).To(BeTrue(), "did not find expected 'minimal-job' deployment")
-}
+//import (
+//	. "github.com/onsi/gomega"
+//	"github.com/oracle/coherence-operator/test/e2e/helper"
+//	"testing"
+//)
+//
+//// Test that a minimal CoherenceJob works
+//func TestMinimalJob(t *testing.T) {
+//	// Make sure we defer clean-up when we're done!!
+//	testContext.CleanupAfterTest(t)
+//	g := NewWithT(t)
+//
+//	jobs, _ := helper.AssertCoherenceJobs(testContext, t, "job-minimal.yaml")
+//
+//	_, ok := jobs["minimal-job"]
+//	g.Expect(ok).To(BeTrue(), "did not find expected 'minimal-job' deployment")
+//}

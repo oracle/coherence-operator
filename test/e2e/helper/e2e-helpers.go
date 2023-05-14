@@ -790,8 +790,13 @@ func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInte
 func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	ctx.Logf("Waiting for clean-up of Coherence resources in namespace %s", namespace)
 
+	err := waitForCoherenceJobCleanup(ctx, namespace)
+	if err != nil {
+		return err
+	}
+
 	list := &coh.CoherenceList{}
-	err := ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -856,6 +861,65 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 			return false, nil
 		})
 	}
+
+	return err
+}
+
+// waitForCoherenceJobCleanup waits until there are no CoherenceJob resources left in the test namespace.
+// The default clean-up hooks only wait for deletion of resources directly created via the test client
+func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
+	ctx.Logf("Waiting for clean-up of CoherenceJob resources in namespace %s", namespace)
+
+	list := &coh.CoherenceJobList{}
+	err := ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Do a plain delete first
+	for i := range list.Items {
+		item := list.Items[i]
+		ctx.Logf("Deleting CoherenceJob resource %s in namespace %s", item.Name, item.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &item)
+		if err != nil {
+			ctx.Logf("Error deleting CoherenceJob resource %s - %s", item.Name, err.Error())
+		}
+	}
+
+	// Obtain any remaining CoherenceJob resources
+	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Delete all the CoherenceJob resources - patching out any finalizer
+	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
+	for i := range list.Items {
+		item := list.Items[i]
+		ctx.Logf("Patching CoherenceJob resource %s in namespace %s to remove finalizers", item.Name, item.Namespace)
+		if err := ctx.Client.Patch(ctx.Context, &item, patch); err != nil {
+			ctx.Logf("error patching CoherenceJob %s: %+v", item.Name, err)
+		}
+		ctx.Logf("Deleting CoherenceJob resource %s in namespace %s", item.Name, item.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &item)
+		if err != nil {
+			ctx.Logf("Error deleting CoherenceJob resource %s - %s", item.Name, err.Error())
+		}
+	}
+
+	// Wait for removal of the CoherenceJob resources
+	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
+			if len(list.Items) > 0 {
+				ctx.Logf("Waiting for deletion of %d CoherenceJob resources", len(list.Items))
+				return false, nil
+			}
+			return true, nil
+		}
+		ctx.Logf("Error waiting for deletion of CoherenceJob resources: %s\n%+v", err.Error(), err)
+		return false, nil
+	})
 
 	return err
 }

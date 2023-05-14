@@ -1489,6 +1489,14 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters: ## Delete all running Coherence clusters in the test namespace
+	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
+  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	done
+	for i in $$(kubectl -n  $(CLUSTER_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
+  		kubectl -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	done
 	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
   		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
