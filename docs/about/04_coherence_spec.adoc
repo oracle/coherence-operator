@@ -75,8 +75,8 @@ Action is an action to execute when the StatefulSet becomes ready.
 |===
 | Field | Description | Type | Required
 m| name | Action name m| string | false
-m| probe | This is the spec of some sort of probe to fire when the StatefulSet becomes ready m| &#42;<<Probe,Probe>> | false
-m| job | or this is the spec of a Job to create when the StatefulSet becomes ready m| &#42;<<ActionJob,ActionJob>> | false
+m| probe | This is the spec of some sort of probe to fire when the Coherence resource becomes ready m| &#42;<<Probe,Probe>> | false
+m| job | or this is the spec of a Job to create when the Coherence resource becomes ready m| &#42;<<ActionJob,ActionJob>> | false
 |===
 
 <<Table of Contents,Back to TOC>>

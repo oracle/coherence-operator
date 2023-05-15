@@ -168,7 +168,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// ensure that the deployment has an initial status
 	if deployment.Status.Phase == "" {
-		err := in.UpdateDeploymentStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
+		err := in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -284,7 +284,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// if replica count is zero update the status to Stopped
 	if deployment.GetReplicas() == 0 {
-		if err = in.UpdateDeploymentStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
+		if err = in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
 			return result, errors.Wrap(err, "error updating deployment status")
 		}
 	}

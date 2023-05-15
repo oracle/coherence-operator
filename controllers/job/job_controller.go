@@ -136,7 +136,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The Job and parent resource has been deleted so no more to do
-			_, err = in.updateDeploymentStatus(ctx, request)
+			err = in.updateDeploymentStatus(ctx, request)
 			return reconcile.Result{}, err
 		}
 	case !jobExists:
@@ -144,7 +144,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		result, err = in.createJob(ctx, deployment, storage, logger)
 	case jobCompleted:
 		// Nothing to do, the job is complete
-		_, err = in.updateDeploymentStatus(ctx, request)
+		err = in.updateDeploymentStatus(ctx, request)
 		return reconcile.Result{}, err
 	default:
 		// Both Job and deployment exists so this is maybe an update
@@ -156,7 +156,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		return result, err
 	}
 
-	_, err = in.updateDeploymentStatus(ctx, request)
+	err = in.updateDeploymentStatus(ctx, request)
 	if err != nil {
 		return result, err
 	}
@@ -173,7 +173,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 	if !ok {
 		// start quorum not met, send event and update deployment status
 		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "Waiting", reason)
-		_ = in.UpdateDeploymentStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
+		_ = in.UpdateCoherenceJobStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
 			Type:    coh.ConditionTypeWaiting,
 			Status:  corev1.ConditionTrue,
 			Reason:  "StatusQuorum",
@@ -185,7 +185,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 	err := in.Create(ctx, deployment.GetName(), storage, logger)
 	if err == nil {
 		// ensure that the deployment has a Created status
-		err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
+		err := in.UpdateCoherenceJobStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
 		if err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "updating deployment status")
 		}
@@ -290,7 +290,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 	// if there is any patch to apply, this will check StatusHA if required and update the deployment status
 	callback := func() {
 		// ensure that the deployment has an "Upgrading" status
-		if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
+		if err := in.UpdateCoherenceJobStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
 			logger.Error(err, "Error updating deployment status to Upgrading")
 		}
 	}
@@ -330,18 +330,18 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 }
 
 // updateDeploymentStatus updates the Coherence resource's status.
-func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
+func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reconcile.Request) error {
 	var err error
 	var job *batchv1.Job
 	job, _, err = in.MaybeFindJob(ctx, request.Namespace, request.Name)
 	if err != nil {
 		// an error occurred
 		err = errors.Wrapf(err, "getting Job %s", request.Name)
-		return nil, err
+		return err
 	}
 
-	deployment := &coh.Coherence{}
-	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
+	cj := &coh.CoherenceJob{}
+	err = in.GetClient().Get(ctx, request.NamespacedName, cj)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
 		// deployment not found - possibly deleted
@@ -349,20 +349,20 @@ func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reco
 	case err != nil:
 		// an error occurred
 		err = errors.Wrapf(err, "getting deployment %s", request.Name)
-	case deployment.GetDeletionTimestamp() != nil:
+	case cj.GetDeletionTimestamp() != nil:
 		// deployment is being deleted
 		err = nil
 	default:
-		updated := deployment.DeepCopy()
+		updated := cj.DeepCopy()
 		var jobStatus *batchv1.JobStatus
 		if job == nil {
 			jobStatus = nil
 		} else {
 			jobStatus = &job.Status
 		}
-		if updated.Status.UpdateFromJob(deployment, jobStatus) {
+		if updated.Status.UpdateFromJob(cj, jobStatus) {
 			err = in.GetClient().Status().Update(ctx, updated)
 		}
 	}
-	return deployment, err
+	return err
 }

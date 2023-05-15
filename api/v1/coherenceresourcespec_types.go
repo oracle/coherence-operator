@@ -294,9 +294,9 @@ type Action struct {
 	// +optional
 	Name string `json:"name,omitempty"`
 
-	// This is the spec of some sort of probe to fire when the StatefulSet becomes ready
+	// This is the spec of some sort of probe to fire when the Coherence resource becomes ready
 	Probe *Probe `json:"probe,omitempty"`
-	// or this is the spec of a Job to create when the StatefulSet becomes ready
+	// or this is the spec of a Job to create when the Coherence resource becomes ready
 	Job *ActionJob `json:"job,omitempty"`
 }
 

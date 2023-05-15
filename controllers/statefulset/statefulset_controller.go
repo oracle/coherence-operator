@@ -270,7 +270,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 	if !ok {
 		// start quorum not met, send event and update deployment status
 		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "Waiting", reason)
-		_ = in.UpdateDeploymentStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
+		_ = in.UpdateCoherenceStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
 			Type:    coh.ConditionTypeWaiting,
 			Status:  corev1.ConditionTrue,
 			Reason:  "StatusQuorum",
@@ -282,7 +282,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 	err := in.Create(ctx, deployment.GetName(), storage, logger)
 	if err == nil {
 		// ensure that the deployment has a Created status
-		err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
+		err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
 		if err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "updating deployment status")
 		}
@@ -433,7 +433,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	// if there is any patch to apply, this will check StatusHA if required and update the deployment status
 	callback := func() {
 		// ensure that the deployment has an "Upgrading" status
-		if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
+		if err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
 			logger.Error(err, "Error updating deployment status to Upgrading")
 		}
 	}
@@ -523,7 +523,7 @@ func (in *ReconcileStatefulSet) scale(ctx context.Context, deployment coh.Cohere
 	policy := spec.GetEffectiveScalingPolicy()
 
 	// ensure that the deployment has a Scaling status
-	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
+	if err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
 		logger.Error(err, "Error updating deployment status to Scaling")
 	}
 
@@ -605,7 +605,7 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment co
 	status.Phase = coh.ConditionTypeScaling
 	status.Replicas = replicas
 
-	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
+	if err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
 		logger.Error(err, "Error updating deployment status to Scaling")
 	}
 

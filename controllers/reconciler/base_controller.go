@@ -134,14 +134,28 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 }
 
 // UpdateDeploymentStatusPhase updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
-	return in.UpdateDeploymentStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
+func (in *CommonReconciler) UpdateCoherenceStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
+	return in.UpdateCoherenceStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
+}
+
+// UpdateCoherenceJobStatusPhase updates the CoherenceJob resource's status.
+func (in *CommonReconciler) UpdateCoherenceJobStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
+	return in.UpdateCoherenceJobStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
+}
+
+// UpdateCoherenceStatusCondition updates the Coherence resource's status.
+func (in *CommonReconciler) UpdateCoherenceStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
+	return in.updateDeploymentStatusCondition(ctx, key, c, &coh.Coherence{})
+}
+
+// UpdateCoherenceJobStatusCondition updates the CoherenceJob resource's status.
+func (in *CommonReconciler) UpdateCoherenceJobStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
+	return in.updateDeploymentStatusCondition(ctx, key, c, &coh.CoherenceJob{})
 }
 
 // UpdateDeploymentStatusCondition updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
+func (in *CommonReconciler) updateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition, deployment coh.CoherenceResource) error {
 	var err error
-	deployment := &coh.Coherence{}
 	err = in.GetClient().Get(ctx, key, deployment)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
@@ -154,9 +168,10 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context,
 		// deployment is being deleted
 		err = nil
 	default:
-		updated := deployment.DeepCopy()
-		if updated.Status.SetCondition(deployment, c) {
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
+		updated := deployment.DeepCopyResource()
+		status := updated.GetStatus()
+		if status.SetCondition(deployment, c) {
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.GetName(), updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")
 			}

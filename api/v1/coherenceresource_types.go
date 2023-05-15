@@ -81,7 +81,6 @@ var _ CoherenceResource = &Coherence{}
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".status.replicas",description="The number of Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Ready",type="integer",JSONPath=".status.readyReplicas",description="The number of ready Coherence deployments for this deployment"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="The status of this deployment"
-// +kubebuilder:printcolumn:name="Image",priority=1,type="string",JSONPath=".spec.image",description="The image name"
 type Coherence struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -626,15 +625,9 @@ type CoherenceResourceStatus struct {
 	ActionsExecuted bool `json:"actionsExecuted,omitempty"`
 }
 
-// UpdatePhase updates the current Phase
-// TODO not used?
-func (in *CoherenceResourceStatus) UpdatePhase(deployment *Coherence, phase ConditionType) bool {
-	return in.SetCondition(deployment, Condition{Type: phase, Status: corev1.ConditionTrue})
-}
-
 // SetCondition sets the current Status Condition
-func (in *CoherenceResourceStatus) SetCondition(deployment *Coherence, c Condition) bool {
-	deployment.Status.DeepCopyInto(in)
+func (in *CoherenceResourceStatus) SetCondition(deployment CoherenceResource, c Condition) bool {
+	deployment.GetStatus().DeepCopyInto(in)
 	updated := in.ensureInitialized(deployment)
 	if in.Phase != "" && in.Phase == c.Type {
 		// already at the desired phase
@@ -688,7 +681,7 @@ func (in *CoherenceResourceStatus) Update(deployment *Coherence, sts *appsv1.Sta
 		}
 	}
 
-	if deployment.Spec.GetReplicas() == 0 {
+	if deployment.GetSpec().GetReplicas() == 0 {
 		// scaled to zero
 		if in.Phase != ConditionTypeStopped {
 			updated = in.setPhase(ConditionTypeStopped)
@@ -699,11 +692,9 @@ func (in *CoherenceResourceStatus) Update(deployment *Coherence, sts *appsv1.Sta
 }
 
 // UpdateFromJob the status based on the condition of the Job status.
-func (in *CoherenceResourceStatus) UpdateFromJob(deployment *Coherence, jobStatus *batchv1.JobStatus) bool {
+func (in *CoherenceResourceStatus) UpdateFromJob(deployment *CoherenceJob, jobStatus *batchv1.JobStatus) bool {
 	// ensure that there is an Initialized condition
 	updated := in.ensureInitialized(deployment)
-
-	fmt.Printf("***** UpdateFromJob %v\n", jobStatus)
 
 	if jobStatus != nil {
 		count := jobStatus.Active + jobStatus.Succeeded
@@ -813,18 +804,19 @@ func (in *CoherenceResourceStatus) setPhase(phase ConditionType) bool {
 }
 
 // ensure that the initial state conditions are present
-func (in *CoherenceResourceStatus) ensureInitialized(deployment *Coherence) bool {
+func (in *CoherenceResourceStatus) ensureInitialized(deployment CoherenceResource) bool {
 	updated := false
 
 	// update Hash if required
-	if in.Hash != deployment.Status.Hash {
-		in.Hash = deployment.Status.Hash
+	hash := deployment.GetStatus().Hash
+	if in.Hash != hash {
+		in.Hash = hash
 		updated = true
 	}
 
 	// update Replicas if required
-	if in.Replicas != deployment.Spec.GetReplicas() {
-		in.Replicas = deployment.Spec.GetReplicas()
+	if in.Replicas != deployment.GetReplicas() {
+		in.Replicas = deployment.GetReplicas()
 		updated = true
 	}
 
@@ -842,7 +834,7 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment *Coherence) bool
 
 	// update Selector if required
 	if in.Selector == "" {
-		in.Selector = fmt.Sprintf(StatusSelectorTemplate, deployment.GetCoherenceClusterName(), deployment.Name)
+		in.Selector = fmt.Sprintf(StatusSelectorTemplate, deployment.GetCoherenceClusterName(), deployment.GetName())
 		updated = true
 	}
 

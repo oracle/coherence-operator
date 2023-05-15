@@ -1910,7 +1910,7 @@ func AssertCoherenceJobsInNamespace(ctx TestContext, t *testing.T, yamlFile, nam
 	for i := range jobs {
 		d := jobs[i]
 		ctx.Logf("Deploying CoherenceJob %s", d.Name)
-		// deploy the CoherencJobe resource
+		// deploy the CoherenceJob resource
 		err = ctx.Client.Create(ctx.Context, &d)
 		g.Expect(err).NotTo(HaveOccurred())
 	}

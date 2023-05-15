@@ -32,7 +32,6 @@ import (
 // +kubebuilder:printcolumn:name="Active",priority=1,type="integer",JSONPath=".status.active",description="When the Coherence resource is running a Job, the number of pending and running pods"
 // +kubebuilder:printcolumn:name="Succeeded",priority=1,type="integer",JSONPath=".status.succeeded",description="When the Coherence resource is running a Job, the number of pods which reached phase Succeeded"
 // +kubebuilder:printcolumn:name="Failed",priority=1,type="integer",JSONPath=".status.failed",description="When the Coherence resource is running a Job, the number of pods which reached phase Failed"
-// +kubebuilder:printcolumn:name="Image",priority=1,type="string",JSONPath=".spec.image",description="The image name"
 type CoherenceJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -463,6 +462,13 @@ func (in *CoherenceJobResourceSpec) CreateJob(deployment CoherenceResource) batc
 	return job
 }
 
+// ----- CoherenceResourceStatus type ---------------------------------------
+
+type CoherenceJobStatus struct {
+	CoherenceResourceStatus `json:",inline"`
+	ProbeStatus             []CoherenceJobProbeStatus `json:"probeStatus,omitempty"`
+}
+
 // ----- CoherenceJobList type ----------------------------------------------
 
 // +kubebuilder:object:root=true
@@ -472,4 +478,22 @@ type CoherenceJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []CoherenceJob `json:"items"`
+}
+
+// ----- CoherenceJobProbe type ---------------------------------------------
+
+type CoherenceJobProbe struct {
+	Probe `json:",inline"`
+	// The number of job Pods that should be ready before executing the Probe.
+	// If not set the default will be the same as the job's Completions value.
+	// The probe will be executed on all Pods
+	// +optional
+	ReadyCount *int32 `json:"readyCount,omitempty"`
+}
+
+// ----- CoherenceJobProbeStatus type ----------------------------------------
+
+type CoherenceJobProbeStatus struct {
+	Pod        string     `json:"pod,omitempty"`
+	Conditions Conditions `json:"conditions,omitempty"`
 }
