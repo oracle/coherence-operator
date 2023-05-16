@@ -1915,15 +1915,16 @@ func AssertCoherenceJobsInNamespace(ctx TestContext, t *testing.T, yamlFile, nam
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
-	// Assert that a Job with the correct number of replicas is created for each roleSpec in the cluster
+	// Assert that a Job with the correct number of replicas is created for each Spec in the cluster
 	for _, d := range jobs {
 		ctx.Logf("Waiting for Job for deployment %s", d.Name)
 		// Wait for the Job for the roleSpec to be ready - wait five minutes max
 		sts, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
 		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(sts.Status).NotTo(BeNil())
 		g.Expect(sts.Status.Ready).NotTo(BeNil())
-		g.Expect(sts.Status.Ready).To(Equal(d.GetReplicas()))
-		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
+		g.Expect(*sts.Status.Ready).To(Equal(d.GetReplicas()))
+		ctx.Logf("Have Job for deployment %s", d.Name)
 		//}
 	}
 
