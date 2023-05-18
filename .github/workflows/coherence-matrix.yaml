@@ -200,8 +200,6 @@ jobs:
     - name: Coherence Certification Tests
       shell: bash
       run: |
-        export COHERENCE_VERSION=${{ matrix.coherenceVersion }}
-        echo "COHERENCE_VERSION=${COHERENCE_VERSION}"
         export COHERENCE_IMAGE=${{ matrix.coherenceImage }}
         echo "COHERENCE_IMAGE=${COHERENCE_IMAGE}"
         export BUILD_JAVA_VERSION=${{ matrix.javaVersion }}
