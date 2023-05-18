@@ -129,7 +129,7 @@ spec:
 the <code>/mnt/ssd/coherence/persistence</code> directory on the Node.</li>
 </ul>
 <p>The configuration under the <code>spec.coherence.persistence.volume</code> section is a normal Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#volume-v1-core">VolumeSource</a>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#volume-v1-core">VolumeSource</a>
 so any valid <code>VolumeSource</code> configuration can be used.
 See the Kubernetes <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/volumes/">Volumes</a> documentation for more details.</p>
 

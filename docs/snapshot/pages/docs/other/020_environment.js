@@ -5,7 +5,7 @@
 <p>Environment variables can be added to the Coherence container in the <code>Pods</code> managed by the Operator.
 Additional variables should be added to the <code>env</code> list in the <code>Coherence</code> CRD spec.
 The entries in the <code>env</code> list are Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#envvar-v1-core">EnvVar</a>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#envvar-v1-core">EnvVar</a>
 values, exactly the same as when adding environment variables to a container spec.</p>
 
 <markup

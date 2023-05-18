@@ -144,7 +144,7 @@ These fields are identical to the corresponding fields in the Kubernetes <code>S
 
 <p>See the <code>Coherence</code> CRD <router-link to="#_servicespec" @click.native="this.scrollFix('#_servicespec')">Service Spec</router-link> documentation
 and the Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#servicespec-v1-core">Service API reference</a>.</p>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#servicespec-v1-core">Service API reference</a>.</p>
 
 </div>
 </doc-view>
