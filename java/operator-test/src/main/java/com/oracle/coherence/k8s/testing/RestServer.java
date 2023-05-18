@@ -184,7 +184,7 @@ public class RestServer {
         }
     }
 
-    public static Map<String, String> queryToMap(HttpExchange exchange) {
+    private static Map<String, String> queryToMap(HttpExchange exchange) {
         String query = exchange.getRequestURI().getQuery();
         Map<String, String> result = new HashMap<>();
         for (String param : query.split("&")) {

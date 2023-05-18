@@ -538,7 +538,7 @@ func (in jobCompletedCondition) Test(d coh.CoherenceResource) bool {
 }
 
 func (in jobCompletedCondition) String() string {
-	return fmt.Sprintf("completed count == %s", in.count)
+	return fmt.Sprintf("completed count == %d", in.count)
 }
 
 func JobCompletedCondition(count int32) DeploymentStateCondition {

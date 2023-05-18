@@ -46,6 +46,7 @@ func TestJobWithSingleSuccessfulReplica(t *testing.T) {
 
 	condition := helper.JobSucceededCondition(1)
 	_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	condition = helper.StatusPhaseCondition(coh.ConditionTypeCompleted)
 	_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
@@ -74,6 +75,7 @@ func TestJobWithMultipleSuccessfulReplicas(t *testing.T) {
 
 		condition := helper.JobSucceededCondition(int32(i + 1))
 		_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+		g.Expect(err).NotTo(HaveOccurred())
 	}
 
 	condition = helper.StatusPhaseCondition(coh.ConditionTypeCompleted)
@@ -98,6 +100,7 @@ func TestJobWithSingleFailedReplica(t *testing.T) {
 
 	condition := helper.JobFailedCondition(1)
 	_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func deployJob(t *testing.T, ns, name string, replicas int32) []corev1.Pod {
