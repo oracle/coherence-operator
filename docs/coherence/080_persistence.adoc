@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2023, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -110,7 +110,7 @@ spec:
 the `/mnt/ssd/coherence/persistence` directory on the Node.
 
 The configuration under the `spec.coherence.persistence.volume` section is a normal Kubernetes
-https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#volume-v1-core[VolumeSource]
+https://{k8s-doc-link}/#volume-v1-core[VolumeSource]
 so any valid `VolumeSource` configuration can be used.
 See the Kubernetes https://kubernetes.io/docs/concepts/storage/volumes/[Volumes] documentation for more details.
 

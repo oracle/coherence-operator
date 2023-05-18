@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2023, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -135,5 +135,5 @@ These fields are identical to the corresponding fields in the Kubernetes `Servic
 
 See the `Coherence` CRD <<about/04_coherence_spec.adoc#_servicespec,Service Spec>> documentation
 and the Kubernetes
-https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#servicespec-v1-core[Service API reference].
+https://{k8s-doc-link}/#servicespec-v1-core[Service API reference].
 
