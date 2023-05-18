@@ -80,6 +80,7 @@ const (
 
 func EnsureTestEnvVars() {
 	ensureEnvVar("TEST_IMAGE_PULL_POLICY", "IfNotPresent")
+	ensureEnvVar("TEST_SKIP_SITE", "false")
 
 	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-test-compatibility:1.0.0")
 	ensureEnvVar("TEST_APPLICATION_IMAGE_CLIENT", "ghcr.io/oracle/operator-test-client:1.0.0")
@@ -491,7 +492,6 @@ func (in *CoherenceLoader) loadJobYamlFromFile(template coh.CoherenceJob, file s
 	}
 
 	// expand any ${env-var} references in the yaml file
-
 	s := os.ExpandEnv(string(data))
 
 	// Get the yaml decoder

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.tangosol.net.CacheFactory;
@@ -57,6 +59,7 @@ public class RestServer {
             server.createContext("/canaryStart", RestServer::canaryStart);
             server.createContext("/canaryCheck", RestServer::canaryCheck);
             server.createContext("/canaryClear", RestServer::canaryClear);
+            server.createContext("/shutdown", RestServer::shutdown);
 
             server.setExecutor(null); // creates a default executor
             server.start();
@@ -156,6 +159,22 @@ public class RestServer {
         send(t, 200, "OK");
     }
 
+    private static void shutdown(HttpExchange t) throws IOException {
+        send(t, 202, "OK");
+        Map<String, String> map = queryToMap(t);
+        int exitCode = 0;
+        String s = map.get("exitCode");
+        if (s != null && !s.isEmpty()) {
+            try {
+                exitCode = Integer.parseInt(s);
+            }
+            catch (Exception e) {
+                // ignored
+            }
+        }
+        System.exit(exitCode);
+    }
+
     private static String getMainClass() {
         try {
             return Coherence.class.getCanonicalName();
@@ -164,4 +183,20 @@ public class RestServer {
             return DefaultCacheServer.class.getCanonicalName();
         }
     }
+
+    public static Map<String, String> queryToMap(HttpExchange exchange) {
+        String query = exchange.getRequestURI().getQuery();
+        Map<String, String> result = new HashMap<>();
+        for (String param : query.split("&")) {
+            String[] pair = param.split("=");
+            if (pair.length > 1) {
+                result.put(pair[0], pair[1]);
+            }
+            else {
+                result.put(pair[0], "");
+            }
+        }
+        return result;
+    }
+
 }

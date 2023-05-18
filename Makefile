@@ -499,7 +499,7 @@ build-test-images: build-mvn build-client-image build-basic-test-image ## Build 
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-basic-test-image
 build-basic-test-image: build-mvn ## Build the basic Operator test image
-	./mvnw -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image

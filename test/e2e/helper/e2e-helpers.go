@@ -404,6 +404,32 @@ func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retr
 	return job, err
 }
 
+func WaitForCoherenceJobCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.CoherenceJob, error) {
+	var job *coh.CoherenceJob
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		job, err = GetCoherenceJob(ctx, namespace, name)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				ctx.Logf("Waiting for availability of CoherenceJob resource %s - NotFound", name)
+				return false, nil
+			}
+			ctx.Logf("Waiting for availability of CoherenceJob resource %s - %s", name, err.Error())
+			return false, nil
+		}
+		valid := true
+		if condition != nil {
+			valid = condition.Test(job)
+			if !valid {
+				ctx.Logf("Waiting for CoherenceJob resource %s to meet condition '%s'", name, condition.String())
+			}
+		}
+		return valid, nil
+	})
+
+	return job, err
+}
+
 // WaitForEndpoints waits for Enpoints for a Service to be created.
 //
 //goland:noinspection GoUnusedExportedFunction
@@ -455,14 +481,14 @@ func WaitForJobCompletion(k8s kubernetes.Interface, namespace, name string, retr
 
 // DeploymentStateCondition is a function that takes a deployment and determines whether it meets a condition
 type DeploymentStateCondition interface {
-	Test(*coh.Coherence) bool
+	Test(coh.CoherenceResource) bool
 	String() string
 }
 
 // An always true DeploymentStateCondition
 type alwaysCondition struct{}
 
-func (a alwaysCondition) Test(*coh.Coherence) bool {
+func (a alwaysCondition) Test(coh.CoherenceResource) bool {
 	return true
 }
 
@@ -474,8 +500,8 @@ type replicaCountCondition struct {
 	replicas int32
 }
 
-func (in replicaCountCondition) Test(d *coh.Coherence) bool {
-	return d.Status.ReadyReplicas == in.replicas
+func (in replicaCountCondition) Test(d coh.CoherenceResource) bool {
+	return d.GetStatus().ReadyReplicas == in.replicas
 }
 
 func (in replicaCountCondition) String() string {
@@ -490,8 +516,8 @@ type phaseCondition struct {
 	phase coh.ConditionType
 }
 
-func (in phaseCondition) Test(d *coh.Coherence) bool {
-	return d.Status.Phase == in.phase
+func (in phaseCondition) Test(d coh.CoherenceResource) bool {
+	return d.GetStatus().Phase == in.phase
 }
 
 func (in phaseCondition) String() string {
@@ -500,6 +526,57 @@ func (in phaseCondition) String() string {
 
 func StatusPhaseCondition(phase coh.ConditionType) DeploymentStateCondition {
 	return phaseCondition{phase: phase}
+}
+
+type jobCompletedCondition struct {
+	count int32
+}
+
+func (in jobCompletedCondition) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	return (status.Succeeded + status.Failed) == in.count
+}
+
+func (in jobCompletedCondition) String() string {
+	return fmt.Sprintf("completed count == %s", in.count)
+}
+
+func JobCompletedCondition(count int32) DeploymentStateCondition {
+	return jobCompletedCondition{count: count}
+}
+
+type jobSucceededCondition struct {
+	count int32
+}
+
+func (in jobSucceededCondition) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	return status.Succeeded == in.count
+}
+
+func (in jobSucceededCondition) String() string {
+	return fmt.Sprintf("succeeded count == %d", in.count)
+}
+
+func JobSucceededCondition(count int32) DeploymentStateCondition {
+	return jobSucceededCondition{count: count}
+}
+
+type jobFailedCondition struct {
+	count int32
+}
+
+func (in jobFailedCondition) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	return status.Failed == in.count
+}
+
+func (in jobFailedCondition) String() string {
+	return fmt.Sprintf("failed count == %d", in.count)
+}
+
+func JobFailedCondition(count int32) DeploymentStateCondition {
+	return jobFailedCondition{count: count}
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
@@ -540,6 +617,21 @@ func WaitForCoherenceCondition(ctx TestContext, namespace, name string, conditio
 func GetCoherence(ctx TestContext, namespace, name string) (*coh.Coherence, error) {
 	opts := client.ObjectKey{Namespace: namespace, Name: name}
 	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
+	}
+
+	err := ctx.Client.Get(goctx.TODO(), opts, d)
+
+	return d, err
+}
+
+// GetCoherenceJob gets the specified CoherenceJob resource
+func GetCoherenceJob(ctx TestContext, namespace, name string) (*coh.CoherenceJob, error) {
+	opts := client.ObjectKey{Namespace: namespace, Name: name}
+	d := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -1884,6 +1976,21 @@ func AssertCoherenceJobsInNamespace(ctx TestContext, t *testing.T, yamlFile, nam
 
 	jobs, err := NewCoherenceJobFromYaml(namespace, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	return AssertCoherenceJobsSpecInNamespace(ctx, t, jobs, namespace)
+}
+
+// AssertCoherenceJobsSpec tests that a CoherenceJob can be created.
+func AssertCoherenceJobsSpec(ctx TestContext, t *testing.T, jobs []coh.CoherenceJob) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	return AssertCoherenceJobsSpecInNamespace(ctx, t, jobs, GetTestNamespace())
+}
+
+// AssertCoherenceJobsSpecInNamespace tests that a CoherenceJob can be created.
+func AssertCoherenceJobsSpecInNamespace(ctx TestContext, t *testing.T, jobs []coh.CoherenceJob, namespace string) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	// initialise Gomega so we can use matchers
+	g := NewGomegaWithT(t)
+
+	var err error
 
 	// we must have at least one deployment
 	g.Expect(len(jobs)).NotTo(BeZero())
