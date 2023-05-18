@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2023, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -41,7 +41,7 @@ spec:
 
 The containers will added to the `sideCars` will be added to the `Pods` exactly as configured.
 Any configuration that is valid in a Kubernetes
-https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core[Container Spec]
+https://{k8s-doc-link}/#container-v1-core[Container Spec]
 may be added to an entry in `sideCars`
 
 
@@ -50,7 +50,7 @@ may be added to an entry in `sideCars`
 Just like normal containers above, additional init-containers can also be added to the `Pods`.
 To add an init-container to the `Pods` specify the container in the `initContainers` list in the `Coherence` CRD spec.
 As with containers, for init-containers any configuration that is valid in a Kubernetes
-https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core[Container Spec]
+https://{k8s-doc-link}/#container-v1-core[Container Spec]
 may be added to an entry in `initContainers`
 
 For example:

@@ -32,6 +32,8 @@ COMPATIBLE_SELECTOR = control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
+KUBERNETES_DOC_VERSION=v1.26
+
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
@@ -625,6 +627,7 @@ api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) controller-gen
 .PHONY: api-doc-gen
 api-doc-gen: docs/about/04_coherence_spec.adoc  ## Generate API documentation
 
+docs/about/04_coherence_spec.adoc: export KUBERNETES_DOC_VERSION := $(KUBERNETES_DOC_VERSION)
 docs/about/04_coherence_spec.adoc: $(API_GO_FILES) utils/docgen/main.go
 	@echo "Generating CRD Doc"
 	go run ./utils/docgen/ \
@@ -2105,6 +2108,7 @@ docs: api-doc-gen
 		-Doperator.version=$(VERSION) \
 		-Doperator.image=$(OPERATOR_IMAGE) \
 		-Dcoherence.image=$(COHERENCE_IMAGE) \
+		-Dk8s-doc-version=$(KUBERNETES_DOC_VERSION) \
 		$(MAVEN_OPTIONS)
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/

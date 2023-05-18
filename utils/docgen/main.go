@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -46,7 +46,7 @@ These are all the types and fields that are used in the Coherence CRD.
 
 TIP: This document was generated from comments in the Go structs in the pkg/api/ directory.`
 
-	k8sLink = "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#"
+	k8sLink = "https://{k8s-doc-link}/#"
 )
 
 var (
