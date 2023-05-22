@@ -375,7 +375,7 @@ type CoherenceJobResourceSpec struct {
 	// is ready. One the required number of ready Pods is reached the probe
 	// will also be executed on every Pod that becomes ready after that time.
 	// +optional
-	ReadyAction *CoherenceJobProbe `json:"ReadyAction,omitempty"`
+	ReadyAction *CoherenceJobProbe `json:"readyAction,omitempty"`
 }
 
 // GetRestartPolicy returns the name of the application image to use
@@ -505,4 +505,5 @@ type CoherenceJobProbeStatus struct {
 	LastReadyTime *metav1.Time `json:"lastReadyTime,omitempty"`
 	LastProbeTime *metav1.Time `json:"lastProbeTime,omitempty"`
 	Success       *bool        `json:"success,omitempty"`
+	Error         *string      `json:"error,omitempty"`
 }

@@ -93,12 +93,12 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 	}
 
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
-	logger.Info("Reconciling Job for deployment")
+	logger.Info("Reconciling Job")
 
 	// Fetch the Job's current state
 	jobCurrent, jobExists, err := in.MaybeFindJob(ctx, request.Namespace, request.Name)
 	if err != nil {
-		logger.Info("Finished reconciling Job for deployment. Error getting Job", "error", err.Error())
+		logger.Info("Finished reconciling Job. Error getting Job", "error", err.Error())
 		return result, errors.Wrapf(err, "getting Job %s/%s", request.Namespace, request.Name)
 	}
 
@@ -134,13 +134,13 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, false)
 				// TODO: what to do with error?
 				if err != nil {
-					logger.Info("Error updating deployment status", "error", err.Error())
+					logger.Info("Error updating CoherenceJob status", "error", err.Error())
 				}
 			}
 			// delete the Job
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
-			// The Job and parent resource has been deleted so no more to do
+			// The Job and parent resource have been deleted so no more to do
 			err = in.updateDeploymentStatus(ctx, request, nil)
 			return reconcile.Result{}, err
 		}
@@ -153,7 +153,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		return reconcile.Result{}, err
 	default:
 		// Both Job and deployment exists so this is maybe an update
-		result, err = in.updateJob(ctx, deployment, jobCurrent, storage, logger)
+		result, err = in.updateJob(ctx, deployment, jobCurrent.DeepCopy(), storage, logger)
 		if err == nil {
 			statuses, err = in.maybeExecuteProbe(ctx, jobCurrent, deployment, logger)
 		}
@@ -169,7 +169,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		return result, err
 	}
 
-	logger.Info("Finished reconciling Job for deployment")
+	logger.Info("Finished reconciling Job")
 	return result, nil
 }
 
@@ -207,11 +207,11 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 	return reconcile.Result{}, err
 }
 
-func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceResource, current *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceResource, job *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Updating job")
 
 	// get the desired resource state from the store
-	resource, found := storage.GetLatest().GetResource(coh.ResourceTypeJob, current.Name)
+	resource, found := storage.GetLatest().GetResource(coh.ResourceTypeJob, job.Name)
 	if !found {
 		// Desired state not found requeue and the request should sort itself out next time around
 		logger.Info("Cannot locate desired state for Job, possibly a deletion, re-queuing request")
@@ -224,13 +224,14 @@ func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceR
 	}
 
 	desired := resource.Spec.(*batchv1.Job)
-	return in.patchJob(ctx, deployment, current, desired, storage, logger)
+	// copy the job as the patch
+	return in.patchJob(ctx, deployment, job, desired, storage, logger)
 }
 
 // Patch the Job if required, returning a bool to indicate whether a patch was applied.
-func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceResource, current, desired *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
-	hashMatches := in.HashLabelsMatch(current, storage)
-	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeJob, current.GetName())
+func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceResource, job, desired *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+	hashMatches := in.HashLabelsMatch(job, storage)
+	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeJob, job.GetName())
 	original := &batchv1.Job{}
 
 	if resource.IsPresent() {
@@ -250,6 +251,9 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
 		return reconcile.Result{Requeue: false}, fmt.Errorf(msg)
 	}
+
+	// copy the job, so we do not alter the passed in job
+	current := job.DeepCopy()
 
 	// We NEVER patch finalizers
 	original.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
@@ -386,13 +390,18 @@ func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job,
 
 	// get the
 	var readyCount int32
-	if action.ReadyCount == nil {
+	if action.ReadyCount != nil {
 		readyCount = *action.ReadyCount
 	} else {
 		readyCount = deployment.GetReplicas()
 	}
 
-	if job.Status.Ready == nil || *job.Status.Ready < readyCount {
+	count := job.Status.Succeeded
+	if job.Status.Ready != nil {
+		count += *job.Status.Ready
+	}
+
+	if count < readyCount {
 		return statuses, nil
 	}
 
@@ -431,6 +440,7 @@ func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job,
 			} else {
 				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", err)
 				probeStatus.Success = pointer.Bool(false)
+				probeStatus.Error = pointer.String(err.Error())
 			}
 			now := metav1.Now()
 			probeStatus.LastProbeTime = &now

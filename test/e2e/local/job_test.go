@@ -103,6 +103,23 @@ func TestJobWithSingleFailedReplica(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
+func TestJobWithReadyAction(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	g := NewWithT(t)
+
+	name := "test-job"
+
+	jobs, _ := helper.AssertCoherenceJobs(testContext, t, "job-with-ready-action.yaml")
+
+	job, ok := jobs[name]
+	g.Expect(ok).To(BeTrue(), fmt.Sprintf("did not find expected '%s' deployment", name))
+
+	condition := jobProbesExecuted{count: int(job.GetReplicas())}
+	_, err := helper.WaitForCoherenceJobCondition(testContext, job.Namespace, job.Name, condition, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
 func deployJob(t *testing.T, ns, name string, replicas int32) []corev1.Pod {
 	g := NewWithT(t)
 
@@ -123,4 +140,27 @@ func deployJob(t *testing.T, ns, name string, replicas int32) []corev1.Pod {
 	t.Logf("Deployed CoherenceJob %s in namespace %s with %d pods", name, ns, len(pods))
 
 	return pods
+}
+
+type jobProbesExecuted struct {
+	count int
+}
+
+func (in jobProbesExecuted) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	if len(status.JobProbes) == 0 {
+		return false
+	}
+
+	success := 0
+	for _, s := range status.JobProbes {
+		if s.Success != nil && *s.Success {
+			success++
+		}
+	}
+	return success == in.count
+}
+
+func (in jobProbesExecuted) String() string {
+	return fmt.Sprintf("Job ready probes executed on %d pods", in.count)
 }

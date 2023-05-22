@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.tangosol.net.CacheFactory;
@@ -32,6 +33,8 @@ import com.sun.net.httpserver.HttpServer;
  * @author jk  2019.08.09
  */
 public class RestServer {
+
+    private static final AtomicLong COUNTER = new AtomicLong();
 
     /**
      * Private constructor.
@@ -60,6 +63,9 @@ public class RestServer {
             server.createContext("/canaryCheck", RestServer::canaryCheck);
             server.createContext("/canaryClear", RestServer::canaryClear);
             server.createContext("/shutdown", RestServer::shutdown);
+            server.createContext("/test", RestServer::test);
+            server.createContext("/testGet", RestServer::resetTest);
+            server.createContext("/testReset", RestServer::getTest);
 
             server.setExecutor(null); // creates a default executor
             server.start();
@@ -174,6 +180,25 @@ public class RestServer {
         }
         System.exit(exitCode);
     }
+
+    private static void test(HttpExchange t) throws IOException {
+        long count = COUNTER.getAndIncrement();
+        System.out.println("Test: incremented count=" + count);
+        send(t, 200, String.valueOf(count));
+    }
+
+    private static void getTest(HttpExchange t) throws IOException {
+        long count = COUNTER.get();
+        System.out.println("Test: get count=" + count);
+        send(t, 200, String.valueOf(count));
+    }
+
+    private static void resetTest(HttpExchange t) throws IOException {
+        COUNTER.set(0);
+        System.out.println("Test: reset");
+        send(t, 200, "");
+    }
+
 
     private static String getMainClass() {
         try {
