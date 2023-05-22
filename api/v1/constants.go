@@ -171,6 +171,7 @@ const (
 	EnvVarOperatorTimeout             = "OPERATOR_REQUEST_TIMEOUT"
 	EnvVarOperatorAllowResume         = "OPERATOR_ALLOW_RESUME"
 	EnvVarOperatorResumeServices      = "OPERATOR_RESUME_SERVICES"
+	EnvVarUseOperatorHealthCheck      = "OPERATOR_HEALTH_CHECK"
 	EnvVarCoherenceHome               = "COHERENCE_HOME"
 	EnvVarCohDependencyModules        = "DEPENDENCY_MODULES"
 	EnvVarCohSkipVersionCheck         = "COH_SKIP_VERSION_CHECK"

@@ -623,6 +623,10 @@ type CoherenceResourceStatus struct {
 	// ActionsExecuted tracks whether actions were executed
 	// +optional
 	ActionsExecuted bool `json:"actionsExecuted,omitempty"`
+	// +optional
+	// +patchMergeKey=pod
+	// +patchStrategy=merge
+	JobProbes []CoherenceJobProbeStatus `json:"jobProbes,omitempty"`
 }
 
 // SetCondition sets the current Status Condition
@@ -692,7 +696,7 @@ func (in *CoherenceResourceStatus) Update(deployment *Coherence, sts *appsv1.Sta
 }
 
 // UpdateFromJob the status based on the condition of the Job status.
-func (in *CoherenceResourceStatus) UpdateFromJob(deployment *CoherenceJob, jobStatus *batchv1.JobStatus) bool {
+func (in *CoherenceResourceStatus) UpdateFromJob(deployment *CoherenceJob, jobStatus *batchv1.JobStatus, probeStatuses []CoherenceJobProbeStatus) bool {
 	// ensure that there is an Initialized condition
 	updated := in.ensureInitialized(deployment)
 
@@ -764,6 +768,26 @@ func (in *CoherenceResourceStatus) UpdateFromJob(deployment *CoherenceJob, jobSt
 		// scaled to zero
 		if in.Phase != ConditionTypeStopped {
 			updated = in.setPhase(ConditionTypeStopped)
+		}
+	}
+
+	if len(probeStatuses) > 0 {
+		if len(in.JobProbes) == 0 {
+			in.JobProbes = probeStatuses
+			updated = true
+		} else {
+			for _, s := range probeStatuses {
+				ps := in.MaybeFindJobProbeStatus(s.Pod)
+				if ps == nil {
+					in.JobProbes = append(in.JobProbes, s)
+					updated = true
+				} else if ps.LastProbeTime.Before(s.LastProbeTime) {
+					ps.LastProbeTime = s.LastProbeTime
+					ps.LastReadyTime = s.LastReadyTime
+					ps.Success = s.Success
+					updated = true
+				}
+			}
 		}
 	}
 
@@ -852,4 +876,25 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment CoherenceResourc
 	}
 
 	return updated
+}
+
+func (in *CoherenceResourceStatus) FindJobProbeStatus(pod string) CoherenceJobProbeStatus {
+	s := in.MaybeFindJobProbeStatus(pod)
+	if s == nil {
+		return CoherenceJobProbeStatus{
+			Pod: pod,
+		}
+	}
+	return *s
+}
+
+func (in *CoherenceResourceStatus) MaybeFindJobProbeStatus(pod string) *CoherenceJobProbeStatus {
+	if in != nil {
+		for _, status := range in.JobProbes {
+			if status.Pod == pod {
+				return &status
+			}
+		}
+	}
+	return nil
 }

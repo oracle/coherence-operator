@@ -12,11 +12,15 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -81,6 +85,7 @@ func (in *ReconcileJob) Reconcile(ctx context.Context, request reconcile.Request
 // The previous state being reconciled can be obtained from the storage parameter.
 func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	result := reconcile.Result{}
+	var statuses []coh.CoherenceJobProbeStatus
 
 	if !storage.IsJob(request) {
 		// Nothing to do, not running as a Job
@@ -136,7 +141,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The Job and parent resource has been deleted so no more to do
-			err = in.updateDeploymentStatus(ctx, request)
+			err = in.updateDeploymentStatus(ctx, request, nil)
 			return reconcile.Result{}, err
 		}
 	case !jobExists:
@@ -144,11 +149,14 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		result, err = in.createJob(ctx, deployment, storage, logger)
 	case jobCompleted:
 		// Nothing to do, the job is complete
-		err = in.updateDeploymentStatus(ctx, request)
+		err = in.updateDeploymentStatus(ctx, request, nil)
 		return reconcile.Result{}, err
 	default:
 		// Both Job and deployment exists so this is maybe an update
 		result, err = in.updateJob(ctx, deployment, jobCurrent, storage, logger)
+		if err == nil {
+			statuses, err = in.maybeExecuteProbe(ctx, jobCurrent, deployment, logger)
+		}
 	}
 
 	if err != nil {
@@ -156,7 +164,7 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		return result, err
 	}
 
-	err = in.updateDeploymentStatus(ctx, request)
+	err = in.updateDeploymentStatus(ctx, request, statuses)
 	if err != nil {
 		return result, err
 	}
@@ -330,7 +338,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 }
 
 // updateDeploymentStatus updates the Coherence resource's status.
-func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reconcile.Request) error {
+func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reconcile.Request, probeStatuses []coh.CoherenceJobProbeStatus) error {
 	var err error
 	var job *batchv1.Job
 	job, _, err = in.MaybeFindJob(ctx, request.Namespace, request.Name)
@@ -360,9 +368,95 @@ func (in *ReconcileJob) updateDeploymentStatus(ctx context.Context, request reco
 		} else {
 			jobStatus = &job.Status
 		}
-		if updated.Status.UpdateFromJob(cj, jobStatus) {
+		if updated.Status.UpdateFromJob(cj, jobStatus, probeStatuses) {
 			err = in.GetClient().Status().Update(ctx, updated)
 		}
 	}
 	return err
+}
+
+func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job, deployment coh.CoherenceResource, logger logr.Logger) ([]coh.CoherenceJobProbeStatus, error) {
+	var statuses []coh.CoherenceJobProbeStatus
+
+	spec, _ := deployment.GetJobResourceSpec()
+	action := spec.ReadyAction
+	if action == nil {
+		return statuses, nil
+	}
+
+	// get the
+	var readyCount int32
+	if action.ReadyCount == nil {
+		readyCount = *action.ReadyCount
+	} else {
+		readyCount = deployment.GetReplicas()
+	}
+
+	if job.Status.Ready == nil || *job.Status.Ready < readyCount {
+		return statuses, nil
+	}
+
+	c := in.GetClient()
+
+	labels := client.MatchingLabels{}
+	for k, v := range job.Spec.Selector.MatchLabels {
+		labels[k] = v
+	}
+
+	list := corev1.PodList{}
+	err := c.List(ctx, &list, client.InNamespace(deployment.GetNamespace()), labels)
+	if err != nil {
+		return statuses, errors.Wrapf(err, "error getting list of Pods for Job %s", job.Name)
+	}
+
+	if list.Size() == 0 {
+		return statuses, nil
+	}
+
+	p := probe.CoherenceProbe{
+		Client: in.GetClient(),
+		Config: in.GetManager().GetConfig(),
+	}
+
+	status := deployment.GetStatus()
+	for _, pod := range list.Items {
+		name := pod.Name
+		probeStatus := status.FindJobProbeStatus(name)
+		podCondition := in.findPodReadyCondition(pod)
+		if in.shouldExecuteProbe(probeStatus, podCondition) {
+			_, err := p.RunProbe(ctx, pod, &action.Probe)
+			if err == nil {
+				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", "nil")
+				probeStatus.Success = pointer.Bool(true)
+			} else {
+				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", err)
+				probeStatus.Success = pointer.Bool(false)
+			}
+			now := metav1.Now()
+			probeStatus.LastProbeTime = &now
+			probeStatus.LastReadyTime = &podCondition.LastTransitionTime
+			statuses = append(statuses, probeStatus)
+		}
+	}
+
+	return statuses, nil
+}
+
+func (in *ReconcileJob) findPodReadyCondition(pod corev1.Pod) *corev1.PodCondition {
+	for _, c := range pod.Status.Conditions {
+		if c.Type == corev1.PodReady {
+			return &c
+		}
+	}
+	return nil
+}
+
+func (in *ReconcileJob) shouldExecuteProbe(probeStatus coh.CoherenceJobProbeStatus, podCondition *corev1.PodCondition) bool {
+	if podCondition == nil || podCondition.Status != corev1.ConditionTrue {
+		return false
+	}
+	if podCondition.LastTransitionTime.Before(probeStatus.LastReadyTime) {
+		return false
+	}
+	return true
 }

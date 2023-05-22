@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -459,11 +460,11 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 			in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name + " - No Pods are ready")
 		} else {
 			// Do service suspension...
-			probe := statefulset.CoherenceProbe{
+			p := probe.CoherenceProbe{
 				Client: in.GetClient(),
 				Config: in.GetManager().GetConfig(),
 			}
-			if probe.SuspendServices(ctx, c, sts) == statefulset.ServiceSuspendFailed {
+			if p.SuspendServices(ctx, c, sts) == probe.ServiceSuspendFailed {
 				return fmt.Errorf("failed to suspend services")
 			}
 		}

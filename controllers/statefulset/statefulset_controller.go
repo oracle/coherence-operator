@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -158,11 +159,11 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
 					switch suspended {
-					case ServiceSuspendFailed:
+					case probe.ServiceSuspendFailed:
 						return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
-					case ServiceSuspendSkipped:
+					case probe.ServiceSuspendSkipped:
 						logger.Info("Skipping suspension of Coherence services prior to deletion of StatefulSet")
-					case ServiceSuspendSuccessful:
+					case probe.ServiceSuspendSuccessful:
 					}
 				}
 			}
@@ -204,7 +205,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.StatefulSet, deployment coh.CoherenceResource) {
 	spec, found := deployment.GetStatefulSetSpec()
 	if found {
-		coherenceProbe := CoherenceProbe{
+		coherenceProbe := probe.CoherenceProbe{
 			Client: in.GetClient(),
 			Config: in.GetManager().GetConfig(),
 		}
@@ -461,7 +462,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		}
 
 		// perform the StatusHA check...
-		checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+		checker := probe.CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 		ha := checker.IsStatusHA(ctx, deployment, current)
 		if !ha {
 			logger.Info("Coherence cluster is not StatusHA - re-queuing update request.")
@@ -476,12 +477,12 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	if current.Status.ReadyReplicas == 1 {
 		suspended := in.suspendServices(ctx, deployment, current)
 		switch suspended {
-		case ServiceSuspendFailed:
+		case probe.ServiceSuspendFailed:
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to updating single member deployment")
-		case ServiceSuspendSkipped:
+		case probe.ServiceSuspendSkipped:
 			logger.Info("Skipping suspension of Coherence services in single member deployment " + deployment.GetName() +
 				" prior to update StatefulSet")
-		case ServiceSuspendSuccessful:
+		case probe.ServiceSuspendSuccessful:
 		}
 	}
 
@@ -505,8 +506,8 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 }
 
 // suspendServices suspends Coherence services in the target deployment.
-func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) ServiceSuspendStatus {
-	probe := CoherenceProbe{
+func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) probe.ServiceSuspendStatus {
+	probe := probe.CoherenceProbe{
 		Client: in.GetClient(),
 		Config: in.GetManager().GetConfig(),
 	}
@@ -560,7 +561,7 @@ func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment coh.Co
 		logger.Info("Coherence cluster is not StatusHA - Re-queuing scaling request. Stateful set not ready", "Ready", sts.Status.ReadyReplicas, "Replicas", current)
 	}
 
-	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+	checker := probe.CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 	ha := current == 1 || checker.IsStatusHA(ctx, deployment, sts)
 
 	if ha {

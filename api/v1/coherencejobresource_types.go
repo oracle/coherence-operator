@@ -369,6 +369,13 @@ type CoherenceJobResourceSpec struct {
 	// see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
 	// +optional
 	JobAnnotations map[string]string `json:"jobAnnotations,omitempty"`
+
+	// ReadyAction is a probe that will be executed when one or more Pods
+	// reach the ready state. The probe will be executed on every Pod that
+	// is ready. One the required number of ready Pods is reached the probe
+	// will also be executed on every Pod that becomes ready after that time.
+	// +optional
+	ReadyAction *CoherenceJobProbe `json:"ReadyAction,omitempty"`
 }
 
 // GetRestartPolicy returns the name of the application image to use
@@ -494,6 +501,8 @@ type CoherenceJobProbe struct {
 // ----- CoherenceJobProbeStatus type ----------------------------------------
 
 type CoherenceJobProbeStatus struct {
-	Pod        string     `json:"pod,omitempty"`
-	Conditions Conditions `json:"conditions,omitempty"`
+	Pod           string       `json:"pod,omitempty"`
+	LastReadyTime *metav1.Time `json:"lastReadyTime,omitempty"`
+	LastProbeTime *metav1.Time `json:"lastProbeTime,omitempty"`
+	Success       *bool        `json:"success,omitempty"`
 }

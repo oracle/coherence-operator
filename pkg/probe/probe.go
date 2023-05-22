@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
-package statefulset
+package probe
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/url"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"strconv"
 	"strings"
 )
@@ -35,6 +36,8 @@ const (
 	// Unknown Result
 	Unknown Result = "unknown"
 )
+
+var log = logf.Log.WithName("Probe")
 
 type CoherenceProbe struct {
 	Client         client.Client
