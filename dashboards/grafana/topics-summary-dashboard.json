@@ -4,8 +4,7 @@
       {
         "builtIn": 1,
         "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
+          "type": "prometheus"
         },
         "enable": true,
         "hide": true,
@@ -46,8 +45,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "gridPos": {
         "h": 2,
@@ -66,8 +64,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -114,8 +111,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -130,8 +126,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -180,8 +175,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -196,8 +190,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -246,8 +239,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -262,8 +254,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -311,8 +302,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -327,8 +317,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -380,8 +369,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -396,8 +384,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -449,8 +436,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -466,8 +452,7 @@
     {
       "columns": [],
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "",
       "fontSize": "100%",
@@ -570,8 +555,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -591,8 +575,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "Shows a graph of topic publish rate for all topics",
       "fieldConfig": {
@@ -668,8 +651,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
@@ -686,8 +668,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "Shows a graph of topic subscriber receive rates for all topics",
       "fieldConfig": {
@@ -763,8 +744,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
@@ -792,8 +772,7 @@
         "current": {
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
+          "type": "prometheus"
         },
         "definition": "",
         "hide": 0,
@@ -817,13 +796,10 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
+          "type": "prometheus"
         },
         "definition": "",
         "hide": 2,
@@ -852,8 +828,7 @@
           "value": "$__all"
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
+          "type": "prometheus"
         },
         "definition": "",
         "hide": 2,
@@ -886,8 +861,7 @@
           ]
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
+          "type": "prometheus"
         },
         "definition": "",
         "hide": 2,
