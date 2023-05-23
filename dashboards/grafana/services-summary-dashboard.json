@@ -388,7 +388,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

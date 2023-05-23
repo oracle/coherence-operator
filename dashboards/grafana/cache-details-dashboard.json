@@ -55,8 +55,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "gridPos": {
         "h": 2,
@@ -75,8 +74,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "The size of number of entries in the cache.",
       "fieldConfig": {
@@ -150,8 +148,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "description": "Indicates memory utilized by the cache entries. \nNote: If the unit-calculator is not BINARY or the service is not a DistributedCache service, then the details may be incorrect.",
       "fieldConfig": {
@@ -225,8 +222,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -299,8 +295,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -377,8 +372,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -455,8 +449,7 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -537,8 +530,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fill": 1,
       "fillGradient": 0,
@@ -1593,8 +1585,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_listener_key_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1605,8 +1596,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_listener_filter_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1618,8 +1608,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1631,8 +1620,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1643,8 +1631,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1655,8 +1642,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1668,8 +1654,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_total_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1680,8 +1665,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_max_query_duration_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1692,8 +1676,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1704,8 +1687,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_locks_pending{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1716,8 +1698,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_storage_manager_locks_granted{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1728,8 +1709,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1741,8 +1721,7 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
+            "type": "prometheus"
           },
           "expr": "sum(vendor:coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1760,8 +1739,7 @@
     {
       "columns": [],
       "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "type": "prometheus"
       },
       "fontSize": "100%",
       "gridPos": {
