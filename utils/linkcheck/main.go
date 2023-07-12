@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -275,14 +275,12 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 
 		fmt.Println(" OK")
 
+		pageContent := string(content)
+
 		for _, fragment := range fragments {
 			if fragment != "" {
 				fmt.Printf("%s#%s", urlToGet, fragment)
-				heading1 := fmt.Sprintf("id=\"%s\"", fragment)
-				heading2 := fmt.Sprintf("id=%s", fragment)
-				heading3 := fmt.Sprintf("href=\"#%s\"", fragment)
-				if !strings.Contains(string(content), heading1) && !strings.Contains(string(content), heading2) && !strings.Contains(string(content), heading3) {
-					fmt.Printf(" FAILED could not find heading %s %s or %s on page\n", heading1, heading2, heading3)
+				if !checkFragment(fragment, pageContent) {
 					return 1
 				}
 				fmt.Println(" OK")
@@ -293,6 +291,27 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	}
 
 	return 0
+}
+
+func checkFragment(fragment, pageContent string) bool {
+	var headings []string
+
+	headings = append(headings, fmt.Sprintf("id=\"%s\"", fragment))
+	headings = append(headings, fmt.Sprintf("id=%s", fragment))
+	headings = append(headings, fmt.Sprintf("href=\"#%s\"", fragment))
+	headings = append(headings, fmt.Sprintf("href=\\\"#%s\\\"", fragment))
+
+	for _, heading := range headings {
+		if strings.Contains(pageContent, heading) {
+			return true
+		}
+	}
+
+	fmt.Println(" FAILED could not find any of the following headings:")
+	for _, heading := range headings {
+		fmt.Printf("   %s", heading)
+	}
+	return false
 }
 
 func parseLinks(content string, excludes []string) ([]string, map[string][]string, error) {
