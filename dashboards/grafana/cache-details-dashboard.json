@@ -14,10 +14,10 @@
   },
   "description": "",
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 11,
-  "iteration": 1673412796860,
+  "id": 41,
+  "iteration": 1688089834119,
   "links": [
     {
       "icon": "dashboard",
@@ -69,13 +69,11 @@
         "content": "<center><h3>Cache Details - $ServiceName / $CacheName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": {},
       "description": "The size of number of entries in the cache.",
       "fieldConfig": {
         "defaults": {
@@ -133,7 +131,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
@@ -147,9 +145,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": {},
       "description": "Indicates memory utilized by the cache entries. \nNote: If the unit-calculator is not BINARY or the service is not a DistributedCache service, then the details may be incorrect.",
       "fieldConfig": {
         "defaults": {
@@ -207,10 +203,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"}) ",
+          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -280,7 +276,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
@@ -357,7 +353,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
@@ -434,9 +430,12 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_total_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -511,9 +510,12 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "max(vendor:coherence_storage_manager_max_query_duration_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -555,8 +557,11 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -566,6 +571,9 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",tier=\"back\",name=\"$CacheName\"})",
           "format": "time_series",
           "interval": "",
@@ -574,6 +582,9 @@
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -617,7 +628,9 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -652,7 +665,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -704,7 +717,9 @@
       }
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "Shows the total listener count across all members for this cache",
       "fieldConfig": {
         "defaults": {
@@ -782,7 +797,9 @@
       "pluginVersion": "8.5.13",
       "targets": [
         {
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(vendor:coherence_storage_manager_listener_key_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"})",
           "format": "time_series",
@@ -793,7 +810,9 @@
           "refId": "A"
         },
         {
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(vendor:coherence_storage_manager_listener_filter_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"})",
           "format": "time_series",
@@ -809,21 +828,221 @@
       "type": "timeseries"
     },
     {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "links": [],
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 44,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.3",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_cache_prunes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) - sum(vendor:coherence_cache_prunes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} offset $__interval) ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Prunes",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Cache Prunes for $CacheName",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:14842",
+          "format": "none",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:14843",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "links": [],
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 45,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.3",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_cache_prunes_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) - sum(vendor:coherence_cache_prunes_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} offset $__interval) ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Prunes",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Prunes Millis for $CacheName",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:14842",
+          "format": "ms",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:14843",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
       "columns": [],
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "id": 27,
       "links": [],
       "scroll": true,
       "showHeader": true,
       "sort": {
-        "col": 1,
+        "col": 5,
         "desc": false
       },
       "styles": [
@@ -999,6 +1218,9 @@
       ],
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1007,6 +1229,9 @@
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",tier=\"back\",name=\"$CacheName\"}) by(member)",
           "format": "table",
           "instant": true,
@@ -1015,6 +1240,9 @@
           "refId": "H"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_total_gets{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1023,6 +1251,9 @@
           "refId": "B"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_total_puts{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1030,6 +1261,9 @@
           "refId": "C"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_hits{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1038,6 +1272,9 @@
           "refId": "D"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_prunes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1046,6 +1283,9 @@
           "refId": "G"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_misses{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
@@ -1054,6 +1294,9 @@
           "refId": "E"
         },
         {
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(vendor:coherence_cache_hits{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member) / (sum(vendor:coherence_cache_hits{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member) + sum(vendor:coherence_cache_misses{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member) ) ",
           "format": "table",
           "instant": true,
@@ -1068,13 +1311,15 @@
     },
     {
       "columns": [],
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "id": 36,
       "links": [],
@@ -1123,7 +1368,7 @@
           "pattern": "Value #C",
           "thresholds": [],
           "type": "number",
-          "unit": "none"
+          "unit": "ms"
         },
         {
           "$$hashKey": "object:3478",
@@ -1140,7 +1385,7 @@
           "pattern": "Value #D",
           "thresholds": [],
           "type": "number",
-          "unit": "ns"
+          "unit": "ms"
         },
         {
           "$$hashKey": "object:3479",
@@ -1180,7 +1425,7 @@
         },
         {
           "$$hashKey": "object:3481",
-          "alias": "Prunes Millis",
+          "alias": "Total Prunes Millis",
           "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -1193,7 +1438,7 @@
           "pattern": "Value #G",
           "thresholds": [],
           "type": "number",
-          "unit": "ns"
+          "unit": "ms"
         },
         {
           "$$hashKey": "object:3482",
@@ -1289,13 +1534,15 @@
     },
     {
       "columns": [],
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 46
       },
       "id": 33,
       "links": [],
@@ -1585,7 +1832,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_listener_key_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1596,7 +1844,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_listener_filter_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1608,7 +1857,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1620,7 +1870,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1631,7 +1882,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_optimized_query_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1642,7 +1894,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1654,7 +1907,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_non_optimized_query_total_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1665,7 +1919,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_max_query_duration_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1676,7 +1931,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_eviction_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1687,7 +1943,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_locks_pending{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1698,7 +1955,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_storage_manager_locks_granted{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', cache=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1709,7 +1967,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1721,7 +1980,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus"
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
           },
           "expr": "sum(vendor:coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) by (member)",
           "format": "table",
@@ -1739,14 +1999,15 @@
     {
       "columns": [],
       "datasource": {
-        "type": "prometheus"
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
       },
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 46
+        "y": 54
       },
       "id": 39,
       "links": [],
@@ -1966,7 +2227,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1975,8 +2236,13 @@
     "list": [
       {
         "current": {
+          "selected": false,
+          "text": "ocnadd-cluster",
+          "value": "ocnadd-cluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1999,8 +2265,13 @@
       },
       {
         "current": {
+          "selected": false,
+          "text": "StorageService",
+          "value": "StorageService"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2023,8 +2294,13 @@
       },
       {
         "current": {
+          "selected": false,
+          "text": "test",
+          "value": "test"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2048,7 +2324,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
