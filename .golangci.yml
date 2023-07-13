@@ -12,10 +12,8 @@ run:
 #    - .*/fakes
 
 linters:
-  enable:
-    - golint
-    - gocritic
-    - gosec
+
+enable-all: true
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source

@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -19,13 +20,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sort"
 	"strings"
 	"time"
 )
@@ -108,11 +107,16 @@ func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile
 
 // ReconcileAllResourceOfKind will process the specified reconcile request for the specified deployment.
 // The previous state being reconciled can be obtained from the storage parameter.
-func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
+	result := reconcile.Result{}
+
+	if storage.IsJob(request) {
+		// Nothing to do, running as a Job instead of a StatefulSet
+		return result, nil
+	}
+
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
 	logger.Info("Reconciling StatefulSet for deployment")
-
-	result := reconcile.Result{}
 
 	// Fetch the StatefulSet's current state
 	stsCurrent, stsExists, err := in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
@@ -150,15 +154,16 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				if err != nil {
 					logger.Info("Error updating deployment status", "error", err.Error())
 				}
-				if deployment.Spec.IsSuspendServicesOnShutdown() {
+				stsSpec, _ := deployment.GetStatefulSetSpec()
+				if stsSpec.IsSuspendServicesOnShutdown() {
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
 					switch suspended {
-					case ServiceSuspendFailed:
+					case probe.ServiceSuspendFailed:
 						return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
-					case ServiceSuspendSkipped:
+					case probe.ServiceSuspendSkipped:
 						logger.Info("Skipping suspension of Coherence services prior to deletion of StatefulSet")
-					case ServiceSuspendSuccessful:
+					case probe.ServiceSuspendSuccessful:
 					}
 				}
 			}
@@ -166,7 +171,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 			err = in.Delete(ctx, request.Namespace, request.Name, logger)
 		} else {
 			// The StatefulSet and parent resource has been deleted so no more to do
-			_, err = in.UpdateDeploymentStatus(ctx, request)
+			_, err = in.updateDeploymentStatus(ctx, request)
 			return reconcile.Result{}, err
 		}
 	case !stsExists:
@@ -179,7 +184,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 
 	var updated *coh.Coherence
 	if err == nil {
-		if updated, err = in.UpdateDeploymentStatus(ctx, request); err == nil {
+		if updated, err = in.updateDeploymentStatus(ctx, request); err == nil {
 			if updated.Status.Phase == coh.ConditionTypeReady && !updated.Status.ActionsExecuted && deployment.GetReplicas() != 0 {
 				in.execActions(ctx, stsCurrent, deployment)
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, true)
@@ -196,69 +201,42 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	return result, nil
 }
 
-// UpdateDeploymentStatusActionsState updates the Coherence resource's status ActionsExecuted flag.
-func (in *ReconcileStatefulSet) UpdateDeploymentStatusActionsState(ctx context.Context, key types.NamespacedName, actionExecuted bool) error {
-	deployment := &coh.Coherence{}
-	err := in.GetClient().Get(ctx, key, deployment)
-	switch {
-	case err != nil && apierrors.IsNotFound(err):
-		// deployment not found - possibly deleted
-		err = nil
-	case err != nil:
-		// an error occurred
-		err = errors.Wrapf(err, "getting deployment %s", key.Name)
-	case deployment.GetDeletionTimestamp() != nil:
-		// deployment is being deleted
-		err = nil
-	default:
-		if deployment.Status.ActionsExecuted != actionExecuted {
-			updated := deployment.DeepCopy()
-			updated.Status.ActionsExecuted = actionExecuted
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
-			if err != nil {
-				return errors.Wrap(err, "creating Coherence resource status patch")
-			}
-			if patch != nil {
-				err = in.GetClient().Status().Patch(ctx, deployment, patch)
-				if err != nil {
-					return errors.Wrap(err, "updating Coherence resource status")
+// execActions executes actions
+func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.StatefulSet, deployment coh.CoherenceResource) {
+	spec, found := deployment.GetStatefulSetSpec()
+	if found {
+		coherenceProbe := probe.CoherenceProbe{
+			Client: in.GetClient(),
+			Config: in.GetManager().GetConfig(),
+		}
+
+		for _, action := range spec.Actions {
+			if action.Probe != nil {
+				if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
+					log.Info("Action probe execution failed.", "probe", action.Probe)
 				}
 			}
-		}
-	}
-	return err
-}
-
-// execActions executes actions
-func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.StatefulSet, deployment *coh.Coherence) {
-	coherenceProbe := CoherenceProbe{
-		Client: in.GetClient(),
-		Config: in.GetManager().GetConfig(),
-	}
-
-	for _, action := range deployment.Spec.Actions {
-		if action.Probe != nil {
-			if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
-				log.Info("Action probe execution failed.", "probe", action.Probe)
-			}
-		}
-		if action.Job != nil {
-			job := buildActionJob(action.Name, action.Job, deployment)
-			if err := in.GetClient().Create(ctx, job); err != nil {
-				log.Info("Action job creation failed", "error", err.Error())
-			} else {
-				log.Info(fmt.Sprintf("Created action job '%s'", job.Name))
+			if action.Job != nil {
+				job := buildActionJob(action.Name, action.Job, deployment)
+				if err := in.GetClient().Create(ctx, job); err != nil {
+					log.Info("Action job creation failed", "error", err.Error())
+				} else {
+					log.Info(fmt.Sprintf("Created action job '%s'", job.Name))
+				}
 			}
 		}
 	}
 }
 
 // buildActionJob creates job based on ActionJob config
-func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh.Coherence) *batchv1.Job {
-	generateName := deployment.Name + "-"
+func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment coh.CoherenceResource) *batchv1.Job {
+	generateName := deployment.GetName() + "-"
 	if actionName := strings.TrimSpace(actionName); actionName != "" {
 		generateName = generateName + actionName + "-"
 	}
+
+	gvk := deployment.GetObjectKind().GroupVersionKind()
+
 	job := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -271,10 +249,10 @@ func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh
 			Namespace:    deployment.GetNamespace(),
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion:         deployment.APIVersion,
-					Kind:               deployment.Kind,
-					Name:               deployment.Name,
-					UID:                deployment.UID,
+					APIVersion:         deployment.GetAPIVersion(),
+					Kind:               gvk.Kind,
+					Name:               deployment.GetName(),
+					UID:                deployment.GetUID(),
 					Controller:         pointer.Bool(true),
 					BlockOwnerDeletion: pointer.Bool(false),
 				},
@@ -285,15 +263,15 @@ func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment *coh
 	return job
 }
 
-func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deployment *coh.Coherence, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deployment coh.CoherenceResource, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Creating StatefulSet")
 
-	ok, reason := in.canCreate(ctx, deployment)
+	ok, reason := in.CanCreate(ctx, deployment)
 
 	if !ok {
 		// start quorum not met, send event and update deployment status
 		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "Waiting", reason)
-		_ = in.UpdateDeploymentStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
+		_ = in.UpdateCoherenceStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
 			Type:    coh.ConditionTypeWaiting,
 			Status:  corev1.ConditionTrue,
 			Reason:  "StatusQuorum",
@@ -302,16 +280,16 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
 	}
 
-	err := in.Create(ctx, deployment.Name, storage, logger)
+	err := in.Create(ctx, deployment.GetName(), storage, logger)
 	if err == nil {
 		// ensure that the deployment has a Created status
-		err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
+		err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeCreated)
 		if err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "updating deployment status")
 		}
 
 		// send a successful creation event
-		msg := fmt.Sprintf(CreateMessage, deployment.Name)
+		msg := fmt.Sprintf(CreateMessage, deployment.GetName())
 		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, reconciler.EventReasonCreated, msg)
 	}
 
@@ -319,58 +297,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 	return reconcile.Result{}, err
 }
 
-// canCreate determines whether any specified start quorum has been met.
-func (in *ReconcileStatefulSet) canCreate(ctx context.Context, deployment *coh.Coherence) (bool, string) {
-	if deployment.Spec.StartQuorum == nil || len(deployment.Spec.StartQuorum) == 0 {
-		// there is no start quorum
-		return true, ""
-	}
-
-	logger := in.GetLog().WithValues("Namespace", deployment.Namespace, "Name", deployment.Name)
-	logger.Info("Checking deployment start quorum")
-
-	var quorum []string
-
-	for _, q := range deployment.Spec.StartQuorum {
-		if q.Deployment == "" {
-			// this start-quorum does not have a dependency name so skip it
-			continue
-		}
-		// work out which Namespace to look for the dependency in
-		var namespace string
-		if q.Namespace == "" {
-			// start-quorum does not specify a namespace so use the same one as the deployment
-			namespace = deployment.Namespace
-		} else {
-			// start-quorum does specify a namespace so use it
-			namespace = q.Namespace
-		}
-		dep, found, err := in.MaybeFindDeployment(ctx, namespace, q.Deployment)
-		switch {
-		case err != nil:
-			// cannot create due to an error looking up the deployment
-			quorum = append(quorum, fmt.Sprintf("error finding deployment '%s' - %s", q.Deployment, err.Error()))
-		case !found:
-			// cannot create as the deployment does not yet exist
-			quorum = append(quorum, fmt.Sprintf("deployment '%s/%s' does not exist", namespace, q.Deployment))
-		case found && q.PodCount > 0 && dep.Status.ReadyReplicas < q.PodCount:
-			// deployment exists and quorum requires a specific number of ready Pods
-			quorum = append(quorum, fmt.Sprintf("role '%s/%s' to have %d ready Pods (ready=%d)", namespace, q.Deployment, q.PodCount, dep.Status.ReadyReplicas))
-		case found && dep.Status.Phase != coh.ConditionTypeReady:
-			// deployment exists and quorum requires all pods ready
-			quorum = append(quorum, fmt.Sprintf("deployment '%s' is not ready", q.Deployment))
-		}
-	}
-
-	if len(quorum) > 0 {
-		reason := "Waiting for start quorum to be met: \"" + strings.Join(quorum, "\" and \"") + "\""
-		logger.Info(reason)
-		return false, reason
-	}
-	return true, ""
-}
-
-func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deployment *coh.Coherence, current *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	logger.Info("Updating statefulSet")
 
 	var err error
@@ -421,7 +348,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 }
 
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
-func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment *coh.Coherence, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
 	original := &appsv1.StatefulSet{}
@@ -433,7 +360,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	if resource.IsPresent() {
 		err := resource.As(original)
 		if err != nil {
-			return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)
+			return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 		}
 	} else {
 		// there was no previous
@@ -470,39 +397,44 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	current.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 	original.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 
+	desiredPodSpec := desired.Spec.Template
+	currentPodSpec := current.Spec.Template
+	originalPodSpec := original.Spec.Template
+
 	// ensure we do not patch any fields that may be set by a previous version of the Operator
 	// as this will cause a rolling update of the Pods, typically these are fields where
 	// the Operator sets defaults, and we changed the default behaviour
-	in.blankContainerFields(deployment, desired)
-	in.blankContainerFields(deployment, current)
-	in.blankContainerFields(deployment, original)
+	in.BlankContainerFields(deployment, &desiredPodSpec)
+	in.BlankContainerFields(deployment, &currentPodSpec)
+	in.BlankContainerFields(deployment, &originalPodSpec)
 
-	// Sort the environment variables so we do not patch on just a re-ordering of env vars
-	in.sortEnvForAllContainers(desired)
-	in.sortEnvForAllContainers(current)
-	in.sortEnvForAllContainers(original)
+	// Sort the environment variables, so we do not patch on just a re-ordering of env vars
+	in.SortEnvForAllContainers(&desiredPodSpec)
+	in.SortEnvForAllContainers(&currentPodSpec)
+	in.SortEnvForAllContainers(&originalPodSpec)
 
 	// ensure the Coherence image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
-	if deployment.Spec.Image == nil {
-		cohImage := in.getCoherenceImage(desired)
-		in.setCoherenceImage(original, cohImage)
-		in.setCoherenceImage(current, cohImage)
+	deploymentSpec, _ := deployment.GetStatefulSetSpec()
+	if deploymentSpec.Image == nil {
+		cohImage := in.GetCoherenceImage(&desiredPodSpec)
+		in.SetCoherenceImage(&originalPodSpec, cohImage)
+		in.SetCoherenceImage(&currentPodSpec, cohImage)
 	}
 
 	// ensure the Operator image is present so that we do not patch on a Coherence resource
 	// from pre-3.1.x that does not have images set
-	if deployment.Spec.CoherenceUtils == nil || deployment.Spec.CoherenceUtils.Image == nil {
-		operatorImage := in.getOperatorImage(desired)
-		in.setOperatorImage(original, operatorImage)
-		in.setOperatorImage(current, operatorImage)
+	if deploymentSpec.CoherenceUtils == nil || deploymentSpec.CoherenceUtils.Image == nil {
+		operatorImage := in.GetOperatorImage(&desiredPodSpec)
+		in.SetOperatorImage(&originalPodSpec, operatorImage)
+		in.SetOperatorImage(&currentPodSpec, operatorImage)
 	}
 
 	// a callback function that the 3-way patch method will call just before it applies a patch
 	// if there is any patch to apply, this will check StatusHA if required and update the deployment status
 	callback := func() {
 		// ensure that the deployment has an "Upgrading" status
-		if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
+		if err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeRollingUpgrade); err != nil {
 			logger.Error(err, "Error updating deployment status to Upgrading")
 		}
 	}
@@ -522,7 +454,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 
 	logger.Info("Updating StatefulSet")
 
-	if deployment.Spec.CheckHABeforeUpdate() {
+	if deploymentSpec.CheckHABeforeUpdate() {
 		// Check we have the expected number of ready replicas
 		if readyReplicas != currentReplicas {
 			logger.Info("Re-queuing update request. StatefulSet Status not all replicas are ready", "Ready", readyReplicas, "CurrentReplicas", currentReplicas)
@@ -530,7 +462,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		}
 
 		// perform the StatusHA check...
-		checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+		checker := probe.CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 		ha := checker.IsStatusHA(ctx, deployment, current)
 		if !ha {
 			logger.Info("Coherence cluster is not StatusHA - re-queuing update request.")
@@ -545,12 +477,12 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	if current.Status.ReadyReplicas == 1 {
 		suspended := in.suspendServices(ctx, deployment, current)
 		switch suspended {
-		case ServiceSuspendFailed:
+		case probe.ServiceSuspendFailed:
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to updating single member deployment")
-		case ServiceSuspendSkipped:
-			logger.Info("Skipping suspension of Coherence services in single member deployment " + deployment.Name +
+		case probe.ServiceSuspendSkipped:
+			logger.Info("Skipping suspension of Coherence services in single member deployment " + deployment.GetName() +
 				" prior to update StatefulSet")
-		case ServiceSuspendSuccessful:
+		case probe.ServiceSuspendSuccessful:
 		}
 	}
 
@@ -561,7 +493,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	switch {
 	case err != nil:
 		logger.Info("Error patching StatefulSet " + err.Error())
-		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.Name, err.Error()), logger)
+		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 	case !patched:
 		return reconcile.Result{Requeue: true}, nil
 	}
@@ -574,134 +506,25 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 }
 
 // suspendServices suspends Coherence services in the target deployment.
-func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment *coh.Coherence, current *appsv1.StatefulSet) ServiceSuspendStatus {
-	probe := CoherenceProbe{
+func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) probe.ServiceSuspendStatus {
+	probe := probe.CoherenceProbe{
 		Client: in.GetClient(),
 		Config: in.GetManager().GetConfig(),
 	}
 	return probe.SuspendServices(ctx, deployment, current)
 }
 
-func (in *ReconcileStatefulSet) sortEnvForAllContainers(sts *appsv1.StatefulSet) {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		in.sortEnvForContainer(&c)
-		sts.Spec.Template.Spec.InitContainers[i] = c
-	}
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		in.sortEnvForContainer(&c)
-		sts.Spec.Template.Spec.Containers[i] = c
-	}
-}
-
-func (in *ReconcileStatefulSet) sortEnvForContainer(c *corev1.Container) {
-	sort.Slice(c.Env, func(i, j int) bool {
-		return c.Env[i].Name < c.Env[j].Name
-	})
-}
-
-func (in *ReconcileStatefulSet) getOperatorImage(sts *appsv1.StatefulSet) string {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameOperatorInit {
-			return c.Image
-		}
-	}
-	return ""
-}
-
-func (in *ReconcileStatefulSet) setOperatorImage(sts *appsv1.StatefulSet, image string) {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameOperatorInit {
-			c.Image = image
-			sts.Spec.Template.Spec.InitContainers[i] = c
-		}
-	}
-}
-
-func (in *ReconcileStatefulSet) getCoherenceImage(sts *appsv1.StatefulSet) string {
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		if c.Name == coh.ContainerNameCoherence {
-			return c.Image
-		}
-	}
-	return ""
-}
-
-func (in *ReconcileStatefulSet) setCoherenceImage(sts *appsv1.StatefulSet, image string) {
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		if c.Name == coh.ContainerNameCoherence {
-			c.Image = image
-			sts.Spec.Template.Spec.Containers[i] = c
-		}
-	}
-}
-
-// Blank out any fields that we do not want to include in the patch
-// Typically these are fields where we changed the default behaviour in the newer Operator versions
-func (in *ReconcileStatefulSet) blankContainerFields(deployment *coh.Coherence, sts *appsv1.StatefulSet) {
-	if deployment.Spec.Affinity == nil {
-		// affinity not set by user so do not diff on it
-		sts.Spec.Template.Spec.Affinity = nil
-	}
-	in.blankOperatorInitContainerFields(sts)
-	in.blankCoherenceContainerFields(sts)
-}
-
-// Blanks out any fields that may have been set by a previous Operator version.
-// DO NOT blank out anything that the user has control over as they may have
-// updated them, so we need to include them in the patch
-func (in *ReconcileStatefulSet) blankOperatorInitContainerFields(sts *appsv1.StatefulSet) {
-	for i := range sts.Spec.Template.Spec.InitContainers {
-		c := sts.Spec.Template.Spec.InitContainers[i]
-		if c.Name == coh.ContainerNameOperatorInit {
-			// This is the Operator init-container
-			// blank out the container command field
-			c.Command = []string{}
-			// set the updated init-container back into the StatefulSet
-			sts.Spec.Template.Spec.InitContainers[i] = c
-		}
-	}
-}
-
-// Blanks out any fields that may have been set by a previous Operator version.
-// DO NOT blank out anything that the user has control over as they may have
-// updated them, so we need to include them in the patch
-func (in *ReconcileStatefulSet) blankCoherenceContainerFields(sts *appsv1.StatefulSet) {
-	for i := range sts.Spec.Template.Spec.Containers {
-		c := sts.Spec.Template.Spec.Containers[i]
-		if c.Name == coh.ContainerNameCoherence {
-			// This is the Coherence Container
-			// blank out the container command field
-			c.Command = []string{}
-			// blank the WKA env var
-			for e := range c.Env {
-				ev := c.Env[e]
-				if ev.Name == coh.EnvVarCohWka {
-					ev.Value = ""
-					c.Env[e] = ev
-				}
-			}
-			// set the updated container back into the StatefulSet
-			sts.Spec.Template.Spec.Containers[i] = c
-		}
-	}
-}
-
 // Scale will scale a StatefulSet up or down
-func (in *ReconcileStatefulSet) scale(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet, current, desired int32) (reconcile.Result, error) {
+func (in *ReconcileStatefulSet) scale(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet, current, desired int32) (reconcile.Result, error) {
 	// if the StatefulSet is not stable we cannot scale (e.g. it might already be in the middle of a rolling upgrade)
-	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
+	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	logger.Info("Scaling StatefulSet", "Current", current, "Desired", desired)
 
-	policy := deployment.Spec.GetEffectiveScalingPolicy()
+	spec, _ := deployment.GetStatefulSetSpec()
+	policy := spec.GetEffectiveScalingPolicy()
 
 	// ensure that the deployment has a Scaling status
-	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
+	if err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
 		logger.Error(err, "Error updating deployment status to Scaling")
 	}
 
@@ -730,15 +553,15 @@ func (in *ReconcileStatefulSet) getReplicas(sts *appsv1.StatefulSet) int32 {
 }
 
 // safeScale will scale a StatefulSet up or down by one and requeue the request.
-func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet, desired int32, current int32) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
+func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet, desired int32, current int32) (reconcile.Result, error) {
+	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	logger.Info("Safe scaling StatefulSet", "Current", current, "Desired", desired)
 
 	if sts.Status.ReadyReplicas != current {
 		logger.Info("Coherence cluster is not StatusHA - Re-queuing scaling request. Stateful set not ready", "Ready", sts.Status.ReadyReplicas, "Replicas", current)
 	}
 
-	checker := CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+	checker := probe.CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 	ha := current == 1 || checker.IsStatusHA(ctx, deployment, sts)
 
 	if ha {
@@ -763,7 +586,7 @@ func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment *coh.C
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 		}
 		// failed
-		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToScaleMessage, deployment.Name, current, replicas, err.Error()), logger)
+		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToScaleMessage, deployment.GetName(), current, replicas, err.Error()), logger)
 	}
 
 	// Not StatusHA - wait one minute
@@ -772,17 +595,18 @@ func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment *coh.C
 }
 
 // parallelScale will scale the StatefulSet by the required amount in one request.
-func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment *coh.Coherence, sts *appsv1.StatefulSet, replicas int32) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", deployment.Name, "Name", deployment.Name)
+func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet, replicas int32) (reconcile.Result, error) {
+	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	logger.Info("Scaling StatefulSet", "Replicas", replicas)
 
 	events := in.GetEventRecorder()
 
 	// Update this Coherence resource's status
-	deployment.Status.Phase = coh.ConditionTypeScaling
-	deployment.Status.Replicas = replicas
+	status := deployment.GetStatus()
+	status.Phase = coh.ConditionTypeScaling
+	status.Replicas = replicas
 
-	if err := in.UpdateDeploymentStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
+	if err := in.UpdateCoherenceStatusPhase(ctx, deployment.GetNamespacedName(), coh.ConditionTypeScaling); err != nil {
 		logger.Error(err, "Error updating deployment status to Scaling")
 	}
 
@@ -805,4 +629,42 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment *c
 	events.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
 
 	return reconcile.Result{}, nil
+}
+
+// updateDeploymentStatus updates the Coherence resource's status.
+func (in *ReconcileStatefulSet) updateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
+	var err error
+	var sts *appsv1.StatefulSet
+	sts, _, err = in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
+	if err != nil {
+		// an error occurred
+		err = errors.Wrapf(err, "getting StatefulSet %s", request.Name)
+		return nil, err
+	}
+
+	deployment := &coh.Coherence{}
+	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", request.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		updated := deployment.DeepCopy()
+		var stsStatus *appsv1.StatefulSetStatus
+		if sts == nil {
+			stsStatus = nil
+		} else {
+			stsStatus = &sts.Status
+		}
+		if updated.Status.Update(deployment, stsStatus) {
+			err = in.GetClient().Status().Update(ctx, updated)
+		}
+	}
+	return deployment, err
 }

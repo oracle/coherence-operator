@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -79,7 +79,7 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 }
 
 // ReconcileAllResourceOfKind reconciles the state of the desired ServiceMonitors for the reconciler
-func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, d *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, d coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
 	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
@@ -102,7 +102,7 @@ func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Contex
 	return reconcile.Result{}, nil
 }
 
-func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, namespace, name string, owner coh.CoherenceResource, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
 	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 

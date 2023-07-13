@@ -87,13 +87,14 @@ func NewRootCommand() (*cobra.Command, *viper.Viper) {
 		Use:   "runner",
 		Short: "Run the link checker",
 		Long:  "Run the link checker",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			_ = cmd.Help()
-		},
 	}
+
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		_ = cmd.Help()
+	})
 
 	flags := rootCmd.Flags()
 	flags.StringArray(ArgFile, nil, "a file or directory to scan")
@@ -119,71 +120,92 @@ func run(cmd *cobra.Command) error {
 	excludes = append(excludes, "https://host")
 	excludes = append(excludes, "http://host")
 
-	exitCode := checkDocs(files, excludes)
+	exitCode, failedLinks := checkDocs(files, excludes)
 	if exitCode != 0 {
+		fmt.Println("Link checking FAILED")
+		for _, link := range failedLinks {
+			fmt.Println(link)
+		}
 		return fmt.Errorf("link checking failed")
 	}
+	fmt.Println("Link checking PASSED")
 	return nil
 }
 
-func checkDocs(paths []string, excludes []string) int {
+func checkDocs(paths []string, excludes []string) (int, []string) {
+	var failedLinks []string
 	exitCode := 0
 	for _, path := range paths {
 		if strings.HasSuffix(path, "/...") {
-			exitCode = checkDirectory(path[0:len(path)-4], excludes)
+			if rc, links := checkDirectory(path[0:len(path)-4], excludes); rc != 0 {
+				failedLinks = append(failedLinks, links...)
+				exitCode = 1
+			}
 		} else {
-			exitCode = checkDoc(path, excludes)
+			if rc, links := checkDoc(path, excludes); rc != 0 {
+				failedLinks = append(failedLinks, links...)
+				exitCode = 1
+			}
 		}
 	}
-	return exitCode
+	return exitCode, failedLinks
 }
 
-func checkDirectory(dirName string, excludes []string) int {
+func checkDirectory(dirName string, excludes []string) (int, []string) {
+	var failedLinks []string
 	fmt.Printf("Checking directory %s\n", dirName)
 	info, err := os.Stat(dirName)
 	if err != nil {
 		fmt.Printf(err.Error())
-		return 1
+		return 1, failedLinks
 	}
 	if !info.IsDir() {
 		fmt.Printf("%s is not a directory", dirName)
-		return 1
+		return 1, failedLinks
 	}
 	return checkFileInfo(dirName, info, excludes)
 }
 
-func checkFileInfo(dir string, info os.FileInfo, excludes []string) int {
+func checkFileInfo(dir string, info os.FileInfo, excludes []string) (int, []string) {
+	var failedLinks []string
+
 	if info.IsDir() {
 		files, err := os.ReadDir(dir)
 		if err != nil {
 			fmt.Printf(err.Error())
-			return 1
+			return 1, failedLinks
 		}
+
 		exitCode := 0
+
 		for _, f := range files {
 			name := f.Name()
 			if !strings.HasPrefix(name, ".") {
 				fullName := fmt.Sprintf("%s%s%s", dir, string(os.PathSeparator), name)
 				if f.IsDir() {
-					if checkDirectory(fullName, excludes) != 0 {
+					if rc, links := checkDirectory(fullName, excludes); rc != 0 {
+						failedLinks = append(failedLinks, links...)
 						exitCode = 1
 					}
 				} else {
-					if checkDoc(fullName, excludes) != 0 {
+					if rc, links := checkDoc(fullName, excludes); rc != 0 {
+						failedLinks = append(failedLinks, links...)
 						exitCode = 1
 					}
 				}
 			}
 		}
-		return exitCode
+		return exitCode, failedLinks
 	} else {
 		return checkDoc(info.Name(), excludes)
 	}
 }
 
-func checkDoc(path string, excludes []string) int {
+func checkDoc(path string, excludes []string) (int, []string) {
+	var failedLinks []string
+
 	if !strings.HasSuffix(path, ".js") && !strings.HasSuffix(path, ".html") {
-		return 0
+		return 0, failedLinks
 	}
 
 	fmt.Printf("Checking file %s\n", path)
@@ -201,10 +223,11 @@ func checkDoc(path string, excludes []string) int {
 	for _, link := range links {
 		fragments := mapFragment[link]
 		if checkLink(link, fragments, excludes) != 0 {
+			failedLinks = append(failedLinks, link)
 			exitCode = 1
 		}
 	}
-	return exitCode
+	return exitCode, failedLinks
 }
 
 func checkLink(link string, fragments []string, excludes []string) int {

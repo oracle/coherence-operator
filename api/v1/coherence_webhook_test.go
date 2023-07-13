@@ -24,8 +24,8 @@ func TestDefaultReplicasIsSet(t *testing.T) {
 
 	c := coh.Coherence{}
 	c.Default()
-	g.Expect(c.Spec.Replicas).NotTo(BeNil())
-	g.Expect(*c.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+	g.Expect(c.Spec.CoherenceResourceSpec.Replicas).NotTo(BeNil())
+	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
 }
 
 func TestAddVersionAnnotation(t *testing.T) {
@@ -33,9 +33,10 @@ func TestAddVersionAnnotation(t *testing.T) {
 
 	c := coh.Coherence{}
 	c.Default()
-	g.Expect(c.Annotations).NotTo(BeNil())
-	g.Expect(c.Annotations[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
-	g.Expect(*c.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+	an := c.GetAnnotations()
+	g.Expect(an).NotTo(BeNil())
+	g.Expect(an[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
+	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
 }
 
 func TestShouldAddFinalizer(t *testing.T) {
@@ -82,8 +83,10 @@ func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
 
 	var replicas int32 = 19
 	c := coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: &replicas,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: &replicas,
+			},
 		},
 	}
 	c.Default()
@@ -106,9 +109,11 @@ func TestCoherenceLocalPortIsNotOverridden(t *testing.T) {
 	var port int32 = 1234
 
 	c := coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				LocalPort: int32Ptr(port),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					LocalPort: int32Ptr(port),
+				},
 			},
 		},
 	}
@@ -141,9 +146,11 @@ func TestCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
 
 	lpa := intstr.FromInt(9876)
 	c := coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				LocalPortAdjust: &lpa,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					LocalPortAdjust: &lpa,
+				},
 			},
 		},
 	}
@@ -178,8 +185,10 @@ func TestCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	viper.Set(operator.FlagCoherenceImage, "foo")
 	image := "bar"
 	c := coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Image: &image,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Image: &image,
+			},
 		},
 	}
 
@@ -206,9 +215,11 @@ func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	viper.Set(operator.FlagOperatorImage, "foo")
 	image := "bar"
 	c := coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			CoherenceUtils: &coh.ImageSpec{
-				Image: &image,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				CoherenceUtils: &coh.ImageSpec{
+					Image: &image,
+				},
 			},
 		},
 	}
@@ -224,14 +235,16 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 
 	cm := "on-demand"
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode:                  &cm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode:                  &cm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -240,14 +253,16 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 
 	pm := "active"
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode:                  &pm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode:                  &pm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -263,15 +278,17 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 
 	cm := "on-demand"
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: int32Ptr(0),
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode:                  &cm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: int32Ptr(0),
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode:                  &cm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -280,14 +297,16 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 
 	pm := "active"
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode:                  &pm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode:                  &pm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -303,14 +322,16 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 
 	cm := "on-demand"
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode:                  &cm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode:                  &cm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -319,15 +340,17 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 
 	pm := "active"
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: int32Ptr(0),
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode:                  &pm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: int32Ptr(0),
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode:                  &pm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -343,19 +366,21 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 
 	cm := "on-demand"
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode: &cm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
-							VolumeName: "foo",
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode: &cm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+								VolumeName: "foo",
+							},
+							Volume: &corev1.VolumeSource{},
 						},
-						Volume: &corev1.VolumeSource{},
-					},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -364,19 +389,21 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 
 	pm := "active"
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				Persistence: &coh.PersistenceSpec{
-					Mode: &pm,
-					PersistentStorageSpec: coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
-							VolumeName: "bar",
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					Persistence: &coh.PersistenceSpec{
+						Mode: &pm,
+						PersistentStorageSpec: coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
+								VolumeName: "bar",
+							},
+							Volume: &corev1.VolumeSource{},
 						},
-						Volume: &corev1.VolumeSource{},
-					},
-					Snapshots: &coh.PersistentStorageSpec{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
-						Volume:                &corev1.VolumeSource{},
+						Snapshots: &coh.PersistentStorageSpec{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{},
+							Volume:                &corev1.VolumeSource{},
+						},
 					},
 				},
 			},
@@ -391,7 +418,7 @@ func TestValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateCreate()
@@ -402,8 +429,10 @@ func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(19),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(19),
+			},
 		},
 	}
 
@@ -415,8 +444,10 @@ func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(19),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(19),
+			},
 		},
 	}
 
@@ -429,8 +460,10 @@ func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(-1),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(-1),
+			},
 		},
 	}
 
@@ -442,11 +475,11 @@ func TestValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -457,13 +490,15 @@ func TestValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(19),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(19),
+			},
 		},
 	}
 
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -474,13 +509,15 @@ func TestValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	current := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(19),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(19),
+			},
 		},
 	}
 
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -492,13 +529,15 @@ func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(-1),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(-1),
+			},
 		},
 	}
 
 	prev := &coh.Coherence{
-		Spec: coh.CoherenceResourceSpec{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -510,12 +549,12 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -527,14 +566,14 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
+		Spec: coh.CoherenceStatefulSetResourceSpec{
 			VolumeClaimTemplates: []coh.PersistentVolumeClaim{},
 		},
 	}
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -546,7 +585,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
+		Spec: coh.CoherenceStatefulSetResourceSpec{
 			VolumeClaimTemplates: []coh.PersistentVolumeClaim{
 				{
 					Metadata: coh.PersistentVolumeClaimObjectMeta{Name: "foo"},
@@ -558,7 +597,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -570,12 +609,12 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
+		Spec: coh.CoherenceStatefulSetResourceSpec{
 			VolumeClaimTemplates: []coh.PersistentVolumeClaim{
 				{
 					Metadata: coh.PersistentVolumeClaimObjectMeta{Name: "foo"},
@@ -594,17 +633,19 @@ func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-			Ports: []coh.NamedPortSpec{
-				{
-					Name:     "p1",
-					Port:     1234,
-					NodePort: pointer.Int32(30000),
-				},
-				{
-					Name:     "p2",
-					Port:     1235,
-					NodePort: pointer.Int32(32767),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Ports: []coh.NamedPortSpec{
+					{
+						Name:     "p1",
+						Port:     1234,
+						NodePort: pointer.Int32(30000),
+					},
+					{
+						Name:     "p2",
+						Port:     1235,
+						NodePort: pointer.Int32(32767),
+					},
 				},
 			},
 		},
@@ -619,22 +660,24 @@ func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-			Ports: []coh.NamedPortSpec{
-				{
-					Name:     "p1",
-					Port:     1234,
-					NodePort: pointer.Int32(30000),
-				},
-				{
-					Name:     "p2",
-					Port:     1235,
-					NodePort: pointer.Int32(32767),
-				},
-				{
-					Name:     "p3",
-					Port:     1235,
-					NodePort: pointer.Int32(1234),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Ports: []coh.NamedPortSpec{
+					{
+						Name:     "p1",
+						Port:     1234,
+						NodePort: pointer.Int32(30000),
+					},
+					{
+						Name:     "p2",
+						Port:     1235,
+						NodePort: pointer.Int32(32767),
+					},
+					{
+						Name:     "p3",
+						Port:     1235,
+						NodePort: pointer.Int32(1234),
+					},
 				},
 			},
 		},
@@ -649,17 +692,19 @@ func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-			Ports: []coh.NamedPortSpec{
-				{
-					Name:     "p1",
-					Port:     1234,
-					NodePort: pointer.Int32(30000),
-				},
-				{
-					Name:     "p2",
-					Port:     1235,
-					NodePort: pointer.Int32(32767),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Ports: []coh.NamedPortSpec{
+					{
+						Name:     "p1",
+						Port:     1234,
+						NodePort: pointer.Int32(30000),
+					},
+					{
+						Name:     "p2",
+						Port:     1235,
+						NodePort: pointer.Int32(32767),
+					},
 				},
 			},
 		},
@@ -667,7 +712,7 @@ func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)
@@ -679,22 +724,24 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 
 	current := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec: coh.CoherenceResourceSpec{
-			Ports: []coh.NamedPortSpec{
-				{
-					Name:     "p1",
-					Port:     1234,
-					NodePort: pointer.Int32(30000),
-				},
-				{
-					Name:     "p2",
-					Port:     1235,
-					NodePort: pointer.Int32(32767),
-				},
-				{
-					Name:     "p3",
-					Port:     1235,
-					NodePort: pointer.Int32(1234),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Ports: []coh.NamedPortSpec{
+					{
+						Name:     "p1",
+						Port:     1234,
+						NodePort: pointer.Int32(30000),
+					},
+					{
+						Name:     "p2",
+						Port:     1235,
+						NodePort: pointer.Int32(32767),
+					},
+					{
+						Name:     "p3",
+						Port:     1235,
+						NodePort: pointer.Int32(1234),
+					},
 				},
 			},
 		},
@@ -702,7 +749,7 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 
 	prev := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
-		Spec:       coh.CoherenceResourceSpec{},
+		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
 	err := current.ValidateUpdate(prev)

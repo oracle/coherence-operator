@@ -19,13 +19,13 @@ VERSION ?= 3.2.12
 MVN_VERSION ?= $(VERSION)-SNAPSHOT
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.10
+PREV_VERSION ?= 3.2.11
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  = 3.2.6
+COMPATIBLE_VERSION  ?= 3.2.11
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = control-plane=coherence
 
@@ -499,7 +499,7 @@ build-test-images: build-mvn build-client-image build-basic-test-image ## Build 
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-basic-test-image
 build-basic-test-image: build-mvn ## Build the basic Operator test image
-	./mvnw -B -f java/operator-test package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
@@ -588,13 +588,14 @@ $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com
 config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) controller-gen
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
-	  output:crd:artifacts:config=config/crd/bases
+	  output:crd:dir=config/crd/bases
 	cp -R config/crd/ config/crd-small
 	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
-	  output:crd:artifacts:config=config/crd-small/bases
+	  output:crd:dir=config/crd-small/bases
 	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
-	$(KUSTOMIZE) build config/crd > $(BUILD_ASSETS)/crd_v1.yaml
+	$(KUSTOMIZE) build config/crd -o $(BUILD_ASSETS)/
+	cd config/crd-small && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -756,7 +757,7 @@ run-clean: reset-namespace run ## run the Operator locally after resetting the n
 run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-debug: create-namespace ## run the Operator locally with Delve debugger
-	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient \
+	dlv debug ./runner --headless --listen=:2345 --api-version=2 --accept-multiclient \
 		-- --skip-service-suspend=true --coherence-dev-mode=true \
 		--cert-type=self-signed --webhook-service=host.docker.internal
 
@@ -1488,6 +1489,14 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters: ## Delete all running Coherence clusters in the test namespace
+	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
+  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	done
+	for i in $$(kubectl -n  $(CLUSTER_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
+  		kubectl -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	done
 	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
   		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
 		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
@@ -2090,7 +2099,7 @@ get-istio: $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.51.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.52.2
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

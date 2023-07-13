@@ -258,6 +258,15 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		if err != nil {
 			return TestContext{}, err
 		}
+
+		// Create the CoherenceJob controller
+		err = (&controllers.CoherenceJobReconciler{
+			Client: k8sManager.GetClient(),
+			Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
+		}).SetupWithManager(k8sManager)
+		if err != nil {
+			return TestContext{}, err
+		}
 	}
 
 	// Start the manager, which will start the controller and REST server
@@ -349,9 +358,76 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 
 	if err != nil && sts != nil {
 		d, _ := json.MarshalIndent(sts, "", "    ")
-		ctx.Logf("Error waiting for StatefulSet%s", string(d))
+		ctx.Logf("Error waiting for StatefulSet %s", string(d))
 	}
 	return sts, err
+}
+
+// WaitForJob waits for a Job to be created with the specified number of replicas.
+func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration) (*batchv1.Job, error) {
+	var job *batchv1.Job
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		job, err = ctx.KubeClient.BatchV1().Jobs(namespace).Get(ctx.Context, stsName, metav1.GetOptions{})
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				ctx.Logf("Waiting for availability of Job %s - NotFound", stsName)
+				return false, nil
+			}
+			ctx.Logf("Waiting for availability of %s Job - %s", stsName, err.Error())
+			return false, err
+		}
+
+		var ready int32
+		readyPtr := job.Status.Ready
+		if readyPtr != nil {
+			ready = *readyPtr
+		} else {
+			ready = job.Status.Succeeded
+			if job.Status.Ready != nil {
+				ready = ready + job.Status.Active
+			}
+		}
+
+		if ready == replicas {
+			ctx.Logf("Job %s replicas = (%d/%d)", stsName, ready, replicas)
+			return true, nil
+		}
+		ctx.Logf("Waiting for full availability of Job %s (%d/%d)", stsName, ready, replicas)
+		return false, nil
+	})
+
+	if err != nil && job != nil {
+		d, _ := json.MarshalIndent(job, "", "    ")
+		ctx.Logf("Error waiting for Job %s", string(d))
+	}
+	return job, err
+}
+
+func WaitForCoherenceJobCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.CoherenceJob, error) {
+	var job *coh.CoherenceJob
+
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		job, err = GetCoherenceJob(ctx, namespace, name)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				ctx.Logf("Waiting for availability of CoherenceJob resource %s - NotFound", name)
+				return false, nil
+			}
+			ctx.Logf("Waiting for availability of CoherenceJob resource %s - %s", name, err.Error())
+			return false, nil
+		}
+		valid := true
+		if condition != nil {
+			valid = condition.Test(job)
+			if !valid {
+				ctx.Logf("Waiting for CoherenceJob resource %s to meet condition '%s'", name, condition.String())
+			}
+		}
+		return valid, nil
+	})
+
+	return job, err
 }
 
 // WaitForEndpoints waits for Enpoints for a Service to be created.
@@ -405,14 +481,14 @@ func WaitForJobCompletion(k8s kubernetes.Interface, namespace, name string, retr
 
 // DeploymentStateCondition is a function that takes a deployment and determines whether it meets a condition
 type DeploymentStateCondition interface {
-	Test(*coh.Coherence) bool
+	Test(coh.CoherenceResource) bool
 	String() string
 }
 
 // An always true DeploymentStateCondition
 type alwaysCondition struct{}
 
-func (a alwaysCondition) Test(*coh.Coherence) bool {
+func (a alwaysCondition) Test(coh.CoherenceResource) bool {
 	return true
 }
 
@@ -424,8 +500,8 @@ type replicaCountCondition struct {
 	replicas int32
 }
 
-func (in replicaCountCondition) Test(d *coh.Coherence) bool {
-	return d.Status.ReadyReplicas == in.replicas
+func (in replicaCountCondition) Test(d coh.CoherenceResource) bool {
+	return d.GetStatus().ReadyReplicas == in.replicas
 }
 
 func (in replicaCountCondition) String() string {
@@ -440,8 +516,8 @@ type phaseCondition struct {
 	phase coh.ConditionType
 }
 
-func (in phaseCondition) Test(d *coh.Coherence) bool {
-	return d.Status.Phase == in.phase
+func (in phaseCondition) Test(d coh.CoherenceResource) bool {
+	return d.GetStatus().Phase == in.phase
 }
 
 func (in phaseCondition) String() string {
@@ -450,6 +526,57 @@ func (in phaseCondition) String() string {
 
 func StatusPhaseCondition(phase coh.ConditionType) DeploymentStateCondition {
 	return phaseCondition{phase: phase}
+}
+
+type jobCompletedCondition struct {
+	count int32
+}
+
+func (in jobCompletedCondition) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	return (status.Succeeded + status.Failed) == in.count
+}
+
+func (in jobCompletedCondition) String() string {
+	return fmt.Sprintf("completed count == %d", in.count)
+}
+
+func JobCompletedCondition(count int32) DeploymentStateCondition {
+	return jobCompletedCondition{count: count}
+}
+
+type jobSucceededCondition struct {
+	count int32
+}
+
+func (in jobSucceededCondition) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	return status.Succeeded == in.count
+}
+
+func (in jobSucceededCondition) String() string {
+	return fmt.Sprintf("succeeded count == %d", in.count)
+}
+
+func JobSucceededCondition(count int32) DeploymentStateCondition {
+	return jobSucceededCondition{count: count}
+}
+
+type jobFailedCondition struct {
+	count int32
+}
+
+func (in jobFailedCondition) Test(d coh.CoherenceResource) bool {
+	status := d.GetStatus()
+	return status.Failed == in.count
+}
+
+func (in jobFailedCondition) String() string {
+	return fmt.Sprintf("failed count == %d", in.count)
+}
+
+func JobFailedCondition(count int32) DeploymentStateCondition {
+	return jobFailedCondition{count: count}
 }
 
 // WaitForCoherence waits for a Coherence resource to be created.
@@ -490,6 +617,21 @@ func WaitForCoherenceCondition(ctx TestContext, namespace, name string, conditio
 func GetCoherence(ctx TestContext, namespace, name string) (*coh.Coherence, error) {
 	opts := client.ObjectKey{Namespace: namespace, Name: name}
 	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
+	}
+
+	err := ctx.Client.Get(goctx.TODO(), opts, d)
+
+	return d, err
+}
+
+// GetCoherenceJob gets the specified CoherenceJob resource
+func GetCoherenceJob(ctx TestContext, namespace, name string) (*coh.CoherenceJob, error) {
+	opts := client.ObjectKey{Namespace: namespace, Name: name}
+	d := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -740,8 +882,13 @@ func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInte
 func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	ctx.Logf("Waiting for clean-up of Coherence resources in namespace %s", namespace)
 
+	err := waitForCoherenceJobCleanup(ctx, namespace)
+	if err != nil {
+		return err
+	}
+
 	list := &coh.CoherenceList{}
-	err := ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -806,6 +953,65 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 			return false, nil
 		})
 	}
+
+	return err
+}
+
+// waitForCoherenceJobCleanup waits until there are no CoherenceJob resources left in the test namespace.
+// The default clean-up hooks only wait for deletion of resources directly created via the test client
+func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
+	ctx.Logf("Waiting for clean-up of CoherenceJob resources in namespace %s", namespace)
+
+	list := &coh.CoherenceJobList{}
+	err := ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Do a plain delete first
+	for i := range list.Items {
+		item := list.Items[i]
+		ctx.Logf("Deleting CoherenceJob resource %s in namespace %s", item.Name, item.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &item)
+		if err != nil {
+			ctx.Logf("Error deleting CoherenceJob resource %s - %s", item.Name, err.Error())
+		}
+	}
+
+	// Obtain any remaining CoherenceJob resources
+	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	if err != nil {
+		return err
+	}
+
+	// Delete all the CoherenceJob resources - patching out any finalizer
+	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
+	for i := range list.Items {
+		item := list.Items[i]
+		ctx.Logf("Patching CoherenceJob resource %s in namespace %s to remove finalizers", item.Name, item.Namespace)
+		if err := ctx.Client.Patch(ctx.Context, &item, patch); err != nil {
+			ctx.Logf("error patching CoherenceJob %s: %+v", item.Name, err)
+		}
+		ctx.Logf("Deleting CoherenceJob resource %s in namespace %s", item.Name, item.Namespace)
+		err = ctx.Client.Delete(goctx.TODO(), &item)
+		if err != nil {
+			ctx.Logf("Error deleting CoherenceJob resource %s - %s", item.Name, err.Error())
+		}
+	}
+
+	// Wait for removal of the CoherenceJob resources
+	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
+			if len(list.Items) > 0 {
+				ctx.Logf("Waiting for deletion of %d CoherenceJob resources", len(list.Items))
+				return false, nil
+			}
+			return true, nil
+		}
+		ctx.Logf("Error waiting for deletion of CoherenceJob resources: %s\n%+v", err.Error(), err)
+		return false, nil
+	})
 
 	return err
 }
@@ -1020,6 +1226,7 @@ func DumpState(ctx TestContext, namespace, dir string) {
 	dumpEvents(namespace, dir, ctx)
 	dumpCoherences(namespace, dir, ctx)
 	dumpStatefulSets(namespace, dir, ctx)
+	dumpJobs(namespace, dir, ctx)
 	dumpServices(namespace, dir, ctx)
 	dumpPods(namespace, dir, ctx)
 	dumpRbacRoles(namespace, dir, ctx)
@@ -1666,14 +1873,22 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
-	// Assert that a StatefulSet of the correct number or replicas is created for each roleSpec in the cluster
+	// Assert that a StatefulSet or Job of the correct number or replicas is created for each roleSpec in the cluster
 	for _, d := range deployments {
+		//if d.IsRunAsJob() {
+		//	ctx.Logf("Waiting for Job for deployment %s", d.Name)
+		//	// Wait for the Job for the roleSpec to be ready - wait five minutes max
+		//	_, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
+		//	g.Expect(err).NotTo(HaveOccurred())
+		//	ctx.Logf("Have Job for deployment %s", d.Name)
+		//} else {
 		ctx.Logf("Waiting for StatefulSet for deployment %s", d.Name)
 		// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
 		sts, err := WaitForStatefulSet(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
 		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
+		//}
 	}
 
 	// Assert that the finalizer has been added to all the deployments that do not have AllowUnsafeDelete=false
@@ -1732,6 +1947,136 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 
 	// Verify that the WKA service endpoints list for each deployment has all the required the Pod IP addresses.
 	for _, d := range deployments {
+		serviceName := d.GetWkaServiceName()
+		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(len(ep.Subsets)).NotTo(BeZero())
+
+		subset := ep.Subsets[0]
+		g.Expect(len(subset.Addresses)).To(Equal(len(wkaPods)))
+		var actualWKA []string
+		for _, address := range subset.Addresses {
+			actualWKA = append(actualWKA, address.IP)
+		}
+		g.Expect(actualWKA).To(ConsistOf(wkaPods))
+	}
+
+	return m, pods
+}
+
+// AssertCoherenceJobs tests that one or more CoherenceJobs can be created using the specified yaml.
+func AssertCoherenceJobs(ctx TestContext, t *testing.T, yamlFile string) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	return AssertCoherenceJobsInNamespace(ctx, t, yamlFile, GetTestNamespace())
+}
+
+// AssertCoherenceJobsInNamespace tests that a CoherenceJob can be created using the specified yaml.
+func AssertCoherenceJobsInNamespace(ctx TestContext, t *testing.T, yamlFile, namespace string) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	// initialise Gomega so we can use matchers
+	g := NewGomegaWithT(t)
+
+	jobs, err := NewCoherenceJobFromYaml(namespace, yamlFile)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	return AssertCoherenceJobsSpecInNamespace(ctx, t, jobs, namespace)
+}
+
+// AssertCoherenceJobsSpec tests that a CoherenceJob can be created.
+func AssertCoherenceJobsSpec(ctx TestContext, t *testing.T, jobs []coh.CoherenceJob) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	return AssertCoherenceJobsSpecInNamespace(ctx, t, jobs, GetTestNamespace())
+}
+
+// AssertCoherenceJobsSpecInNamespace tests that a CoherenceJob can be created.
+func AssertCoherenceJobsSpecInNamespace(ctx TestContext, t *testing.T, jobs []coh.CoherenceJob, namespace string) (map[string]coh.CoherenceJob, []corev1.Pod) {
+	// initialise Gomega so we can use matchers
+	g := NewGomegaWithT(t)
+
+	var err error
+
+	// we must have at least one deployment
+	g.Expect(len(jobs)).NotTo(BeZero())
+
+	// assert all jobs have the same cluster name
+	clusterName := jobs[0].GetCoherenceClusterName()
+	for _, d := range jobs {
+		g.Expect(d.GetCoherenceClusterName()).To(Equal(clusterName))
+	}
+
+	// work out the expected cluster size
+	expectedClusterSize := 0
+	expectedWkaSize := 0
+	for _, d := range jobs {
+		ctx.Logf("CoherenceJob %s has replica count %d", d.Name, d.GetReplicas())
+		replicas := int(d.GetReplicas())
+		expectedClusterSize += replicas
+		if d.Spec.Coherence.IsWKAMember() {
+			expectedWkaSize += replicas
+		}
+	}
+	ctx.Logf("Expected cluster size is %d", expectedClusterSize)
+
+	for i := range jobs {
+		d := jobs[i]
+		ctx.Logf("Deploying CoherenceJob %s", d.Name)
+		// deploy the CoherenceJob resource
+		err = ctx.Client.Create(ctx.Context, &d)
+		g.Expect(err).NotTo(HaveOccurred())
+	}
+
+	// Assert that a Job with the correct number of replicas is created for each Spec in the cluster
+	for _, d := range jobs {
+		ctx.Logf("Waiting for Job for deployment %s", d.Name)
+		// Wait for the Job for the roleSpec to be ready - wait five minutes max
+		sts, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(sts.Status).NotTo(BeNil())
+		g.Expect(sts.Status.Ready).NotTo(BeNil())
+		g.Expect(*sts.Status.Ready).To(Equal(d.GetReplicas()))
+		ctx.Logf("Have Job for deployment %s", d.Name)
+		//}
+	}
+
+	// Get all the Pods in the cluster
+	ctx.Logf("Getting all Pods for Job '%s'", clusterName)
+	pods, err := ListCoherencePodsForCluster(ctx, namespace, clusterName)
+	g.Expect(err).NotTo(HaveOccurred())
+	ctx.Logf("Found %d Pods for Job '%s'", len(pods), clusterName)
+
+	// assert that the correct number of Pods is returned
+	g.Expect(len(pods)).To(Equal(expectedClusterSize))
+
+	// Verify that the WKA service has the same number of endpoints as the cluster size.
+	serviceName := jobs[0].GetWkaServiceName()
+
+	ep, err := ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(ep.Subsets)).NotTo(BeZero())
+
+	subset := ep.Subsets[0]
+	g.Expect(len(subset.Addresses)).To(Equal(expectedWkaSize))
+
+	m := make(map[string]coh.CoherenceJob)
+	for _, d := range jobs {
+		opts := client.ObjectKey{Namespace: namespace, Name: d.Name}
+		dpl := coh.CoherenceJob{}
+		err = ctx.Client.Get(ctx.Context, opts, &dpl)
+		g.Expect(err).NotTo(HaveOccurred())
+		m[dpl.Name] = dpl
+	}
+
+	// Obtain the expected WKA list of Pod IP addresses
+	var wkaPods []string
+	for _, d := range jobs {
+		if d.Spec.Coherence.IsWKAMember() {
+			pods, err := ListCoherencePodsForDeployment(ctx, d.Namespace, d.Name)
+			g.Expect(err).NotTo(HaveOccurred())
+			for _, pod := range pods {
+				wkaPods = append(wkaPods, pod.Status.PodIP)
+			}
+		}
+	}
+
+	// Verify that the WKA service endpoints list for each deployment has all the required the Pod IP addresses.
+	for _, d := range jobs {
 		serviceName := d.GetWkaServiceName()
 		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
 		g.Expect(err).NotTo(HaveOccurred())

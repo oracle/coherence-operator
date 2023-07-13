@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -19,6 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 var log = logf.Log.WithName("Storage")
@@ -41,6 +42,8 @@ type Storage interface {
 	Destroy()
 	// GetHash will return the hash label of the owning resource
 	GetHash() (string, bool)
+	// IsJob returns true if the Coherence deployment is a Job
+	IsJob(reconcile.Request) bool
 }
 
 // NewStorage creates a new storage for the given key.
@@ -60,6 +63,15 @@ type secretStore struct {
 	latest   coh.Resources
 	previous coh.Resources
 	hash     *string
+}
+
+func (in *secretStore) IsJob(request reconcile.Request) bool {
+	if in == nil {
+		return false
+	}
+	latest := in.GetLatest()
+	_, found := latest.GetResource(coh.ResourceTypeJob, request.Name)
+	return found
 }
 
 func (in *secretStore) createSecretStruct() *corev1.Secret {
@@ -141,7 +153,7 @@ func (in *secretStore) Store(r coh.Resources, owner metav1.Object) error {
 	secret.Data[storeKeyPrevious] = oldLatest
 
 	if !exists {
-		// the resource does not exists so set the deployment as the controller/owner and create it
+		// the resource does not exist so set the deployment as the controller/owner and create it
 		err = controllerutil.SetControllerReference(owner, secret, in.manager.GetScheme())
 		if err != nil {
 			err = errors.Wrap(err, fmt.Sprintf("setting resource owner/controller in state store %s/%s", secret.Namespace, secret.Name))

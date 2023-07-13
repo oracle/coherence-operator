@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -35,7 +35,11 @@ func EnsureCRDs(ctx context.Context, v *version.Version, scheme *runtime.Scheme,
 
 // EnsureV1CRDs ensures that the Operator configuration secret exists in the namespace.
 func EnsureV1CRDs(ctx context.Context, logger logr.Logger, scheme *runtime.Scheme, cl client.Client) error {
-	return ensureV1CRDs(ctx, logger, scheme, cl, "crd_v1.yaml")
+	err := ensureV1CRDs(ctx, logger, scheme, cl, "apiextensions.k8s.io_v1_customresourcedefinition_coherence.coherence.oracle.com.yaml")
+	if err != nil {
+		return err
+	}
+	return ensureV1CRDs(ctx, logger, scheme, cl, "apiextensions.k8s.io_v1_customresourcedefinition_coherencejob.coherence.oracle.com.yaml")
 }
 
 // ensureV1CRDs ensures that the specified V1 CRDs are loaded using the specified embedded CRD files

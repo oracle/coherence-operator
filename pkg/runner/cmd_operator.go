@@ -132,7 +132,16 @@ func execute() error {
 		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		return errors.Wrap(err, "unable to create controller")
+		return errors.Wrap(err, "unable to create Coherence controller")
+	}
+
+	// Set up the CoherenceJob reconciler
+	if err = (&controllers.CoherenceJobReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		return errors.Wrap(err, "unable to create CoherenceJob controller")
 	}
 
 	// We intercept the signal handler here so that we can do clean-up before the Manager stops

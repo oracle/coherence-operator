@@ -37,42 +37,47 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.2.11
         - 3.2.10
         - 3.2.9
-        - 3.2.8
+#        - 3.2.8
         - 3.2.7
         - 3.2.6
         - 3.2.5
         - 3.1.5
         include:
+        - compatibilityVersion: 3.2.11
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+          compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f
         - compatibilityVersion: 3.2.10
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
+          k8s: kindest/node:v1.26.3@sha256:61b92f38dff6ccc29969e7aa154d34e38b89443af1a2c14e6cfbd2df6419c66f
         - compatibilityVersion: 3.2.9
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
-        - compatibilityVersion: 3.2.8
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
+          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
+#        - compatibilityVersion: 3.2.8
+#          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
+#          compatibilitySelector: control-plane=coherence
+#          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.7
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
+          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.6
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
+          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.5
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.4"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e
+          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.1.5
           coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
           compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
+          k8s: kindest/node:v1.21.14@sha256:27ef72ea623ee879a25fe6f9982690a3e370c68286f4356bf643467c552a3888
 
     steps:
     - uses: actions/checkout@v3

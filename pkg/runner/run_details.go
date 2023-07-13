@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -143,6 +143,7 @@ func (in *RunDetails) getShellName(s string) (string, int) {
 	// Scan alphanumerics.
 	var i int
 	for i = 0; i < len(s) && in.isAlphaNum(s[i]); i++ {
+		// empty ??
 	}
 	return s[:i], i
 }

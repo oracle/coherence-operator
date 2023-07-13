@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/oracle/coherence-operator/pkg/operator"
-	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,12 +52,6 @@ type CoherenceResourceSpec struct {
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
-	// The optional name of the Coherence cluster that this Coherence resource belongs to.
-	// If this value is set the Pods controlled by this Coherence resource will form a cluster
-	// with other Pods controlled by Coherence resources with the same cluster name.
-	// If not set the Coherence resource's name will be used as the cluster name.
-	// +optional
-	Cluster *string `json:"cluster,omitempty"`
 	// The name of the role that this deployment represents in a Coherence cluster.
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional
@@ -87,46 +80,6 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	Ports []NamedPortSpec `json:"ports,omitempty"`
-	// The configuration to control safe scaling.
-	// +optional
-	Scaling *ScalingSpec `json:"scaling,omitempty"`
-	// The configuration of the probe used to signal that services must be suspended
-	// before a deployment is stopped.
-	// +optional
-	SuspendProbe *Probe `json:"suspendProbe,omitempty"`
-	// A flag controlling whether storage enabled cache services in this deployment
-	// will be suspended before the deployment is shutdown or scaled to zero.
-	// The action of suspending storage enabled services when the whole deployment is being
-	// stopped ensures that cache services with persistence enabled will shut down cleanly
-	// without the possibility of Coherence trying to recover and re-balance partitions
-	// as Pods are stopped.
-	// The default value if not specified is true.
-	// +optional
-	SuspendServicesOnShutdown *bool `json:"suspendServicesOnShutdown,omitempty"`
-	// ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when
-	// the Coherence container is started. This only applies to storage enabled distributed cache
-	// services. This ensures that services that are suspended due to the shutdown of a storage
-	// tier, but those services are still running (albeit suspended) in other storage disabled
-	// deployments, will be resumed when storage comes back.
-	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
-	// The default value if not specified is true.
-	// +optional
-	ResumeServicesOnStartup *bool `json:"resumeServicesOnStartup,omitempty"`
-	// AutoResumeServices is a map of Coherence service names to allow more fine-grained control over
-	// which services may be auto-resumed by the operator when a Coherence Pod starts.
-	// The key to the map is the name of the Coherence service. This should be the fully qualified name
-	// if scoped services are being used in Coherence. The value is a bool, set to `true` to allow the
-	// service to be auto-resumed or `false` to not allow the service to be auto-resumed.
-	// Adding service names to this list will override any value set in `ResumeServicesOnStartup`, so if the
-	// `ResumeServicesOnStartup` field is `false` but there are service names in the `AutoResumeServices`, mapped
-	// to `true`, those services will still be resumed.
-	// Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.
-	// +optional
-	AutoResumeServices map[string]bool `json:"autoResumeServices,omitempty"`
-	// SuspendServiceTimeout sets the number of seconds to wait for the service suspend
-	// call to return (the default is 60 seconds)
-	// +optional
-	SuspendServiceTimeout *int `json:"suspendServiceTimeout,omitempty"`
 	// StartQuorum controls the start-up order of this Coherence resource
 	// in relation to other Coherence resources.
 	// +listType=map
@@ -157,21 +110,6 @@ type CoherenceResourceSpec struct {
 	// see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
-	// StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster
-	// `StatefulSet` as annotations.
-	// Any annotations should be placed BELOW this "annotations:" key, for example:
-	//
-	// The default behaviour is to copy all annotations from the `Coherence` resource to the
-	// `StatefulSet`, specifying any annotations in the `StatefulSetAnnotations` will override
-	// this behaviour and only include the `StatefulSetAnnotations`.
-	//
-	// annotations:
-	//   foo.io/one: "value1"
-	//   foo.io/two: "value2"
-	//
-	// see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations]
-	// +optional
-	StatefulSetAnnotations map[string]string `json:"statefulSetAnnotations,omitempty"`
 	// List of additional initialization containers to add to the deployment's Pod.
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 	// +listType=map
@@ -202,15 +140,6 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
-	// VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod.
-	// The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec
-	// as described in https://kubernetes.io/docs/concepts/storage/persistent-volumes/
-	// Every claim in this list must have at least one matching (by name) volumeMount in one
-	// container in the template. A claim in this list takes precedence over any volumes in the
-	// template, with the same name.
-	// +listType=atomic
-	// +optional
-	VolumeClaimTemplates []PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
 	// VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above
 	//   in store.volumes and store.volumeClaimTemplates
 	// +listType=map
@@ -299,15 +228,6 @@ type CoherenceResourceSpec struct {
 	// These requests are typically to obtain site and rack information for the Pod.
 	// +optional
 	OperatorRequestTimeout *int32 `json:"operatorRequestTimeout,omitempty"`
-	// Whether to perform a StatusHA test on the cluster before performing an update or deletion.
-	// This field can be set to "false" to force through an update even when a Coherence deployment is in
-	// an unstable state.
-	// The default is true, to always check for StatusHA before updating a Coherence deployment.
-	// +optional
-	HABeforeUpdate *bool `json:"haBeforeUpdate,omitempty"`
-	// Actions to execute once all the Pods are ready after an initial deployment
-	// +optional
-	Actions []Action `json:"actions,omitempty"`
 	// ActiveDeadlineSeconds is the optional duration in seconds the pod may be active on the node relative to
 	// StartTime before the system will actively try to mark it failed and kill associated containers.
 	// Value must be a positive integer.
@@ -366,15 +286,6 @@ type CoherenceResourceSpec struct {
 	// The default labels to use are determined by the Operator.
 	// +optional
 	SiteLabel *string `json:"siteLabel,omitempty"`
-	// AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource
-	// so that it can intercept deletion of the resource and initiate a controlled shutdown of the
-	// Coherence cluster. The default value is `false`.
-	// The primary use for setting this flag to `true` is in CI/CD environments so that cleanup jobs
-	// can delete a whole namespace without requiring the Operator to have removed finalizers from
-	// any Coherence resources deployed into that namespace.
-	// It is not recommended to set this flag to `true` in a production environment, especially when
-	// using Coherence persistence features.
-	AllowUnsafeDelete *bool `json:"allowUnsafeDelete,omitempty"`
 }
 
 // Action is an action to execute when the StatefulSet becomes ready.
@@ -383,9 +294,9 @@ type Action struct {
 	// +optional
 	Name string `json:"name,omitempty"`
 
-	// This is the spec of some sort of probe to fire when the StatefulSet becomes ready
+	// This is the spec of some sort of probe to fire when the Coherence resource becomes ready
 	Probe *Probe `json:"probe,omitempty"`
-	// or this is the spec of a Job to create when the StatefulSet becomes ready
+	// or this is the spec of a Job to create when the Coherence resource becomes ready
 	Job *ActionJob `json:"job,omitempty"`
 }
 
@@ -407,10 +318,7 @@ type ActionJob struct {
 // return either the actual Replica value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
 func (in *CoherenceResourceSpec) GetReplicas() int32 {
-	if in == nil {
-		return 0
-	}
-	if in.Replicas == nil {
+	if in == nil || in.Replicas == nil {
 		return DefaultReplicas
 	}
 	return *in.Replicas
@@ -421,6 +329,18 @@ func (in *CoherenceResourceSpec) SetReplicas(replicas int32) {
 	if in != nil {
 		in.Replicas = &replicas
 	}
+}
+
+// GetRestartPolicy returns the name of the application image to use
+func (in *CoherenceResourceSpec) GetRestartPolicy() *corev1.RestartPolicy {
+	if in == nil {
+		return nil
+	}
+	return in.RestartPolicy
+}
+
+func (in *CoherenceResourceSpec) RestartPolicyPointer(policy corev1.RestartPolicy) *corev1.RestartPolicy {
+	return &policy
 }
 
 // GetCoherenceImage returns the name of the application image to use
@@ -461,56 +381,12 @@ func (in *CoherenceResourceSpec) EnsureCoherenceOperatorImage(imageName *string)
 	return in.CoherenceUtils.EnsureImage(imageName)
 }
 
-// CheckHABeforeUpdate returns true if a StatusHA check should be made before updating a deployment.
-func (in *CoherenceResourceSpec) CheckHABeforeUpdate() bool {
-	return in.HABeforeUpdate == nil || *in.HABeforeUpdate
-}
-
-// IsSuspendServicesOnShutdown returns true if services should be suspended before a cluster is shutdown.
-func (in *CoherenceResourceSpec) IsSuspendServicesOnShutdown() bool {
-	return in.SuspendServicesOnShutdown == nil || *in.SuspendServicesOnShutdown
-}
-
-// GetEffectiveScalingPolicy returns the scaling policy to be used.
-func (in *CoherenceResourceSpec) GetEffectiveScalingPolicy() ScalingPolicy {
-	if in == nil {
-		return SafeScaling
-	}
-
-	var policy ScalingPolicy
-
-	if in.Scaling == nil || in.Scaling.Policy == nil {
-		// the scaling policy is not set the look at the storage enabled flag
-		if in.Coherence == nil || in.Coherence.StorageEnabled == nil || *in.Coherence.StorageEnabled {
-			// storage enabled is either not set or is true so do safe scaling
-			policy = ParallelUpSafeDownScaling
-		} else {
-			// storage enabled is false so do parallel scaling
-			policy = ParallelScaling
-		}
-	} else {
-		// scaling policy is set so use it
-		policy = *in.Scaling.Policy
-	}
-
-	return policy
-}
-
 // GetHealthPort returns the port that the health check endpoint will bind to.
 func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 	if in == nil || in.HealthPort == nil || *in.HealthPort <= 0 {
 		return DefaultHealthPort
 	}
 	return *in.HealthPort
-}
-
-// GetScalingProbe returns the Probe to use for checking Phase HA for the deployment.
-// This method will not return nil.
-func (in *CoherenceResourceSpec) GetScalingProbe() *Probe {
-	if in == nil || in.Scaling == nil || in.Scaling.Probe == nil {
-		return in.GetDefaultScalingProbe()
-	}
-	return in.Scaling.Probe
 }
 
 // GetDefaultScalingProbe returns a default Scaling probe
@@ -522,37 +398,6 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path: "/ha",
-				Port: intstr.FromString(PortNameHealth),
-			},
-		},
-	}
-
-	return probe.DeepCopy()
-}
-
-// GetSuspendProbe returns the Probe to use for signaling to a deployment that services should be suspended
-// prior to the deployment being stopped.
-// This method will not return nil.
-func (in *CoherenceResourceSpec) GetSuspendProbe() *Probe {
-	if in == nil || in.SuspendProbe == nil {
-		return in.GetDefaultSuspendProbe()
-	}
-	return in.SuspendProbe
-}
-
-// GetDefaultSuspendProbe returns the default Suspend probe
-func (in *CoherenceResourceSpec) GetDefaultSuspendProbe() *Probe {
-	timeout := in.SuspendServiceTimeout
-	if timeout == nil {
-		oneMinute := 60
-		timeout = &oneMinute
-	}
-
-	probe := Probe{
-		TimeoutSeconds: timeout,
-		ProbeHandler: corev1.ProbeHandler{
-			HTTPGet: &corev1.HTTPGetAction{
-				Path: "/suspend",
 				Port: intstr.FromString(PortNameHealth),
 			},
 		},
@@ -573,12 +418,12 @@ func (in *CoherenceResourceSpec) GetCoherencePersistence() *PersistenceSpec {
 // CreateKubernetesResources creates the Kubernetes resources that should be deployed for this deployment.
 // The order of the resources in the returned array is the order that they should be
 // created or updated in Kubernetes.
-func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resources, error) {
+func (in *CoherenceResourceSpec) CreateKubernetesResources(d CoherenceResource) []Resource {
 	var res []Resource
 
 	if in.GetReplicas() <= 0 {
 		// replicas is zero so nothing to create
-		return Resources{Items: res}, nil
+		return res
 	}
 
 	// Create the headless WKA Service if this deployment is a WKA member
@@ -586,20 +431,14 @@ func (in *CoherenceResourceSpec) CreateKubernetesResources(d *Coherence) (Resour
 		res = append(res, in.CreateWKAService(d))
 	}
 
-	// Create the headless Service
-	res = append(res, in.CreateHeadlessService(d))
-
-	// Create the StatefulSet
-	res = append(res, in.CreateStatefulSetResource(d))
-
 	// Create the Services for each port (and optionally ServiceMonitors)
 	res = append(res, in.CreateServicesForPort(d)...)
 
-	return Resources{Items: res}, nil
+	return res
 }
 
 // FindPortServiceNames returns a map of the port names to the names of the Service used to expose those ports.
-func (in *CoherenceResourceSpec) FindPortServiceNames(deployment *Coherence) map[string]string {
+func (in *CoherenceResourceSpec) FindPortServiceNames(deployment CoherenceResource) map[string]string {
 	m := make(map[string]string)
 	if in != nil {
 		for _, port := range in.Ports {
@@ -609,14 +448,14 @@ func (in *CoherenceResourceSpec) FindPortServiceNames(deployment *Coherence) map
 		}
 
 		// manually add the wka port which will be <resource-name>-wka
-		m["wka"] = deployment.Name + "-wka"
+		m["wka"] = deployment.GetName() + "-wka"
 	}
 	return m
 }
 
 // FindPortServiceName returns the name of the Service used to expose a named port and a bool indicating
 // whether the named port has a Service.
-func (in *CoherenceResourceSpec) FindPortServiceName(name string, deployment *Coherence) (string, bool) {
+func (in *CoherenceResourceSpec) FindPortServiceName(name string, deployment CoherenceResource) (string, bool) {
 	if in == nil {
 		return "", false
 	}
@@ -629,7 +468,7 @@ func (in *CoherenceResourceSpec) FindPortServiceName(name string, deployment *Co
 }
 
 // CreateServicesForPort creates the Services for each port (and optionally ServiceMonitors)
-func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []Resource {
+func (in *CoherenceResourceSpec) CreateServicesForPort(deployment CoherenceResource) []Resource {
 	var resources []Resource
 
 	if in == nil || in.Ports == nil || len(in.Ports) == 0 {
@@ -661,14 +500,14 @@ func (in *CoherenceResourceSpec) CreateServicesForPort(deployment *Coherence) []
 
 // CreatePodSelectorLabels creates the selector that can be used to match this deployment's Pods,
 // for example by Services or StatefulSets.
-func (in *CoherenceResourceSpec) CreatePodSelectorLabels(deployment *Coherence) map[string]string {
+func (in *CoherenceResourceSpec) CreatePodSelectorLabels(deployment CoherenceResource) map[string]string {
 	selector := deployment.CreateCommonLabels()
 	selector[LabelComponent] = LabelComponentCoherencePod
 	return selector
 }
 
 // CreateWKAService creates the headless WKA Service
-func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resource {
+func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) Resource {
 	labels := deployment.CreateCommonLabels()
 	labels[LabelComponent] = LabelComponentWKA
 
@@ -680,7 +519,7 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resourc
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: deployment.Namespace,
+			Namespace: deployment.GetNamespace(),
 			Name:      deployment.GetWkaServiceName(),
 			Labels:    labels,
 			Annotations: map[string]string{
@@ -711,7 +550,7 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment *Coherence) Resourc
 }
 
 // CreateHeadlessService creates the headless Service for the deployment's StatefulSet.
-func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Resource {
+func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResource) Resource {
 	// The labels for the service
 	svcLabels := deployment.CreateCommonLabels()
 	svcLabels[LabelComponent] = LabelComponentCoherenceHeadless
@@ -748,28 +587,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment *Coherence) Re
 	}
 }
 
-// CreateStatefulSetResource creates the deployment's StatefulSet resource.
-func (in *CoherenceResourceSpec) CreateStatefulSetResource(deployment *Coherence) Resource {
-	sts := in.CreateStatefulSet(deployment)
-
-	return Resource{
-		Kind: ResourceTypeStatefulSet,
-		Name: sts.GetName(),
-		Spec: &sts,
-	}
-}
-
-// CreateStatefulSet creates the deployment's StatefulSet.
-func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1.StatefulSet {
-	sts := appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace:   deployment.GetNamespace(),
-			Name:        deployment.GetName(),
-			Labels:      deployment.CreateCommonLabels(),
-			Annotations: deployment.CreateAnnotations(),
-		},
-	}
-
+func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResource) corev1.PodTemplateSpec {
 	// Create the PodSpec labels
 	podLabels := in.CreatePodSelectorLabels(deployment)
 	// Add the WKA member label
@@ -779,7 +597,6 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1
 		podLabels[k] = v
 	}
 
-	replicas := in.GetReplicas()
 	cohContainer := in.CreateCoherenceContainer(deployment)
 
 	// Add additional ports
@@ -790,85 +607,68 @@ func (in *CoherenceResourceSpec) CreateStatefulSet(deployment *Coherence) appsv1
 	// append any additional VolumeMounts
 	cohContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
 
-	// Add the component label
-	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
-	sts.Spec = appsv1.StatefulSetSpec{
-		Replicas:            &replicas,
-		PodManagementPolicy: appsv1.ParallelPodManagement,
-		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
-			Type: appsv1.RollingUpdateStatefulSetStrategyType,
+	podTemplate := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      podLabels,
+			Annotations: in.Annotations,
 		},
-		RevisionHistoryLimit: pointer.Int32(5),
-		ServiceName:          deployment.GetHeadlessServiceName(),
-		Selector: &metav1.LabelSelector{
-			MatchLabels: in.CreatePodSelectorLabels(deployment),
-		},
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels:      podLabels,
-				Annotations: in.Annotations,
+		Spec: corev1.PodSpec{
+			Affinity:                     in.EnsurePodAffinity(deployment),
+			ActiveDeadlineSeconds:        in.ActiveDeadlineSeconds,
+			AutomountServiceAccountToken: in.AutomountServiceAccountToken,
+			EnableServiceLinks:           in.EnableServiceLinks,
+			HostIPC:                      notNilBool(in.HostIPC),
+			ImagePullSecrets:             in.GetImagePullSecrets(),
+			PreemptionPolicy:             in.PreemptionPolicy,
+			PriorityClassName:            notNilString(in.PriorityClassName),
+			NodeSelector:                 in.NodeSelector,
+			ReadinessGates:               in.ReadinessGates,
+			RuntimeClassName:             in.RuntimeClassName,
+			SchedulerName:                notNilString(in.SchedulerName),
+			SecurityContext:              in.SecurityContext,
+			ServiceAccountName:           in.GetServiceAccountName(),
+			ShareProcessNamespace:        in.ShareProcessNamespace,
+			Tolerations:                  in.Tolerations,
+			TopologySpreadConstraints:    in.TopologySpreadConstraints,
+			InitContainers: []corev1.Container{
+				in.CreateOperatorInitContainer(deployment),
 			},
-			Spec: corev1.PodSpec{
-				Affinity:                     in.EnsurePodAffinity(deployment),
-				ActiveDeadlineSeconds:        in.ActiveDeadlineSeconds,
-				AutomountServiceAccountToken: in.AutomountServiceAccountToken,
-				EnableServiceLinks:           in.EnableServiceLinks,
-				HostIPC:                      notNilBool(in.HostIPC),
-				ImagePullSecrets:             in.GetImagePullSecrets(),
-				PreemptionPolicy:             in.PreemptionPolicy,
-				PriorityClassName:            notNilString(in.PriorityClassName),
-				NodeSelector:                 in.NodeSelector,
-				ReadinessGates:               in.ReadinessGates,
-				RuntimeClassName:             in.RuntimeClassName,
-				SchedulerName:                notNilString(in.SchedulerName),
-				SecurityContext:              in.SecurityContext,
-				ServiceAccountName:           in.GetServiceAccountName(),
-				ShareProcessNamespace:        in.ShareProcessNamespace,
-				Tolerations:                  in.Tolerations,
-				TopologySpreadConstraints:    in.TopologySpreadConstraints,
-				InitContainers: []corev1.Container{
-					in.CreateOperatorInitContainer(deployment),
-				},
-				Containers: []corev1.Container{cohContainer},
-				Volumes: []corev1.Volume{
-					{Name: VolumeNameUtils, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-				},
+			Containers: []corev1.Container{cohContainer},
+			Volumes: []corev1.Volume{
+				{Name: VolumeNameUtils, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			},
 		},
-	}
-
-	if in.RestartPolicy != nil {
-		sts.Spec.Template.Spec.RestartPolicy = *in.RestartPolicy
 	}
 
 	// Add any network settings
-	in.Network.UpdateStatefulSet(&sts)
+	in.Network.UpdatePodTemplate(&podTemplate)
 	// Add any JVM settings
-	in.JVM.UpdateStatefulSet(&sts)
+	in.JVM.UpdatePodTemplate(&podTemplate)
 	// Add any Coherence settings
-	in.Coherence.UpdateStatefulSet(deployment, &sts)
+	in.Coherence.UpdatePodTemplateSpec(&podTemplate, deployment)
 
 	// Add any additional init-containers and any additional containers
-	in.ProcessSideCars(deployment, &sts)
+	in.ProcessSideCars(deployment, &podTemplate)
+
+	// append any additional Volumes
+	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, in.Volumes...)
+
+	restartPolicy := in.GetRestartPolicy()
+	if restartPolicy != nil {
+		podTemplate.Spec.RestartPolicy = *restartPolicy
+	}
 
 	// Add any ConfigMap Volumes
 	for _, cmv := range in.ConfigMapVolumes {
-		cmv.AddVolumes(&sts)
+		cmv.AddVolumes(&podTemplate)
 	}
 
 	// Add any Secret Volumes
 	for _, sv := range in.SecretVolumes {
-		sv.AddVolumes(&sts)
+		sv.AddVolumes(&podTemplate)
 	}
 
-	// append any additional Volumes
-	sts.Spec.Template.Spec.Volumes = append(sts.Spec.Template.Spec.Volumes, in.Volumes...)
-	// append any additional PVCs
-	for _, v := range in.VolumeClaimTemplates {
-		sts.Spec.VolumeClaimTemplates = append(sts.Spec.VolumeClaimTemplates, v.ToPVC())
-	}
-
-	return sts
+	return podTemplate
 }
 
 func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
@@ -892,7 +692,7 @@ func (in *CoherenceResourceSpec) GetServiceAccountName() string {
 }
 
 // CreateCoherenceContainer creates the Coherence container spec.
-func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment *Coherence) corev1.Container {
+func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceResource) corev1.Container {
 	var cohImage string
 
 	if in.Image == nil {
@@ -961,7 +761,7 @@ func (in *CoherenceResourceSpec) CreateCommonVolumeMounts() []corev1.VolumeMount
 }
 
 // CreateCommonEnv creates the common environment variables added all.
-func (in *CoherenceResourceSpec) CreateCommonEnv(deployment *Coherence) []corev1.EnvVar {
+func (in *CoherenceResourceSpec) CreateCommonEnv(deployment CoherenceResource) []corev1.EnvVar {
 	return []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
@@ -1012,7 +812,7 @@ func AddEnvVarIfAbsent(dest []corev1.EnvVar, envVar corev1.EnvVar) []corev1.EnvV
 }
 
 // CreateDefaultEnv creates the default environment variables for the Coherence container.
-func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev1.EnvVar {
+func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment CoherenceResource) []corev1.EnvVar {
 	var siteURL string
 	if in.SiteLabel == nil {
 		siteURL = OperatorSiteURL
@@ -1027,8 +827,9 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 		rackURL = fmt.Sprintf("%s?nodeLabel=%s", OperatorRackURL, *in.RackLabel)
 	}
 
+	spec := deployment.GetSpec()
 	env := append(in.CreateCommonEnv(deployment),
-		corev1.EnvVar{Name: EnvVarCohWka, Value: deployment.Spec.Coherence.GetWKA(deployment)},
+		corev1.EnvVar{Name: EnvVarCohWka, Value: spec.Coherence.GetWKA(deployment)},
 		corev1.EnvVar{
 			Name: EnvVarOperatorHost, ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
@@ -1045,21 +846,25 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment *Coherence) []corev
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
 	)
 
-	if deployment.Annotations[AnnotationFeatureSuspend] == "true" {
-		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.Name + "@" + deployment.Namespace})
+	ann := deployment.GetAnnotations()
+	if ann[AnnotationFeatureSuspend] == "true" {
+		env = append(env, corev1.EnvVar{Name: EnvVarCohIdentity, Value: deployment.GetName() + "@" + deployment.GetNamespace()})
 	}
 
-	if deployment.Spec.ResumeServicesOnStartup != nil {
-		env = append(env, corev1.EnvVar{Name: EnvVarOperatorAllowResume, Value: BoolPtrToString(deployment.Spec.ResumeServicesOnStartup)})
-	}
-
-	if deployment.Spec.AutoResumeServices != nil {
-		b := new(bytes.Buffer)
-		for key, value := range deployment.Spec.AutoResumeServices {
-			_, _ = fmt.Fprintf(b, "\"%s\"=%t,", strings.ReplaceAll(key, "\"", "\\\""), value)
+	stsSpec, found := deployment.GetStatefulSetSpec()
+	if found {
+		if stsSpec.ResumeServicesOnStartup != nil {
+			env = append(env, corev1.EnvVar{Name: EnvVarOperatorAllowResume, Value: BoolPtrToString(stsSpec.ResumeServicesOnStartup)})
 		}
-		value := base64.StdEncoding.EncodeToString(b.Bytes())
-		env = append(env, corev1.EnvVar{Name: EnvVarOperatorResumeServices, Value: value})
+
+		if stsSpec.AutoResumeServices != nil {
+			b := new(bytes.Buffer)
+			for key, value := range stsSpec.AutoResumeServices {
+				_, _ = fmt.Fprintf(b, "\"%s\"=%t,", strings.ReplaceAll(key, "\"", "\\\""), value)
+			}
+			value := base64.StdEncoding.EncodeToString(b.Bytes())
+			env = append(env, corev1.EnvVar{Name: EnvVarOperatorResumeServices, Value: value})
+		}
 	}
 
 	return env
@@ -1108,7 +913,7 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 }
 
 // CreateOperatorInitContainer creates the Operator init-container spec.
-func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment *Coherence) corev1.Container {
+func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment CoherenceResource) corev1.Container {
 	var image string
 	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
 		image = operator.GetDefaultOperatorImage()
@@ -1142,7 +947,7 @@ func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment *Coheren
 }
 
 // EnsurePodAffinity creates the Pod Affinity either from that configured for the cluster or the default affinity.
-func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment *Coherence) *corev1.Affinity {
+func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment CoherenceResource) *corev1.Affinity {
 	if in != nil && in.Affinity != nil {
 		return in.Affinity
 	}
@@ -1151,7 +956,7 @@ func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment *Coherence) *corev
 }
 
 // CreateDefaultPodAffinity creates the default Pod Affinity to use in a deployment's StatefulSet.
-func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment *Coherence) *corev1.Affinity {
+func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment CoherenceResource) *corev1.Affinity {
 	selector := metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
 			{
@@ -1162,7 +967,7 @@ func (in *CoherenceResourceSpec) CreateDefaultPodAffinity(deployment *Coherence)
 			{
 				Key:      LabelCoherenceDeployment,
 				Operator: metav1.LabelSelectorOpIn,
-				Values:   []string{deployment.Name},
+				Values:   []string{deployment.GetName()},
 			},
 		},
 	}
@@ -1215,7 +1020,7 @@ func (in *CoherenceResourceSpec) GetManagementPort() int32 {
 // ProcessSideCars adds any additional init-containers or additional containers to the StatefulSet.
 // This will add any common environment variables to te container too, unless those variable names
 // have already been specified in the container spec
-func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *appsv1.StatefulSet) {
+func (in *CoherenceResourceSpec) ProcessSideCars(deployment CoherenceResource, podTemplate *corev1.PodTemplateSpec) {
 	if in == nil {
 		return
 	}
@@ -1223,24 +1028,24 @@ func (in *CoherenceResourceSpec) ProcessSideCars(deployment *Coherence, sts *app
 	for i := range in.InitContainers {
 		c := in.InitContainers[i]
 		in.processAdditionalContainer(deployment, &c)
-		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, c)
+		podTemplate.Spec.InitContainers = append(podTemplate.Spec.InitContainers, c)
 	}
 
 	for i := range in.SideCars {
 		c := in.SideCars[i]
 		in.processAdditionalContainer(deployment, &c)
-		sts.Spec.Template.Spec.Containers = append(sts.Spec.Template.Spec.Containers, c)
+		podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, c)
 	}
 }
 
-func (in *CoherenceResourceSpec) processAdditionalContainer(deployment *Coherence, c *corev1.Container) {
+func (in *CoherenceResourceSpec) processAdditionalContainer(deployment CoherenceResource, c *corev1.Container) {
 	in.appendCommonEnvVars(deployment, c)
 	in.appendCommonVolumeMounts(c)
 	// add any additional volume mounts
 	c.VolumeMounts = append(c.VolumeMounts, in.VolumeMounts...)
 }
 
-func (in *CoherenceResourceSpec) appendCommonEnvVars(deployment *Coherence, c *corev1.Container) {
+func (in *CoherenceResourceSpec) appendCommonEnvVars(deployment CoherenceResource, c *corev1.Container) {
 	envVars := c.Env
 	for _, toAdd := range in.CreateCommonEnv(deployment) {
 		envVars = in.appendEnvVarIfMissing(envVars, toAdd)

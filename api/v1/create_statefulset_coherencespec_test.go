@@ -433,12 +433,12 @@ func TestCreateStatefulSetWithCoherenceSpecWithMultipleWkaAddresses(t *testing.T
 
 func TestCreateStatefulSetWithResumeServicesOnStartupTrue(t *testing.T) {
 
-	spec := coh.CoherenceResourceSpec{
+	spec := coh.CoherenceStatefulSetResourceSpec{
 		ResumeServicesOnStartup: boolPtr(true),
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "true"})
@@ -449,12 +449,12 @@ func TestCreateStatefulSetWithResumeServicesOnStartupTrue(t *testing.T) {
 
 func TestCreateStatefulSetWithResumeServicesOnStartupFalse(t *testing.T) {
 
-	spec := coh.CoherenceResourceSpec{
+	spec := coh.CoherenceStatefulSetResourceSpec{
 		ResumeServicesOnStartup: boolPtr(false),
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "false"})

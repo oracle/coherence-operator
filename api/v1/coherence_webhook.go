@@ -45,48 +45,59 @@ var _ webhook.Defaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (in *Coherence) Default() {
-	logger := webhookLogger.WithValues("namespace", in.Namespace, "name", in.Name)
-	if in.Status.Phase == "" {
-		logger.Info("Setting defaults for new resource")
-		// ensure the operator finalizer is present
-		if in.Spec.AllowUnsafeDelete != nil && *in.Spec.AllowUnsafeDelete {
-			if controllerutil.ContainsFinalizer(in, CoherenceFinalizer) {
-				controllerutil.RemoveFinalizer(in, CoherenceFinalizer)
-				logger.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
-			} else {
-				logger.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
-			}
-		} else {
-			controllerutil.AddFinalizer(in, CoherenceFinalizer)
-		}
+	spec, _ := in.GetStatefulSetSpec()
+	// set the default replicas if not present
+	if spec.Replicas == nil {
+		spec.SetReplicas(spec.GetReplicas())
+	}
+	SetCommonDefaults(in)
+}
 
-		// set the default replicas if not present
-		if in.Spec.Replicas == nil {
-			in.Spec.SetReplicas(3)
+// SetCommonDefaults sets defaults common to both a Job and StatefulSet
+func SetCommonDefaults(in CoherenceResource) {
+	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
+	status := in.GetStatus()
+	spec := in.GetSpec()
+	if status.Phase == "" {
+		logger.Info("Setting defaults for new resource")
+
+		stsSpec, found := in.GetStatefulSetSpec()
+		if found {
+			// ensure the operator finalizer is present
+			if stsSpec.AllowUnsafeDelete != nil && *stsSpec.AllowUnsafeDelete {
+				if controllerutil.ContainsFinalizer(in, CoherenceFinalizer) {
+					controllerutil.RemoveFinalizer(in, CoherenceFinalizer)
+					logger.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
+				} else {
+					logger.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
+				}
+			} else {
+				controllerutil.AddFinalizer(in, CoherenceFinalizer)
+			}
 		}
 
 		// set the default Coherence local port and local port adjust if not present
-		if in.Spec.Coherence == nil {
+		if spec.Coherence == nil {
 			lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
-			in.Spec.Coherence = &CoherenceSpec{
+			spec.Coherence = &CoherenceSpec{
 				LocalPort:       pointer.Int32(DefaultUnicastPort),
 				LocalPortAdjust: &lpa,
 			}
 		} else {
-			if in.Spec.Coherence.LocalPort == nil {
-				in.Spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
+			if spec.Coherence.LocalPort == nil {
+				spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
 			}
-			if in.Spec.Coherence.LocalPort == nil {
+			if spec.Coherence.LocalPortAdjust == nil {
 				lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
-				in.Spec.Coherence.LocalPortAdjust = &lpa
+				spec.Coherence.LocalPortAdjust = &lpa
 			}
 		}
 
 		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
-		in.Spec.EnsureCoherenceImage(&coherenceImage)
+		spec.EnsureCoherenceImage(&coherenceImage)
 		operatorImage := operator.GetDefaultOperatorImage()
-		in.Spec.EnsureCoherenceOperatorImage(&operatorImage)
+		spec.EnsureCoherenceOperatorImage(&operatorImage)
 
 		// Set the features supported by this version
 		in.AddAnnotation(AnnotationFeatureSuspend, "true")
@@ -105,15 +116,6 @@ func (in *Coherence) Default() {
 	}
 }
 
-func (in *Coherence) AddAnnotation(key, value string) {
-	if in != nil {
-		if in.Annotations == nil {
-			in.Annotations = make(map[string]string)
-		}
-		in.Annotations[key] = value
-	}
-}
-
 // The path in this annotation MUST match the const below
 // +kubebuilder:webhook:verbs=create;update,path=/validate-coherence-oracle-com-v1-coherence,mutating=false,failurePolicy=fail,groups=coherence.oracle.com,resources=coherence,versions=v1,name=vcoherence.kb.io
 
@@ -123,42 +125,45 @@ const ValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherence"
 // An anonymous var to ensure that the Coherence struct implements webhook.Validator
 // there will be a compile time error here if this fails.
 var _ webhook.Validator = &Coherence{}
+var commonWebHook = CommonWebHook{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateCreate() error {
+	var err error
 	webhookLogger.Info("validate create", "name", in.Name)
-	if err := in.validateReplicas(); err != nil {
+	err = commonWebHook.validateReplicas(in)
+	if err != nil {
 		return err
 	}
-	if err := in.validateNodePorts(); err != nil {
-		return err
-	}
-	return nil
+	err = commonWebHook.validateNodePorts(in)
+	return err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	webhookLogger.Info("validate update", "name", in.Name)
-	if err := in.validateReplicas(); err != nil {
+	if err := commonWebHook.validateReplicas(in); err != nil {
 		return err
 	}
 	prev := previous.(*Coherence)
 
-	if err := in.validatePersistence(prev); err != nil {
+	if err := commonWebHook.validatePersistence(in, prev); err != nil {
 		return err
 	}
 	if err := in.validateVolumeClaimTemplates(prev); err != nil {
 		return err
 	}
-	if err := in.validateNodePorts(); err != nil {
+	if err := commonWebHook.validateNodePorts(in); err != nil {
 		return err
 	}
 
+	var errorList field.ErrorList
 	sts := in.Spec.CreateStatefulSet(in)
 	stsOld := prev.Spec.CreateStatefulSet(prev)
-	errorList := ValidateStatefulSetUpdate(&sts, &stsOld)
+	errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
+
 	if len(errorList) > 0 {
-		return fmt.Errorf("rejecting update as it would have resulted in an invalid statefuleset: %v", errorList)
+		return fmt.Errorf("rejecting update as it would have resulted in an invalid StatefulSet: %v", errorList)
 	}
 
 	return nil
@@ -167,31 +172,6 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (in *Coherence) ValidateDelete() error {
 	// we do not need to validate deletions
-	return nil
-}
-
-// validateReplicas validates that spec.replicas >= 0
-func (in *Coherence) validateReplicas() error {
-	replicas := in.GetReplicas()
-	if replicas < 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: "+
-			"must be greater than or equal to 0", in.Name, replicas)
-	}
-	return nil
-}
-
-func (in *Coherence) validatePersistence(previous *Coherence) error {
-	if in.GetReplicas() == 0 || previous.GetReplicas() == 0 {
-		// changes are allowed if current or previous replicas == 0
-		return nil
-	}
-
-	diff := deep.Equal(previous.Spec.GetCoherencePersistence(), in.Spec.GetCoherencePersistence())
-	if len(diff) != 0 {
-		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
-			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous"+
-			" instance of the resource has spec.replicas == 0", in.Name)
-	}
 	return nil
 }
 
@@ -215,10 +195,42 @@ func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {
 	return nil
 }
 
-func (in *Coherence) validateNodePorts() error {
-	var badPorts []string
+// ----- Common Validator ---------------------------------------------------
 
-	for _, port := range in.Spec.Ports {
+type CommonWebHook struct {
+}
+
+// validateReplicas validates that spec.replicas >= 0
+func (in *CommonWebHook) validateReplicas(c CoherenceResource) error {
+	replicas := c.GetReplicas()
+	if replicas < 0 {
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: spec.replicas: Invalid value: %d: "+
+			"must be greater than or equal to 0", c.GetName(), replicas)
+	}
+	return nil
+}
+
+func (in *CommonWebHook) validatePersistence(current, previous CoherenceResource) error {
+	if current.GetReplicas() == 0 || previous.GetReplicas() == 0 {
+		// changes are allowed if current or previous replicas == 0
+		return nil
+	}
+
+	currentSpec := current.GetSpec()
+	previousSpec := previous.GetSpec()
+	diff := deep.Equal(previousSpec.GetCoherencePersistence(), currentSpec.GetCoherencePersistence())
+	if len(diff) != 0 {
+		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
+			"changes cannot be made to spec.coherence.persistence unless spec.replicas == 0 or the previous"+
+			" instance of the resource has spec.replicas == 0", current.GetName())
+	}
+	return nil
+}
+
+func (in *CommonWebHook) validateNodePorts(current CoherenceResource) error {
+	var badPorts []string
+	spec := current.GetSpec()
+	for _, port := range spec.Ports {
 		if port.NodePort != nil {
 			p := *port.NodePort
 			if p < 30000 || p > 32767 {

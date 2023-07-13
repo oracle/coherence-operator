@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,7 +9,7 @@ package local
 import (
 	goctx "context"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/controllers/statefulset"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
 	"testing"
@@ -74,7 +74,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
-	ckr := statefulset.CoherenceProbe{Client: testContext.Client, Config: testContext.Config}
+	ckr := probe.CoherenceProbe{Client: testContext.Client, Config: testContext.Config}
 	ckr.SetGetPodHostName(func(pod corev1.Pod) string { return "127.0.0.1" })
 	ckr.SetTranslatePort(func(name string, port int) int { return int(ports[name]) })
 	ha := ckr.IsStatusHA(testContext.Context, tc.Deployment, sts)

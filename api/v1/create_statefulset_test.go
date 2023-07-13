@@ -202,12 +202,12 @@ func TestCreateStatefulSetWithAnnotationsOverriddenFromCoherenceResource(t *test
 	annotationsTwo["key3"] = "value3"
 	annotationsTwo["key4"] = "value4"
 
-	spec := coh.CoherenceResourceSpec{
+	spec := coh.CoherenceStatefulSetResourceSpec{
 		StatefulSetAnnotations: annotationsTwo,
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	deployment.SetAnnotations(annotationsOne)
 
 	// Create expected StatefulSet

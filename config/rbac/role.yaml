@@ -66,6 +66,9 @@ rules:
   - coherence
   - coherence/finalizers
   - coherence/status
+  - coherencejob
+  - coherencejob/finalizers
+  - coherencejob/status
   verbs:
   - create
   - delete

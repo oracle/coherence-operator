@@ -20,9 +20,11 @@ func TestJvmArgsEmpty(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Args: []string{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Args: []string{},
+				},
 			},
 		},
 	}
@@ -48,9 +50,11 @@ func TestJvmArgs(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Args: []string{"-Dfoo=foo-value", "-Dbar=bar-value"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Args: []string{"-Dfoo=foo-value", "-Dbar=bar-value"},
+				},
 			},
 		},
 	}
@@ -76,13 +80,15 @@ func TestJvmArgsWithEnvExpansion(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Args: []string{"-Dfoo=$FOO", "-Dbar=${BAR}"},
-			},
-			Env: []corev1.EnvVar{
-				{Name: "FOO", Value: "foo-value"},
-				{Name: "BAR", Value: "bar-value"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Args: []string{"-Dfoo=$FOO", "-Dbar=${BAR}"},
+				},
+				Env: []corev1.EnvVar{
+					{Name: "FOO", Value: "foo-value"},
+					{Name: "BAR", Value: "bar-value"},
+				},
 			},
 		},
 	}
@@ -108,9 +114,11 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				UseContainerLimits: pointer.Bool(false),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					UseContainerLimits: pointer.Bool(false),
+				},
 			},
 		},
 	}
@@ -136,9 +144,11 @@ func TestJvmUseContainerLimitsTrue(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				UseContainerLimits: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					UseContainerLimits: pointer.Bool(true),
+				},
 			},
 		},
 	}
@@ -164,10 +174,12 @@ func TestJvmGarbageCollectorG1(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Gc: &coh.JvmGarbageCollectorSpec{
-					Collector: pointer.String("g1"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Collector: pointer.String("g1"),
+					},
 				},
 			},
 		},
@@ -194,10 +206,12 @@ func TestJvmGarbageCollectorCMS(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Gc: &coh.JvmGarbageCollectorSpec{
-					Collector: pointer.String("cms"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Collector: pointer.String("cms"),
+					},
 				},
 			},
 		},
@@ -224,10 +238,12 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Gc: &coh.JvmGarbageCollectorSpec{
-					Collector: pointer.String("parallel"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Collector: pointer.String("parallel"),
+					},
 				},
 			},
 		},
@@ -254,10 +270,12 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Gc: &coh.JvmGarbageCollectorSpec{
-					Logging: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Logging: pointer.Bool(true),
+					},
 				},
 			},
 		},
@@ -291,10 +309,12 @@ func TestJvmGarbageCollectorArgsEmpty(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Gc: &coh.JvmGarbageCollectorSpec{
-					Args: []string{},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Args: []string{},
+					},
 				},
 			},
 		},
@@ -321,10 +341,12 @@ func TestJvmGarbageCollectorArgs(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			JVM: &coh.JVMSpec{
-				Gc: &coh.JvmGarbageCollectorSpec{
-					Args: []string{"-XX:Arg1", "-XX:Arg2"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Args: []string{"-XX:Arg1", "-XX:Arg2"},
+					},
 				},
 			},
 		},

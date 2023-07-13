@@ -21,9 +21,11 @@ func TestSpringBootApplication(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeSpring),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeSpring),
+				},
 			},
 		},
 	}
@@ -50,10 +52,12 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 	jar := "/apps/lib/foo.jar"
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type:             pointer.String(AppTypeSpring),
-				SpringBootFatJar: &jar,
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type:             pointer.String(AppTypeSpring),
+					SpringBootFatJar: &jar,
+				},
 			},
 		},
 	}
@@ -80,11 +84,13 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 	jar := "/apps/lib/foo.jar"
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type:             pointer.String(AppTypeSpring),
-				SpringBootFatJar: &jar,
-				Main:             pointer.String("foo.Bar"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type:             pointer.String(AppTypeSpring),
+					SpringBootFatJar: &jar,
+					Main:             pointer.String("foo.Bar"),
+				},
 			},
 		},
 	}
@@ -110,11 +116,13 @@ func TestSpringBootBuildpacks(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Application: &coh.ApplicationSpec{
-				Type: pointer.String(AppTypeSpring),
-				CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
-					Enabled: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: pointer.String(AppTypeSpring),
+					CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
+						Enabled: pointer.Bool(true),
+					},
 				},
 			},
 		},

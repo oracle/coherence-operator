@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,12 +15,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
-func EnsureHashLabel(c *Coherence) (string, bool) {
+func EnsureHashLabel(c CoherenceResource) (string, bool) {
 	labels := c.GetLabels()
 	if labels == nil {
 		labels = make(map[string]string)
 	}
-	hashNew := ComputeHash(&c.Spec, nil)
+	spec := c.GetSpec()
+	hashNew := ComputeHash(&spec, nil)
 	hashCurrent, found := labels[LabelCoherenceHash]
 	if !found || hashCurrent != hashNew {
 		labels[LabelCoherenceHash] = hashNew
@@ -32,9 +33,9 @@ func EnsureHashLabel(c *Coherence) (string, bool) {
 
 // ComputeHash returns a hash value calculated from Coherence spec and
 // The hash will be safe encoded to avoid bad words.
-func ComputeHash(template *CoherenceResourceSpec, collisionCount *int32) string {
+func ComputeHash(template interface{}, collisionCount *int32) string {
 	podTemplateSpecHasher := fnv.New32a()
-	DeepHashObject(podTemplateSpecHasher, *template)
+	DeepHashObject(podTemplateSpecHasher, template)
 
 	// Add collisionCount in the hash if it exists.
 	if collisionCount != nil {

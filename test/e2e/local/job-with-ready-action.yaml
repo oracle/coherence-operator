@@ -1,0 +1,18 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceJob
+metadata:
+  name: test-job
+spec:
+  cluster: test
+  replicas: 3
+  image: ${TEST_APPLICATION_IMAGE}
+  readyAction:
+    httpGet:
+      port: rest
+      path: test
+  ports:
+  - name: rest
+    port: 8080
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10

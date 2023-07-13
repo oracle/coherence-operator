@@ -73,8 +73,10 @@ func TestCreateWKAServiceWithAppLabel(t *testing.T) {
 			Namespace: "test-ns",
 			Name:      "test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			AppLabel: stringPtr("foo"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				AppLabel: stringPtr("foo"),
+			},
 		},
 	}
 
@@ -126,8 +128,10 @@ func TestCreateWKAServiceWithVersionLabel(t *testing.T) {
 			Namespace: "test-ns",
 			Name:      "test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			VersionLabel: stringPtr("v1.0.0"),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				VersionLabel: stringPtr("v1.0.0"),
+			},
 		},
 	}
 
@@ -179,7 +183,7 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 			Namespace: "test-ns",
 			Name:      "test",
 		},
-		Spec: coh.CoherenceResourceSpec{
+		Spec: coh.CoherenceStatefulSetResourceSpec{
 			Cluster: pointer.String("test-cluster"),
 		},
 	}

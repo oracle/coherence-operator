@@ -9,6 +9,7 @@ package fakes
 import (
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +34,7 @@ type ClientWithErrors interface {
 	GetDeletes() []runtime.Object
 	GetPatches() []ClientOperation
 	GetStatefulSet(namespace, name string) (*appsv1.StatefulSet, error)
+	GetJob(namespace, name string) (*batchv1.Job, error)
 	GetService(namespace, name string) (*corev1.Service, error)
 }
 
@@ -137,6 +139,12 @@ func (c *clientWithErrors) GetStatefulSet(namespace, name string) (*appsv1.State
 	sts := &appsv1.StatefulSet{}
 	err := c.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, sts)
 	return sts, err
+}
+
+func (c *clientWithErrors) GetJob(namespace, name string) (*batchv1.Job, error) {
+	job := &batchv1.Job{}
+	err := c.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, job)
+	return job, err
 }
 
 func (c *clientWithErrors) GetService(namespace, name string) (*corev1.Service, error) {

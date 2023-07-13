@@ -39,7 +39,7 @@ func (o operatorSimulator) Run(ctx context.Context) error {
 type k8sAPITester struct {
 }
 
-func (in k8sAPITester) testPort(ctx context.Context) {
+func (in k8sAPITester) testPort(_ context.Context) {
 	log.Info("Testing connectivity", "PortName", "K8s API Server")
 
 	cfg, err := ctrl.GetConfig()

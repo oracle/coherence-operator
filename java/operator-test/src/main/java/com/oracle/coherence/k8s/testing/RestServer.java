@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.tangosol.net.CacheFactory;
@@ -30,6 +33,8 @@ import com.sun.net.httpserver.HttpServer;
  * @author jk  2019.08.09
  */
 public class RestServer {
+
+    private static final AtomicLong COUNTER = new AtomicLong();
 
     /**
      * Private constructor.
@@ -57,6 +62,10 @@ public class RestServer {
             server.createContext("/canaryStart", RestServer::canaryStart);
             server.createContext("/canaryCheck", RestServer::canaryCheck);
             server.createContext("/canaryClear", RestServer::canaryClear);
+            server.createContext("/shutdown", RestServer::shutdown);
+            server.createContext("/test", RestServer::test);
+            server.createContext("/testGet", RestServer::resetTest);
+            server.createContext("/testReset", RestServer::getTest);
 
             server.setExecutor(null); // creates a default executor
             server.start();
@@ -156,6 +165,41 @@ public class RestServer {
         send(t, 200, "OK");
     }
 
+    private static void shutdown(HttpExchange t) throws IOException {
+        send(t, 202, "OK");
+        Map<String, String> map = queryToMap(t);
+        int exitCode = 0;
+        String s = map.get("exitCode");
+        if (s != null && !s.isEmpty()) {
+            try {
+                exitCode = Integer.parseInt(s);
+            }
+            catch (Exception e) {
+                // ignored
+            }
+        }
+        System.exit(exitCode);
+    }
+
+    private static void test(HttpExchange t) throws IOException {
+        long count = COUNTER.getAndIncrement();
+        System.out.println("Test: incremented count=" + count);
+        send(t, 200, String.valueOf(count));
+    }
+
+    private static void getTest(HttpExchange t) throws IOException {
+        long count = COUNTER.get();
+        System.out.println("Test: get count=" + count);
+        send(t, 200, String.valueOf(count));
+    }
+
+    private static void resetTest(HttpExchange t) throws IOException {
+        COUNTER.set(0);
+        System.out.println("Test: reset");
+        send(t, 200, "");
+    }
+
+
     private static String getMainClass() {
         try {
             return Coherence.class.getCanonicalName();
@@ -164,4 +208,20 @@ public class RestServer {
             return DefaultCacheServer.class.getCanonicalName();
         }
     }
+
+    private static Map<String, String> queryToMap(HttpExchange exchange) {
+        String query = exchange.getRequestURI().getQuery();
+        Map<String, String> result = new HashMap<>();
+        for (String param : query.split("&")) {
+            String[] pair = param.split("=");
+            if (pair.length > 1) {
+                result.put(pair[0], pair[1]);
+            }
+            else {
+                result.put(pair[0], "");
+            }
+        }
+        return result;
+    }
+
 }

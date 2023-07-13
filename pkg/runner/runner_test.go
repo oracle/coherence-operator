@@ -46,9 +46,11 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				SkipVersionCheck: pointer.Bool(true),
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					SkipVersionCheck: pointer.Bool(true),
+				},
 			},
 		},
 	}

@@ -32,14 +32,16 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "management-default",
 		},
-		Spec: v1.CoherenceResourceSpec{
-			Coherence: &v1.CoherenceSpec{
-				Management: &v1.PortSpecWithSSL{
-					Enabled: pointer.Bool(true),
+		Spec: v1.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: v1.CoherenceResourceSpec{
+				Coherence: &v1.CoherenceSpec{
+					Management: &v1.PortSpecWithSSL{
+						Enabled: pointer.Bool(true),
+					},
 				},
-			},
-			Ports: []v1.NamedPortSpec{
-				{Name: v1.PortNameManagement},
+				Ports: []v1.NamedPortSpec{
+					{Name: v1.PortNameManagement},
+				},
 			},
 		},
 	}
@@ -97,16 +99,18 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "management-nondefault",
 		},
-		Spec: v1.CoherenceResourceSpec{
-			Coherence: &v1.CoherenceSpec{
-				Management: &v1.PortSpecWithSSL{
-					Enabled: pointer.Bool(true),
-					Port:    pointer.Int32(30009),
+		Spec: v1.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: v1.CoherenceResourceSpec{
+				Coherence: &v1.CoherenceSpec{
+					Management: &v1.PortSpecWithSSL{
+						Enabled: pointer.Bool(true),
+						Port:    pointer.Int32(30009),
+					},
 				},
-			},
-			Ports: []v1.NamedPortSpec{
-				{Name: v1.PortNameManagement,
-					Port: 30009},
+				Ports: []v1.NamedPortSpec{
+					{Name: v1.PortNameManagement,
+						Port: 30009},
+				},
 			},
 		},
 	}

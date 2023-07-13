@@ -17,27 +17,29 @@ import (
 	"testing"
 )
 
-func TestCreateResourcesForMinimalDeployment(t *testing.T) {
+var expectedJobResources = 5
+
+func TestCreateResourcesForMinimalJobDeployment(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	// Create the test deployment (a minimal deployment configuration)
-	deployment := coh.Coherence{
+	deployment := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "operator-test",
+			Name: "operator-test-job",
 		},
 	}
 
-	resources, mgr := Reconcile(t, deployment)
+	resources, mgr := ReconcileJob(t, deployment)
 
 	// Verify the expected k8s events
-	AssertStatefulSetCreationEvent(t, deployment.Name, mgr)
+	AssertJobCreationEvent(t, deployment.Name, mgr)
 	AssertNoRemainingEvents(t, mgr)
 
 	// Should have created the correct number of resources
-	g.Expect(len(resources)).To(Equal(6))
+	g.Expect(len(resources)).To(Equal(expectedJobResources))
 
-	// Resource 0 is the Coherence resource
-	c, err := toCoherence(mgr, resources[0])
+	// Resource 0 is the CoherenceJob resource
+	c, err := toCoherenceJob(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
 
@@ -56,150 +58,63 @@ func TestCreateResourcesForMinimalDeployment(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(wka.GetName()).To(Equal(deployment.GetWkaServiceName()))
 
-	// Resource 4 = Service for StatefulSet
-	ss, err := toService(mgr, resources[4])
+	// Resource 4 = Job
+	job, err := toJob(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(ss.GetName()).To(Equal(deployment.GetHeadlessServiceName()))
-
-	// Resource 5 = StatefulSet
-	sts, err := toStatefulSet(mgr, resources[5])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.GetName()).To(Equal(deployment.Name))
-	// StatefulSet should have default replica count
-	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
-	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+	g.Expect(job.GetName()).To(Equal(deployment.Name))
+	// Job should have default replica count
+	g.Expect(job.Spec.Parallelism).NotTo(BeNil())
+	g.Expect(*job.Spec.Parallelism).To(Equal(coh.DefaultJobReplicas))
 }
 
-func TestShouldAddFinalizerWhenNotPresent(t *testing.T) {
+func TestShouldNotAddFinalizer(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	// Create the test deployment (a minimal deployment configuration)
-	deployment := coh.Coherence{
+	deployment := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "operator-test",
+			Name: "operator-test-job",
 		},
 	}
 
-	resources, mgr := Reconcile(t, deployment)
+	resources, mgr := ReconcileJob(t, deployment)
 	// Should have created resources
 	g.Expect(len(resources)).NotTo(BeZero())
-	// Resource 0 = Coherence resource
-	c, err := toCoherence(mgr, resources[0])
+	// Resource 0 = CoherenceJob resource
+	c, err := toCoherenceJob(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
-	// the finalizer should be present
-	g.Expect(c.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
+	// the finalizer should not be present
+	g.Expect(c.GetFinalizers()).NotTo(ContainElement(coh.CoherenceFinalizer))
 }
 
-func TestShouldAddFinalizerWhenNotPresentWithoutRemovingExistingFinalizers(t *testing.T) {
+func TestCreateJobResourcesDeploymentNotInWKA(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	// Create the test deployment (a minimal deployment configuration)
-	deployment := coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:       "operator-test",
-			Finalizers: []string{"foo", "bar"},
-		},
-	}
-
-	resources, mgr := Reconcile(t, deployment)
-	// Should have created resources
-	g.Expect(len(resources)).NotTo(BeZero())
-	// Resource 0 = Coherence resource
-	c, err := toCoherence(mgr, resources[0])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
-	// the finalizer should be present
-	g.Expect(c.GetFinalizers()).To(ContainElement("foo"))
-	g.Expect(c.GetFinalizers()).To(ContainElement("bar"))
-	g.Expect(c.GetFinalizers()).To(ContainElement(coh.CoherenceFinalizer))
-}
-
-func TestCreateResourcesDeploymentNotInWKA(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	deployment := coh.Coherence{
+	deployment := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				ExcludeFromWKA: pointer.Bool(true),
-			},
-		},
-	}
-
-	resources, mgr := Reconcile(t, deployment)
-
-	// Verify the expected k8s events
-	AssertStatefulSetCreationEvent(t, deployment.Name, mgr)
-	AssertNoRemainingEvents(t, mgr)
-
-	// Should have created the correct number of resources
-	g.Expect(len(resources)).To(Equal(6))
-
-	// Resource 0 is the Coherence resource
-	c, err := toCoherence(mgr, resources[0])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
-
-	// Resource 1 = Operator config Secret
-	opCfg, err := toSecret(mgr, resources[1])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(opCfg.GetName()).To(Equal(coh.OperatorConfigName))
-
-	// Resource 2 = deployment storage Secret
-	store, err := toSecret(mgr, resources[2])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(store.GetName()).To(Equal(deployment.Name))
-
-	// Resource 3 = WKA Service
-	wka, err := toService(mgr, resources[3])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(wka.GetName()).To(Equal(deployment.GetWkaServiceName()))
-
-	// Resource 4 = Service for StatefulSet
-	ss, err := toService(mgr, resources[4])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(ss.GetName()).To(Equal(deployment.GetHeadlessServiceName()))
-
-	// Resource 5 = StatefulSet
-	sts, err := toStatefulSet(mgr, resources[5])
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.GetName()).To(Equal(deployment.Name))
-	// StatefulSet should have default replica count
-	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
-	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
-}
-
-func TestCreateResourcesDeploymentWithExistingWKA(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	deployment := coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "operator-test",
-		},
-		Spec: coh.CoherenceResourceSpec{
-			Coherence: &coh.CoherenceSpec{
-				WKA: &coh.CoherenceWKASpec{
-					Deployment: "foo",
-					Namespace:  "",
+		Spec: coh.CoherenceJobResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					ExcludeFromWKA: pointer.Bool(true),
 				},
 			},
 		},
 	}
 
-	resources, mgr := Reconcile(t, deployment)
+	resources, mgr := ReconcileJob(t, deployment)
 
 	// Verify the expected k8s events
-	AssertStatefulSetCreationEvent(t, deployment.Name, mgr)
+	AssertJobCreationEvent(t, deployment.Name, mgr)
 	AssertNoRemainingEvents(t, mgr)
 
 	// Should have created the correct number of resources
-	g.Expect(len(resources)).To(Equal(5))
+	g.Expect(len(resources)).To(Equal(expectedJobResources))
 
-	// Resource 0 is the Coherence resource
-	c, err := toCoherence(mgr, resources[0])
+	// Resource 0 is the CoherenceJob resource
+	c, err := toCoherenceJob(mgr, resources[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
 
@@ -213,69 +128,123 @@ func TestCreateResourcesDeploymentWithExistingWKA(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(store.GetName()).To(Equal(deployment.Name))
 
-	// Resource 3 = Service for StatefulSet
-	ss, err := toService(mgr, resources[3])
+	// Resource 3 = WKA Service
+	wka, err := toService(mgr, resources[3])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(ss.GetName()).To(Equal(deployment.GetHeadlessServiceName()))
+	g.Expect(wka.GetName()).To(Equal(deployment.GetWkaServiceName()))
 
-	// Resource 4 = StatefulSet
-	sts, err := toStatefulSet(mgr, resources[4])
+	// Resource 4 = Job
+	job, err := toJob(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.GetName()).To(Equal(deployment.Name))
-	// StatefulSet should have default replica count
-	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
-	g.Expect(*sts.Spec.Replicas).To(Equal(coh.DefaultReplicas))
+	g.Expect(job.GetName()).To(Equal(deployment.Name))
+	// Job should have default replica count
+	g.Expect(job.Spec.Parallelism).NotTo(BeNil())
+	g.Expect(*job.Spec.Parallelism).To(Equal(coh.DefaultJobReplicas))
 }
 
-func TestCreateResourcesForDeploymentWithReplicaCount(t *testing.T) {
+func TestCreateJobResourcesDeploymentWithExistingWKA(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	deployment := coh.Coherence{
+	deployment := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Replicas: pointer.Int32(5),
+		Spec: coh.CoherenceJobResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					WKA: &coh.CoherenceWKASpec{
+						Deployment: "foo",
+						Namespace:  "",
+					},
+				},
+			},
+		},
+	}
+
+	resources, mgr := ReconcileJob(t, deployment)
+
+	// Verify the expected k8s events
+	AssertJobCreationEvent(t, deployment.Name, mgr)
+	AssertNoRemainingEvents(t, mgr)
+
+	// Should have created the correct number of resources
+	g.Expect(len(resources)).To(Equal(expectedJobResources - 1))
+
+	// Resource 0 is the CoherenceJob resource
+	c, err := toCoherenceJob(mgr, resources[0])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(c.GetName()).To(Equal(deployment.GetName()))
+
+	// Resource 1 = Operator config Secret
+	opCfg, err := toSecret(mgr, resources[1])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(opCfg.GetName()).To(Equal(coh.OperatorConfigName))
+
+	// Resource 2 = deployment storage Secret
+	store, err := toSecret(mgr, resources[2])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(store.GetName()).To(Equal(deployment.Name))
+
+	// Resource 3 = Job
+	job, err := toJob(mgr, resources[3])
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(job.GetName()).To(Equal(deployment.Name))
+	// Job should have default replica count
+	g.Expect(job.Spec.Parallelism).NotTo(BeNil())
+	g.Expect(*job.Spec.Parallelism).To(Equal(coh.DefaultJobReplicas))
+}
+
+func TestCreateJobResourcesForDeploymentWithReplicaCount(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	deployment := coh.CoherenceJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "operator-test",
+		},
+		Spec: coh.CoherenceJobResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Replicas: pointer.Int32(5),
+			},
 		},
 	}
 
 	// run the reconciler
-	resources, mgr := Reconcile(t, deployment)
+	resources, mgr := ReconcileJob(t, deployment)
 
 	// Should have created the correct number of resources
-	g.Expect(len(resources)).To(Equal(6))
+	g.Expect(len(resources)).To(Equal(expectedJobResources))
 
-	// Resource 5 = StatefulSet
-	sts, err := toStatefulSet(mgr, resources[5])
+	// Resource 4 = Job
+	job, err := toJob(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.GetName()).To(Equal(deployment.Name))
-	// StatefulSet should have default replica count
-	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
-	g.Expect(*sts.Spec.Replicas).To(Equal(int32(5)))
+	g.Expect(job.GetName()).To(Equal(deployment.Name))
+	// Job should have default replica count
+	g.Expect(job.Spec.Parallelism).NotTo(BeNil())
+	g.Expect(*job.Spec.Parallelism).To(Equal(int32(5)))
 }
 
-func TestCreateResourcesForDeploymentWithClusterName(t *testing.T) {
+func TestCreateJobResourcesForDeploymentWithClusterName(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	// Create the test deployment with a clusterName
 	clusterName := "test-cluster"
-	deployment := coh.Coherence{
+	deployment := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			Cluster: &clusterName,
+		Spec: coh.CoherenceJobResourceSpec{
+			Cluster: clusterName,
 		},
 	}
 
-	resources, mgr := Reconcile(t, deployment)
+	resources, mgr := ReconcileJob(t, deployment)
 
 	// Verify the expected k8s events
-	AssertStatefulSetCreationEvent(t, deployment.Name, mgr)
+	AssertJobCreationEvent(t, deployment.Name, mgr)
 	AssertNoRemainingEvents(t, mgr)
 
 	// Should have created the correct number of resources
-	g.Expect(len(resources)).To(Equal(6))
+	g.Expect(len(resources)).To(Equal(expectedJobResources))
 
 	// Resource 3 = WKA Service
 	wka, err := toService(mgr, resources[3])
@@ -287,38 +256,40 @@ func TestCreateResourcesForDeploymentWithClusterName(t *testing.T) {
 	g.Expect(wka.Spec.Selector).To(HaveKeyWithValue(coh.LabelCoherenceWKAMember, "true"))
 	g.Expect(wka.Spec.Selector).To(HaveKeyWithValue(coh.LabelComponent, coh.LabelComponentCoherencePod))
 
-	// Resource 5 = StatefulSet
-	sts, err := toStatefulSet(mgr, resources[5])
+	// Resource 4 = Job
+	job, err := toJob(mgr, resources[4])
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.GetName()).To(Equal(deployment.Name))
-	// StatefulSet should have correct cluster name env-var
-	container, found := FindContainer(coh.ContainerNameCoherence, sts)
+	g.Expect(job.GetName()).To(Equal(deployment.Name))
+	// Job should have correct cluster name env-var
+	container, found := FindContainerInJob(coh.ContainerNameCoherence, job)
 	g.Expect(found).To(BeTrue())
 	g.Expect(container.Env).To(matchers.HaveEnvVar(corev1.EnvVar{Name: coh.EnvVarCohClusterName, Value: clusterName}))
 }
 
-func TestCreateResourcesForDeploymentWithHealthPort(t *testing.T) {
+func TestCreateJobResourcesForDeploymentWithHealthPort(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	// Create the test deployment with a clusterName
 	var health = 19
-	deployment := coh.Coherence{
+	deployment := coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "operator-test",
 		},
-		Spec: coh.CoherenceResourceSpec{
-			HealthPort: pointer.Int32(int32(health)),
+		Spec: coh.CoherenceJobResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				HealthPort: pointer.Int32(int32(health)),
+			},
 		},
 	}
 
-	_, mgr := Reconcile(t, deployment)
+	_, mgr := ReconcileJob(t, deployment)
 
-	// Get the StatefulSet
-	sts, err := mgr.Client.GetStatefulSet(deployment.Namespace, deployment.Name)
+	// Get the Job
+	job, err := mgr.Client.GetJob(deployment.Namespace, deployment.Name)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.GetName()).To(Equal(deployment.Name))
+	g.Expect(job.GetName()).To(Equal(deployment.Name))
 
-	container, found := FindContainer(coh.ContainerNameCoherence, sts)
+	container, found := FindContainerInJob(coh.ContainerNameCoherence, job)
 	g.Expect(found).To(BeTrue())
 	// Coherence container should have correct health port
 	port, found := FindContainerPort(container, coh.PortNameHealth)

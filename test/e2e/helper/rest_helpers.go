@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
@@ -19,12 +20,12 @@ import (
 
 // StartCanary initialises the canary test in the deployment being scaled.
 func StartCanary(ctx TestContext, namespace, deploymentName string) error {
-	return canary(ctx, namespace, deploymentName, "canaryStart", http.MethodPut)
+	return httpRequest(ctx, namespace, deploymentName, "canaryStart", http.MethodPut)
 }
 
 // CheckCanary invokes the canary test in the deployment..
 func CheckCanary(ctx TestContext, namespace, deploymentName string) error {
-	return canary(ctx, namespace, deploymentName, "canaryCheck", http.MethodGet)
+	return httpRequest(ctx, namespace, deploymentName, "canaryCheck", http.MethodGet)
 }
 
 // CheckCanaryEventuallyGood invokes the canary test in the deployment in a loop to ensure it is eventually ok.
@@ -40,18 +41,33 @@ func CheckCanaryEventuallyGood(ctx TestContext, namespace, deploymentName string
 
 // ClearCanary clears the canary test in the deployment.
 func ClearCanary(ctx TestContext, namespace, deploymentName string) error {
-	return canary(ctx, namespace, deploymentName, "canaryClear", http.MethodPost)
+	return httpRequest(ctx, namespace, deploymentName, "canaryClear", http.MethodPost)
 }
 
-// Make a canary REST PUT call to Pod zero of the deployment.
-func canary(ctx TestContext, namespace, deploymentName, endpoint, method string) error {
+// Shutdown stops the test Pod.
+func Shutdown(pod *v1.Pod) error {
+	return ShutdownWithExitCode(pod, 0)
+}
+
+// ShutdownWithExitCode stops the test Pod with the specified exit code.
+func ShutdownWithExitCode(pod *v1.Pod, exitCode int) error {
+	endpoint := fmt.Sprintf("shutdown?exitCode=%d", exitCode)
+	return httpRequestToPod(endpoint, http.MethodPost, pod)
+}
+
+// Make a http request to Pod zero of the deployment.
+func httpRequest(ctx TestContext, namespace, deploymentName, endpoint, method string) error {
 	podName := fmt.Sprintf("%s-0", deploymentName)
 
 	pod, err := ctx.KubeClient.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
+	return httpRequestToPod(endpoint, method, pod)
+}
 
+// Make a http request to a Pod.
+func httpRequestToPod(endpoint, method string, pod *v1.Pod) error {
 	forwarder, ports, err := StartPortForwarderForPod(pod)
 	if err != nil {
 		return err
@@ -59,7 +75,12 @@ func canary(ctx TestContext, namespace, deploymentName, endpoint, method string)
 
 	defer forwarder.Close()
 
-	url := fmt.Sprintf("http://127.0.0.1:%d/%s", ports["rest"], endpoint)
+	port, found := ports["rest"]
+	if !found || port == 0 {
+		return fmt.Errorf("could not find rest port in pod %s", pod.Name)
+	}
+
+	url := fmt.Sprintf("http://127.0.0.1:%d/%s", port, endpoint)
 	client := &http.Client{Timeout: time.Minute * 1}
 
 	var resp *http.Response
@@ -82,7 +103,7 @@ func canary(ctx TestContext, namespace, deploymentName, endpoint, method string)
 		return err
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		defer resp.Body.Close()
 		bodyBytes, err := io.ReadAll(resp.Body)
 		bodyString := ""

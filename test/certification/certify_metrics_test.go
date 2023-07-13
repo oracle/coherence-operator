@@ -32,14 +32,16 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "metric-default",
 		},
-		Spec: v1.CoherenceResourceSpec{
-			Coherence: &v1.CoherenceSpec{
-				Metrics: &v1.PortSpecWithSSL{
-					Enabled: pointer.Bool(true),
+		Spec: v1.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: v1.CoherenceResourceSpec{
+				Coherence: &v1.CoherenceSpec{
+					Metrics: &v1.PortSpecWithSSL{
+						Enabled: pointer.Bool(true),
+					},
 				},
-			},
-			Ports: []v1.NamedPortSpec{
-				{Name: v1.PortNameMetrics},
+				Ports: []v1.NamedPortSpec{
+					{Name: v1.PortNameMetrics},
+				},
 			},
 		},
 	}
@@ -97,16 +99,18 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 			Namespace: ns,
 			Name:      "metric-nondefault",
 		},
-		Spec: v1.CoherenceResourceSpec{
-			Coherence: &v1.CoherenceSpec{
-				Metrics: &v1.PortSpecWithSSL{
-					Enabled: pointer.Bool(true),
-					Port:    pointer.Int32(9619),
+		Spec: v1.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: v1.CoherenceResourceSpec{
+				Coherence: &v1.CoherenceSpec{
+					Metrics: &v1.PortSpecWithSSL{
+						Enabled: pointer.Bool(true),
+						Port:    pointer.Int32(9619),
+					},
 				},
-			},
-			Ports: []v1.NamedPortSpec{
-				{Name: v1.PortNameMetrics,
-					Port: 9619},
+				Ports: []v1.NamedPortSpec{
+					{Name: v1.PortNameMetrics,
+						Port: 9619},
+				},
 			},
 		},
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -57,7 +57,7 @@ func (k *HookInstaller) uninstallWebHook() error {
 	log.Info("Uninstall webhook resources")
 
 	// We only clean up cert-manager resource here.
-	// We specifically DO NOT clean-up the web-hook resources because we do not
+	// We specifically DO NOT clean up the web-hook resources because we do not
 	// want mutations of Coherence resources to go through whilst the operator is not
 	// running as these may result in invalid configurations.
 
@@ -78,28 +78,28 @@ func (k *HookInstaller) uninstallWebHook() error {
 }
 
 func (k *HookInstaller) InstallWithCertManager(ctx context.Context) error {
-	if err := k.validateCertManagerInstallation(); err != nil {
+	var err error
+	if err = k.validateCertManagerInstallation(); err != nil {
 		return err
 	}
 	// install the cert-manager Issuer
-	if err := k.installUnstructured(ctx, k.issuer); err != nil {
+	if err = k.installUnstructured(ctx, k.issuer); err != nil {
 		return err
 	}
 	// install the cert-manager Certificate
-	if err := k.installUnstructured(ctx, k.certificate); err != nil {
+	if err = k.installUnstructured(ctx, k.certificate); err != nil {
 		return err
 	}
 	// Install the webhooks
 	ns := operator.GetNamespace()
 	m := createMutatingWebhookWithCertManager(ns, k.certManagerGroup)
-	if err := installMutatingWebhook(ctx, k.Clients, m); err != nil {
+	if err = installMutatingWebhook(ctx, k.Clients, m); err != nil {
 		return err
 	}
 	v := createValidatingWebhookWithCertManager(ns, k.certManagerGroup)
-	if err := installValidatingWebhook(ctx, k.Clients, v); err != nil {
-		return err
-	}
-	return nil
+
+	err = installValidatingWebhook(ctx, k.Clients, v)
+	return err
 }
 
 func baseWebhookSecret(ns string) *corev1.Secret {

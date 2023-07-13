@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,6 +15,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +29,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sort"
+	"strings"
 	"sync"
 )
 
@@ -130,53 +133,29 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 	}
 }
 
-// UpdateDeploymentStatus updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatus(ctx context.Context, request reconcile.Request) (*coh.Coherence, error) {
-	var err error
-	var sts *appsv1.StatefulSet
-	sts, _, err = in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
-	if err != nil {
-		// an error occurred
-		err = errors.Wrapf(err, "getting StatefulSet %s", request.Name)
-		return nil, err
-	}
-
-	deployment := &coh.Coherence{}
-	err = in.GetClient().Get(ctx, request.NamespacedName, deployment)
-	switch {
-	case err != nil && apierrors.IsNotFound(err):
-		// deployment not found - possibly deleted
-		err = nil
-	case err != nil:
-		// an error occurred
-		err = errors.Wrapf(err, "getting deployment %s", request.Name)
-	case deployment.GetDeletionTimestamp() != nil:
-		// deployment is being deleted
-		err = nil
-	default:
-		updated := deployment.DeepCopy()
-		var stsStatus *appsv1.StatefulSetStatus
-		if sts == nil {
-			stsStatus = nil
-		} else {
-			stsStatus = &sts.Status
-		}
-		if updated.Status.Update(deployment, stsStatus) {
-			err = in.GetClient().Status().Update(ctx, updated)
-		}
-	}
-	return deployment, err
+// UpdateDeploymentStatusPhase updates the Coherence resource's status.
+func (in *CommonReconciler) UpdateCoherenceStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
+	return in.UpdateCoherenceStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
 }
 
-// UpdateDeploymentStatusPhase updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
-	return in.UpdateDeploymentStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
+// UpdateCoherenceJobStatusPhase updates the CoherenceJob resource's status.
+func (in *CommonReconciler) UpdateCoherenceJobStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
+	return in.UpdateCoherenceJobStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
+}
+
+// UpdateCoherenceStatusCondition updates the Coherence resource's status.
+func (in *CommonReconciler) UpdateCoherenceStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
+	return in.updateDeploymentStatusCondition(ctx, key, c, &coh.Coherence{})
+}
+
+// UpdateCoherenceJobStatusCondition updates the CoherenceJob resource's status.
+func (in *CommonReconciler) UpdateCoherenceJobStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
+	return in.updateDeploymentStatusCondition(ctx, key, c, &coh.CoherenceJob{})
 }
 
 // UpdateDeploymentStatusCondition updates the Coherence resource's status.
-func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition) error {
+func (in *CommonReconciler) updateDeploymentStatusCondition(ctx context.Context, key types.NamespacedName, c coh.Condition, deployment coh.CoherenceResource) error {
 	var err error
-	deployment := &coh.Coherence{}
 	err = in.GetClient().Get(ctx, key, deployment)
 	switch {
 	case err != nil && apierrors.IsNotFound(err):
@@ -189,9 +168,10 @@ func (in *CommonReconciler) UpdateDeploymentStatusCondition(ctx context.Context,
 		// deployment is being deleted
 		err = nil
 	default:
-		updated := deployment.DeepCopy()
-		if updated.Status.SetCondition(deployment, c) {
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
+		updated := deployment.DeepCopyResource()
+		status := updated.GetStatus()
+		if status.SetCondition(deployment, c) {
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.GetName(), updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")
 			}
@@ -252,6 +232,105 @@ func (in *CommonReconciler) MaybeFindStatefulSet(ctx context.Context, namespace,
 	default:
 		return sts, true, nil
 	}
+}
+
+// MaybeFindJob finds the required Job, returning the StatefulSet and a flag indicating whether it was found.
+func (in *CommonReconciler) MaybeFindJob(ctx context.Context, namespace, name string) (*batchv1.Job, bool, error) {
+	job := &batchv1.Job{}
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, job)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		return nil, false, nil
+	case err != nil:
+		return job, false, err
+	default:
+		return job, true, nil
+	}
+}
+
+// UpdateDeploymentStatusActionsState updates the Coherence resource's status ActionsExecuted flag.
+func (in *CommonReconciler) UpdateDeploymentStatusActionsState(ctx context.Context, key types.NamespacedName, actionExecuted bool) error {
+	deployment := &coh.Coherence{}
+	err := in.GetClient().Get(ctx, key, deployment)
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// deployment not found - possibly deleted
+		err = nil
+	case err != nil:
+		// an error occurred
+		err = errors.Wrapf(err, "getting deployment %s", key.Name)
+	case deployment.GetDeletionTimestamp() != nil:
+		// deployment is being deleted
+		err = nil
+	default:
+		if deployment.Status.ActionsExecuted != actionExecuted {
+			updated := deployment.DeepCopy()
+			updated.Status.ActionsExecuted = actionExecuted
+			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
+			if err != nil {
+				return errors.Wrap(err, "creating Coherence resource status patch")
+			}
+			if patch != nil {
+				err = in.GetClient().Status().Patch(ctx, deployment, patch)
+				if err != nil {
+					return errors.Wrap(err, "updating Coherence resource status")
+				}
+			}
+		}
+	}
+	return err
+}
+
+// CanCreate determines whether any specified start quorum has been met.
+func (in *CommonReconciler) CanCreate(ctx context.Context, deployment coh.CoherenceResource) (bool, string) {
+	spec := deployment.GetSpec()
+	if spec.StartQuorum == nil || len(spec.StartQuorum) == 0 {
+		// there is no start quorum
+		return true, ""
+	}
+
+	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
+	logger.Info("Checking deployment start quorum")
+
+	var quorum []string
+
+	for _, q := range spec.StartQuorum {
+		if q.Deployment == "" {
+			// this start-quorum does not have a dependency name so skip it
+			continue
+		}
+		// work out which Namespace to look for the dependency in
+		var namespace string
+		if q.Namespace == "" {
+			// start-quorum does not specify a namespace so use the same one as the deployment
+			namespace = deployment.GetNamespace()
+		} else {
+			// start-quorum does specify a namespace so use it
+			namespace = q.Namespace
+		}
+		dep, found, err := in.MaybeFindDeployment(ctx, namespace, q.Deployment)
+		switch {
+		case err != nil:
+			// cannot create due to an error looking up the deployment
+			quorum = append(quorum, fmt.Sprintf("error finding deployment '%s' - %s", q.Deployment, err.Error()))
+		case !found:
+			// cannot create as the deployment does not yet exist
+			quorum = append(quorum, fmt.Sprintf("deployment '%s/%s' does not exist", namespace, q.Deployment))
+		case found && q.PodCount > 0 && dep.Status.ReadyReplicas < q.PodCount:
+			// deployment exists and quorum requires a specific number of ready Pods
+			quorum = append(quorum, fmt.Sprintf("role '%s/%s' to have %d ready Pods (ready=%d)", namespace, q.Deployment, q.PodCount, dep.Status.ReadyReplicas))
+		case found && dep.Status.Phase != coh.ConditionTypeReady:
+			// deployment exists and quorum requires all pods ready
+			quorum = append(quorum, fmt.Sprintf("deployment '%s' is not ready", q.Deployment))
+		}
+	}
+
+	if len(quorum) > 0 {
+		reason := "Waiting for start quorum to be met: \"" + strings.Join(quorum, "\" and \"") + "\""
+		logger.Info(reason)
+		return false, reason
+	}
+	return true, ""
 }
 
 // TwoWayPatch performs a two-way merge patch on the resource.
@@ -423,7 +502,7 @@ func (in *CommonReconciler) asVersioned(obj runtime.Object) runtime.Object {
 }
 
 // HandleErrAndRequeue is the common error handler
-func (in *CommonReconciler) HandleErrAndRequeue(ctx context.Context, err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
+func (in *CommonReconciler) HandleErrAndRequeue(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, logger logr.Logger) (reconcile.Result, error) {
 	return in.Failed(ctx, err, deployment, msg, true, logger)
 }
 
@@ -433,8 +512,8 @@ func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, d
 }
 
 // Failed is a common error handler
-// ToDo: we need to be able to add some form of back-off so that failures are requeued with a growing back-off time
-func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *coh.Coherence, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
+// ToDo: we need to be able to add some form of back-off so that failures are re-queued with a growing back-off time
+func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)
 	} else {
@@ -443,7 +522,8 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *c
 
 	if deployment != nil {
 		// update the status to failed.
-		deployment.Status.Phase = coh.ConditionTypeFailed
+		status := deployment.GetStatus()
+		status.Phase = coh.ConditionTypeFailed
 		if e := in.GetClient().Status().Update(ctx, deployment); e != nil {
 			// There isn't much we can do, we're already handling an error
 			logger.V(0).Info("failed to update deployment status due to: " + e.Error())
@@ -460,11 +540,14 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment *c
 }
 
 // FindOwningCoherenceResource finds the owning Coherence resource.
-func (in *CommonReconciler) FindOwningCoherenceResource(ctx context.Context, o client.Object) (*coh.Coherence, error) {
+func (in *CommonReconciler) FindOwningCoherenceResource(ctx context.Context, o client.Object) (coh.CoherenceResource, error) {
 	if o != nil {
 		for _, ref := range o.GetOwnerReferences() {
 			if ref.Kind == coh.ResourceTypeCoherence.Name() {
 				return in.FindDeployment(ctx, o.GetNamespace(), ref.Name)
+			}
+			if ref.Kind == coh.ResourceTypeCoherenceJob.Name() {
+				return in.FindCoherenceJob(ctx, o.GetNamespace(), ref.Name)
 			}
 		}
 	}
@@ -495,13 +578,154 @@ func (in *CommonReconciler) MaybeFindDeployment(ctx context.Context, namespace, 
 	}
 }
 
+// FindCoherenceJob finds the CoherenceJob resource.
+func (in *CommonReconciler) FindCoherenceJob(ctx context.Context, namespace, name string) (*coh.CoherenceJob, error) {
+	deployment, _, err := in.MaybeFindCoherenceJob(ctx, namespace, name)
+	return deployment, err
+}
+
+// MaybeFindCoherenceJob possibly finds a CoherenceJob resource.
+func (in *CommonReconciler) MaybeFindCoherenceJob(ctx context.Context, namespace, name string) (*coh.CoherenceJob, bool, error) {
+	deployment := &coh.CoherenceJob{}
+	err := in.GetClient().Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, deployment)
+
+	switch {
+	case err != nil && apierrors.IsNotFound(err):
+		// the deployment does not exist
+		return nil, false, nil
+	case err != nil:
+		// an error occurred
+		return deployment, false, err
+	default:
+		// the deployment exists
+		return deployment, true, nil
+	}
+}
+
+// BlankContainerFields blanks out any fields that we do not want to include in the patch
+// Typically these are fields where we changed the default behaviour in the newer Operator versions
+func (in *CommonReconciler) BlankContainerFields(deployment coh.CoherenceResource, template *corev1.PodTemplateSpec) {
+	spec := deployment.GetSpec()
+	if spec.Affinity == nil {
+		// affinity not set by user so do not diff on it
+		template.Spec.Affinity = nil
+	}
+	in.BlankOperatorInitContainerFields(template)
+	in.BlankCoherenceContainerFields(template)
+}
+
+// BlankOperatorInitContainerFields blanks out any fields that may have been set by a previous Operator version.
+// DO NOT blank out anything that the user has control over as they may have
+// updated them, so we need to include them in the patch
+func (in *CommonReconciler) BlankOperatorInitContainerFields(template *corev1.PodTemplateSpec) {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		if c.Name == coh.ContainerNameOperatorInit {
+			// This is the Operator init-container
+			// blank out the container command field
+			c.Command = []string{}
+			// set the updated init-container back into the StatefulSet
+			template.Spec.InitContainers[i] = c
+		}
+	}
+}
+
+// BlankCoherenceContainerFields blanks out any fields that may have been set by a previous Operator version.
+// DO NOT blank out anything that the user has control over as they may have
+// updated them, so we need to include them in the patch
+func (in *CommonReconciler) BlankCoherenceContainerFields(template *corev1.PodTemplateSpec) {
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		if c.Name == coh.ContainerNameCoherence {
+			// This is the Coherence Container
+			// blank out the container command field
+			c.Command = []string{}
+			// blank the WKA env var
+			for e := range c.Env {
+				ev := c.Env[e]
+				if ev.Name == coh.EnvVarCohWka {
+					ev.Value = ""
+					c.Env[e] = ev
+				}
+			}
+			// set the updated container back into the StatefulSet
+			template.Spec.Containers[i] = c
+		}
+	}
+}
+
+// SortEnvForAllContainers sorts the environment variable slice for all containers.
+func (in *CommonReconciler) SortEnvForAllContainers(template *corev1.PodTemplateSpec) {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		in.SortEnvForContainer(&c)
+		template.Spec.InitContainers[i] = c
+	}
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		in.SortEnvForContainer(&c)
+		template.Spec.Containers[i] = c
+	}
+}
+
+// SortEnvForContainer sorts the environment variable slice for a container.
+func (in *CommonReconciler) SortEnvForContainer(c *corev1.Container) {
+	sort.Slice(c.Env, func(i, j int) bool {
+		return c.Env[i].Name < c.Env[j].Name
+	})
+}
+
+// GetOperatorImage gets the Operator image name from the init container.
+func (in *CommonReconciler) GetOperatorImage(template *corev1.PodTemplateSpec) string {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		if c.Name == coh.ContainerNameOperatorInit {
+			return c.Image
+		}
+	}
+	return ""
+}
+
+// SetOperatorImage sets the Operator image name in the init container.
+func (in *CommonReconciler) SetOperatorImage(template *corev1.PodTemplateSpec, image string) {
+	for i := range template.Spec.InitContainers {
+		c := template.Spec.InitContainers[i]
+		if c.Name == coh.ContainerNameOperatorInit {
+			c.Image = image
+			template.Spec.InitContainers[i] = c
+		}
+	}
+}
+
+// GetCoherenceImage gets the Coherence image name from the coherence container.
+func (in *CommonReconciler) GetCoherenceImage(template *corev1.PodTemplateSpec) string {
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		if c.Name == coh.ContainerNameCoherence {
+			return c.Image
+		}
+	}
+	return ""
+}
+
+// SetCoherenceImage sets the Coherence image name in the coherence container.
+func (in *CommonReconciler) SetCoherenceImage(template *corev1.PodTemplateSpec, image string) {
+	for i := range template.Spec.Containers {
+		c := template.Spec.Containers[i]
+		if c.Name == coh.ContainerNameCoherence {
+			c.Image = image
+			template.Spec.Containers[i] = c
+		}
+	}
+}
+
 // ----- SecondaryResourceReconciler ----------------------------------------------
 
 // SecondaryResourceReconciler is a reconciler for sub-resources.
 type SecondaryResourceReconciler interface {
 	BaseReconciler
 	GetTemplate() client.Object
-	ReconcileAllResourceOfKind(context.Context, reconcile.Request, *coh.Coherence, utils.Storage) (reconcile.Result, error)
+	ReconcileAllResourceOfKind(context.Context, reconcile.Request, coh.CoherenceResource, utils.Storage) (reconcile.Result, error)
 	CanWatch() bool
 }
 
@@ -519,7 +743,7 @@ func (in *ReconcileSecondaryResource) GetTemplate() client.Object { return in.Te
 func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.SkipWatch }
 
 // ReconcileAllResourceOfKind reconciles the state of all the desired resources of the specified Kind for the reconciler
-func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment *coh.Coherence, storage utils.Storage) (reconcile.Result, error) {
+func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
 	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
@@ -550,7 +774,7 @@ func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage u
 }
 
 // ReconcileSingleResource reconciles a specific resource.
-func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner *coh.Coherence, storage utils.Storage, logger logr.Logger) error {
+func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner coh.CoherenceResource, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
 	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
 
@@ -558,7 +782,7 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 	resource, exists, err := in.FindResource(ctx, namespace, name)
 	if err != nil {
 		// Error reading the object - requeue the request.
-		// We can't call the error handler as we do not even have a owning Coherence resource.
+		// We can't call the error handler as we do not even have an owning Coherence resource.
 		// We log the error and do not requeue the request.
 		return errors.Wrapf(err, "getting %s %s/%s", in.Kind, namespace, name)
 	}
@@ -637,7 +861,7 @@ func (in *ReconcileSecondaryResource) Create(ctx context.Context, name string, s
 
 // Delete the resource
 func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, name string, logger logr.Logger) error {
-	logger.Info("Deleting StatefulSet")
+	logger.Info("Deleting")
 	// create a new resource from copying the empty template
 	resource := in.NewFromTemplate(namespace, name)
 

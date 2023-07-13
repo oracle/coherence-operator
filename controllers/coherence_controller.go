@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -39,13 +40,17 @@ import (
 )
 
 const (
+	// The name of this controller
 	controllerName = "controllers.Coherence"
 
-	reconcileFailedMessage       string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
+	// The error message template to use to indicate a reconcile failure.
+	reconcileFailedMessage string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
+
+	// The error message template to use to indicate a resource creation failure.
 	createResourcesFailedMessage string = "create resources for Coherence resource '%s' in namespace '%s' failed\n%s"
 )
 
-// CoherenceReconciler reconciles a Coherence object
+// CoherenceReconciler reconciles a Coherence resource
 type CoherenceReconciler struct {
 	client.Client
 	reconciler.CommonReconciler
@@ -64,13 +69,16 @@ type Failure struct {
 // There will be a compile-time error here if this breaks
 var _ reconcile.Reconciler = &CoherenceReconciler{}
 
-// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence;coherence/finalizers;coherence/status,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=coherence.oracle.com,resources=coherence;coherencejob;coherence/finalizers;coherencejob/finalizers;coherence/status;coherencejob/status,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=pods;pods/exec;services;endpoints;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificates;issuers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 
+// Reconcile performs a full reconciliation for the Coherence resource referred to by the Request.
+// The Controller will requeue the Request to be processed again if an error is non-nil or
+// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	var err error
 
@@ -161,7 +169,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// ensure that the deployment has an initial status
 	if deployment.Status.Phase == "" {
-		err := in.UpdateDeploymentStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
+		err := in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -185,7 +193,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = EnsureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
+	if err = in.ensureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
 		err = errors.Wrap(err, "ensuring Operator configuration secret")
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -205,7 +213,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		// Storage state was saved with no hash or a different hash so is not in the desired state
 		// or the Coherence resource is not in the Ready state
 		// Create the desired resources the deployment
-		if desiredResources, err = deployment.Spec.CreateKubernetesResources(deployment); err != nil {
+		if desiredResources, err = deployment.CreateKubernetesResources(); err != nil {
 			return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 		}
 
@@ -277,7 +285,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// if replica count is zero update the status to Stopped
 	if deployment.GetReplicas() == 0 {
-		if err = in.UpdateDeploymentStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
+		if err = in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
 			return result, errors.Wrap(err, "error updating deployment status")
 		}
 	}
@@ -292,11 +300,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 }
 
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	gv := schema.GroupVersion{
-		Group:   coh.ServiceMonitorGroup,
-		Version: coh.ServiceMonitorVersion,
-	}
-	mgr.GetScheme().AddKnownTypes(gv, &monitoringv1.ServiceMonitor{}, &monitoringv1.ServiceMonitorList{})
+	setupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
@@ -313,42 +317,22 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	in.SetCommonReconciler(controllerName, mgr)
 	in.SetPatchType(types.MergePatchType)
 
+	template := &coh.Coherence{}
+
 	// Watch for changes to secondary resources
 	for _, sub := range reconcilers {
-		if err := in.watchSecondaryResource(sub); err != nil {
+		if err := watchSecondaryResource(sub, template); err != nil {
 			return err
 		}
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&coh.Coherence{}).
+		For(template).
 		Named("coherence").
 		Complete(in)
 }
 
-// Watch the resources to be reconciled
-func (in *CoherenceReconciler) watchSecondaryResource(s reconciler.SecondaryResourceReconciler) error {
-	if !s.CanWatch() {
-		// this reconciler does not do watches
-		return nil
-	}
-
-	// Create a new controller
-	c, err := controller.New(s.GetControllerName(), s.GetManager(), controller.Options{Reconciler: s.GetReconciler()})
-	if err != nil {
-		return err
-	}
-
-	src := &source.Kind{Type: s.GetTemplate()}
-	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &coh.Coherence{}}
-	p := predicates.SecondaryPredicate{}
-	if err := c.Watch(src, h, p); err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// GetReconciler returns this reconciler.
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 // ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
@@ -360,8 +344,7 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	}
 
 	// Re-fetch the Coherence resource to ensure we have the most recent copy
-	latest := &coh.Coherence{}
-	c.DeepCopyInto(latest)
+	latest := c.DeepCopy()
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
@@ -413,6 +396,7 @@ func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Contex
 	return false, nil
 }
 
+// ensureFinalizerApplied ensures the finalizer is applied to the Coherence resource
 func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
 	if !controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
 		// Re-fetch the Coherence resource to ensure we have the most recent copy
@@ -434,6 +418,7 @@ func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *co
 	return false, nil
 }
 
+// ensureFinalizerApplied ensures the finalizer is removed from the Coherence resource
 func (in *CoherenceReconciler) ensureFinalizerRemoved(ctx context.Context, c *coh.Coherence) error {
 	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
 		err := in.GetClient().Update(ctx, c)
@@ -445,6 +430,7 @@ func (in *CoherenceReconciler) ensureFinalizerRemoved(ctx context.Context, c *co
 	return nil
 }
 
+// finalizeDeployment performs any required finalizer tasks for the Coherence resource
 func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {
 	// determine whether we can skip service suspension
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
@@ -474,11 +460,11 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 			in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name + " - No Pods are ready")
 		} else {
 			// Do service suspension...
-			probe := statefulset.CoherenceProbe{
+			p := probe.CoherenceProbe{
 				Client: in.GetClient(),
 				Config: in.GetManager().GetConfig(),
 			}
-			if probe.SuspendServices(ctx, c, sts) == statefulset.ServiceSuspendFailed {
+			if p.SuspendServices(ctx, c, sts) == probe.ServiceSuspendFailed {
 				return fmt.Errorf("failed to suspend services")
 			}
 		}
@@ -486,8 +472,8 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 	return nil
 }
 
-// EnsureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
+// ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
+func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
 	s := &coreV1.Secret{}
 
 	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, s)
@@ -522,4 +508,34 @@ func EnsureOperatorSecret(ctx context.Context, namespace string, c client.Client
 	}
 
 	return err
+}
+
+// watchSecondaryResource registers the secondary resource reconcilers to watch the resources to be reconciled
+func watchSecondaryResource(s reconciler.SecondaryResourceReconciler, owner coh.CoherenceResource) error {
+	var err error
+	if !s.CanWatch() {
+		// this reconciler does not do watches
+		return nil
+	}
+
+	// Create a new controller
+	c, err := controller.New(s.GetControllerName(), s.GetManager(), controller.Options{Reconciler: s.GetReconciler()})
+	if err != nil {
+		return err
+	}
+
+	src := &source.Kind{Type: s.GetTemplate()}
+	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: owner}
+	p := predicates.SecondaryPredicate{}
+	err = c.Watch(src, h, p)
+	return err
+}
+
+// setupMonitoringResources ensures the Prometheus types are registered with the manager.
+func setupMonitoringResources(mgr ctrl.Manager) {
+	gv := schema.GroupVersion{
+		Group:   coh.ServiceMonitorGroup,
+		Version: coh.ServiceMonitorVersion,
+	}
+	mgr.GetScheme().AddKnownTypes(gv, &monitoringv1.ServiceMonitor{}, &monitoringv1.ServiceMonitorList{})
 }
