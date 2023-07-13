@@ -250,6 +250,8 @@ TEST_ASSET_KUBECTL ?= $(shell which kubectl)
 override BUILD_OUTPUT        := $(CURRDIR)/build/_output
 override BUILD_ASSETS        := pkg/data/assets
 override BUILD_BIN           := $(CURRDIR)/bin
+override BUILD_BIN_AMD64     := $(BUILD_BIN)/linux/amd64
+override BUILD_BIN_ARM64     := $(BUILD_BIN)/linux/arm64
 override BUILD_DEPLOY        := $(BUILD_OUTPUT)/config
 override BUILD_HELM          := $(BUILD_OUTPUT)/helm-charts
 override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
@@ -429,7 +431,7 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 .PHONY: build-operator
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
-$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn
+$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn coherence-cli
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
@@ -527,10 +529,10 @@ build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/runner ./runner
-	mkdir -p $(BUILD_BIN)/linux/amd64 || true
-	cp -f $(BUILD_BIN)/runner $(BUILD_BIN)/linux/amd64/runner
-	mkdir -p $(BUILD_BIN)/linux/arm64 || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/arm64/runner ./runner
+	mkdir -p $(BUILD_BIN_AMD64) || true
+	cp -f $(BUILD_BIN)/runner $(BUILD_BIN_AMD64)/runner
+	mkdir -p $(BUILD_BIN_ARM64)/linux || true
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner ./runner
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Java artifacts
@@ -683,6 +685,7 @@ copyright:  ## Check copyright headers
 	  -X examples/helm/chart/templates/NOTES.txt \
 	  -X .factories \
 	  -X hack/copyright.txt \
+	  -X hack/install-cli.sh \
 	  -X hack/intellij-codestyle.xml \
 	  -X hack/istio- \
 	  -X hack/sdk/ \
@@ -1838,6 +1841,24 @@ KUSTOMIZE_VERSION ?= v3.8.7
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header $(GH_AUTH) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download the Coherence CLI
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: coherence-cli
+coherence-cli: $(BUILD_BIN_AMD64)/cohctl $(BUILD_BIN_ARM64)/cohctl ## Download the Coherence CLI locally if necessary.
+
+$(BUILD_BIN_AMD64)/cohctl: export COHCTL_HOME=$(BUILD_BIN_AMD64)
+$(BUILD_BIN_AMD64)/cohctl: export OS=Linux
+$(BUILD_BIN_AMD64)/cohctl: export ARCH=x86_64
+$(BUILD_BIN_AMD64)/cohctl:
+	./hack/install-cli.sh
+
+$(BUILD_BIN_ARM64)/cohctl: export COHCTL_HOME=$(BUILD_BIN_ARM64)
+$(BUILD_BIN_ARM64)/cohctl: export OS=Linux
+$(BUILD_BIN_ARM64)/cohctl: export ARCH=arm64
+$(BUILD_BIN_ARM64)/cohctl:
+	./hack/install-cli.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum

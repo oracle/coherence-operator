@@ -151,6 +151,15 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 		}
 	}
 
+	cohctl := filesDir + pathSep + "cohctl"
+	if _, err := os.Stat(cohctl); err == nil {
+		fmt.Println("Copying cohctl utility")
+		err = utils.CopyFile(cohctl, utilDir+pathSep+"cohctl")
+		if err != nil {
+			return false, err
+		}
+	}
+
 	var dirNames []string
 
 	_, err = os.Stat(persistenceDir)
