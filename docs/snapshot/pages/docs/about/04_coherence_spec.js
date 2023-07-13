@@ -190,6 +190,10 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <p><router-link to="#_coherenceresourcestatus" @click.native="this.scrollFix('#_coherenceresourcestatus')">CoherenceResourceStatus</router-link></p>
 
 </li>
+<li>
+<p><router-link to="#_coherencestatefulsetresourcespec" @click.native="this.scrollFix('#_coherencestatefulsetresourcespec')">CoherenceStatefulSetResourceSpec</router-link></p>
+
+</li>
 </ul>
 </div>
 
@@ -223,13 +227,13 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 </tr>
 <tr>
 <td class=""><code>probe</code></td>
-<td class="">This is the spec of some sort of probe to fire when the StatefulSet becomes ready</td>
+<td class="">This is the spec of some sort of probe to fire when the Coherence resource becomes ready</td>
 <td class=""><code>&#42;<router-link to="#_probe" @click.native="this.scrollFix('#_probe')">Probe</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>job</code></td>
-<td class="">or this is the spec of a Job to create when the StatefulSet becomes ready</td>
+<td class="">or this is the spec of a Job to create when the Coherence resource becomes ready</td>
 <td class=""><code>&#42;<router-link to="#_actionjob" @click.native="this.scrollFix('#_actionjob')">ActionJob</router-link></code></td>
 <td class="">false</td>
 </tr>
@@ -332,12 +336,6 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>cluster</code></td>
-<td class="">The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource&#8217;s name will be used as the cluster name.</td>
-<td class=""><code>&#42;string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
 <td class=""><code>role</code></td>
 <td class="">The name of the role that this deployment represents in a Coherence cluster. This value will be used to set the Coherence role property for all members of this role</td>
 <td class=""><code>string</code></td>
@@ -380,42 +378,6 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>scaling</code></td>
-<td class="">The configuration to control safe scaling.</td>
-<td class=""><code>&#42;<router-link to="#_scalingspec" @click.native="this.scrollFix('#_scalingspec')">ScalingSpec</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>suspendProbe</code></td>
-<td class="">The configuration of the probe used to signal that services must be suspended before a deployment is stopped.</td>
-<td class=""><code>&#42;<router-link to="#_probe" @click.native="this.scrollFix('#_probe')">Probe</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>suspendServicesOnShutdown</code></td>
-<td class="">A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shut down cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>resumeServicesOnStartup</code></td>
-<td class="">ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when the Coherence container is started. This only applies to storage enabled distributed cache services. This ensures that services that are suspended due to the shutdown of a storage tier, but those services are still running (albeit suspended) in other storage disabled deployments, will be resumed when storage comes back. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state. The default value if not specified is true.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>autoResumeServices</code></td>
-<td class="">AutoResumeServices is a map of Coherence service names to allow more fine-grained control over which services may be auto-resumed by the operator when a Coherence Pod starts. The key to the map is the name of the Coherence service. This should be the fully qualified name if scoped services are being used in Coherence. The value is a bool, set to <code>true</code> to allow the service to be auto-resumed or <code>false</code> to not allow the service to be auto-resumed. Adding service names to this list will override any value set in <code>ResumeServicesOnStartup</code>, so if the <code>ResumeServicesOnStartup</code> field is <code>false</code> but there are service names in the <code>AutoResumeServices</code>, mapped to <code>true</code>, those services will still be resumed. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.</td>
-<td class=""><code>map[string]bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>suspendServiceTimeout</code></td>
-<td class="">SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds)</td>
-<td class=""><code>&#42;int</code></td>
-<td class="">false</td>
-</tr>
-<tr>
 <td class=""><code>startQuorum</code></td>
 <td class="">StartQuorum controls the start-up order of this Coherence resource in relation to other Coherence resources.</td>
 <td class=""><code>[]<router-link to="#_startquorum" @click.native="this.scrollFix('#_startquorum')">StartQuorum</router-link></code></td>
@@ -436,20 +398,6 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>annotations</code></td>
 <td class="">Annotations are free-form yaml that will be added to the Coherence cluster member Pods as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
-<br>
-annotations:<br>
-  foo.io/one: "value1" +<br>
-  foo.io/two: "value2" +<br>
-<br>
-see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
-<td class=""><code>map[string]string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>statefulSetAnnotations</code></td>
-<td class="">StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster <code>StatefulSet</code> as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
-<br>
-The default behaviour is to copy all annotations from the <code>Coherence</code> resource to the <code>StatefulSet</code>, specifying any annotations in the <code>StatefulSetAnnotations</code> will override this behaviour and only include the <code>StatefulSetAnnotations</code>.<br>
 <br>
 annotations:<br>
   foo.io/one: "value1" +<br>
@@ -491,12 +439,6 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
   The content of this yaml should match the normal k8s volumes section of a Pod definition +<br>
   as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/volumes/">https://kubernetes.io/docs/concepts/storage/volumes/</a><br></td>
 <td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#volume-v1-core">corev1.Volume</a></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>volumeClaimTemplates</code></td>
-<td class="">VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod. The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">https://kubernetes.io/docs/concepts/storage/persistent-volumes/</a> Every claim in this list must have at least one matching (by name) volumeMount in one container in the template. A claim in this list takes precedence over any volumes in the template, with the same name.</td>
-<td class=""><code>[]<router-link to="#_persistentvolumeclaim" @click.native="this.scrollFix('#_persistentvolumeclaim')">PersistentVolumeClaim</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -628,18 +570,6 @@ For example:<br>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>haBeforeUpdate</code></td>
-<td class="">Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>actions</code></td>
-<td class="">Actions to execute once all the Pods are ready after an initial deployment</td>
-<td class=""><code>[]<router-link to="#_action" @click.native="this.scrollFix('#_action')">Action</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
 <td class=""><code>activeDeadlineSeconds</code></td>
 <td class="">ActiveDeadlineSeconds is the optional duration in seconds the pod may be active on the node relative to StartTime before the system will actively try to mark it failed and kill associated containers. Value must be a positive integer.</td>
 <td class=""><code>&#42;int64</code></td>
@@ -697,12 +627,6 @@ For example:<br>
 <td class=""><code>siteLabel</code></td>
 <td class="">SiteLabel is an optional Node label to use for the value of the Coherence member&#8217;s site name The default labels to use are determined by the Operator.</td>
 <td class=""><code>&#42;string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>allowUnsafeDelete</code></td>
-<td class="">AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is <code>false</code>. The primary use for setting this flag to <code>true</code> is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to <code>true</code> in a production environment, especially when using Coherence persistence features.</td>
-<td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2998,7 +2922,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <tr>
 <td class=""><code>spec</code></td>
 <td class="">&#160;</td>
-<td class=""><code><router-link to="#_coherenceresourcespec" @click.native="this.scrollFix('#_coherenceresourcespec')">CoherenceResourceSpec</router-link></code></td>
+<td class=""><code><router-link to="#_coherencestatefulsetresourcespec" @click.native="this.scrollFix('#_coherencestatefulsetresourcespec')">CoherenceStatefulSetResourceSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3081,7 +3005,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <td class=""><code>phase</code></td>
 <td class="">The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod&#8217;s status. There are eight possible phase values:<br>
 <br>
-Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment&#8217;s start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Failed:         An error occurred reconciling the deployment and its secondary resources.</td>
+Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc.) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment&#8217;s start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Completed:      The Coherence resource is running a Job and the Job has completed. Failed:         An error occurred reconciling the deployment and its secondary resources.</td>
 <td class=""><code>ConditionType</code></td>
 <td class="">false</td>
 </tr>
@@ -3089,6 +3013,12 @@ Initialized:    The deployment has been accepted by the Kubernetes system. Creat
 <td class=""><code>coherenceCluster</code></td>
 <td class="">The name of the Coherence cluster that this deployment is part of.</td>
 <td class=""><code>string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>type</code></td>
+<td class="">The type of the Coherence resource.</td>
+<td class=""><code>CoherenceType</code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3108,6 +3038,24 @@ Initialized:    The deployment has been accepted by the Kubernetes system. Creat
 <td class="">ReadyReplicas is the number of members in the Coherence deployment represented by the Coherence resource that are in the ready state.</td>
 <td class=""><code>int32</code></td>
 <td class="">true</td>
+</tr>
+<tr>
+<td class=""><code>active</code></td>
+<td class="">When the Coherence resource is running a Job, the number of pending and running pods.</td>
+<td class=""><code>int32</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>succeeded</code></td>
+<td class="">When the Coherence resource is running a Job, the number of pods which reached phase Succeeded.</td>
+<td class=""><code>int32</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>failed</code></td>
+<td class="">When the Coherence resource is running a Job, the number of pods which reached phase Failed.</td>
+<td class=""><code>int32</code></td>
+<td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>role</code></td>
@@ -3137,6 +3085,121 @@ Initialized:    The deployment has been accepted by the Kubernetes system. Creat
 <td class=""><code>actionsExecuted</code></td>
 <td class="">ActionsExecuted tracks whether actions were executed</td>
 <td class=""><code>bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>jobProbes</code></td>
+<td class="">&#160;</td>
+<td class=""><code>[]CoherenceJobProbeStatus</code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencestatefulsetresourcespec">CoherenceStatefulSetResourceSpec</h3>
+<div class="section">
+<p>CoherenceStatefulSetResourceSpec defines the specification of a Coherence resource. A Coherence resource is typically one or more Pods that perform the same functionality, for example storage members.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>cluster</code></td>
+<td class="">The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource&#8217;s name will be used as the cluster name.</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>statefulSetAnnotations</code></td>
+<td class="">StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster <code>StatefulSet</code> as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
+<br>
+The default behaviour is to copy all annotations from the <code>Coherence</code> resource to the <code>StatefulSet</code>, specifying any annotations in the <code>StatefulSetAnnotations</code> will override this behaviour and only include the <code>StatefulSetAnnotations</code>.<br>
+<br>
+annotations:<br>
+  foo.io/one: "value1" +<br>
+  foo.io/two: "value2" +<br>
+<br>
+see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>volumeClaimTemplates</code></td>
+<td class="">VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod. The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">https://kubernetes.io/docs/concepts/storage/persistent-volumes/</a> Every claim in this list must have at least one matching (by name) volumeMount in one container in the template. A claim in this list takes precedence over any volumes in the template, with the same name.</td>
+<td class=""><code>[]<router-link to="#_persistentvolumeclaim" @click.native="this.scrollFix('#_persistentvolumeclaim')">PersistentVolumeClaim</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>scaling</code></td>
+<td class="">The configuration to control safe scaling.</td>
+<td class=""><code>&#42;<router-link to="#_scalingspec" @click.native="this.scrollFix('#_scalingspec')">ScalingSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspendProbe</code></td>
+<td class="">The configuration of the probe used to signal that services must be suspended before a deployment is stopped.</td>
+<td class=""><code>&#42;<router-link to="#_probe" @click.native="this.scrollFix('#_probe')">Probe</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspendServicesOnShutdown</code></td>
+<td class="">A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shut down cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>resumeServicesOnStartup</code></td>
+<td class="">ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when the Coherence container is started. This only applies to storage enabled distributed cache services. This ensures that services that are suspended due to the shutdown of a storage tier, but those services are still running (albeit suspended) in other storage disabled deployments, will be resumed when storage comes back. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state. The default value if not specified is true.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>autoResumeServices</code></td>
+<td class="">AutoResumeServices is a map of Coherence service names to allow more fine-grained control over which services may be auto-resumed by the operator when a Coherence Pod starts. The key to the map is the name of the Coherence service. This should be the fully qualified name if scoped services are being used in Coherence. The value is a bool, set to <code>true</code> to allow the service to be auto-resumed or <code>false</code> to not allow the service to be auto-resumed. Adding service names to this list will override any value set in <code>ResumeServicesOnStartup</code>, so if the <code>ResumeServicesOnStartup</code> field is <code>false</code> but there are service names in the <code>AutoResumeServices</code>, mapped to <code>true</code>, those services will still be resumed. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.</td>
+<td class=""><code>map[string]bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspendServiceTimeout</code></td>
+<td class="">SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds)</td>
+<td class=""><code>&#42;int</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>haBeforeUpdate</code></td>
+<td class="">Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>allowUnsafeDelete</code></td>
+<td class="">AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is <code>false</code>. The primary use for setting this flag to <code>true</code> is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to <code>true</code> in a production environment, especially when using Coherence persistence features.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>actions</code></td>
+<td class="">Actions to execute once all the Pods are ready after an initial deployment</td>
+<td class=""><code>[]<router-link to="#_action" @click.native="this.scrollFix('#_action')">Action</router-link></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
