@@ -58,6 +58,8 @@ do
     sed -i '' -e 's/"datasource": "prometheus"/"datasource": "Coherence-Prometheus"/g' $file;
 done</pre>
 </div>
+
+<p>The above sed command works for MacOS, but if you are running on Linux you need to remove the <code>''</code> after the <code>-i</code>.</p>
 </p>
 </div>
 
