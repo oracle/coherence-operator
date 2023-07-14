@@ -1853,12 +1853,14 @@ $(BUILD_BIN_AMD64)/cohctl: export OS=Linux
 $(BUILD_BIN_AMD64)/cohctl: export ARCH=x86_64
 $(BUILD_BIN_AMD64)/cohctl:
 	./hack/install-cli.sh
+	chmod +x $(BUILD_BIN_AMD64)/cohctl
 
 $(BUILD_BIN_ARM64)/cohctl: export COHCTL_HOME=$(BUILD_BIN_ARM64)
 $(BUILD_BIN_ARM64)/cohctl: export OS=Linux
 $(BUILD_BIN_ARM64)/cohctl: export ARCH=arm64
 $(BUILD_BIN_ARM64)/cohctl:
 	./hack/install-cli.sh
+	chmod +x $(BUILD_BIN_ARM64)/cohctl
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum

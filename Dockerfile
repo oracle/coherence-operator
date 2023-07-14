@@ -17,7 +17,7 @@ LABEL "com.oracle.coherence.version"="$version"
 ENV COHERENCE_IMAGE=$coherence_image \
     OPERATOR_IMAGE=$operator_image
 
-COPY --chmod=0755 bin/linux/$target/*                                  /files/
+COPY bin/linux/$target/*                                  /files/
 COPY java/coherence-operator/target/docker/lib/*.jar                   /files/lib/
 COPY java/coherence-operator/target/docker/logging/logging.properties  /files/logging/logging.properties
 
