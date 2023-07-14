@@ -6,33 +6,17 @@
 
 package com.oracle.coherence.k8s;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.Collection;
-import java.util.Enumeration;
 import java.util.concurrent.CompletableFuture;
 
 import com.tangosol.coherence.config.Config;
-import com.tangosol.discovery.NSLookup;
-import com.tangosol.internal.net.management.HttpHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.Member;
-import com.tangosol.net.NameService;
-import com.tangosol.net.OperationalContext;
-import com.tangosol.net.Service;
-import com.tangosol.util.Resources;
 
 /**
  * A main class that is used to run some initialisation code before
@@ -66,7 +50,7 @@ public class Main {
 
         init();
         CompletableFuture.runAsync(Main::initCohCtl);
-        
+
         String sMainClass = args[0];
         String[] asArgsReal = new String[args.length - 1];
         System.arraycopy(args, 1, asArgsReal, 0, asArgsReal.length);
