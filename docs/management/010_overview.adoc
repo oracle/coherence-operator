@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2023, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -20,6 +20,13 @@ in a cluster deployed in Kubernetes.
 [link=docs/management/020_management_over_rest.adoc]
 --
 Coherence Management over REST feature
+--
+
+[CARD]
+.The Coherence CLI
+[link=docs/management/025_coherence_cli.adoc]
+--
+Using the Coherence CLI in Pods
 --
 
 [CARD]

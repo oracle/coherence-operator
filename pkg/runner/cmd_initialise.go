@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -146,6 +146,15 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 	if err == nil {
 		fmt.Println("Copying runner utility")
 		err = utils.CopyFile(run, utilDir+pathSep+"runner")
+		if err != nil {
+			return false, err
+		}
+	}
+
+	cohctl := filesDir + pathSep + "cohctl"
+	if _, err := os.Stat(cohctl); err == nil {
+		fmt.Println("Copying cohctl utility")
+		err = utils.CopyFile(cohctl, utilDir+pathSep+"cohctl")
 		if err != nil {
 			return false, err
 		}
