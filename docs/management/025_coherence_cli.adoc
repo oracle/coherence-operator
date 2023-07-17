@@ -12,7 +12,7 @@
 
 If Coherence Management over REST is enabled, it is possible to use the
 https://github.com/oracle/coherence-cli[Coherence CLI]
-of access management information. The Operator enables Coherence Management over REST by default, so unless it
+to access management information. The Operator enables Coherence Management over REST by default, so unless it
 has specifically been disabled, the CLI can be used.
 
 See the https://oracle.github.io/coherence-cli/docs/latest/#/docs/about/01_overview[Coherence CLI Documentation]
