@@ -624,6 +624,19 @@ function createRoutes(){
             component: loadPage('docs-management-020_management_over_rest', '/docs/management/020_management_over_rest', {})
         },
         {
+            path: '/docs/management/025_coherence_cli',
+            meta: {
+                h1: 'The Coherence CLI',
+                title: 'The Coherence CLI',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-management-025_coherence_cli', '/docs/management/025_coherence_cli', {})
+        },
+        {
             path: '/docs/management/030_visualvm',
             meta: {
                 h1: 'Using VisualVM',
@@ -1353,6 +1366,7 @@ function createNav(){
             items: [
                 { href: '/docs/management/010_overview', title: 'Overview' },
                 { href: '/docs/management/020_management_over_rest', title: 'Management over REST' },
+                { href: '/docs/management/025_coherence_cli', title: 'The Coherence CLI' },
                 { href: '/docs/management/030_visualvm', title: 'Using VisualVM' },
                 { href: '/docs/management/040_ssl', title: 'SSL with Management over REST' },
                 { href: '/docs/management/100_tmb_test', title: 'Coherence Network Testing' }

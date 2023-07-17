@@ -24,6 +24,19 @@ in a cluster deployed in Kubernetes.</p>
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
+<router-link to="/docs/management/025_coherence_cli"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">The Coherence CLI</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Using the Coherence CLI in Pods</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
 <router-link to="/docs/management/030_visualvm"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
