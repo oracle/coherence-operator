@@ -18,7 +18,7 @@ import com.tangosol.net.CacheFactory;
  */
 public class CoherenceVersion {
 
-    private static final Pattern PATTERN = Pattern.compile("(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*");
+    private static final Pattern PATTERN = Pattern.compile("(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*");
 
     /**
      * Private constructor for utility class.
@@ -34,11 +34,13 @@ public class CoherenceVersion {
     public static void main(String[] args) {
         int exitCode = 0;
 
+        String version = System.getenv().getOrDefault("COH_VERSION_CHECK", CacheFactory.VERSION);
+
         if (args != null && args.length > 0) {
-            exitCode = versionCheck(CacheFactory.VERSION, args) ? 0 : 1;
+            exitCode = versionCheck(version, args) ? 0 : 1;
         }
         else {
-            System.out.println(CacheFactory.VERSION);
+            System.out.println(version);
         }
 
         System.exit(exitCode);
@@ -52,11 +54,19 @@ public class CoherenceVersion {
      * @return {@code true} if the actual Coherence version is at least the check version
      */
     public static boolean versionCheck(String coherenceVersion, String... args) {
+        if (coherenceVersion.contains(" ")) {
+            coherenceVersion = coherenceVersion.substring(0, coherenceVersion.indexOf(" "));
+        }
         if (coherenceVersion.contains(":")) {
             coherenceVersion = coherenceVersion.substring(coherenceVersion.indexOf(":") + 1);
         }
 
         int[] coherenceParts = splitVersion(coherenceVersion);
+
+        if (coherenceParts.length == 0) {
+            return false;
+        }
+
         int[] versionParts = splitVersion(args[0]);
         int partCount = Math.min(coherenceParts.length, versionParts.length);
 
