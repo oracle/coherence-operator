@@ -44,7 +44,6 @@ jobs:
           - "14.1.1.0.0"
           - "12.2.1.4.0"
           - "12.2.1-4-SNAPSHOT"
-          - "12.2.1-3-SNAPSHOT"
         include:
           - matrixName: "15.1.1-0-SNAPSHOT"
             coherenceVersion: "15.1.1-0-0-SNAPSHOT"
