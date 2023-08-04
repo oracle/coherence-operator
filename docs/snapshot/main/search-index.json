@@ -37,7 +37,7 @@
         },
         {
             "location": "/docs/installation/01_installation",
-            "text": " The Coherence Operator uses a single image, the Operator also runs as an init-container in the Coherence cluster Pods. ghcr.io/oracle/coherence-operator:3.3.0 - The Operator image. If no image is specified in the Coherence yaml, then the default Coherence image will also be used, ghcr.io/oracle/coherence-ce:22.06.4 - The default Coherence image. If using a private image registry then these images will all need to be pushed to that registry for the Operator to work. The default Coherence image may be omitted if all Coherence applications will use custom Coherence images. ",
+            "text": " The Coherence Operator uses a single image, the Operator also runs as an init-container in the Coherence cluster Pods. ghcr.io/oracle/coherence-operator:3.3.0 - The Operator image. If no image is specified in the Coherence yaml, then the default Coherence image will also be used, ghcr.io/oracle/coherence-ce:22.06.5 - The default Coherence image. If using a private image registry then these images will all need to be pushed to that registry for the Operator to work. The default Coherence image may be omitted if all Coherence applications will use custom Coherence images. ",
             "title": "Coherence Operator Images"
         },
         {
