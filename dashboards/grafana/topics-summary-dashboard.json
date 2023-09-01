@@ -3,9 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -44,9 +42,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -63,9 +59,7 @@
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -110,9 +104,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"})",
@@ -125,9 +117,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -174,9 +164,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "count(count(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"}) by (id))",
@@ -189,9 +177,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -238,9 +224,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "count(count(\nvendor:coherence_paged_topic_subscriber_group_polled_count{cluster=\"${ClusterName:raw}\"}) by (name))",
@@ -253,9 +237,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -301,9 +283,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"})",
@@ -316,9 +296,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -368,9 +346,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\"})",
@@ -383,9 +359,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -435,9 +409,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"})",
@@ -451,9 +423,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fontSize": "100%",
       "gridPos": {
@@ -554,9 +524,7 @@
       ],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} ) by (coherence_service, name)",
@@ -574,9 +542,7 @@
       "type": "table-old"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "Shows a graph of topic publish rate for all topics",
       "fieldConfig": {
         "defaults": {
@@ -650,9 +616,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
@@ -667,9 +631,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "Shows a graph of topic subscriber receive rates for all topics",
       "fieldConfig": {
         "defaults": {
@@ -743,9 +705,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
@@ -771,9 +731,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -798,9 +756,7 @@
         "current": {
           "selected": false
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -827,9 +783,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -860,9 +814,7 @@
             "$__all"
           ]
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
