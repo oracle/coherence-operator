@@ -3,9 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -44,10 +42,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus"
-      },
-      "gridPos": {
+            "datasource": "prometheus",      "gridPos": {
         "h": 2,
         "w": 24,
         "x": 0,
@@ -64,10 +59,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus"
-      },
-      "fontSize": "100%",
+            "datasource": "prometheus",      "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -218,10 +210,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "description": "Shows a graph of cache related memory used.",
+            "datasource": "prometheus",      "description": "Shows a graph of cache related memory used.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -311,10 +300,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus"
-      },
-      "fontSize": "100%",
+            "datasource": "prometheus",      "fontSize": "100%",
       "gridPos": {
         "h": 10,
         "w": 12,
@@ -443,10 +429,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "description": "Shows a graph of total cache evictions across all caches and members.",
+            "datasource": "prometheus",      "description": "Shows a graph of total cache evictions across all caches and members.",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -539,10 +522,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "description": "Shows a graph of total cache evictions across all caches and members.",
+            "datasource": "prometheus",      "description": "Shows a graph of total cache evictions across all caches and members.",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -588,9 +568,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_cache_prunes{cluster=\"${ClusterName:raw}\",tier=\"back\"}) - sum(vendor:coherence_cache_prunes{cluster=\"${ClusterName:raw}\", tier=\"back\"} offset $__interval)",
           "format": "time_series",
@@ -639,9 +617,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "Shows a graph of total cache evictions across all caches and members.",
       "fieldConfig": {
         "defaults": {
@@ -689,9 +665,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_cache_prunes_millis{cluster=\"${ClusterName:raw}\",tier=\"back\"}) - sum(vendor:coherence_cache_prunes_millis{cluster=\"${ClusterName:raw}\", tier=\"back\"} offset $__interval)",
           "format": "time_series",
@@ -746,13 +720,9 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "ocnadd-cluster",
-          "value": "ocnadd-cluster"
+          "selected": false
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -779,9 +749,7 @@
           "text": "14.1.1.2206.5",
           "value": "14.1.1.2206.5"
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -808,9 +776,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -837,9 +803,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,

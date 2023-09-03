@@ -3,9 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -56,9 +54,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -75,9 +71,7 @@
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -123,9 +117,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": " count(count(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) by (channel))",
@@ -138,9 +130,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -186,9 +176,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"})",
@@ -201,9 +189,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -249,9 +235,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(vendor:coherence_paged_topic_subscriber_polls{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"})",
@@ -264,9 +248,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -316,9 +298,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName\", id=\"$Subscriber\"})",
@@ -331,9 +311,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -383,9 +361,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(\nvendor:coherence_paged_topic_subscriber_disconnections{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"})",
@@ -398,9 +374,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -450,9 +424,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"})",
@@ -466,9 +438,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 12,
@@ -631,9 +601,7 @@
       ],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) by (channel)",
           "format": "table",
           "instant": true,
@@ -642,9 +610,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\",rate=\"mean\"}) by (channel)",
           "format": "table",
           "hide": false,
@@ -654,9 +620,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\",rate=\"1min\"}) by (channel)",
           "format": "table",
           "hide": false,
@@ -666,9 +630,7 @@
           "refId": "C"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\", rate=\"5min\"}) by (channel)",
           "format": "table",
           "hide": false,
@@ -678,9 +640,7 @@
           "refId": "D"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\", rate=\"15min\"}) by (channel)",
           "format": "table",
           "hide": false,
@@ -690,9 +650,7 @@
           "refId": "E"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_channels_owned_code{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) by (channel)",
           "format": "table",
           "hide": false,
@@ -733,9 +691,7 @@
       "type": "table-old"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "description": "Shows a graph of topic subscriber receive rates for the current subscriber",
       "fieldConfig": {
         "defaults": {
@@ -809,9 +765,7 @@
       "pluginVersion": "8.5.6",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"}) - sum (vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\", id=\"$Subscriber\"} offset $__interval) > 0",
           "format": "time_series",
@@ -837,9 +791,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -866,9 +818,7 @@
           "text": "PartitionedTopic",
           "value": "PartitionedTopic"
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
         "hide": 0,
         "includeAll": false,
@@ -892,9 +842,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
         "hide": 0,
         "includeAll": false,
@@ -918,9 +866,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(vendor:coherence_paged_topic_subscriber_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, id)",
         "hide": 0,
         "includeAll": false,
@@ -943,9 +889,7 @@
           "text": "3",
           "value": "3"
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(vendor:coherence_paged_topic_subscriber_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\",id=\"$Subscriber\"}, node_id)",
         "hide": 2,
         "includeAll": false,

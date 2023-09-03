@@ -3,10 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -56,10 +53,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -77,10 +71,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -384,10 +375,7 @@
       ],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_federation_destination_total_bytes_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -396,10 +384,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_federation_destination_total_entries_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -408,10 +393,7 @@
           "refId": "C"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_federation_destination_total_msg_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, nodeId)",
           "format": "table",
           "instant": true,
@@ -420,10 +402,7 @@
           "refId": "E"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_federation_destination_total_records_sent {cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -432,10 +411,7 @@
           "refId": "D"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_federation_destination_replicate_all_total_time_millis{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -444,10 +420,7 @@
           "refId": "F"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "avg(vendor:coherence_federation_destination_state_code{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -456,10 +429,7 @@
           "refId": "G"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "avg(vendor:coherence_federation_destination_replicate_all_percent_complete{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "hide": false,
@@ -474,10 +444,7 @@
       "type": "table-old"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -522,10 +489,7 @@
       "pluginVersion": "8.5.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*\\\\$Envelope\"})",
           "interval": "",
@@ -538,10 +502,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -585,10 +546,7 @@
       "pluginVersion": "8.5.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"FlashJournalRM\"})",
           "interval": "",
@@ -601,10 +559,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -648,10 +603,7 @@
       "pluginVersion": "8.5.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\", name=\"RamJournalRM\"})",
           "interval": "",
@@ -668,10 +620,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -708,10 +657,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name=~\".*\\\\$Envelope\"}) by (node_id, member)",
           "interval": "",
@@ -757,10 +703,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -806,10 +749,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "vendor:coherence_federation_destination_msg_apply_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName',name='$Destination'}",
           "interval": "",
@@ -855,10 +795,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -904,10 +841,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "vendor:coherence_federation_destination_msg_network_round_trip_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name='$Destination'}",
           "interval": "",
@@ -953,10 +887,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1002,10 +933,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "vendor:coherence_federation_destination_record_backlog_delay_time_percentile_millis{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName',name='$Destination'}",
           "interval": "",
@@ -1051,10 +979,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1145,10 +1070,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1238,10 +1160,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1333,10 +1252,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "decimals": 0,
       "fieldConfig": {
         "defaults": {
@@ -1434,10 +1350,7 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -1455,10 +1368,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -1715,10 +1625,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -1945,10 +1852,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -2047,10 +1951,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2074,10 +1975,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2101,10 +1999,7 @@
       {
         "current": {
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
