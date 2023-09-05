@@ -254,7 +254,7 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// Watch for changes to secondary resources
 	for _, sub := range reconcilers {
-		if err := watchSecondaryResource(nil, sub, template); err != nil {
+		if err := watchSecondaryResource(mgr, sub, template); err != nil {
 			return err
 		}
 	}
