@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"reflect"
@@ -46,6 +47,14 @@ type clientWithErrors struct {
 	operations []ClientOperation
 }
 
+func (c *clientWithErrors) GroupVersionKindFor(obj runtime.Object) (schema.GroupVersionKind, error) {
+	return c.wrapped.GroupVersionKindFor(obj)
+}
+
+func (c *clientWithErrors) IsObjectNamespaced(obj runtime.Object) (bool, error) {
+	return c.wrapped.IsObjectNamespaced(obj)
+}
+
 // ClientErrors is the configuration used by ClientWithErrors to
 // decide whether to return an error from a method call.
 type ClientErrors struct {
@@ -70,7 +79,7 @@ type ErrorIf struct {
 	TypeIs runtime.Object
 }
 
-// matches returns true if this ErrorOpts is a match for the key and object.
+// Matches returns true if this ErrorOpts is a match for the key and object.
 func (o ErrorIf) Matches(key client.ObjectKey, obj runtime.Object) bool {
 	if o.KeyIs == nil && o.TypeIs == nil {
 		return true

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -77,7 +77,7 @@ func simpleClientTest(t *testing.T, tc ClientTestCase) {
 	g.Expect(pods).NotTo(BeEmpty())
 
 	// Wait for the Job to complete
-	err = helper.WaitForJobCompletion(testContext.KubeClient, ns, pods[0].Name, 10*time.Second, 5*time.Minute)
+	err = helper.WaitForJobCompletion(testContext, ns, pods[0].Name, 10*time.Second, 5*time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 

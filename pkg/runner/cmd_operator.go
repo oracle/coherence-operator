@@ -22,6 +22,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/version"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	rest2 "k8s.io/client-go/rest"
 	"net/http"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -29,6 +30,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -91,10 +94,11 @@ func execute() error {
 	options := ctrl.Options{
 		Scheme:                 scheme,
 		HealthProbeBindAddress: viper.GetString(operator.FlagHealthAddress),
-		MetricsBindAddress:     viper.GetString(operator.FlagMetricsAddress),
-		Port:                   9443,
-		LeaderElection:         viper.GetBool(operator.FlagLeaderElection),
-		LeaderElectionID:       lockName,
+		Metrics: metricsserver.Options{
+			BindAddress: viper.GetString(operator.FlagMetricsAddress),
+		},
+		LeaderElection:   viper.GetBool(operator.FlagLeaderElection),
+		LeaderElectionID: lockName,
 	}
 
 	// Determine the Operator scope...
@@ -106,14 +110,26 @@ func execute() error {
 	case 1:
 		// Watch a single namespace
 		setupLog.Info("Operator will watch single namespace: " + watchNamespaces[0])
-		options.Namespace = watchNamespaces[0]
+		options.NewCache = func(config *rest2.Config, opts cache.Options) (cache.Cache, error) {
+			opts.DefaultNamespaces = map[string]cache.Config{
+				watchNamespaces[0]: {},
+			}
+			return cache.New(config, opts)
+		}
 	default:
 		// Watch a multiple namespaces
 		setupLog.Info(fmt.Sprintf("Operator will watch multiple namespaces: %v", watchNamespaces))
-		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
+		options.NewCache = func(config *rest2.Config, opts cache.Options) (cache.Cache, error) {
+			nsMap := make(map[string]cache.Config)
+			for _, ns := range watchNamespaces {
+				nsMap[ns] = cache.Config{}
+			}
+			opts.DefaultNamespaces = nsMap
+			return cache.New(config, opts)
+		}
 	}
 
-	mgr, err := ctrl.NewManager(cfg, options)
+	mgr, err := manager.New(cfg, options)
 	if err != nil {
 		return errors.Wrap(err, "unable to create controller manager")
 	}

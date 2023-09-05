@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,6 +7,7 @@
 package prometheus
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	. "github.com/onsi/gomega"
@@ -84,7 +85,7 @@ func ShouldGetPrometheusConfig(t *testing.T, pod corev1.Pod) {
 func ShouldEventuallySeeClusterMetrics(t *testing.T, promPod corev1.Pod, cohPods []corev1.Pod) {
 	g := NewGomegaWithT(t)
 
-	err := wait.Poll(time.Second*20, time.Minute*15, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(context.Background(), time.Second*20, time.Minute*15, true, func(context.Context) (done bool, err error) {
 		result := PrometheusVector{}
 		err = PrometheusQuery(t, promPod, "up", &result)
 		if err != nil {
@@ -163,7 +164,7 @@ func hasInterval(t *testing.T, sm *monitoring.ServiceMonitor) bool {
 func ShouldEventuallyHaveServiceMonitorWithState(t *testing.T, namespace, name string, predicate ServiceMonitorPredicate, promClient *client.MonitoringV1Client, retryInterval, timeout time.Duration) error {
 	var sm *monitoring.ServiceMonitor
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(context.Background(), retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		sm, err = promClient.ServiceMonitors(namespace).Get(testContext.Context, name, v1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {

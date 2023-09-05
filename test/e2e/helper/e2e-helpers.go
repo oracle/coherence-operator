@@ -210,10 +210,22 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 
 	if len(watchNamespaces) == 1 {
 		// Watch a single namespace
-		options.Namespace = watchNamespaces[0]
+		options.NewCache = func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
+			opts.DefaultNamespaces = map[string]cache.Config{
+				watchNamespaces[0]: {},
+			}
+			return cache.New(config, opts)
+		}
 	} else if len(watchNamespaces) > 1 {
 		// Watch a multiple namespaces
-		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
+		options.NewCache = func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
+			nsMap := make(map[string]cache.Config)
+			for _, ns := range watchNamespaces {
+				nsMap[ns] = cache.Config{}
+			}
+			opts.DefaultNamespaces = nsMap
+			return cache.New(config, opts)
+		}
 	}
 
 	k8sManager, err := ctrl.NewManager(k8sCfg, options)
@@ -306,7 +318,7 @@ func WaitForDeploymentReady(ctx TestContext, namespace, name string, retryInterv
 	var d = &coh.Coherence{}
 	var key = types.NamespacedName{Namespace: namespace, Name: name}
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.Get(ctx.Context, key, d)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -337,7 +349,7 @@ func WaitForDeploymentReady(ctx TestContext, namespace, name string, retryInterv
 func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
 	var sts *appsv1.StatefulSet
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		sts, err = ctx.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx.Context, stsName, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -367,7 +379,7 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retryInterval, timeout time.Duration) (*batchv1.Job, error) {
 	var job *batchv1.Job
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		job, err = ctx.KubeClient.BatchV1().Jobs(namespace).Get(ctx.Context, stsName, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -407,7 +419,7 @@ func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retr
 func WaitForCoherenceJobCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.CoherenceJob, error) {
 	var job *coh.CoherenceJob
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		job, err = GetCoherenceJob(ctx, namespace, name)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -436,7 +448,7 @@ func WaitForCoherenceJobCondition(ctx TestContext, namespace, name string, condi
 func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval, timeout time.Duration) (*corev1.Endpoints, error) {
 	var ep *corev1.Endpoints
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, service, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -457,8 +469,9 @@ func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval,
 }
 
 // WaitForJobCompletion waits for a specified k8s Job to complete.
-func WaitForJobCompletion(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+func WaitForJobCompletion(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) error {
+	k8s := ctx.KubeClient
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		p, err := k8s.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
@@ -590,7 +603,7 @@ func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, ti
 func WaitForCoherenceCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		deployment, err = GetCoherence(ctx, namespace, name)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -649,8 +662,8 @@ func WaitForOperatorPods(ctx TestContext, namespace string, retryInterval, timeo
 }
 
 func DeleteJob(ctx TestContext, namespace, jobName string) error {
-	client := ctx.KubeClient.BatchV1().Jobs(namespace)
-	if err := client.Delete(ctx.Context, jobName, metav1.DeleteOptions{}); err != nil && !errors.IsNotFound(err) {
+	cl := ctx.KubeClient.BatchV1().Jobs(namespace)
+	if err := cl.Delete(ctx.Context, jobName, metav1.DeleteOptions{}); err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 	pods, err := ListPodsWithLabelSelector(ctx, namespace, "job-name="+jobName)
@@ -669,7 +682,7 @@ func DeleteJob(ctx TestContext, namespace, jobName string) error {
 func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
 			return false, err
@@ -691,7 +704,7 @@ func WaitForDeleteOfPodsWithSelector(ctx TestContext, namespace, selector string
 	ctx.Logf("Waiting for Pods in namespace %s with selector '%s' to be deleted", namespace, selector)
 	var pods []corev1.Pod
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		ctx.Logf("List Pods in namespace %s with selector '%s'", namespace, selector)
 		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
@@ -713,7 +726,7 @@ func WaitForDeletion(ctx TestContext, namespace, name string, resource client.Ob
 
 	key := types.NamespacedName{Namespace: namespace, Name: name}
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.Get(ctx.Context, key, resource)
 		switch {
 		case err != nil && errors.IsNotFound(err):
@@ -745,7 +758,7 @@ func ListCoherencePodsForCluster(ctx TestContext, namespace, cluster string) ([]
 func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
 			ctx.Logf("Waiting for at least %d Pods with label selector '%s' - failed due to %s", count, selector, err.Error())
@@ -765,7 +778,7 @@ func WaitForPodsWithLabel(ctx TestContext, namespace, selector string, count int
 func WaitForJobsWithLabel(ctx TestContext, namespace, selector string, count int, retryInterval, timeout time.Duration) ([]batchv1.Job, error) {
 	var jobs []batchv1.Job
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		jobs, err = ListJobsWithLabelSelector(ctx, namespace, selector)
 		if err != nil {
 			ctx.Logf("Waiting for at least %d Jobs with label selector '%s' - failed due to %s", count, selector, err.Error())
@@ -785,7 +798,7 @@ func WaitForJobsWithLabel(ctx TestContext, namespace, selector string, count int
 func WaitForPodsWithLabelAndField(ctx TestContext, namespace, labelSelector, fieldSelector string, count int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
 	var pods []corev1.Pod
 
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		pods, err = ListPodsWithLabelAndFieldSelector(ctx, namespace, labelSelector, fieldSelector)
 		if err != nil {
 			ctx.Logf("Waiting for %d Pods with label selector '%s' and field selector '%s' - failed due to %s", count, labelSelector, fieldSelector, err.Error())
@@ -855,8 +868,9 @@ func ListPodsWithLabelAndFieldSelector(ctx TestContext, namespace, labelSelector
 // WaitForPodReady waits for a Pods to be ready.
 //
 //goland:noinspection GoUnusedExportedFunction
-func WaitForPodReady(k8s kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
-	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+func WaitForPodReady(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) error {
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
+		k8s := ctx.KubeClient
 		p, err := k8s.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
@@ -925,7 +939,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	}
 
 	// Wait for removal of the Coherence resources
-	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+	err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(list.Items) > 0 {
@@ -940,7 +954,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 
 	if err == nil {
 		// wait for all Coherence Pods to be deleted
-		err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+		err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 			list, err := ListCoherencePods(ctx, namespace)
 			if err == nil {
 				if len(list) > 0 {
@@ -1000,7 +1014,7 @@ func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
 	}
 
 	// Wait for removal of the CoherenceJob resources
-	err = wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+	err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
 			if len(list.Items) > 0 {
@@ -1024,7 +1038,7 @@ func isNoResources(err error) bool {
 func WaitForOperatorCleanup(ctx TestContext, namespace string) error {
 	ctx.Logf("Waiting for deletion of Coherence Operator Pods")
 	// wait for all Operator Pods to be deleted
-	err := wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+	err := wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 		list, err := ListOperatorPods(ctx, namespace)
 		if err == nil {
 			if len(list) > 0 {
@@ -2100,7 +2114,7 @@ func WaitForDelete(ctx TestContext, obj client.Object) error {
 	ctx.Logf("Waiting for obj %s/%s to be finally deleted", key.Namespace, key.Name)
 
 	// Wait for resources to be deleted.
-	return wait.PollImmediate(1*time.Second, 30*time.Second, func() (done bool, err error) {
+	return wait.PollUntilContextTimeout(ctx.Context, 1*time.Second, 30*time.Second, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.Get(ctx.Context, key, obj.DeepCopyObject().(client.Object))
 		ctx.Logf("Fetched %s/%s to wait for delete: %v", key.Namespace, key.Name, err)
 

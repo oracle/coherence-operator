@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -123,7 +123,7 @@ func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) 
 	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(values.GetReplicas(1)))
-	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
+	err = helper.WaitForPodReady(testContext, ns, pods[0].Name, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -146,7 +146,7 @@ func UpgradeToCurrentVersion(g *GomegaWithT, ns, name string) {
 	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(len(pods)).To(Equal(3))
-	err = helper.WaitForPodReady(testContext.KubeClient, ns, pods[0].Name, time.Second*10, time.Minute*5)
+	err = helper.WaitForPodReady(testContext, ns, pods[0].Name, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 

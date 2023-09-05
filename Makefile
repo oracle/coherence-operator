@@ -32,7 +32,7 @@ COMPATIBLE_SELECTOR = control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.26
+KUBERNETES_DOC_VERSION=v1.28
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image

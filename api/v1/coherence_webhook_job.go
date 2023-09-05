@@ -16,6 +16,7 @@ import (
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func (in *CoherenceJob) SetupWebhookWithManager(mgr ctrl.Manager) error {
@@ -79,30 +80,34 @@ const JobValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherencejob
 var _ webhook.Validator = &CoherenceJob{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (in *CoherenceJob) ValidateCreate() error {
+func (in *CoherenceJob) ValidateCreate() (admission.Warnings, error) {
 	var err error
+	var warnings admission.Warnings
+
 	webhookLogger.Info("validate create", "name", in.Name)
 	err = commonWebHook.validateReplicas(in)
 	if err != nil {
-		return err
+		return warnings, err
 	}
 	err = commonWebHook.validateNodePorts(in)
-	return err
+	return warnings, err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (in *CoherenceJob) ValidateUpdate(previous runtime.Object) error {
+func (in *CoherenceJob) ValidateUpdate(previous runtime.Object) (admission.Warnings, error) {
 	webhookLogger.Info("validate update", "name", in.Name)
+	var warnings admission.Warnings
+
 	if err := commonWebHook.validateReplicas(in); err != nil {
-		return err
+		return warnings, err
 	}
 	prev := previous.(*CoherenceJob)
 
 	if err := commonWebHook.validatePersistence(in, prev); err != nil {
-		return err
+		return warnings, err
 	}
 	if err := commonWebHook.validateNodePorts(in); err != nil {
-		return err
+		return warnings, err
 	}
 
 	var errorList field.ErrorList
@@ -111,16 +116,16 @@ func (in *CoherenceJob) ValidateUpdate(previous runtime.Object) error {
 	errorList = ValidateJobUpdate(&job, &jobOld)
 
 	if len(errorList) > 0 {
-		return fmt.Errorf("rejecting update as it would have resulted in an invalid Job: %v", errorList)
+		return warnings, fmt.Errorf("rejecting update as it would have resulted in an invalid Job: %v", errorList)
 	}
 
-	return nil
+	return warnings, nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (in *CoherenceJob) ValidateDelete() error {
+func (in *CoherenceJob) ValidateDelete() (admission.Warnings, error) {
 	// we do not need to validate deletions
-	return nil
+	return nil, nil
 }
 
 // ValidateJobUpdate tests if required fields in the Job are set.

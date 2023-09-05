@@ -269,7 +269,7 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -313,7 +313,7 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -357,7 +357,7 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -410,7 +410,7 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -421,7 +421,7 @@ func TestValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -436,7 +436,7 @@ func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -451,7 +451,7 @@ func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -467,7 +467,7 @@ func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -482,7 +482,7 @@ func TestValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -501,7 +501,7 @@ func TestValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -520,7 +520,7 @@ func TestValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -540,7 +540,7 @@ func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -557,7 +557,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -576,7 +576,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -600,7 +600,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -624,7 +624,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -651,7 +651,7 @@ func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -683,7 +683,7 @@ func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -715,7 +715,7 @@ func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -752,6 +752,6 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }

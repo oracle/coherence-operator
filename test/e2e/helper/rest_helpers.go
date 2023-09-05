@@ -30,7 +30,7 @@ func CheckCanary(ctx TestContext, namespace, deploymentName string) error {
 
 // CheckCanaryEventuallyGood invokes the canary test in the deployment in a loop to ensure it is eventually ok.
 func CheckCanaryEventuallyGood(ctx TestContext, namespace, deploymentName string) error {
-	return wait.Poll(RetryInterval, Timeout, func() (done bool, err error) {
+	return wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 		err = CheckCanary(ctx, namespace, deploymentName)
 		if err != nil {
 			return false, err
