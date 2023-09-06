@@ -177,7 +177,11 @@ func ShouldEventuallyHaveServiceMonitorWithState(t *testing.T, namespace, name s
 		if predicate(t, sm) {
 			return true, nil
 		}
-		t.Logf("Waiting for availability of ServiceMonitor resource %s - %s to match predicate", name, err.Error())
+		if err == nil {
+			t.Logf("Waiting for availability of ServiceMonitor resource %s to match predicate", name)
+		} else {
+			t.Logf("Waiting for availability of ServiceMonitor resource %s to match predicate. error: %s", name, err.Error())
+		}
 		return false, nil
 	})
 
