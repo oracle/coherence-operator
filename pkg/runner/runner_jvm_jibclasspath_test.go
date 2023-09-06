@@ -191,7 +191,7 @@ func GetMinimalExpectedArgsWithAppClasspathFile() []string {
 	fileName := fmt.Sprintf("%s/jib-classpath-file", TestAppDir)
 	cp := readFirstLine(fileName)
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-cp",
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
@@ -206,7 +206,7 @@ func GetMinimalExpectedArgsWithAppMainClassFile() []string {
 		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
 
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-cp",
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
@@ -223,7 +223,7 @@ func GetMinimalExpectedArgsWithAppClasspathFileAndMainClassFile() []string {
 	cp := readFirstLine(fileName)
 
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-cp",
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}

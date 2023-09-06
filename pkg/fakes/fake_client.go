@@ -122,17 +122,25 @@ var _ ClientWithErrors = &clientWithErrors{}
 // NewFakeClient creates a new ClientWithErrors and initialises it
 // with the specified objects.
 func NewFakeClient(initObjs ...runtime.Object) ClientWithErrors {
-	cl := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithRuntimeObjects(initObjs...).Build()
+	var subs []client.Object
+	for _, o := range initObjs {
+		subs = append(subs, o.(client.Object))
+	}
+	cl := fake.NewClientBuilder().WithScheme(scheme.Scheme).
+		WithRuntimeObjects(initObjs...).
+		WithStatusSubresource(subs...).
+		Build()
+
 	c := clientWithErrors{wrapped: cl}
 	return &c
 }
 
 func (c *clientWithErrors) Scheme() *runtime.Scheme {
-	panic("implement me")
+	return c.wrapped.Scheme()
 }
 
 func (c *clientWithErrors) RESTMapper() meta.RESTMapper {
-	panic("implement me")
+	return c.wrapped.RESTMapper()
 }
 
 func (c *clientWithErrors) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
