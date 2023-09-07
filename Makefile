@@ -2105,7 +2105,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 .PHONY: uninstall-istio
 uninstall-istio: get-istio ## Uninstall Istio from k8s
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
-	$(ISTIO_HOME)/bin/istioctl x uninstall -y
+	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
 
 # ----------------------------------------------------------------------------------------------------------------------
