@@ -300,7 +300,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 }
 
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	setupMonitoringResources(mgr)
+	SetupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
@@ -531,8 +531,8 @@ func watchSecondaryResource(mgr ctrl.Manager, s reconciler.SecondaryResourceReco
 	return err
 }
 
-// setupMonitoringResources ensures the Prometheus types are registered with the manager.
-func setupMonitoringResources(mgr ctrl.Manager) {
+// SetupMonitoringResources ensures the Prometheus types are registered with the manager.
+func SetupMonitoringResources(mgr ctrl.Manager) {
 	gv := schema.GroupVersion{
 		Group:   coh.ServiceMonitorGroup,
 		Version: coh.ServiceMonitorVersion,

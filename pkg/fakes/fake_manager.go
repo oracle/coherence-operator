@@ -87,8 +87,7 @@ type FakeManager struct {
 }
 
 func (f *FakeManager) GetHTTPClient() *http.Client {
-	//TODO implement me
-	panic("implement me")
+	return &http.Client{}
 }
 
 func (f *FakeManager) GetControllerOptions() config.Controller {
@@ -96,7 +95,7 @@ func (f *FakeManager) GetControllerOptions() config.Controller {
 }
 
 func (f *FakeManager) Start(ctx context.Context) error {
-	panic("implement me")
+	return nil
 }
 
 func (f *FakeManager) GetLogger() logr.Logger {
@@ -181,7 +180,7 @@ func (f *FakeManager) AssertEvent() FakeEvent {
 	return event
 }
 
-// AssertEvent asserts that there is an event in the event channel and returns it.
+// AssertNoRemainingEvents asserts that there is an event in the event channel and returns it.
 func (f *FakeManager) AssertNoRemainingEvents() {
 	_, found := f.NextEvent()
 	Expect(found).To(BeFalse())
