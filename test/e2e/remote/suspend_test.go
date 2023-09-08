@@ -37,7 +37,7 @@ func TestSuspendServices(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-suspend")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	installSimpleDeployment(t, c)
@@ -77,7 +77,7 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-suspend-disable")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
@@ -120,7 +120,7 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-scale-zero")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	installSimpleDeployment(t, c)
@@ -174,7 +174,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-disabled-scale-zero")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown

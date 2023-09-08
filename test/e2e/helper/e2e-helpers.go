@@ -109,6 +109,7 @@ func (in TestContext) CleanupNamespace(ns string) {
 	if err := WaitForCoherenceCleanup(in, ns); err != nil {
 		in.Logf("error waiting for cleanup to complete: %+v", err)
 	}
+	DeletePersistentVolumes(in, ns)
 }
 
 func (in TestContext) CreateNamespace(ns string) error {
@@ -600,24 +601,26 @@ func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, ti
 }
 
 // WaitForCoherenceCondition waits for a Coherence resource to be created.
-func WaitForCoherenceCondition(ctx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
+func WaitForCoherenceCondition(testCtx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
-	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
-		deployment, err = GetCoherence(ctx, namespace, name)
+	ctx, _ := context.WithTimeout(testCtx.Context, timeout)
+
+	err := wait.PollUntilContextTimeout(ctx, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
+		deployment, err = GetCoherence(testCtx, namespace, name)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				ctx.Logf("Waiting for availability of Coherence resource %s - NotFound", name)
+				testCtx.Logf("Waiting for availability of Coherence resource %s - NotFound", name)
 				return false, nil
 			}
-			ctx.Logf("Waiting for availability of Coherence resource %s - %s", name, err.Error())
+			testCtx.Logf("Waiting for availability of Coherence resource %s - %s", name, err.Error())
 			return false, nil
 		}
 		valid := true
 		if condition != nil {
 			valid = condition.Test(deployment)
 			if !valid {
-				ctx.Logf("Waiting for Coherence resource %s to meet condition '%s'", name, condition.String())
+				testCtx.Logf("Waiting for Coherence resource %s to meet condition '%s'", name, condition.String())
 			}
 		}
 		return valid, nil
@@ -636,7 +639,7 @@ func GetCoherence(ctx TestContext, namespace, name string) (*coh.Coherence, erro
 		},
 	}
 
-	err := ctx.Client.Get(goctx.TODO(), opts, d)
+	err := ctx.Client.Get(ctx.Context, opts, d)
 
 	return d, err
 }
@@ -651,7 +654,7 @@ func GetCoherenceJob(ctx TestContext, namespace, name string) (*coh.CoherenceJob
 		},
 	}
 
-	err := ctx.Client.Get(goctx.TODO(), opts, d)
+	err := ctx.Client.Get(ctx.Context, opts, d)
 
 	return d, err
 }
@@ -2131,5 +2134,35 @@ func ObjectKey(obj runtime.Object) client.ObjectKey {
 	return client.ObjectKey{
 		Name:      m.GetName(),
 		Namespace: m.GetNamespace(),
+	}
+}
+
+func DeletePersistentVolumes(ctx TestContext, namespace string) {
+	opts := metav1.ListOptions{}
+
+	claims, err := ctx.KubeClient.CoreV1().PersistentVolumeClaims(namespace).List(ctx.Context, opts)
+	if err != nil {
+		ctx.Logf("Failed to list PVCs in namespace %s %v", namespace, err)
+		return
+	}
+
+	var pvs []string
+	delOpts := metav1.DeleteOptions{}
+
+	for _, claim := range claims.Items {
+		ctx.Logf("Deleting PVC %s/%s", namespace, claim.Name)
+		err := ctx.KubeClient.CoreV1().PersistentVolumeClaims(namespace).Delete(ctx.Context, claim.Name, delOpts)
+		if err != nil {
+			ctx.Logf("Failed to delete PVC %s/%s %v", namespace, claim.Name, err)
+		}
+		pvs = append(pvs, claim.Spec.VolumeName)
+	}
+
+	for _, pv := range pvs {
+		ctx.Logf("Deleting PV %s/%s", namespace, pv)
+		err := ctx.KubeClient.CoreV1().PersistentVolumes().Delete(ctx.Context, pv, delOpts)
+		if err != nil {
+			ctx.Logf("Failed to delete PV in %s %v", namespace, pv, err)
+		}
 	}
 }
