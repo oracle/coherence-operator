@@ -188,6 +188,7 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 
 	// take a snapshot
 	snapshotName := "snapshotOne"
+	_ = processSnapshotRequest(pods[0], deleteSnapshot, snapshotName)
 	err = processSnapshotRequest(pods[0], createSnapshot, snapshotName)
 	g.Expect(err).NotTo(HaveOccurred())
 
