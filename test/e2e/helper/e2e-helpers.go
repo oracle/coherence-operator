@@ -2162,7 +2162,7 @@ func DeletePersistentVolumes(ctx TestContext, namespace string) {
 		ctx.Logf("Deleting PV %s/%s", namespace, pv)
 		err := ctx.KubeClient.CoreV1().PersistentVolumes().Delete(ctx.Context, pv, delOpts)
 		if err != nil {
-			ctx.Logf("Failed to delete PV in %s %v", namespace, pv, err)
+			ctx.Logf("Failed to delete PV %s %v", pv, err)
 		}
 	}
 }
