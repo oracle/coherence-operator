@@ -631,11 +631,6 @@ type JVMSpec struct {
 	// Configure the JVM memory options.
 	// +optional
 	Memory *JvmMemorySpec `json:"memory,omitempty"`
-	// Configure JMX using JMXMP.
-	// Note: This should only be used in development as JMXMP does not have support for encrypted connections via TLS.
-	// Use in production should ideally put the JMXMP port behind some sort of TLS enabled ingress or network policy.
-	// +optional
-	Jmxmp *JvmJmxmpSpec `json:"jmxmp,omitempty"`
 	// A flag indicating whether to automatically add the default classpath for images
 	// created by the JIB tool https://github.com/GoogleContainerTools/jib
 	// If true then the /app/lib/* /app/classes and /app/resources
@@ -671,10 +666,6 @@ func (in *JVMSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 
 		if in.Memory != nil {
 			c.Env = append(c.Env, in.Memory.CreateEnvVars()...)
-		}
-
-		if in.Jmxmp != nil {
-			c.Env = append(c.Env, in.Jmxmp.CreateEnvVars()...)
 		}
 
 		if in.Gc != nil {
@@ -1726,31 +1717,6 @@ func (in *JvmOutOfMemorySpec) CreateEnvVars() []corev1.EnvVar {
 			envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmOomHeapDump, Value: BoolPtrToString(in.HeapDump)})
 		}
 	}
-
-	return envVars
-}
-
-// ----- JvmJmxmpSpec struct -------------------------------------------------------
-
-// JvmJmxmpSpec is options for configuring JMX using JMXMP.
-// +k8s:openapi-gen=true
-type JvmJmxmpSpec struct {
-	// If set to true the JMXMP support will be enabled.
-	// Default is false
-	// +optional
-	Enabled *bool `json:"enabled,omitempty"`
-	// The port tht the JMXMP MBeanServer should bind to.
-	// If not set the default port is 9099
-	// +optional
-	Port *int32 `json:"port,omitempty"`
-}
-
-// CreateEnvVars creates any required environment variables for the Coherence container
-func (in *JvmJmxmpSpec) CreateEnvVars() []corev1.EnvVar {
-	enabled := in != nil && in.Enabled != nil && *in.Enabled
-
-	envVars := []corev1.EnvVar{{Name: EnvVarJvmJmxmpEnabled, Value: strconv.FormatBool(enabled)}}
-	envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmJmxmpPort, Value: Int32PtrToStringWithDefault(in.Port, DefaultJmxmpPort)})
 
 	return envVars
 }

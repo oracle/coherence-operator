@@ -118,7 +118,6 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(serverCommand())
 	rootCmd.AddCommand(consoleCommand())
 	rootCmd.AddCommand(queryPlusCommand())
-	rootCmd.AddCommand(mbeanServerCommand())
 	rootCmd.AddCommand(statusCommand())
 	rootCmd.AddCommand(readyCommand())
 	rootCmd.AddCommand(nodeCommand())
@@ -410,13 +409,6 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 	details.addArg(fmt.Sprintf("-Dcoherence.k8s.operator.diagnostics.dir=%s", jvmDir))
 	details.addArg(fmt.Sprintf("-XX:HeapDumpPath=%s/heap-dumps/%s-%s.hprof", jvmDir, member, podUID))
-
-	if details.isEnvTrue(v1.EnvVarJvmJmxmpEnabled) {
-		details.addClasspath(details.UtilsDir + "/lib/opendmk_jmxremote_optional_jar.jar")
-		details.addArg("-Dcoherence.management.serverfactory=com.oracle.coherence.k8s.JmxmpServer")
-
-		details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarJvmJmxmpPort, "-Dcoherence.jmxmp.port", fmt.Sprintf("%d", v1.DefaultJmxmpPort))
-	}
 
 	// set the flag that allows the operator to resume suspended services on start-up
 	if !details.isEnvTrueOrBlank(v1.EnvVarOperatorAllowResume) {

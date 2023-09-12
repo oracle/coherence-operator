@@ -38,7 +38,6 @@ TIP: This document was generated from comments in the Go structs in the pkg/api/
 * <<JVMSpec,JVMSpec>>
 * <<JvmDebugSpec,JvmDebugSpec>>
 * <<JvmGarbageCollectorSpec,JvmGarbageCollectorSpec>>
-* <<JvmJmxmpSpec,JvmJmxmpSpec>>
 * <<JvmMemorySpec,JvmMemorySpec>>
 * <<JvmOutOfMemorySpec,JvmOutOfMemorySpec>>
 * <<LocalObjectReference,LocalObjectReference>>
@@ -328,7 +327,6 @@ m| useContainerLimits | If set to true Adds the  -XX:+UseContainerSupport JVM op
 m| gc | Set JVM garbage collector options. m| &#42;<<JvmGarbageCollectorSpec,JvmGarbageCollectorSpec>> | false
 m| diagnosticsVolume | DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc. m| &#42;https://{k8s-doc-link}/#volume-v1-core | false
 m| memory | Configure the JVM memory options. m| &#42;<<JvmMemorySpec,JvmMemorySpec>> | false
-m| jmxmp | Configure JMX using JMXMP. Note: This should only be used in development as JMXMP does not have support for encrypted connections via TLS. Use in production should ideally put the JMXMP port behind some sort of TLS enabled ingress or network policy. m| &#42;<<JvmJmxmpSpec,JvmJmxmpSpec>> | false
 m| useJibClasspath | A flag indicating whether to automatically add the default classpath for images created by the JIB tool https://github.com/GoogleContainerTools/jib If true then the /app/lib/* /app/classes and /app/resources entries are added to the JVM classpath. The default value fif not specified is true. m| &#42;bool | false
 |===
 
@@ -359,19 +357,6 @@ JvmGarbageCollectorSpec is options for managing the JVM garbage collector.
 m| collector | The name of the JVM garbage collector to use. G1 - adds the -XX:+UseG1GC option CMS - adds the -XX:+UseConcMarkSweepGC option Parallel - adds the -XX:+UseParallelGC Default - use the JVMs default collector The field value is case insensitive If not set G1 is used. If set to a value other than those above then the default collector for the JVM will be used. m| &#42;string | false
 m| args | Args specifies the GC options to pass to the JVM. m| []string | false
 m| logging | Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime Default is true m| &#42;bool | false
-|===
-
-<<Table of Contents,Back to TOC>>
-
-=== JvmJmxmpSpec
-
-JvmJmxmpSpec is options for configuring JMX using JMXMP.
-
-[cols="1,10,1,1"options="header"]
-|===
-| Field | Description | Type | Required
-m| enabled | If set to true the JMXMP support will be enabled. Default is false m| &#42;bool | false
-m| port | The port tht the JMXMP MBeanServer should bind to. If not set the default port is 9099 m| &#42;int32 | false
 |===
 
 <<Table of Contents,Back to TOC>>

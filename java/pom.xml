@@ -58,7 +58,6 @@
         <version.lib.bedrock>5.1.2</version.lib.bedrock>
         <version.lib.checkstyle>8.18</version.lib.checkstyle>
         <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
-        <version.lib.glassfish.jmxmp>1.0-b01-ea</version.lib.glassfish.jmxmp>
         <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
         <version.lib.hamcrest>1.3</version.lib.hamcrest>
         <version.lib.helidon>2.2.1</version.lib.helidon>
@@ -131,12 +130,6 @@
               <groupId>com.oracle.coherence.ce</groupId>
               <artifactId>coherence-grpc-proxy</artifactId>
               <version>${coherence.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.glassfish.external</groupId>
-                <artifactId>opendmk_jmxremote_optional_jar</artifactId>
-                <version>${version.lib.glassfish.jmxmp}</version>
             </dependency>
 
             <dependency>
