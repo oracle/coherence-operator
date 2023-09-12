@@ -40,11 +40,9 @@ jobs:
         - 3.2.11
         - 3.2.10
         - 3.2.9
-#        - 3.2.8
         - 3.2.7
         - 3.2.6
         - 3.2.5
-        - 3.1.5
         include:
         - compatibilityVersion: 3.2.11
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
@@ -58,10 +56,6 @@ jobs:
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
-#        - compatibilityVersion: 3.2.8
-#          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
-#          compatibilitySelector: control-plane=coherence
-#          k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.7
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
@@ -74,10 +68,6 @@ jobs:
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.3"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
-        - compatibilityVersion: 3.1.5
-          coherence-image: "ghcr.io/oracle/coherence-ce:21.12.4"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.21.14@sha256:27ef72ea623ee879a25fe6f9982690a3e370c68286f4356bf643467c552a3888
 
     steps:
     - uses: actions/checkout@v3
