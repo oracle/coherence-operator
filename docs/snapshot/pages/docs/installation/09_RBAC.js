@@ -168,7 +168,7 @@ title="kustomization.yaml"
 lang="yaml"
 title="manager/manager.yaml"
 >        command:
-          - /manager
+          - /files/runner
         args:
           - --enable-leader-election
         envFrom:</markup>
@@ -179,7 +179,7 @@ title="manager/manager.yaml"
 lang="yaml"
 title="manager/manager.yaml"
 >        command:
-          - /manager
+          - /files/runner
         args:
           - --enable-leader-election
           - --enable-webhook=false

@@ -165,7 +165,7 @@ spec:
 
 <p>The additional fields, <code>protocol</code>, <code>hostIP</code>, <code>hostPort</code> have the same meaning and same defaults in the
 <code>Coherence</code> CRD port spec as they have in a Kubernetes container port
-(see the Kubernetes <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#containerport-v1-core">ContainerPort</a> API reference).
+(see the Kubernetes <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#containerport-v1-core">ContainerPort</a> API reference).
 These fields map directly from the <code>Coherence</code> CRD port spec to the container port spec.</p>
 
 <p>The example above would create a container port shown below:</p>
@@ -191,7 +191,7 @@ spec:
 
 <p>The <code>nodePort</code> field in the <code>Coherence</code> CRD port spec maps to the <code>nodePort</code> field in the <code>Service</code> port spec.
 The <code>nodePort</code> is described in the Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#serviceport-v1-core">ServicePort</a> API reference.</p>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#serviceport-v1-core">ServicePort</a> API reference.</p>
 
 <p>The <code>Coherence</code> CRD example above with <code>nodePort</code> set would create a <code>Service</code> with the same <code>nodePort</code> value:</p>
 
