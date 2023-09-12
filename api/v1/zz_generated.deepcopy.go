@@ -1973,7 +1973,7 @@ func (in *ServiceSpec) DeepCopyInto(out *ServiceSpec) {
 	}
 	if in.ExternalTrafficPolicy != nil {
 		in, out := &in.ExternalTrafficPolicy, &out.ExternalTrafficPolicy
-		*out = new(corev1.ServiceExternalTrafficPolicyType)
+		*out = new(corev1.ServiceExternalTrafficPolicy)
 		**out = **in
 	}
 	if in.HealthCheckNodePort != nil {

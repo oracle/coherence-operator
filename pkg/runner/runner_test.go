@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 )
@@ -87,12 +88,21 @@ func ReplaceArg(args []string, toReplace, replaceWith string) []string {
 	return args
 }
 
+func GetJavaArg() string {
+	var javaCmd = "java"
+	javaHome, found := os.LookupEnv("JAVA_HOME")
+	if found {
+		javaCmd = javaHome + "/bin/java"
+	}
+	return javaCmd
+}
+
 func GetMinimalExpectedArgs() []string {
 	cp := fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar",
 		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
 
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-cp",
 		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
@@ -104,7 +114,7 @@ func GetMinimalExpectedArgs() []string {
 
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-cp",
 		"/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
 	}
@@ -163,7 +173,15 @@ func RemoveArgWithPrefix(args []string, prefix string) []string {
 }
 
 func GetJavaCommand() string {
-	return os.Getenv("JAVA_HOME") + "/bin/java"
+	javaHome, found := os.LookupEnv("JAVA_HOME")
+	if found {
+		return javaHome + "/bin/java"
+	}
+	path, _ := exec.LookPath("java")
+	if path != "" {
+		return path
+	}
+	return "java"
 }
 
 func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {

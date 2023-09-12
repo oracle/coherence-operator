@@ -158,7 +158,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 
 func GetMinimalExpectedSpringBootArgs() []string {
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
 	}
 	args = append(AppendCommonExpectedArgs(args), SpringBootMain)
@@ -167,7 +167,7 @@ func GetMinimalExpectedSpringBootArgs() []string {
 
 func GetMinimalExpectedSpringBootFatJarArgs(jar string) []string {
 	args := []string{
-		GetJavaCommand(),
+		GetJavaArg(),
 		"-cp",
 		jar,
 		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",

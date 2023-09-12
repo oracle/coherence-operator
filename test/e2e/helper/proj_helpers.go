@@ -287,31 +287,49 @@ func FindTestCertsDir() (string, error) {
 }
 
 // NewSingleCoherenceFromYaml creates a single new Coherence resource from a yaml file.
-func NewSingleCoherenceFromYaml(namespace string, file string) (coh.Coherence, error) {
-	deps, err := NewCoherenceFromYaml(namespace, file)
+func NewSingleCoherenceFromYaml(namespace, file string) (coh.Coherence, error) {
+	return NewSingleCoherenceFromYamlWithSuffix(namespace, file, "")
+}
+
+// NewSingleCoherenceFromYamlWithSuffix creates a single new Coherence resource from a yaml file
+// and adds a specified suffix to the Coherence resource names.
+func NewSingleCoherenceFromYamlWithSuffix(namespace, file, suffix string) (coh.Coherence, error) {
+	c, err := NewCoherenceFromYamlWithSuffix(namespace, file, suffix)
 	switch {
-	case err == nil && len(deps) == 0:
+	case err == nil && len(c) == 0:
 		return coh.Coherence{}, fmt.Errorf("no deployments created from yaml %s", file)
 	case err != nil:
 		return coh.Coherence{}, err
 	default:
-		return deps[0], err
+		return c[0], err
 	}
 }
 
 // NewCoherenceFromYaml creates a new Coherence resource from a yaml file.
-func NewCoherenceFromYaml(namespace string, file string) ([]coh.Coherence, error) {
-	return createCoherenceFromYaml(namespace, file)
+func NewCoherenceFromYaml(namespace, file string) ([]coh.Coherence, error) {
+	return NewCoherenceFromYamlWithSuffix(namespace, file, "")
+}
+
+// NewCoherenceFromYamlWithSuffix creates a new Coherence resource from a yaml file.
+// and adds a specified suffix to the Coherence resource names
+func NewCoherenceFromYamlWithSuffix(namespace, file, suffix string) ([]coh.Coherence, error) {
+	res, err := createCoherenceFromYaml(namespace, file)
+	if err == nil && suffix != "" {
+		for _, c := range res {
+			c.Name = c.Name + suffix
+		}
+	}
+	return res, err
 }
 
 // createCoherenceFromYaml creates a new Coherence resource from a yaml file.
-func createCoherenceFromYaml(namespace string, file string) ([]coh.Coherence, error) {
+func createCoherenceFromYaml(namespace, file string) ([]coh.Coherence, error) {
 	l := CoherenceLoader{}
 	return l.loadYaml(namespace, file)
 }
 
 // NewSingleCoherenceJobFromYaml creates a single new CoherenceJob resource from a yaml file.
-func NewSingleCoherenceJobFromYaml(namespace string, file string) (coh.CoherenceJob, error) {
+func NewSingleCoherenceJobFromYaml(namespace, file string) (coh.CoherenceJob, error) {
 	deps, err := NewCoherenceJobFromYaml(namespace, file)
 	switch {
 	case err == nil && len(deps) == 0:

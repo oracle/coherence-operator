@@ -133,7 +133,7 @@ func (in *CommonReconciler) Unlock(request reconcile.Request) {
 	}
 }
 
-// UpdateDeploymentStatusPhase updates the Coherence resource's status.
+// UpdateCoherenceStatusPhase updates the Coherence resource's status.
 func (in *CommonReconciler) UpdateCoherenceStatusPhase(ctx context.Context, key types.NamespacedName, phase coh.ConditionType) error {
 	return in.UpdateCoherenceStatusCondition(ctx, key, coh.Condition{Type: phase, Status: corev1.ConditionTrue})
 }

@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 // log is for logging in this package.
@@ -78,7 +79,7 @@ func SetCommonDefaults(in CoherenceResource) {
 
 		// set the default Coherence local port and local port adjust if not present
 		if spec.Coherence == nil {
-			lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
+			var lpa = intstr.FromInt32(DefaultUnicastPortAdjust)
 			spec.Coherence = &CoherenceSpec{
 				LocalPort:       pointer.Int32(DefaultUnicastPort),
 				LocalPortAdjust: &lpa,
@@ -88,7 +89,7 @@ func SetCommonDefaults(in CoherenceResource) {
 				spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
 			}
 			if spec.Coherence.LocalPortAdjust == nil {
-				lpa := intstr.FromInt(int(DefaultUnicastPortAdjust))
+				lpa := intstr.FromInt32(DefaultUnicastPortAdjust)
 				spec.Coherence.LocalPortAdjust = &lpa
 			}
 		}
@@ -128,33 +129,41 @@ var _ webhook.Validator = &Coherence{}
 var commonWebHook = CommonWebHook{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (in *Coherence) ValidateCreate() error {
+// The optional warnings will be added to the response as warning messages.
+// Return an error if the object is invalid.
+func (in *Coherence) ValidateCreate() (admission.Warnings, error) {
 	var err error
+	var warnings admission.Warnings
+
 	webhookLogger.Info("validate create", "name", in.Name)
 	err = commonWebHook.validateReplicas(in)
 	if err != nil {
-		return err
+		return warnings, err
 	}
 	err = commonWebHook.validateNodePorts(in)
-	return err
+	return warnings, err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
+// The optional warnings will be added to the response as warning messages.
+// Return an error if the object is invalid.
+func (in *Coherence) ValidateUpdate(previous runtime.Object) (admission.Warnings, error) {
 	webhookLogger.Info("validate update", "name", in.Name)
+	var warnings admission.Warnings
+
 	if err := commonWebHook.validateReplicas(in); err != nil {
-		return err
+		return warnings, err
 	}
 	prev := previous.(*Coherence)
 
 	if err := commonWebHook.validatePersistence(in, prev); err != nil {
-		return err
+		return warnings, err
 	}
 	if err := in.validateVolumeClaimTemplates(prev); err != nil {
-		return err
+		return warnings, err
 	}
 	if err := commonWebHook.validateNodePorts(in); err != nil {
-		return err
+		return warnings, err
 	}
 
 	var errorList field.ErrorList
@@ -163,16 +172,18 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) error {
 	errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
 
 	if len(errorList) > 0 {
-		return fmt.Errorf("rejecting update as it would have resulted in an invalid StatefulSet: %v", errorList)
+		return warnings, fmt.Errorf("rejecting update as it would have resulted in an invalid StatefulSet: %v", errorList)
 	}
 
-	return nil
+	return warnings, nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (in *Coherence) ValidateDelete() error {
+// The optional warnings will be added to the response as warning messages.
+// Return an error if the object is invalid.
+func (in *Coherence) ValidateDelete() (admission.Warnings, error) {
 	// we do not need to validate deletions
-	return nil
+	return nil, nil
 }
 
 func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {

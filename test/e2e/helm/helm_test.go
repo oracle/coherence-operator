@@ -755,7 +755,7 @@ func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *Gom
 	g.Expect(len(pods)).NotTo(Equal(0))
 
 	pod := pods[0]
-	err = helper.WaitForPodReady(testContext.KubeClient, pod.Namespace, pod.Name, 10*time.Second, 5*time.Minute)
+	err = helper.WaitForPodReady(testContext, pod.Namespace, pod.Name, 10*time.Second, 5*time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	t.Logf("Asserting Helm install. Deploying Coherence resource")

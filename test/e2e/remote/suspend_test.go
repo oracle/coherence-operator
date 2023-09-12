@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  *
@@ -37,7 +37,7 @@ func TestSuspendServices(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-suspend")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	installSimpleDeployment(t, c)
@@ -77,7 +77,7 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-suspend-disable")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
@@ -120,7 +120,7 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-scale-zero")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	installSimpleDeployment(t, c)
@@ -174,7 +174,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
-	c, err := helper.NewSingleCoherenceFromYaml(ns, "suspend-test.yaml")
+	c, err := helper.NewSingleCoherenceFromYamlWithSuffix(ns, "suspend-test.yaml", "-disabled-scale-zero")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
@@ -270,7 +270,7 @@ func waitForFinalizerTasks(n types.NamespacedName) error {
 	// wait for the Operator finalizer to be removed which signals that the Operator finalization
 	// is complete and services should be suspended.
 	c := &cohv1.Coherence{}
-	return wait.Poll(time.Second, 5*time.Minute, func() (done bool, err error) {
+	return wait.PollUntilContextTimeout(context.Background(), time.Second, 5*time.Minute, true, func(context.Context) (done bool, err error) {
 		if err := testContext.Client.Get(ctx, n, c); err != nil {
 			return false, err
 		}
@@ -281,7 +281,7 @@ func waitForFinalizerTasks(n types.NamespacedName) error {
 func waitForStatefulSetDeletionTimestamp(n types.NamespacedName) error {
 	ctx := context.Background()
 	sts := &appsv1.StatefulSet{}
-	return wait.Poll(time.Second, 5*time.Minute, func() (done bool, err error) {
+	return wait.PollUntilContextTimeout(context.Background(), time.Second, 5*time.Minute, true, func(context.Context) (done bool, err error) {
 		if err := testContext.Client.Get(ctx, n, sts); err != nil {
 			return false, err
 		}

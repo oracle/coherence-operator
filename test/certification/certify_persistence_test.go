@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"golang.org/x/net/context"
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -187,6 +188,7 @@ func TestActivePersistenceTakeAndRestoreSnapshot(t *testing.T) {
 
 	// take a snapshot
 	snapshotName := "snapshotOne"
+	_ = processSnapshotRequest(pods[0], deleteSnapshot, snapshotName)
 	err = processSnapshotRequest(pods[0], createSnapshot, snapshotName)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -283,7 +285,7 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType, snaps
 	}
 
 	// wait for idle
-	err = wait.Poll(helper.RetryInterval, helper.Timeout, func() (done bool, err error) {
+	err = wait.PollUntilContextTimeout(context.Background(), helper.RetryInterval, helper.Timeout, true, func(context.Context) (done bool, err error) {
 		url = fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence?fields=operationStatus",
 			ports[v1.PortNameManagement], canaryServiceName)
 		req, err := http.NewRequest("GET", url, nil)

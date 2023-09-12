@@ -300,7 +300,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 }
 
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	setupMonitoringResources(mgr)
+	SetupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
@@ -321,7 +321,7 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// Watch for changes to secondary resources
 	for _, sub := range reconcilers {
-		if err := watchSecondaryResource(sub, template); err != nil {
+		if err := watchSecondaryResource(mgr, sub, template); err != nil {
 			return err
 		}
 	}
@@ -511,7 +511,7 @@ func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, namespa
 }
 
 // watchSecondaryResource registers the secondary resource reconcilers to watch the resources to be reconciled
-func watchSecondaryResource(s reconciler.SecondaryResourceReconciler, owner coh.CoherenceResource) error {
+func watchSecondaryResource(mgr ctrl.Manager, s reconciler.SecondaryResourceReconciler, owner coh.CoherenceResource) error {
 	var err error
 	if !s.CanWatch() {
 		// this reconciler does not do watches
@@ -524,15 +524,15 @@ func watchSecondaryResource(s reconciler.SecondaryResourceReconciler, owner coh.
 		return err
 	}
 
-	src := &source.Kind{Type: s.GetTemplate()}
-	h := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: owner}
+	src := source.Kind(mgr.GetCache(), s.GetTemplate())
+	h := handler.EnqueueRequestForOwner(mgr.GetScheme(), mgr.GetRESTMapper(), owner)
 	p := predicates.SecondaryPredicate{}
 	err = c.Watch(src, h, p)
 	return err
 }
 
-// setupMonitoringResources ensures the Prometheus types are registered with the manager.
-func setupMonitoringResources(mgr ctrl.Manager) {
+// SetupMonitoringResources ensures the Prometheus types are registered with the manager.
+func SetupMonitoringResources(mgr ctrl.Manager) {
 	gv := schema.GroupVersion{
 		Group:   coh.ServiceMonitorGroup,
 		Version: coh.ServiceMonitorVersion,

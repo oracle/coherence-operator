@@ -32,7 +32,7 @@ COMPATIBLE_SELECTOR = control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.26
+KUBERNETES_DOC_VERSION=v1.28
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
@@ -325,6 +325,7 @@ GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRDV1_FILES      = $(shell find ./config/crd -type f)
+JAVA_FILES       = $(shell find ./java -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
@@ -431,7 +432,7 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 .PHONY: build-operator
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
-$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn coherence-cli
+$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUILD_TARGETS)/cli
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
@@ -448,7 +449,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner build-mvn coherence-cli
 	touch $(BUILD_TARGETS)/build-operator
 
 .PHONY: build-operator-with-tools
-build-operator-with-tools: $(BUILD_BIN)/runner build-mvn ## Build the Coherence Operator image on OL-8 with debug tools
+build-operator-with-tools: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java ## Build the Coherence Operator image on OL-8 with debug tools
 	mkdir -p $(BUILD_OUTPUT)/images || true
 	cat Dockerfile debug/Tools.Dockerfile > $(BUILD_OUTPUT)/images/Dockerfile
 	docker build --no-cache --build-arg version=$(VERSION) \
@@ -460,7 +461,7 @@ build-operator-with-tools: $(BUILD_BIN)/runner build-mvn ## Build the Coherence 
 		. -t $(OPERATOR_IMAGE)
 
 .PHONY: build-operator-debug
-build-operator-debug: $(BUILD_BIN)/linux/amd64/runner-debug build-mvn ## Build the Coherence Operator image with the Delve debugger
+build-operator-debug: $(BUILD_BIN)/linux/amd64/runner-debug $(BUILD_TARGETS)/java ## Build the Coherence Operator image with the Delve debugger
 	docker build --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_IMAGE_DELVE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
@@ -486,7 +487,7 @@ build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator ima
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
-build-test-images: build-mvn build-client-image build-basic-test-image ## Build all of the test images
+build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image ## Build all of the test images
 	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
@@ -500,7 +501,7 @@ build-test-images: build-mvn build-client-image build-basic-test-image ## Build 
 # Build the basic Operator Test image
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-basic-test-image
-build-basic-test-image: build-mvn ## Build the basic Operator test image
+build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test image
 	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
 
 .PHONY: build-client-image
@@ -538,8 +539,12 @@ $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TAR
 # Build the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
-build-mvn: ## Build the Java artefacts
+build-mvn: $(BUILD_TARGETS)/java ## Build the Java artefacts
+
+$(BUILD_TARGETS)/java: $(JAVA_FILES)
 	./mvnw -B -f java clean install -DskipTests $(MAVEN_BUILD_OPTS)
+	touch $(BUILD_TARGETS)/java
+
 
 # ---------------------------------------------------------------------------
 # Build the Coherence operator Helm chart and package it into a tar.gz
@@ -547,7 +552,7 @@ build-mvn: ## Build the Java artefacts
 .PHONY: helm-chart
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz   ## Build the Coherence Operator Helm chart
 
-$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
+$(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
@@ -587,7 +592,7 @@ manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition a
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: kustomize $(API_GO_FILES) controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd/bases
@@ -621,7 +626,7 @@ generate: $(BUILD_TARGETS)/generate  ## Run Kubebuilder code and configuration g
 $(BUILD_TARGETS)/generate: $(BUILD_PROPS) $(BUILD_OUTPUT)/config.json api/v1/zz_generated.deepcopy.go
 	touch $(BUILD_TARGETS)/generate
 
-api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) controller-gen
+api/v1/zz_generated.deepcopy.go: $(API_GO_FILES) $(TOOLS_BIN)/controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -787,7 +792,7 @@ stop: ## kill any locally running operator process
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
-bundle: $(BUILD_PROPS) ensure-sdk kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
+bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
@@ -869,7 +874,7 @@ test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/genera
 # Build and test the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
-test-mvn: $(BUILD_OUTPUT)/certs build-mvn  ## Run the Java artefact tests
+test-mvn: $(BUILD_OUTPUT)/certs $(BUILD_TARGETS)/java  ## Run the Java artefact tests
 	./mvnw -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_BUILD_OPTS)
 
 
@@ -1305,7 +1310,7 @@ deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and w
 OPERATOR_HA ?= true
 
 .PHONY: deploy
-deploy: prepare-deploy create-namespace kustomize   ## Deploy the Coherence Operator
+deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize   ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
@@ -1322,11 +1327,11 @@ just-deploy: ## Deploy the Coherence Operator without rebuilding anything
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
-prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator kustomize
+prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: deploy-debug
-deploy-debug: prepare-deploy-debug create-namespace kustomize   ## Deploy the Coherence Operator running with Delve
+deploy-debug: prepare-deploy-debug create-namespace $(TOOLS_BIN)/kustomize   ## Deploy the Coherence Operator running with Delve
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
@@ -1356,7 +1361,7 @@ port-forward-debug:  ## Run a port-forward process to forward localhost:2345 to 
 	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(POD) 2345:2345 || true
 
 .PHONY: prepare-deploy-debug
-prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug kustomize
+prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug $(TOOLS_BIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
@@ -1387,7 +1392,7 @@ endef
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests kustomize  ## Undeploy the Coherence Operator
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## Undeploy the Coherence Operator
 	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
@@ -1406,7 +1411,7 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 
-$(BUILD_MANIFESTS_PKG): kustomize
+$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)/crd
 	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
@@ -1728,7 +1733,7 @@ tanzu-delete-cluster: ## Delete the local Tanzu unmanaged cluster named "$(KIND_
 	$(TANZU) uc delete $(KIND_CLUSTER)
 
 .PHONY: tanzu-package-internal
-tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests kustomize
+tanzu-package-internal: $(BUILD_PROPS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize
 	rm -r $(TANZU_PACKAGE_DIR) || true
 	mkdir -p $(TANZU_PACKAGE_DIR)/config $(TANZU_PACKAGE_DIR)/.imgpkg || true
 	cp -vR tanzu/package/* $(TANZU_PACKAGE_DIR)/config/
@@ -1826,7 +1831,9 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: controller-gen
 CONTROLLER_GEN = $(TOOLS_BIN)/controller-gen
-controller-gen: ## Download controller-gen locally if necessary.
+controller-gen: $(TOOLS_BIN)/controller-gen ## Download controller-gen locally if necessary.
+
+$(TOOLS_BIN)/controller-gen:
 	@echo "Downloading controller-gen"
 	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0
 	ls -al $(TOOLS_BIN)
@@ -1839,14 +1846,19 @@ KUSTOMIZE_VERSION ?= v3.8.7
 
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
-kustomize: ## Download kustomize locally if necessary.
+kustomize: $(TOOLS_BIN)/kustomize ## Download kustomize locally if necessary.
+
+$(TOOLS_BIN)/kustomize:
 	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header $(GH_AUTH) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download the Coherence CLI
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: coherence-cli
-coherence-cli: $(BUILD_BIN_AMD64)/cohctl $(BUILD_BIN_ARM64)/cohctl ## Download the Coherence CLI locally if necessary.
+coherence-cli: $(BUILD_TARGETS)/cli ## Download the Coherence CLI locally if necessary.
+
+$(BUILD_TARGETS)/cli: $(BUILD_BIN_AMD64)/cohctl $(BUILD_BIN_ARM64)/cohctl
+	touch $(BUILD_TARGETS)/cli
 
 $(BUILD_BIN_AMD64)/cohctl: export COHCTL_HOME=$(BUILD_BIN_AMD64)
 $(BUILD_BIN_AMD64)/cohctl: export OS=Linux
@@ -1948,7 +1960,7 @@ push-ttl-test-images:
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
-build-compatibility-image: build-mvn
+build-compatibility-image: $(BUILD_TARGETS)/java
 	./mvnw -B -f java/operator-compatibility package -DskipTests \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
@@ -2105,7 +2117,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 .PHONY: uninstall-istio
 uninstall-istio: get-istio ## Uninstall Istio from k8s
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
-	$(ISTIO_HOME)/bin/istioctl x uninstall --purge -y
+	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
 
 # ----------------------------------------------------------------------------------------------------------------------

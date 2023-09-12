@@ -25,7 +25,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -48,18 +48,23 @@ func NewFakeManager(initObjs ...runtime.Object) (*FakeManager, error) {
 	}
 
 	// Use a TestOnlyStaticRESTMapper so that the tests can run without needing a real k8s server
-	restMapper := func(c *rest.Config) (meta.RESTMapper, error) {
+	restMapper := func(c *rest.Config, httpClient *http.Client) (meta.RESTMapper, error) {
 		return testrestmapper.TestOnlyStaticRESTMapper(s), nil
 	}
 
 	options := manager.Options{
-		Namespace:      helper.GetTestNamespace(),
 		MapperProvider: restMapper,
 		LeaderElection: false,
+		NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
+			opts.DefaultNamespaces = map[string]cache.Config{
+				helper.GetTestNamespace(): {},
+			}
+			return cache.New(config, opts)
+		},
 	}
 
 	// Create the mapper provider
-	mapper, err := options.MapperProvider(cfg)
+	mapper, err := options.MapperProvider(cfg, &http.Client{})
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +86,16 @@ type FakeManager struct {
 	Config *rest.Config
 }
 
-func (f *FakeManager) GetControllerOptions() v1alpha1.ControllerConfigurationSpec {
-	return v1alpha1.ControllerConfigurationSpec{}
+func (f *FakeManager) GetHTTPClient() *http.Client {
+	return &http.Client{}
+}
+
+func (f *FakeManager) GetControllerOptions() config.Controller {
+	return config.Controller{}
 }
 
 func (f *FakeManager) Start(ctx context.Context) error {
-	panic("implement me")
+	return nil
 }
 
 func (f *FakeManager) GetLogger() logr.Logger {
@@ -109,7 +118,7 @@ func (f *FakeManager) GetAPIReader() client.Reader {
 	panic("implement me")
 }
 
-func (f *FakeManager) GetWebhookServer() *webhook.Server {
+func (f *FakeManager) GetWebhookServer() webhook.Server {
 	panic("implement me")
 }
 
@@ -171,7 +180,7 @@ func (f *FakeManager) AssertEvent() FakeEvent {
 	return event
 }
 
-// AssertEvent asserts that there is an event in the event channel and returns it.
+// AssertNoRemainingEvents asserts that there is an event in the event channel and returns it.
 func (f *FakeManager) AssertNoRemainingEvents() {
 	_, found := f.NextEvent()
 	Expect(found).To(BeFalse())
@@ -266,15 +275,19 @@ var _ cache.Cache = fakeCache{}
 type fakeCache struct {
 }
 
+func (f fakeCache) GetInformer(ctx context.Context, obj client.Object, opts ...cache.InformerGetOption) (cache.Informer, error) {
+	panic("implement me")
+}
+
+func (f fakeCache) GetInformerForKind(ctx context.Context, gvk schema.GroupVersionKind, opts ...cache.InformerGetOption) (cache.Informer, error) {
+	panic("implement me")
+}
+
 func (f fakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	panic("implement me")
 }
 
 func (f fakeCache) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
-	panic("implement me")
-}
-
-func (f fakeCache) GetInformer(ctx context.Context, obj client.Object) (cache.Informer, error) {
 	panic("implement me")
 }
 
@@ -287,9 +300,5 @@ func (f fakeCache) WaitForCacheSync(ctx context.Context) bool {
 }
 
 func (f fakeCache) IndexField(ctx context.Context, obj client.Object, field string, extractValue client.IndexerFunc) error {
-	panic("implement me")
-}
-
-func (f fakeCache) GetInformerForKind(ctx context.Context, gvk schema.GroupVersionKind) (cache.Informer, error) {
 	panic("implement me")
 }

@@ -233,7 +233,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 }
 
 func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	setupMonitoringResources(mgr)
+	SetupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
@@ -254,7 +254,7 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// Watch for changes to secondary resources
 	for _, sub := range reconcilers {
-		if err := watchSecondaryResource(sub, template); err != nil {
+		if err := watchSecondaryResource(mgr, sub, template); err != nil {
 			return err
 		}
 	}
@@ -327,37 +327,6 @@ func (in *CoherenceJobReconciler) ensureVersionAnnotationApplied(ctx context.Con
 	}
 	return false, nil
 }
-
-//func (in *CoherenceJobReconciler) ensureFinalizerApplied(ctx context.Context, c coh.CoherenceResource) (bool, error) {
-//	if !controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
-//		// Re-fetch the CoherenceJob resource to ensure we have the most recent copy
-//		latest := c.DeepCopyResource()
-//		controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
-//
-//		callback := func() {
-//			in.Log.Info("Added finalizer to CoherenceJob resource", "Namespace", c.GetNamespace(), "Name", c.GetName(), "Finalizer", coh.CoherenceFinalizer)
-//		}
-//
-//		// Perform a three-way patch to apply the finalizer
-//		applied, err := in.ThreeWayPatchWithCallback(ctx, c.GetName(), c, c, latest, callback)
-//		if err != nil {
-//			return false, errors.Wrapf(err, "failed to update CoherenceJob resource %s/%s with finalizer", c.GetNamespace(), c.GetName())
-//		}
-//		return applied, nil
-//	}
-//	return false, nil
-//}
-//
-//func (in *CoherenceJobReconciler) ensureFinalizerRemoved(ctx context.Context, c coh.CoherenceResource) error {
-//	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
-//		err := in.GetClient().Update(ctx, c)
-//		if err != nil {
-//			in.Log.Info("Failed to remove the finalizer from the CoherenceJob resource, it looks like it had already been deleted")
-//			return err
-//		}
-//	}
-//	return nil
-//}
 
 // ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
 func (in *CoherenceJobReconciler) ensureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {

@@ -271,7 +271,7 @@ func TestJobPersistenceModeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -315,7 +315,7 @@ func TestJobPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -359,7 +359,7 @@ func TestJobPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -412,7 +412,7 @@ func TestJobPersistenceVolumeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -423,7 +423,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -438,7 +438,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -453,7 +453,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -469,7 +469,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -484,7 +484,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -503,7 +503,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -522,7 +522,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -542,7 +542,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -559,7 +559,7 @@ func TestJobValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -586,7 +586,7 @@ func TestJobValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -618,7 +618,7 @@ func TestJobValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 		},
 	}
 
-	err := current.ValidateCreate()
+	_, err := current.ValidateCreate()
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -650,7 +650,7 @@ func TestJobValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -687,6 +687,6 @@ func TestJobValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(prev)
 	g.Expect(err).To(HaveOccurred())
 }

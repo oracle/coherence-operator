@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -29,16 +29,14 @@ import (
 // Typical usage would be to create the PortForwarder, start it, check
 // for error and defer the close. For example
 //
-//    f := helper.PortForwarder{Namespace:"my-test-ns", PodName:"my-pod", Ports:[]string{"30000:30000"}}
-//    err := f.Start()
-//    if err != nil {
-//        ... handle error ...
-//    }
-//    defer f.Close()
+//	f := helper.PortForwarder{Namespace:"my-test-ns", PodName:"my-pod", Ports:[]string{"30000:30000"}}
+//	err := f.Start()
+//	if err != nil {
+//	    ... handle error ...
+//	}
+//	defer f.Close()
 //
-//    ... now the ports are being forwarded ...
-//
-//
+//	... now the ports are being forwarded ...
 type PortForwarder struct {
 	// The optional Pod namespace. If not set the default namespace is used.
 	Namespace string
@@ -66,15 +64,18 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 	for _, c := range pod.Spec.Containers {
 		for _, p := range c.Ports {
 			name := p.Name
-			if name == "" {
-				name = strconv.Itoa(int(p.ContainerPort))
+			port := p.ContainerPort
+			if port != 7 {
+				if name == "" {
+					name = strconv.Itoa(int(p.ContainerPort))
+				}
+				podPorts[name] = port
+				local, err := available.Next()
+				if err != nil {
+					return nil, nil, err
+				}
+				localPorts[name] = local
 			}
-			podPorts[name] = p.ContainerPort
-			local, err := available.Next()
-			if err != nil {
-				return nil, nil, err
-			}
-			localPorts[name] = local
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"golang.org/x/net/context"
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -220,7 +221,7 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 	}
 
 	// wait for idle
-	err = wait.Poll(helper.RetryInterval, helper.Timeout, func() (done bool, err error) {
+	err = wait.PollUntilContextTimeout(context.Background(), helper.RetryInterval, helper.Timeout, true, func(context.Context) (done bool, err error) {
 		url = fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence?fields=operationStatus",
 			ports[v1.PortNameManagement], canaryServiceName)
 		req, err := http.NewRequest("GET", url, nil)
