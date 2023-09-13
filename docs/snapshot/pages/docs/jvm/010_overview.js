@@ -94,19 +94,6 @@ but obviously it is better to choose one approach and be consistent.</p>
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="/docs/jvm/080_jmx"><div class="card__link-hover"/>
-</router-link>
-<v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">JMX</span>
-</v-card-title>
-<v-card-text class="caption">
-<p></p>
-<p>Using JMX.</p>
-</v-card-text>
-</v-card>
-</v-flex>
-<v-flex xs12 sm4 lg3>
-<v-card>
 <router-link to="/docs/jvm/090_container_limits"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">

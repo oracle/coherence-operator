@@ -83,10 +83,6 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 
 </li>
 <li>
-<p><router-link to="#_jvmjmxmpspec" @click.native="this.scrollFix('#_jvmjmxmpspec')">JvmJmxmpSpec</router-link></p>
-
-</li>
-<li>
 <p><router-link to="#_jvmmemoryspec" @click.native="this.scrollFix('#_jvmmemoryspec')">JvmMemorySpec</router-link></p>
 
 </li>
@@ -1157,12 +1153,6 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>jmxmp</code></td>
-<td class="">Configure JMX using JMXMP. Note: This should only be used in development as JMXMP does not have support for encrypted connections via TLS. Use in production should ideally put the JMXMP port behind some sort of TLS enabled ingress or network policy.</td>
-<td class=""><code>&#42;<router-link to="#_jvmjmxmpspec" @click.native="this.scrollFix('#_jvmjmxmpspec')">JvmJmxmpSpec</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
 <td class=""><code>useJibClasspath</code></td>
 <td class="">A flag indicating whether to automatically add the default classpath for images created by the JIB tool <a id="" title="" target="_blank" href="https://github.com/GoogleContainerTools/jib">https://github.com/GoogleContainerTools/jib</a> If true then the /app/lib/* /app/classes and /app/resources entries are added to the JVM classpath. The default value fif not specified is true.</td>
 <td class=""><code>&#42;bool</code></td>
@@ -1266,47 +1256,6 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <td class=""><code>logging</code></td>
 <td class="">Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime Default is true</td>
 <td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
-
-</div>
-
-<h3 id="_jvmjmxmpspec">JvmJmxmpSpec</h3>
-<div class="section">
-<p>JvmJmxmpSpec is options for configuring JMX using JMXMP.</p>
-
-
-<div class="table__overflow elevation-1  ">
-<table class="datatable table">
-<colgroup>
-<col style="width: 7.692%;">
-<col style="width: 76.923%;">
-<col style="width: 7.692%;">
-<col style="width: 7.692%;">
-</colgroup>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-<th>Type</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class=""><code>enabled</code></td>
-<td class="">If set to true the JMXMP support will be enabled. Default is false</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>port</code></td>
-<td class="">The port tht the JMXMP MBeanServer should bind to. If not set the default port is 9099</td>
-<td class=""><code>&#42;int32</code></td>
 <td class="">false</td>
 </tr>
 </tbody>

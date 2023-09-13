@@ -494,19 +494,6 @@ function createRoutes(){
             component: loadPage('docs-jvm-070_debugger', '/docs/jvm/070_debugger', {})
         },
         {
-            path: '/docs/jvm/080_jmx',
-            meta: {
-                h1: 'Using JMX',
-                title: 'Using JMX',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: true
-            },
-            component: loadPage('docs-jvm-080_jmx', '/docs/jvm/080_jmx', {})
-        },
-        {
             path: '/docs/jvm/090_container_limits',
             meta: {
                 h1: 'Container Resource Limits',
@@ -635,19 +622,6 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('docs-management-025_coherence_cli', '/docs/management/025_coherence_cli', {})
-        },
-        {
-            path: '/docs/management/030_visualvm',
-            meta: {
-                h1: 'Using VisualVM',
-                title: 'Using VisualVM',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: true
-            },
-            component: loadPage('docs-management-030_visualvm', '/docs/management/030_visualvm', {})
         },
         {
             path: '/docs/management/040_ssl',
@@ -1328,7 +1302,6 @@ function createNav(){
                 { href: '/docs/jvm/040_gc', title: 'Garbage Collector Settings' },
                 { href: '/docs/jvm/050_memory', title: 'Heap & Memory Settings' },
                 { href: '/docs/jvm/070_debugger', title: 'Debugger Configuration' },
-                { href: '/docs/jvm/080_jmx', title: 'Using JMX' },
                 { href: '/docs/jvm/090_container_limits', title: 'Container Resource Limits' }
             ]
         },
@@ -1367,7 +1340,6 @@ function createNav(){
                 { href: '/docs/management/010_overview', title: 'Overview' },
                 { href: '/docs/management/020_management_over_rest', title: 'Management over REST' },
                 { href: '/docs/management/025_coherence_cli', title: 'The Coherence CLI' },
-                { href: '/docs/management/030_visualvm', title: 'Using VisualVM' },
                 { href: '/docs/management/040_ssl', title: 'SSL with Management over REST' },
                 { href: '/docs/management/100_tmb_test', title: 'Coherence Network Testing' }
             ]

@@ -37,7 +37,7 @@ in a cluster deployed in Kubernetes.</p>
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="/docs/management/030_visualvm"><div class="card__link-hover"/>
+<router-link to="#docs/management/030_visualvm.adoc" @click.native="this.scrollFix('#docs/management/030_visualvm.adoc')"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
 <span style="text-align:center">VisualVM</span>
