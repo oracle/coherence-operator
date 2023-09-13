@@ -138,8 +138,6 @@ const (
 	DefaultManagementPort int32 = 30000
 	// DefaultMetricsPort is the default Coherence metrics port
 	DefaultMetricsPort int32 = 9612
-	// DefaultJmxmpPort is the default JMX over JMXMP port
-	DefaultJmxmpPort int32 = 9099
 	// DefaultHealthPort is the default health port
 	DefaultHealthPort int32 = 6676
 	// DefaultUnicastPort is the default Coherence unicast port
@@ -247,8 +245,6 @@ const (
 	EnvVarJvmMemoryNativeTracking     = "JVM_NATIVE_MEMORY_TRACKING"
 	EnvVarJvmOomExit                  = "JVM_OOM_EXIT"
 	EnvVarJvmOomHeapDump              = "JVM_OOM_HEAP_DUMP"
-	EnvVarJvmJmxmpEnabled             = "JVM_JMXMP_ENABLED"
-	EnvVarJvmJmxmpPort                = "JVM_JMXMP_PORT"
 	EnvVarSpringBootFatJar            = "COH_SPRING_BOOT_FAT_JAR"
 	EnvVarCnbpEnabled                 = "COH_CNBP_ENABLED"
 	EnvVarCnbpLauncher                = "COH_CNBP_LAUNCHER"

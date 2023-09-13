@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -436,70 +436,6 @@ func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomFalse(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_OOM_HEAP_DUMP", Value: "false"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledTrue(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Jmxmp: &coh.JvmJmxmpSpec{
-				Enabled: boolPtr(true),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_JMXMP_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_JMXMP_PORT", Value: "9099"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledFalse(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Jmxmp: &coh.JvmJmxmpSpec{
-				Enabled: boolPtr(false),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_JMXMP_ENABLED", Value: "false"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_JMXMP_PORT", Value: "9099"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithJmxmpEnabledWithPort(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Jmxmp: &coh.JvmJmxmpSpec{
-				Enabled: boolPtr(true),
-				Port:    int32Ptr(1234),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_JMXMP_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_JMXMP_PORT", Value: "1234"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

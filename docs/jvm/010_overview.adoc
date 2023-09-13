@@ -63,13 +63,6 @@ Using debugger settings.
 --
 
 [CARD]
-.JMX
-[link=docs/jvm/080_jmx.adoc]
---
-Using JMX.
---
-
-[CARD]
 .Use Container Limits
 [link=docs/jvm/090_container_limits.adoc]
 --
