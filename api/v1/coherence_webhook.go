@@ -8,8 +8,10 @@ package v1
 
 import (
 	"fmt"
+	"github.com/distribution/reference"
 	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -132,16 +134,19 @@ var commonWebHook = CommonWebHook{}
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
 func (in *Coherence) ValidateCreate() (admission.Warnings, error) {
-	var err error
 	var warnings admission.Warnings
 
 	webhookLogger.Info("validate create", "name", in.Name)
-	err = commonWebHook.validateReplicas(in)
-	if err != nil {
+	if err := commonWebHook.validateReplicas(in); err != nil {
 		return warnings, err
 	}
-	err = commonWebHook.validateNodePorts(in)
-	return warnings, err
+	if err := commonWebHook.validateImages(in); err != nil {
+		return warnings, err
+	}
+	if err := commonWebHook.validateNodePorts(in); err != nil {
+		return warnings, err
+	}
+	return warnings, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -152,6 +157,9 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) (admission.Warnings
 	var warnings admission.Warnings
 
 	if err := commonWebHook.validateReplicas(in); err != nil {
+		return warnings, err
+	}
+	if err := commonWebHook.validateImages(in); err != nil {
 		return warnings, err
 	}
 	prev := previous.(*Coherence)
@@ -209,6 +217,41 @@ func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {
 // ----- Common Validator ---------------------------------------------------
 
 type CommonWebHook struct {
+}
+
+// validateImages validates image names
+func (in *CommonWebHook) validateImages(c CoherenceResource) error {
+	var err error
+	spec := c.GetSpec()
+	if spec != nil {
+		img := spec.GetCoherenceImage()
+		if img != nil {
+			_, err = reference.Parse(*img)
+			if err != nil {
+				return errors.Errorf("invalid spec.image field, %s", err.Error())
+			}
+		}
+		img = spec.GetCoherenceOperatorImage()
+		if img != nil {
+			_, err = reference.Parse(*img)
+			if err != nil {
+				return errors.Errorf("invalid spec.coherenceUtils.image field, %s", err.Error())
+			}
+		}
+		for _, c := range spec.InitContainers {
+			_, err = reference.Parse(c.Image)
+			if err != nil {
+				return errors.Errorf("invalid image name in init-container %s, %s", c.Name, err.Error())
+			}
+		}
+		for _, c := range spec.SideCars {
+			_, err = reference.Parse(c.Image)
+			if err != nil {
+				return errors.Errorf("invalid image name in side-car container %s, %s", c.Name, err.Error())
+			}
+		}
+	}
+	return err
 }
 
 // validateReplicas validates that spec.replicas >= 0
