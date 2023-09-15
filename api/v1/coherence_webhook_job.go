@@ -85,12 +85,16 @@ func (in *CoherenceJob) ValidateCreate() (admission.Warnings, error) {
 	var warnings admission.Warnings
 
 	webhookLogger.Info("validate create", "name", in.Name)
-	err = commonWebHook.validateReplicas(in)
-	if err != nil {
+	if err = commonWebHook.validateReplicas(in); err != nil {
 		return warnings, err
 	}
-	err = commonWebHook.validateNodePorts(in)
-	return warnings, err
+	if err = commonWebHook.validateImages(in); err != nil {
+		return warnings, err
+	}
+	if err = commonWebHook.validateNodePorts(in); err != nil {
+		return warnings, err
+	}
+	return warnings, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -99,6 +103,9 @@ func (in *CoherenceJob) ValidateUpdate(previous runtime.Object) (admission.Warni
 	var warnings admission.Warnings
 
 	if err := commonWebHook.validateReplicas(in); err != nil {
+		return warnings, err
+	}
+	if err := commonWebHook.validateImages(in); err != nil {
 		return warnings, err
 	}
 	prev := previous.(*CoherenceJob)
