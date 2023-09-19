@@ -95,9 +95,11 @@ spec:
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 8 }}
 {{- end }}
-{{- if .Values.annotations }}
       annotations:
+{{- if .Values.annotations }}
 {{ toYaml .Values.annotations | indent 8 }}
+{{- else }}
+        traffic.sidecar.istio.io/excludeInboundPorts: "9443"
 {{- end }}
     spec:
       serviceAccountName: {{ default "coherence-operator" .Values.serviceAccountName }}

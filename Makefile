@@ -332,7 +332,7 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
-PROMETHEUS_VERSION           ?= v0.10.0
+PROMETHEUS_VERSION           ?= v0.13.0
 PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSION)
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
@@ -2101,7 +2101,7 @@ uninstall-metallb: ## Uninstall MetalLB
 .PHONY: install-istio
 install-istio: get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
-	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
+	$(ISTIO_HOME)/bin/istioctl install --set profile=default -y
 	sleep 10
 	kubectl -n istio-system get pod -l app=istio-egressgateway -o name | xargs \
 		kubectl -n istio-system wait --for condition=ready --timeout 300s
@@ -2109,6 +2109,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 		kubectl -n istio-system wait --for condition=ready --timeout 300s
 	kubectl -n istio-system get pod -l app=istiod -o name | xargs \
 		kubectl -n istio-system wait --for condition=ready --timeout 300s
+	kubectl apply -f ./hack/istio-strict.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2116,6 +2117,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-istio
 uninstall-istio: get-istio ## Uninstall Istio from k8s
+	kubectl delete -f ./hack/istio-strict.yaml
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 

@@ -3,6 +3,11 @@ kind: Coherence
 metadata:
   name: storage
 spec:
+  annotations:
+    traffic.sidecar.istio.io/excludeInboundPorts: "7574,7575,7576,6676"
+  coherence:
+    localPort: 7575
+    localPortAdjust: 7576
   ports:
     - name: extend
       port: 20000
