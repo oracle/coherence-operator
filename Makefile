@@ -1558,8 +1558,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315"
-#KIND_IMAGE     ?= "kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1"
+KIND_IMAGE     ?= "kindest/node:v1.25.8@sha256:00d3f5314cc35327706776e95b2f8e504198ce59ac545d0200a89e69fce10b7f"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2110,6 +2109,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 	kubectl -n istio-system get pod -l app=istiod -o name | xargs \
 		kubectl -n istio-system wait --for condition=ready --timeout 300s
 	kubectl apply -f ./hack/istio-strict.yaml
+	kubectl -n $(OPERATOR_NAMESPACE) apply -f ./hack/istio-operator.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2117,6 +2117,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-istio
 uninstall-istio: get-istio ## Uninstall Istio from k8s
+	kubectl -n $(OPERATOR_NAMESPACE) delete -f ./hack/istio-operator.yaml
 	kubectl delete -f ./hack/istio-strict.yaml
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y

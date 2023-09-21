@@ -51,7 +51,6 @@ labels:
 # ---------------------------------------------------------------------------
 # Additional annotations that are added to the Operator Pods.
 annotations:
-  traffic.sidecar.istio.io/excludeInboundPorts: "9443"
 
 # ---------------------------------------------------------------------------
 # Additional labels that are added to the Operator Deployment.

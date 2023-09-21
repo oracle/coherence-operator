@@ -24,10 +24,10 @@ jobs:
         fetch-depth: 0
 
     - name: Set up JDK
-      uses: actions/setup-java@v3
+      uses: oracle-actions/setup-java@v1
       with:
-        distribution: 'zulu'
-        java-version: '11'
+        website: jdk.java.net
+        release: 11
 
     - name: Set up Go
       uses: actions/setup-go@v3
