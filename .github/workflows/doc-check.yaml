@@ -33,8 +33,8 @@ jobs:
     - name: Set up JDK
       uses: oracle-actions/setup-java@v1
       with:
-        website: jdk.java.net
-        release: 11
+        website: oracle.com
+        release: 21
 
     - name: Set up Go
       uses: actions/setup-go@v3
