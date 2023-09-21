@@ -2113,7 +2113,7 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-istio
 uninstall-istio: get-istio ## Uninstall Istio from k8s
-	kubectl -n $(OPERATOR_NAMESPACE) delete -f ./hack/istio-operator.yaml
+	kubectl -n $(OPERATOR_NAMESPACE) delete -f ./hack/istio-operator.yaml || true
 	kubectl delete -f ./hack/istio-strict.yaml
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
