@@ -1558,7 +1558,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.25.8@sha256:00d3f5314cc35327706776e95b2f8e504198ce59ac545d0200a89e69fce10b7f"
+KIND_IMAGE     ?= "kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2100,14 +2100,10 @@ uninstall-metallb: ## Uninstall MetalLB
 .PHONY: install-istio
 install-istio: get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
 	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
-	$(ISTIO_HOME)/bin/istioctl install --set profile=default -y
-	sleep 10
-	kubectl -n istio-system get pod -l app=istio-egressgateway -o name | xargs \
-		kubectl -n istio-system wait --for condition=ready --timeout 300s
-	kubectl -n istio-system get pod -l app=istio-ingressgateway -o name | xargs \
-		kubectl -n istio-system wait --for condition=ready --timeout 300s
-	kubectl -n istio-system get pod -l app=istiod -o name | xargs \
-		kubectl -n istio-system wait --for condition=ready --timeout 300s
+	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
+	kubectl -n istio-system wait --for condition=available deployment.apps/istiod
+	kubectl -n istio-system wait --for condition=available deployment.apps/istio-ingressgateway
+	kubectl -n istio-system wait --for condition=available deployment.apps/istio-egressgateway
 	kubectl apply -f ./hack/istio-strict.yaml
 	kubectl -n $(OPERATOR_NAMESPACE) apply -f ./hack/istio-operator.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
