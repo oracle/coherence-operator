@@ -8,18 +8,47 @@ Coherence caches can be accessed from outside the Coherence cluster via Coherenc
 Using Coherence clusters with Istio does not require the Coherence Operator to also be using Istio (and vice-versa) .
 The Coherence Operator can manage Coherence clusters independent of whether those clusters are using Istio or not.</p>
 
-<div class="admonition important">
-<p class="admonition-textlabel">Important</p>
-<p ><p>The current support for Istio has the following limitation:</p>
 
-<p>Ports that are exposed in the ports list of the container spec in a Pod will be intercepted by the Envoy proxy in the Istio side-car container. Coherence cluster traffic must not pass through Envoy proxies as this will break Coherence, so the Coherence cluster port must never be exposed as a container port if using Istio. There is no real reason to expose the Coherence cluster port in a container because there is no requirement to have this port externally visible.</p>
-</p>
+<h3 id="_why_doesnt_coherence_work_with_istio">Why Doesn&#8217;t Coherence Work with Istio?</h3>
+<div class="section">
+<p>Coherence uses a custom TCP message protocol for inter-cluster member communication.
+When a cluster member sends a message to another member, the "reply to" address of the sending member is in the message. This address is the socket address the member is listening on (i.e. it is the IP address and port Coherence has bound to).
+When Istio is intercepting traffic the message ends up being sent via the Envoy proxy and the actual port Coherence is listening on is blocked by Istio. When the member that receives the message tries to send a response to the reply to address, that port is not visible to it.</p>
+
+<p>Coherence clients will work with Istio, so Extend, gRPC and http clients for things like REST, metrics and management will work when routed through the Envoy proxy.</p>
+
 </div>
 
 <h3 id="_prerequisites">Prerequisites</h3>
 <div class="section">
 <p>The instructions assume that you are using a Kubernetes cluster with Istio installed and configured already.</p>
 
+
+<h4 id="_enable_istio_strict_mode">Enable Istio Strict Mode</h4>
+<div class="section">
+<p>For this example we make Istio run in "strict" mode so that it will not allow any traffic between Pods outside the Envoy proxy. If other modes are used, such as permissive, then Coherence will work as normal as its ports will not be blocked.</p>
+
+<p>To set Istio to strict mode create the following yaml file.</p>
+
+<markup
+lang="yaml"
+title="istio-strict.yaml"
+>apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: "default"
+spec:
+  mtls:
+    mode: STRICT</markup>
+
+<p>Install this yaml into the Istio system namespace with the following command:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n istio-system apply istio-strict.yaml</markup>
+
+</div>
 </div>
 
 <h3 id="_using_the_coherence_operator_with_istio">Using the Coherence operator with Istio</h3>
@@ -34,7 +63,46 @@ kubectl label namespace coherence istio-injection=enabled</markup>
 
 <p>Istio Sidecar AutoInjection is done automatically when you label the coherence namespace with istio-injection.</p>
 
-<p>After the namespace is labeled, you can install the operator using your preferred method in the Operator <router-link to="/docs/installation/01_installation">Installation Guide</router-link>.</p>
+
+<h4 id="_exclude_the_operator_web_hook_from_the_envoy_proxy">Exclude the Operator Web-Hook from the Envoy Proxy</h4>
+<div class="section">
+<p>The Coherence Operator uses an admissions web-hook, which Kubernetes will call to validate Coherence resources.
+This web-hook binds to port <code>9443</code> in the Operator Pods and is already configured to use TLS as is standard for
+Kubernetes admissions web-hooks. If this port is routed through the Envoy proxy Kubernetes will be unable to
+access the web-hook.</p>
+
+<p>There are a number of ways to exclude the web-hook port, the simplest is to add a <code>PeerAuthentication</code> resource to the Operator namespace.</p>
+
+<p><strong>Before installing the Operator</strong>, create the following <code>PeerAuthentication</code> yaml.</p>
+
+<markup
+lang="yaml"
+title="istio-operator.yaml"
+>apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: "coherence-operator"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coherence-operator
+      app.kubernetes.io/instance: coherence-operator-manager
+      app.kubernetes.io/component: manager
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    9443:
+      mode: PERMISSIVE</markup>
+
+<p>Then install this <code>PeerAuthentication</code> resource into the same namespace that the Operator will be installed into.
+For example, if the Operator will be in the <code>coherence</code> namespace:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence apply istio-operator.yaml</markup>
+
+<p>You can then install the operator using your preferred method in the Operator <router-link to="/docs/installation/01_installation">Installation Guide</router-link>.</p>
 
 <p>After installed operator, use the following command to confirm the operator is running:</p>
 
@@ -46,8 +114,9 @@ lang="bash"
 NAME                                                     READY   STATUS    RESTARTS   AGE
 coherence-operator-controller-manager-7d76f9f475-q2vwv   2/2     Running   1          17h</markup>
 
-<p>2/2 in READY column means that there are 2 containers running in the operator Pod. One is Coherence operator and the other is Envoy Proxy.</p>
+<p>The output should show 2/2 in READY column, meaning there are 2 containers running in the Operator pod. One is Coherence Operator and the other is Envoy Proxy.</p>
 
+</div>
 </div>
 
 <h3 id="_creating_a_coherence_cluster_with_istio">Creating a Coherence cluster with Istio</h3>
@@ -60,45 +129,95 @@ lang="bash"
 >kubectl create namespace coherence-example
 kubectl label namespace coherence-example istio-injection=enabled</markup>
 
-<p>There is no other requirements to run Coherence in Istio environment.</p>
 
-<p>The following is an example that creates a cluster named example-cluster-storage:</p>
+<h4 id="_exclude_the_coherence_cluster_ports">Exclude the Coherence Cluster Ports</h4>
+<div class="section">
+<p>As explained above, Coherence cluster traffic must be excluded from the Envoy proxy, there are various ways to do this.</p>
 
-<p>example.yaml</p>
+<p>There are three ports that must be excluded:</p>
+
+<ul class="ulist">
+<li>
+<p>The cluster port - defaults to 7574, there is no need to set this to any other value.</p>
+
+</li>
+<li>
+<p>The TCP first local port - the Operator will default this to 7575 using its web-hook (if the web-hook is disabled this needs to be manually set).</p>
+
+</li>
+<li>
+<p>The TCP second local port - the Operator will default this to 7576 using its web-hook (if the web-hook is disabled this needs to be manually set).</p>
+
+</li>
+</ul>
+<p><strong>1 Use an Annotation in the Coherence Resource</strong></p>
+
+<p>The Istio exclusion annotation <code>traffic.sidecar.istio.io/excludeInboundPorts</code> can be added to the Coherence yaml to list the ports to be excluded,</p>
+
+<p>For example, using the default ports the following annotation will exclude those ports from Istio:</p>
 
 <markup
-lang="bash"
-
-># Example
-apiVersion: coherence.oracle.com/v1
+lang="yaml"
+title="coherence-storage.yaml"
+>apiVersion: coherence.oracle.com/v1
 kind: Coherence
 metadata:
-  name: example-cluster-storage</markup>
+  name: storage
+spec:
+  annotations:
+    traffic.sidecar.istio.io/excludeInboundPorts: "7574,7575,7576"</markup>
+
+<p>If the Coherence Operator&#8217;s web-hook has been disabled, the local ports must be set in the yaml too:</p>
 
 <markup
-lang="bash"
+lang="yaml"
+title="coherence-storage.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  annotations:
+    traffic.sidecar.istio.io/excludeInboundPorts: "7574,7575,7576"
+  coherence:
+    localPort: 7575
+    localPortAdjust: 7576</markup>
 
->$ kubectl -n coherence-example apply -f example.yaml</markup>
+<p><strong>2 Use a PeerAuthentication resource</strong></p>
 
-<p>After you installed the Coherence cluster, run the following command to view the pods:</p>
+<p>A <code>PeerAuthentication</code> resource can be added to the Coherence cluster&#8217;s namespace <strong>before the cluster is deployed</strong>.</p>
 
 <markup
-lang="bash"
+lang="yaml"
+title="istio-coherence.yaml"
+>apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: "coherence"
+spec:
+  selector:
+    matchLabels:
+      coherenceComponent: coherencePod
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    7574:
+      mode: PERMISSIVE
+    7575:
+      mode: PERMISSIVE
+    7576:
+      mode: PERMISSIVE</markup>
 
->$ kubectl -n coherence-example get pods
+<p>The Coherence Operator labels Coherence Pods with the label <code>coherenceComponent: coherencePod</code> so this can be used in the <code>PeerAuthentication</code>. Then each port to be excluded is listed in the <code>portLevelMtls</code> and set to be <code>PERMISSIVE</code>.</p>
 
-NAME                                             READY   STATUS    RESTARTS   AGE
-example-cluster-storage-0                        2/2     Running   0          45m
-example-cluster-storage-1                        2/2     Running   0          45m
-example-cluster-storage-2                        2/2     Running   0          45m</markup>
+<p>This yaml can then be installed into the namespace that the Coherence cluster will be deployed into.</p>
 
-<p>You can see that 3 members in the cluster are running with 3 pods. 2/2 in READY column means that there are 2 containers running in each Pod. One is Coherence member and the other is Envoy Proxy.</p>
-
+</div>
 </div>
 
 <h3 id="_tls">TLS</h3>
 <div class="section">
-<p>Coherence cluster works with mTLS. Coherence client can also support TLS through Istio Gateway with TLS termination to connect to Coherence cluster running inside kubernetes.  For example, you can apply the following Istio Gateway and Virtual Service in the namespace of the Coherence cluster.  Before applying the gateway, create a secret for the credential from the certificate and key (e.g. server.crt and server.key) to be used by the Gateway:</p>
+<p>Coherence clusters work with mTLS and Coherence clients can also support TLS through the Istio Gateway with TLS termination to connect to Coherence cluster running inside kubernetes. For example, you can apply the following Istio Gateway and Virtual Service in the namespace of the Coherence cluster.  Before applying the gateway, create a secret for the credential from the certificate and key (e.g. server.crt and server.key) to be used by the Gateway:</p>
 
 <markup
 lang="bash"

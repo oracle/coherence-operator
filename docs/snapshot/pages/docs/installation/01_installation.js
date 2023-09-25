@@ -112,7 +112,18 @@ available in Coherence 12.2.1.4 and later.</p>
 </li>
 </ul>
 <div class="admonition note">
-<p class="admonition-inline">ARM Support: As of version 3.2.0, the Coherence Operator is build as a multi-architecture image that supports running in Kubernetes on both Linux/amd64 and Linux/arm64. The prerequisite is that the Coherence application image used has been built to support ARM.</p>
+<p class="admonition-textlabel">Note</p>
+<p ><p>ARM Support: As of version 3.2.0, the Coherence Operator is build as a multi-architecture image that supports running in Kubernetes on both Linux/amd64 and Linux/arm64. The prerequisite is that the Coherence application image used has been built to support ARM.</p>
+</p>
+</div>
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>Istio (or similar service meshes)</p>
+
+<p>When installing the Operator and Coherence into Kubernetes cluster that use Istio or similar meshes there are a
+number of pre-requisites that must be understood.
+See the <router-link to="/examples/400_Istio/README">Istio example</router-link> for more details.</p>
+</p>
 </div>
 <p>There are a number of ways to install the Coherence Operator documented below:</p>
 
