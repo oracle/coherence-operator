@@ -273,6 +273,14 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Value: deployment.GetName(),
 		},
 		{
+			Name:  "COHERENCE_LOCALPORT",
+			Value: fmt.Sprintf("%d", coh.DefaultUnicastPort),
+		},
+		{
+			Name:  "COHERENCE_LOCALPORT_ADJUST",
+			Value: fmt.Sprintf("%d", coh.DefaultUnicastPortAdjust),
+		},
+		{
 			Name:  "COH_HEALTH_PORT",
 			Value: fmt.Sprintf("%d", spec.GetHealthPort()),
 		},

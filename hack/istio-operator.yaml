@@ -1,0 +1,16 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: "coherence-operator"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coherence-operator
+      app.kubernetes.io/instance: coherence-operator-manager
+      app.kubernetes.io/component: manager
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    9443:
+      mode: PERMISSIVE
+

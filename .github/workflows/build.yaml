@@ -63,15 +63,15 @@ jobs:
         df -h
 
     - name: Set up JDK
-      uses: actions/setup-java@v3
+      uses: oracle-actions/setup-java@v1
       with:
-        distribution: 'zulu'
-        java-version: '11'
+        website: oracle.com
+        release: 21
 
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.19.x
+        go-version: 1.20.x
 
     - name: Cache Go Modules
       uses: actions/cache@v3

@@ -451,6 +451,9 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 	c := EnsureContainerInPod(ContainerNameCoherence, podTemplate)
 	defer ReplaceContainerInPod(podTemplate, c)
 
+	lp, localPortAdjust := in.GetLocalPorts()
+	localPort := fmt.Sprintf("%d", lp)
+
 	if in == nil {
 		// we're nil so disable management and metrics/
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohMgmtPrefix + EnvVarCohEnabledSuffix, Value: "false"},
@@ -460,6 +463,9 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 		if deployment.GetType() == CoherenceTypeJob {
 			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
 		}
+
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: localPort})
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: localPortAdjust})
 		return
 	}
 
@@ -472,14 +478,8 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 	}
 
 	// Always set the unicast ports, as we default them if not specifically set
-	if in.LocalPort != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: Int32PtrToString(in.LocalPort)})
-	}
-
-	if in.LocalPortAdjust != nil {
-		lpa := in.LocalPortAdjust
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: lpa.String()})
-	}
+	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: localPort})
+	c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: localPortAdjust})
 
 	if in.LogLevel != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohLogLevel, Value: Int32PtrToString(in.LogLevel)})
@@ -523,6 +523,23 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	in.AddPersistenceVolumeMounts(c)
 	in.AddPersistenceVolumes(podTemplate)
+}
+
+// GetLocalPorts returns the Coherence local ports.
+func (in *CoherenceSpec) GetLocalPorts() (int32, string) {
+	localPort := DefaultUnicastPort
+	localPortAdjust := fmt.Sprintf("%d", DefaultUnicastPortAdjust)
+	if in != nil {
+		if in.LocalPort != nil {
+			localPort = *in.LocalPort
+		}
+
+		if in.LocalPortAdjust != nil {
+			i := *in.LocalPortAdjust
+			localPortAdjust = i.String()
+		}
+	}
+	return localPort, localPortAdjust
 }
 
 // GetMetricsPort returns the metrics port number.
