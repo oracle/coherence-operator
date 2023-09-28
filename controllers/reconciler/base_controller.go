@@ -434,7 +434,7 @@ func (in *CommonReconciler) ApplyThreeWayPatchWithCallback(ctx context.Context, 
 		callback()
 	}
 
-	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s with %s", kind, name, string(data)))
+	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s", kind, name), "Patch", string(data))
 	err := in.GetManager().GetClient().Patch(ctx, current, patch)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to patch  %s/%s with %s", kind, name, string(data))
@@ -461,7 +461,7 @@ func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, 
 
 	// log the patch
 	kind := current.GetObjectKind().GroupVersionKind().Kind
-	in.GetLog().Info(fmt.Sprintf("Created patch for %s/%s %s", kind, name, string(data)))
+	in.GetLog().Info(fmt.Sprintf("Created patch for %s/%s", kind, name), "Patch", string(data))
 
 	return client.RawPatch(in.patchType, data), data, nil
 }
@@ -877,9 +877,12 @@ func (in *ReconcileSecondaryResource) Delete(ctx context.Context, namespace, nam
 
 // Update possibly updates the resource if the current state differs from the desired state.
 func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, current client.Object, storage utils.Storage, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
-
 	hashMatches := in.HashLabelsMatch(current, storage)
+	if hashMatches {
+		logger.Info(fmt.Sprintf("Nothing to update for %v, hashes match", in.Kind))
+		return nil
+	}
+
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
@@ -889,7 +892,7 @@ func (in *ReconcileSecondaryResource) Update(ctx context.Context, name string, c
 
 	patched, err := in.ThreeWayPatch(ctx, name, current, original.Spec, desired.Spec)
 	if patched && hashMatches {
-		logger.Info(fmt.Sprintf("Patch applied to %v even though hashes matched (possible external update)", in.Kind))
+		logger.Info(fmt.Sprintf("Patch applied to %v", in.Kind))
 	}
 	return err
 }

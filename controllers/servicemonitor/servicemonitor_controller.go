@@ -186,9 +186,13 @@ func (in *ReconcileServiceMonitor) CreateServiceMonitor(ctx context.Context, nam
 
 // UpdateServiceMonitor possibly updates the ServiceMonitor if the current state differs from the desired state.
 func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, namespace, name string, current *monitoring.ServiceMonitor, storage utils.Storage, logger logr.Logger) error {
-	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
-
 	hashMatches := in.HashLabelsMatch(current, storage)
+	if hashMatches {
+		logger.Info(fmt.Sprintf("Nothing to update for %v, hashes match", in.Kind))
+		return nil
+	}
+
+	logger.Info(fmt.Sprintf("Updating %v", in.Kind))
 	original, _ := storage.GetPrevious().GetResource(in.Kind, name)
 	desired, found := storage.GetLatest().GetResource(in.Kind, name)
 	if !found {
