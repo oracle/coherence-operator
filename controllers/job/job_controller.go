@@ -208,8 +208,6 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 }
 
 func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceResource, job *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
-	logger.Info("Updating job")
-
 	// get the desired resource state from the store
 	resource, found := storage.GetLatest().GetResource(coh.ResourceTypeJob, job.Name)
 	if !found {
@@ -231,6 +229,10 @@ func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceR
 // Patch the Job if required, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceResource, job, desired *batchv1.Job, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(job, storage)
+	if hashMatches {
+		return reconcile.Result{}, nil
+	}
+
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeJob, job.GetName())
 	original := &batchv1.Job{}
 
@@ -320,8 +322,6 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 		return reconcile.Result{}, nil
 	}
 
-	logger.Info("Updating Job")
-
 	// now apply the patch
 	patched, err := in.ApplyThreeWayPatchWithCallback(ctx, current.GetName(), current, patch, data, callback)
 
@@ -332,10 +332,6 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 	case !patched:
 		return reconcile.Result{Requeue: true}, nil
-	}
-
-	if patched && hashMatches {
-		logger.Info("Patch applied to job even though hashes matched (possible external update)")
 	}
 
 	return reconcile.Result{}, nil

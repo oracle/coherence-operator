@@ -298,8 +298,6 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 }
 
 func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
-	logger.Info("Updating statefulSet")
-
 	var err error
 	result := reconcile.Result{}
 
@@ -350,6 +348,10 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
+	if hashMatches {
+		return reconcile.Result{}, nil
+	}
+
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
 	original := &appsv1.StatefulSet{}
 
@@ -452,8 +454,6 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		return reconcile.Result{}, nil
 	}
 
-	logger.Info("Updating StatefulSet")
-
 	if deploymentSpec.CheckHABeforeUpdate() {
 		// Check we have the expected number of ready replicas
 		if readyReplicas != currentReplicas {
@@ -496,10 +496,6 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 	case !patched:
 		return reconcile.Result{Requeue: true}, nil
-	}
-
-	if patched && hashMatches {
-		logger.Info("Patch applied to statefulSet even though hashes matched (possible external update)")
 	}
 
 	return reconcile.Result{}, nil
