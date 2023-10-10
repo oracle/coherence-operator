@@ -153,10 +153,10 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 
 	cohctl := filesDir + pathSep + "cohctl"
 	if _, err := os.Stat(cohctl); err == nil {
-		fmt.Println("Copying cohctl utility")
+		fmt.Printf("Copying cohctl utility to \"%s%scohctl\"\n", utilDir, pathSep)
 		err = utils.CopyFile(cohctl, utilDir+pathSep+"cohctl")
 		if err != nil {
-			return false, err
+			fmt.Printf("Failed to copy cohctl utility to \"%s%scohctl\" - %s\n", utilDir, pathSep, err.Error())
 		}
 	}
 
