@@ -8,33 +8,25 @@ package com.oracle.coherence.k8s;
 
 import java.io.File;
 import java.io.PrintWriter;
-
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import java.util.concurrent.CompletableFuture;
 
 import com.tangosol.application.Context;
 import com.tangosol.application.LifecycleListener;
-
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
-
 import com.tangosol.coherence.config.Config;
-
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
-
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
-
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
-
 import com.tangosol.util.Service;
 import com.tangosol.util.ServiceEvent;
 import com.tangosol.util.ServiceListener;
