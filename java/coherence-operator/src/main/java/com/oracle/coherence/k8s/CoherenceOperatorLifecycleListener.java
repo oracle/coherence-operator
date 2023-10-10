@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.k8s;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,7 +17,11 @@ import java.util.concurrent.CompletableFuture;
 import com.tangosol.application.Context;
 import com.tangosol.application.LifecycleListener;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.coherence.config.Config;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher;
@@ -157,6 +163,7 @@ public class CoherenceOperatorLifecycleListener
 
     @Override
     public void postStart(Context context) {
+        initCohCtl();
     }
 
     @Override
@@ -262,6 +269,58 @@ public class CoherenceOperatorLifecycleListener
         catch (Throwable t) {
             LOGGER.error(t, "CoherenceOperator: Error decoding service resume list %s", services);
             return null;
+        }
+    }
+
+    void initCohCtl() {
+        try {
+            Cluster cluster        = CacheFactory.getCluster();
+            Member  member         = cluster.getLocalMember();
+            String  clusterName    = member.getClusterName();
+            String  port           = Config.getProperty("coherence.management.http.port", "30000");
+            String  provider       = Config.getProperty("coherence.management.http.provider");
+            String defaultProtocol = provider == null || provider.isEmpty() ? "http" : "https";
+            String protocol        = Config.getProperty("coherence.operator.cli.protocol", defaultProtocol);
+            String home            = System.getProperty("user.home");
+            String connectionType  = "http";
+
+            File cohctlHome = new File(home + File.separator + ".cohctl");
+            File configFile = new File(cohctlHome, "cohctl.yaml");
+
+            if (!configFile.exists()) {
+                LOGGER.info("CoherenceOperator: creating default cohctl config at " + configFile.getAbsolutePath());
+                if (!cohctlHome.exists()) {
+                    cohctlHome.mkdirs();
+                }
+                try (PrintWriter out = new PrintWriter(configFile)) {
+                    out.println("clusters:");
+                    out.println("    - name: default");
+                    out.println("      discoverytype: manual");
+                    out.println("      connectiontype: " + connectionType);
+                    out.println("      connectionurl: " + protocol + "://127.0.0.1:" + port + "/management/coherence/cluster");
+                    out.println("      nameservicediscovery: \"\"");
+                    out.println("      clusterversion: \"" + CacheFactory.VERSION + "\"");
+                    out.println("      clustername: \"" + clusterName + "\"");
+                    out.println("      clustertype: Standalone");
+                    out.println("      manuallycreated: false");
+                    out.println("      baseclasspath: \"\"");
+                    out.println("      additionalclasspath: \"\"");
+                    out.println("      arguments: \"\"");
+                    out.println("      managementport: 0");
+                    out.println("      persistencemode: \"\"");
+                    out.println("      loggingdestination: \"\"");
+                    out.println("      managementavailable: false");
+                    out.println("color: \"on\"");
+                    out.println("currentcontext: default");
+                    out.println("debug: false");
+                    out.println("defaultbytesformat: m");
+                    out.println("ignoreinvalidcerts: false");
+                    out.println("requesttimeout: 30");
+                }
+            }
+        }
+        catch (Exception e) {
+            LOGGER.error(e, "Coherence Operator: Failed to create default cohctl config");
         }
     }
 }
