@@ -58,6 +58,10 @@ func (in *CoherenceJob) GetAPIVersion() string {
 	return in.APIVersion
 }
 
+func (in *CoherenceJob) IsForceExit() bool {
+	return in.Spec.ForceExit != nil && *in.Spec.ForceExit
+}
+
 // GetSpec returns this resource's CoherenceResourceSpec
 func (in *CoherenceJob) GetSpec() *CoherenceResourceSpec {
 	return &in.Spec.CoherenceResourceSpec
@@ -376,6 +380,10 @@ type CoherenceJobResourceSpec struct {
 	// will also be executed on every Pod that becomes ready after that time.
 	// +optional
 	ReadyAction *CoherenceJobProbe `json:"readyAction,omitempty"`
+
+	// ForceExit is a flag to indicate whether the Operator should call System.exit to forcefully exit the process
+	// when the configured main class completes execution.
+	ForceExit *bool `json:"forceExit,omitempty"`
 }
 
 // GetRestartPolicy returns the name of the application image to use

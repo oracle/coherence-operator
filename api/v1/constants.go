@@ -200,6 +200,7 @@ const (
 	EnvVarCohMetricsPrefix            = "COH_METRICS"
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"
+	EnvVarCohForceExit                = "COH_FORCE_EXIT"
 	EnvVarCoherenceLocalPort          = "COHERENCE_LOCALPORT"
 	EnvVarCoherenceLocalPortAdjust    = "COHERENCE_LOCALPORT_ADJUST"
 	EnvVarEnableIPMonitor             = "COH_ENABLE_IPMONITOR"

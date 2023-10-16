@@ -6,9 +6,7 @@
 
 package com.oracle.coherence.k8s;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.net.CacheFactory;
 
 /**
@@ -17,9 +15,6 @@ import com.tangosol.net.CacheFactory;
  * version is greater than or equal to that version.
  */
 public class CoherenceVersion {
-
-    private static final Pattern PATTERN = Pattern.compile("(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*(\\d*)\\D*");
-
     /**
      * Private constructor for utility class.
      */
@@ -54,6 +49,7 @@ public class CoherenceVersion {
      * @return {@code true} if the actual Coherence version is at least the check version
      */
     public static boolean versionCheck(String coherenceVersion, String... args) {
+        System.out.print("CoherenceOperator: version check actual=\"" + coherenceVersion + "\" required=\"" + args[0] + '"');
         if (coherenceVersion.contains(" ")) {
             coherenceVersion = coherenceVersion.substring(0, coherenceVersion.indexOf(" "));
         }
@@ -61,50 +57,27 @@ public class CoherenceVersion {
             coherenceVersion = coherenceVersion.substring(coherenceVersion.indexOf(":") + 1);
         }
 
-        int[] coherenceParts = splitVersion(coherenceVersion);
-
-        if (coherenceParts.length == 0) {
-            return false;
-        }
-
-        int[] versionParts = splitVersion(args[0]);
-        int partCount = Math.min(coherenceParts.length, versionParts.length);
-
-        if (partCount > 0) {
-            for (int i = 0; i < partCount; i++) {
-                if (coherenceParts[i] == versionParts[i]) {
-                    continue;
-                }
-                // else versions differ
-                return coherenceParts[i] > versionParts[i];
-            }
-        }
-
-        // versions are equal
-        return true;
-    }
-
-    private static int[] splitVersion(String version) {
-        Matcher matcher = PATTERN.matcher(version);
-        int[] count;
-
-        if (matcher.matches()) {
-            int groupCount = matcher.groupCount();
-            count = new int[groupCount];
-
-            for (int i = 1; i <= groupCount; i++) {
-                try {
-                    count[i - 1] = Integer.parseInt(matcher.group(i));
-                }
-                catch (NumberFormatException e) {
-                    count[i - 1] = 0;
-                }
-            }
+        int[] nCoherenceParts = ServiceMemberSet.toVersionArray(coherenceVersion);
+        int nActual;
+        if (nCoherenceParts[0] > 20) {
+            nActual = ServiceMemberSet.encodeVersion(nCoherenceParts[0], nCoherenceParts[1], nCoherenceParts[2]);
         }
         else {
-            count = new int[0];
+            nActual = ServiceMemberSet.parseVersion(coherenceVersion);
         }
 
-        return count;
+        int[] nParts = ServiceMemberSet.toVersionArray(args[0]);
+        int nRequired;
+        if (nParts[0] > 20) {
+            nRequired = ServiceMemberSet.encodeVersion(nParts[0], nParts[1], nParts[2]);
+        }
+        else {
+            nRequired = ServiceMemberSet.parseVersion(args[0]);
+        }
+        boolean fResult = nActual >= nRequired;
+
+        // versions are equal
+        System.out.println(" result=" + fResult);
+        return fResult;
     }
 }

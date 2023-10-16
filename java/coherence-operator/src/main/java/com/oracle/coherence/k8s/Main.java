@@ -19,6 +19,8 @@ public class Main {
 
     private static final String DEFAULT_MAIN = "$DEFAULT$";
 
+    private static final String PROP_FORCE_EXIT = "coherence.k8s.operator.force.exit";
+
     private static boolean initialised = false;
 
     /**
@@ -50,6 +52,11 @@ public class Main {
         Class<?> clsMain = Class.forName(sMainClass);
         Method method = clsMain.getMethod("main", asArgsReal.getClass());
         method.invoke(null, (Object) asArgsReal);
+
+        boolean fExit = Boolean.getBoolean(PROP_FORCE_EXIT);
+        if (fExit) {
+            System.exit(0);
+        }
     }
 
     /**
