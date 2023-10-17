@@ -600,6 +600,37 @@ func addEnvVarsToContainer(c *corev1.Container, envVars ...corev1.EnvVar) {
 	}
 }
 
+func addEnvVarsFrom(sts *appsv1.StatefulSet, containerName string, envVars ...corev1.EnvFromSource) {
+	if sts != nil {
+		addEnvVarsFromToPodSpec(&sts.Spec.Template, containerName, envVars...)
+	}
+}
+
+func addEnvVarsFromToJob(job *batchv1.Job, containerName string, envVars ...corev1.EnvFromSource) {
+	if job != nil {
+		addEnvVarsFromToPodSpec(&job.Spec.Template, containerName, envVars...)
+	}
+}
+
+func addEnvVarsFromToPodSpec(template *corev1.PodTemplateSpec, containerName string, envVars ...corev1.EnvFromSource) {
+	for i, c := range template.Spec.InitContainers {
+		if c.Name == containerName {
+			addEnvVarsFromToContainer(&c, envVars...)
+			template.Spec.InitContainers[i] = c
+		}
+	}
+	for i, c := range template.Spec.Containers {
+		if c.Name == containerName {
+			addEnvVarsFromToContainer(&c, envVars...)
+			template.Spec.Containers[i] = c
+		}
+	}
+}
+
+func addEnvVarsFromToContainer(c *corev1.Container, envVars ...corev1.EnvFromSource) {
+	c.EnvFrom = append(c.EnvFrom, envVars...)
+}
+
 func addPorts(sts *appsv1.StatefulSet, containerName string, ports ...corev1.ContainerPort) {
 	if sts != nil {
 		addPortsToPodSpec(&sts.Spec.Template, containerName, ports...)

@@ -8,6 +8,7 @@ package v1_test
 
 import (
 	coh "github.com/oracle/coherence-operator/api/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 	"testing"
 )
@@ -101,5 +102,37 @@ func TestCreateJobWithReplicasAndSyncedCompletionsOverride(t *testing.T) {
 	expected.Spec.Completions = pointer.Int32(19)
 
 	// assert that the Job is as expected
+	assertJobCreation(t, deployment, expected)
+}
+
+func TestCreateJobWithEnvVarsFrom(t *testing.T) {
+	cm := corev1.ConfigMapEnvSource{
+		LocalObjectReference: corev1.LocalObjectReference{
+			Name: "test-vars",
+		},
+		Optional: pointer.Bool(true),
+	}
+
+	var from []corev1.EnvFromSource
+	from = append(from, corev1.EnvFromSource{
+		Prefix:       "foo",
+		ConfigMapRef: &cm,
+	})
+
+	spec := coh.CoherenceJobResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Env:     []corev1.EnvVar{},
+			EnvFrom: from,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJobDeployment(spec)
+	// Create expected StatefulSet
+	expected := createMinimalExpectedJob(deployment)
+
+	addEnvVarsFromToJob(expected, coh.ContainerNameCoherence, from...)
+
+	// assert that the StatefulSet is as expected
 	assertJobCreation(t, deployment, expected)
 }

@@ -19,13 +19,13 @@ VERSION ?= 3.3.1
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.2.11
+PREV_VERSION ?= 3.3.0
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.2.11
+COMPATIBLE_VERSION  ?= 3.3.0
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR = control-plane=coherence
 
@@ -42,7 +42,7 @@ COHERENCE_VERSION ?= 21.12.5
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
-COHERENCE_IMAGE_TAG      ?= 22.06.5
+COHERENCE_IMAGE_TAG      ?= 22.06.6
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
