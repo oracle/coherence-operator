@@ -731,6 +731,14 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 
 	c.Env = append(c.Env, in.CreateDefaultEnv(deployment)...)
 
+	forceExit := deployment.IsForceExit()
+	if forceExit {
+		c.Env = append(c.Env, corev1.EnvVar{
+			Name:  EnvVarCohForceExit,
+			Value: "true",
+		})
+	}
+
 	in.Application.UpdateCoherenceContainer(&c)
 
 	if in.Resources != nil {

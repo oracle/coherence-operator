@@ -85,4 +85,6 @@ type CoherenceResource interface {
 	DeepCopyResource() CoherenceResource
 	// GetAPIVersion returns the TypeMeta API version
 	GetAPIVersion() string
+	// IsForceExit is a flag to determine whether the Operator calls System.exit when the main class finishes.
+	IsForceExit() bool
 }

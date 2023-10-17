@@ -294,6 +294,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	details.addArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
 	details.addArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
 	details.addArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")
+	details.addArgFromEnvVar(v1.EnvVarCohForceExit, "-Dcoherence.k8s.operator.force.exit")
 	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.k8s.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
 	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
@@ -358,15 +359,15 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		cohPre12214(details)
 	}
 
-	post2206 := checkCoherenceVersion("22.06.0", details)
+	post2206 := checkCoherenceVersion("14.1.1.2206.0", details)
 	if post2206 {
 		// at least CE 22.06
 		cohPost2206(details)
 	} else {
-		post2006 := checkCoherenceVersion("20.06.0", details)
+		post2006 := checkCoherenceVersion("14.1.1.2006.0", details)
 		if !post2006 {
 			// pre CE 20.06 - could be 14.1.1.2206
-			if post14112206 := checkCoherenceVersion("14.1.1.2206", details); post14112206 {
+			if post14112206 := checkCoherenceVersion("14.1.1.2206.0", details); post14112206 {
 				// at least 14.1.1.2206
 				cohPost2206(details)
 			}

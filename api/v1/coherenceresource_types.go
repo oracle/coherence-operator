@@ -175,6 +175,10 @@ func (in *Coherence) SetReplicas(replicas int32) {
 	}
 }
 
+func (in *Coherence) IsForceExit() bool {
+	return false
+}
+
 // FindFullyQualifiedPortServiceNames returns a map of the exposed ports of this resource mapped to their Service's
 // fully qualified domain name.
 func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
