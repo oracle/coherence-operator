@@ -144,7 +144,7 @@ func TestCreateStatefulSetWithEnvVarsFrom(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
 		Env:     []corev1.EnvVar{},
-		EnvFrom: from,
+		EnvFrom: &from,
 	}
 
 	// Create the test deployment

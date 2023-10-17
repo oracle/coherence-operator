@@ -476,9 +476,13 @@ func (in *CoherenceResourceSpec) DeepCopyInto(out *CoherenceResourceSpec) {
 	}
 	if in.EnvFrom != nil {
 		in, out := &in.EnvFrom, &out.EnvFrom
-		*out = make([]corev1.EnvFromSource, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		*out = new([]corev1.EnvFromSource)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]corev1.EnvFromSource, len(*in))
+			for i := range *in {
+				(*in)[i].DeepCopyInto(&(*out)[i])
+			}
 		}
 	}
 	if in.Labels != nil {
