@@ -94,14 +94,6 @@ type CoherenceResourceSpec struct {
 	// +listMapKey=name
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
-	// List of sources to populate environment variables in the container.
-	// The keys defined within a source must be a C_IDENTIFIER. All invalid keys
-	// will be reported as an event when the container is starting. When a key exists in multiple
-	// sources, the value associated with the last source will take precedence.
-	// Values defined by an Env with a duplicate key will take precedence.
-	// Cannot be updated.
-	// +optional
-	EnvFrom *[]corev1.EnvFromSource `json:"envFrom,omitempty"`
 	// The extra labels to add to the all the Pods in this deployment.
 	// Labels here will add to or override those defined for the cluster.
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
@@ -733,9 +725,7 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 		VolumeMounts:    vm,
 	}
 
-	if in.EnvFrom != nil {
-		c.EnvFrom = *in.EnvFrom
-	}
+	c.EnvFrom = deployment.GetEnvVarFrom()
 
 	if in.ImagePullPolicy != nil {
 		c.ImagePullPolicy = *in.ImagePullPolicy

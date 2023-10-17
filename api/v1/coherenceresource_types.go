@@ -179,6 +179,13 @@ func (in *Coherence) IsForceExit() bool {
 	return false
 }
 
+func (in *Coherence) GetEnvVarFrom() []corev1.EnvFromSource {
+	if in == nil {
+		return make([]corev1.EnvFromSource, 0)
+	}
+	return in.Spec.EnvFrom
+}
+
 // FindFullyQualifiedPortServiceNames returns a map of the exposed ports of this resource mapped to their Service's
 // fully qualified domain name.
 func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
@@ -416,6 +423,14 @@ type CoherenceStatefulSetResourceSpec struct {
 	// Actions to execute once all the Pods are ready after an initial deployment
 	// +optional
 	Actions []Action `json:"actions,omitempty"`
+	// List of sources to populate environment variables in the container.
+	// The keys defined within a source must be a C_IDENTIFIER. All invalid keys
+	// will be reported as an event when the container is starting. When a key exists in multiple
+	// sources, the value associated with the last source will take precedence.
+	// Values defined by an Env with a duplicate key will take precedence.
+	// Cannot be updated.
+	// +optional
+	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
 }
 
 // CreateStatefulSetResource creates the deployment's StatefulSet resource.

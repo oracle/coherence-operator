@@ -62,6 +62,13 @@ func (in *CoherenceJob) IsForceExit() bool {
 	return in.Spec.ForceExit != nil && *in.Spec.ForceExit
 }
 
+func (in *CoherenceJob) GetEnvVarFrom() []corev1.EnvFromSource {
+	if in == nil {
+		return make([]corev1.EnvFromSource, 0)
+	}
+	return in.Spec.EnvFrom
+}
+
 // GetSpec returns this resource's CoherenceResourceSpec
 func (in *CoherenceJob) GetSpec() *CoherenceResourceSpec {
 	return &in.Spec.CoherenceResourceSpec
@@ -384,6 +391,14 @@ type CoherenceJobResourceSpec struct {
 	// ForceExit is a flag to indicate whether the Operator should call System.exit to forcefully exit the process
 	// when the configured main class completes execution.
 	ForceExit *bool `json:"forceExit,omitempty"`
+	// List of sources to populate environment variables in the container.
+	// The keys defined within a source must be a C_IDENTIFIER. All invalid keys
+	// will be reported as an event when the container is starting. When a key exists in multiple
+	// sources, the value associated with the last source will take precedence.
+	// Values defined by an Env with a duplicate key will take precedence.
+	// Cannot be updated.
+	// +optional
+	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
 }
 
 // GetRestartPolicy returns the name of the application image to use

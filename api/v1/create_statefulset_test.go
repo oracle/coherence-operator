@@ -142,13 +142,15 @@ func TestCreateStatefulSetWithEnvVarsFrom(t *testing.T) {
 		ConfigMapRef: &cm,
 	})
 
-	spec := coh.CoherenceResourceSpec{
-		Env:     []corev1.EnvVar{},
-		EnvFrom: &from,
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Env: []corev1.EnvVar{},
+		},
+		EnvFrom: from,
 	}
 
 	// Create the test deployment
-	deployment := createTestDeployment(spec)
+	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 

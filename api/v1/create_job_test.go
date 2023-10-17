@@ -121,9 +121,9 @@ func TestCreateJobWithEnvVarsFrom(t *testing.T) {
 
 	spec := coh.CoherenceJobResourceSpec{
 		CoherenceResourceSpec: coh.CoherenceResourceSpec{
-			Env:     []corev1.EnvVar{},
-			EnvFrom: &from,
+			Env: []corev1.EnvVar{},
 		},
+		EnvFrom: from,
 	}
 
 	// Create the test deployment
