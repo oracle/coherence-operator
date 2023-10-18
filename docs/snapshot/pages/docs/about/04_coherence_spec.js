@@ -3151,6 +3151,12 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <td class=""><code>[]<router-link to="#_action" @click.native="this.scrollFix('#_action')">Action</router-link></code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>envFrom</code></td>
+<td class="">List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated.</td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>

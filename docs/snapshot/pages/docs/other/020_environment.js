@@ -29,5 +29,27 @@ spec:
 <li data-value="1">The <code>VAR_ONE</code> environment variable is a simple variable with a value of <code>VALUE_ONE</code></li>
 <li data-value="2">The <code>VAR_TWO</code> environment variable is variable that is loaded from a secret.</li>
 </ul>
+
+<h3 id="_environment_variables_from">Environment Variables From</h3>
+<div class="section">
+<p>It is also possible to specify environment variables from a <code>ConfigMap</code> or <code>Secret</code> as you would for
+a Kubernetes container.</p>
+
+<p>For example, if there was a <code>ConfigMap</code> named <code>special-config</code> that contained environment variable values,
+it can be added to the <code>Coherence</code> spec as shown below.</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  envFrom:
+    - configMapRef:
+      name: special-config</markup>
+
+</div>
 </div>
 </doc-view>
