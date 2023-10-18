@@ -78,6 +78,7 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
 
 	// scale up to make sure that the Operator can still manage the Coherence cluster
+	t.Logf("Scaling coherence resource %s in namespace %s to 3 replicas", ns, d.Name)
 	cmd := exec.Command("kubectl", "-n", ns, "scale", "coherence", d.Name, "--replicas=3")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
