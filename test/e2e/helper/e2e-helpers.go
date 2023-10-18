@@ -695,6 +695,20 @@ func WaitForPodsWithSelector(ctx TestContext, namespace, selector string, retryI
 	return pods, err
 }
 
+// WaitForPodsWithSelectorAndReplicas waits for Pods to be created.
+func WaitForPodsWithSelectorAndReplicas(ctx TestContext, namespace, selector string, replicas int, retryInterval, timeout time.Duration) ([]corev1.Pod, error) {
+	var pods []corev1.Pod
+
+	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
+		pods, err = ListPodsWithLabelSelector(ctx, namespace, selector)
+		if err != nil {
+			return false, err
+		}
+		return len(pods) == replicas, nil
+	})
+	return pods, err
+}
+
 // WaitForOperatorDeletion waits for deletion of the Operator Pods.
 //
 //goland:noinspection GoUnusedExportedFunction

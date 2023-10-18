@@ -58,12 +58,11 @@ func TestCompatibility(t *testing.T) {
 	helper.DumpState(testContext, ns, dir)
 
 	// Upgrade to this version
-	t.Logf("Helm upgrade to current Operator version\n")
-	UpgradeToCurrentVersion(g, ns, name)
+	UpgradeToCurrentVersion(t, g, ns, name)
 
 	// wait a few minutes to allow the new Operator to reconcile the existing Coherence cluster
 	t.Logf("Upgraded to current Operator version - waiting for reconcile...\n")
-	time.Sleep(2 * time.Minute)
+	time.Sleep(1 * time.Minute)
 
 	// Get the current state of the StatefulSet
 	stsAfter := &appsv1.StatefulSet{}
@@ -78,8 +77,9 @@ func TestCompatibility(t *testing.T) {
 	g.Expect(stsAfter.Generation).To(Equal(stsBefore.Generation))
 
 	// scale up to make sure that the Operator can still manage the Coherence cluster
-	t.Logf("Scaling coherence resource %s in namespace %s to 3 replicas", ns, d.Name)
-	cmd := exec.Command("kubectl", "-n", ns, "scale", "coherence", d.Name, "--replicas=3")
+	n := fmt.Sprintf("coherence/%s", d.Name)
+	t.Logf("Scaling coherence resource %s in namespace %s to 3 replicas\n", n, ns)
+	cmd := exec.Command("kubectl", "-n", ns, "scale", n, "--replicas=3")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
@@ -121,14 +121,15 @@ func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) 
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
+	replicas := values.GetReplicas(1)
+	pods, err := helper.WaitForPodsWithSelectorAndReplicas(testContext, ns, selector, replicas, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(pods)).To(Equal(values.GetReplicas(1)))
 	err = helper.WaitForPodReady(testContext, ns, pods[0].Name, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func UpgradeToCurrentVersion(g *GomegaWithT, ns, name string) {
+func UpgradeToCurrentVersion(t *testing.T, g *GomegaWithT, ns, name string) {
+	t.Logf("Helm upgrade to current Operator version\n")
 	chart, err := helper.FindOperatorHelmChartDir()
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -138,15 +139,18 @@ func UpgradeToCurrentVersion(g *GomegaWithT, ns, name string) {
 		"--namespace", ns, "--wait", name, chart)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	t.Logf("Helm upgrade to current Operator version - executing Helm upgrade\n")
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
+	t.Logf("Helm upgrade to current Operator version - Helm upgrade successful\n")
 
 	version := os.Getenv("VERSION")
 	selector := "app.kubernetes.io/version=" + version
 
-	pods, err := helper.WaitForPodsWithSelector(testContext, ns, selector, time.Second*10, time.Minute*5)
+	t.Logf("Helm upgrade to current Operator version - Waiting for pods in namespace %s with selector \"%s\"\n", ns, selector)
+	pods, err := helper.WaitForPodsWithSelectorAndReplicas(testContext, ns, selector, 3, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(pods)).To(Equal(3))
+	t.Logf("Helm upgrade to current Operator version - Waiting for Pods %s in namespace %s to be ready\n", pods[0].Name, ns)
 	err = helper.WaitForPodReady(testContext, ns, pods[0].Name, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
