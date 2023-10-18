@@ -34,3 +34,24 @@ spec:
 ----
 <1> The `VAR_ONE` environment variable is a simple variable with a value of `VALUE_ONE`
 <2> The `VAR_TWO` environment variable is variable that is loaded from a secret.
+
+=== Environment Variables From
+
+It is also possible to specify environment variables from a `ConfigMap` or `Secret` as you would for
+a Kubernetes container.
+
+For example, if there was a `ConfigMap` named `special-config` that contained environment variable values,
+it can be added to the `Coherence` spec as shown below.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  envFrom:
+    - configMapRef:
+      name: special-config
+----
+

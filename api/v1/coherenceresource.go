@@ -7,6 +7,7 @@
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -87,4 +88,6 @@ type CoherenceResource interface {
 	GetAPIVersion() string
 	// IsForceExit is a flag to determine whether the Operator calls System.exit when the main class finishes.
 	IsForceExit() bool
+	// GetEnvVarFrom returns the array of EnvVarSource configurations
+	GetEnvVarFrom() []corev1.EnvFromSource
 }

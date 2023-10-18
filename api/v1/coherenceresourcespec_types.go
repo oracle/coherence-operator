@@ -725,6 +725,8 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 		VolumeMounts:    vm,
 	}
 
+	c.EnvFrom = deployment.GetEnvVarFrom()
+
 	if in.ImagePullPolicy != nil {
 		c.ImagePullPolicy = *in.ImagePullPolicy
 	}

@@ -128,6 +128,38 @@ func TestCreateStatefulSetWithEmptyEnvVars(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
+func TestCreateStatefulSetWithEnvVarsFrom(t *testing.T) {
+	cm := corev1.ConfigMapEnvSource{
+		LocalObjectReference: corev1.LocalObjectReference{
+			Name: "test-vars",
+		},
+		Optional: pointer.Bool(true),
+	}
+
+	var from []corev1.EnvFromSource
+	from = append(from, corev1.EnvFromSource{
+		Prefix:       "foo",
+		ConfigMapRef: &cm,
+	})
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Env: []corev1.EnvVar{},
+		},
+		EnvFrom: from,
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+
+	addEnvVarsFrom(stsExpected, coh.ContainerNameCoherence, from...)
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
 func TestCreateStatefulSetWithHealthPort(t *testing.T) {
 	// create a spec with a custom health port
 	spec := coh.CoherenceResourceSpec{
