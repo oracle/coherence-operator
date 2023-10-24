@@ -19,7 +19,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 51,
-  "iteration": 1698129447209,
+  "iteration": 1698130409104,
   "links": [
     {
       "icon": "dashboard",
@@ -1031,6 +1031,6 @@
   "timezone": "",
   "title": "Coherence gRPC Proxy Summary Dashboard",
   "uid": "coh-grpc-proxy-summary",
-  "version": 18,
+  "version": 19,
   "weekStart": ""
 }
