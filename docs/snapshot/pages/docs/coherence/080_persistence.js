@@ -32,10 +32,13 @@ documentation for more details of how persistence works and its configuration.</
 
 <h2 id="_persistence_mode">Persistence Mode</h2>
 <div class="section">
-<p>There are three default persistence modes available, <code>active</code>, <code>active-async</code> and <code>on-demand</code>; the default mode is <code>on-demand</code>.
+<p>There are four default persistence modes available, <code>active</code>, <code>active-async</code>, <code>active-backup</code>, and <code>on-demand</code>; the default mode is <code>on-demand</code>.
 The persistence mode will be set using the <code>spec.coherence.persistence,mode</code> field in the CRD. The value of this field will be
-used to set the <code>coherence.distributed.persistence-mode</code> system property in the Coherence JVM.</p>
+used to set the <code>coherence.distributed.persistence.mode</code> system property in the Coherence JVM.</p>
 
+<div class="admonition note">
+<p class="admonition-inline"><code>active-backup</code> persistence mode is only available in the most recent versions of Coherence. Please check the release notes for your version.</p>
+</div>
 <p>For example:</p>
 
 <markup

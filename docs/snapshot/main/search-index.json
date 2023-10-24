@@ -1002,7 +1002,7 @@
         },
         {
             "location": "/docs/coherence/080_persistence",
-            "text": " There are three default persistence modes available, active , active-async and on-demand ; the default mode is on-demand . The persistence mode will be set using the spec.coherence.persistence,mode field in the CRD. The value of this field will be used to set the coherence.distributed.persistence-mode system property in the Coherence JVM. For example: <markup lang=\"yaml\" >apiVersion: coherence.oracle.com/v1 kind: Coherence metadata: name: storage spec: coherence: persistence: mode: active The example above sets the persistence mode to active which will effectively pass -Dcoherence.distributed.persistence-mode=active to the Coherence JVM&#8217;s command line. ",
+            "text": " There are four default persistence modes available, active , active-async , active-backup , and on-demand ; the default mode is on-demand . The persistence mode will be set using the spec.coherence.persistence,mode field in the CRD. The value of this field will be used to set the coherence.distributed.persistence.mode system property in the Coherence JVM. active-backup persistence mode is only available in the most recent versions of Coherence. Please check the release notes for your version. For example: <markup lang=\"yaml\" >apiVersion: coherence.oracle.com/v1 kind: Coherence metadata: name: storage spec: coherence: persistence: mode: active The example above sets the persistence mode to active which will effectively pass -Dcoherence.distributed.persistence-mode=active to the Coherence JVM&#8217;s command line. ",
             "title": "Persistence Mode"
         },
         {
