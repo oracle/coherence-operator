@@ -17,8 +17,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 51,
-  "iteration": 1698130409104,
+  "id": 52,
+  "iteration": 1698194210893,
   "links": [
     {
       "icon": "dashboard",
@@ -28,6 +28,18 @@
       "title": "Back to Main Dashboard",
       "type": "link",
       "url": "/d/coh-main/coherence-dashboard-main"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Back to gRPC Proxy Summary Dashboard",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/coh-grpc-proxy-summary"
     },
     {
       "asDropdown": true,
@@ -45,8 +57,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "gridPos": {
         "h": 2,
@@ -57,24 +68,264 @@
       "id": 37,
       "links": [],
       "options": {
-        "content": "<center><h3>gRPC Proxy Summary - $ClusterName</h3></center>",
+        "content": "<center><h3>gRPC Proxy Details - $ClusterName / ${MemberName}</h3></center>",
         "mode": "html"
       },
       "pluginVersion": "8.5.3",
       "type": "text"
     },
     {
-      "columns": [],
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 6,
-        "w": 24,
+        "h": 5,
+        "w": 6,
         "x": 0,
         "y": 2
+      },
+      "id": 51,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by (member)",
+          "refId": "A"
+        }
+      ],
+      "title": "Thread Count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      },
+      "id": 54,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "count(vendor:coherence_grpc_connection_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by (member)",
+          "refId": "A"
+        }
+      ],
+      "title": "Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      },
+      "id": 52,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Backlog",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      },
+      "id": 53,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Errors",
+      "type": "stat"
+    },
+    {
+      "columns": [],
+      "datasource": {
+        "type": "prometheus"
+      },
+      "description": "Note: The gRPC proxy connections data stays visible for approx 5 minutes after the connection has terminated.",
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 7
       },
       "id": 33,
       "links": [],
@@ -114,8 +365,8 @@
           "unit": "none"
         },
         {
-          "$$hashKey": "object:3776",
-          "alias": "Request Count",
+          "$$hashKey": "object:18915",
+          "alias": "Requests",
           "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -125,14 +376,82 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 0,
           "mappingType": 1,
+          "pattern": "Value #E",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:18926",
+          "alias": "1 Min Rate",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 3,
+          "mappingType": 1,
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
           "unit": "short"
         },
         {
-          "$$hashKey": "object:3787",
-          "alias": "Role",
+          "$$hashKey": "object:19214",
+          "alias": "5 Min Rate",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 3,
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:19501",
+          "alias": "15 Min Rate",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 3,
+          "mappingType": 1,
+          "pattern": "Value #C",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:19696",
+          "alias": "Mean Rate",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 3,
+          "mappingType": 1,
+          "pattern": "Value #D",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:19907",
+          "alias": "Remote Address",
           "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -142,14 +461,14 @@
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "decimals": 2,
           "mappingType": 1,
-          "pattern": "role",
+          "pattern": "remote_address",
           "thresholds": [],
           "type": "string",
           "unit": "short"
         },
         {
-          "$$hashKey": "object:4052",
-          "alias": "Node Id",
+          "$$hashKey": "object:19928",
+          "alias": "UID",
           "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
@@ -157,72 +476,11 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
+          "decimals": 2,
           "mappingType": 1,
-          "pattern": "node_id",
+          "pattern": "uid",
           "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:4386",
-          "alias": "Backlog",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [
-            "1",
-            "10",
-            "20"
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:5956",
-          "alias": "Responses Sent",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:6659",
-          "alias": "Errors",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [
-            "1",
-            "10",
-            "20"
-          ],
-          "type": "number",
+          "type": "string",
           "unit": "short"
         }
       ],
@@ -232,8 +490,37 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_connection_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by ( remote_address, uid)",
           "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_grpc_connection_request_rate{quantile=\"mean\", member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by ( remote_address, uid)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_grpc_connection_request_rate{quantile=\"1min\", member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by ( remote_address, uid)",
+          "format": "table",
+          "hide": false,
           "instant": true,
           "interval": "",
           "intervalFactor": 1,
@@ -245,21 +532,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Member",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_connection_request_rate{quantile=\"5min\", member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by ( remote_address, uid)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -273,17 +546,17 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_connection_request_rate{quantile=\"15min\", member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) by ( remote_address, uid)",
           "format": "table",
           "hide": false,
           "instant": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "Member",
-          "refId": "D"
+          "refId": "C"
         }
       ],
-      "title": "gRpc Proxy List",
+      "title": "gRpc Proxy Connections",
       "transform": "table",
       "type": "table-old"
     },
@@ -293,8 +566,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -310,7 +582,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "hiddenSeries": false,
       "id": 40,
@@ -348,7 +620,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -359,7 +631,7 @@
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Requests - All Members",
+      "title": "Requests",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -398,8 +670,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -415,7 +686,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 14
       },
       "hiddenSeries": false,
       "id": 46,
@@ -453,7 +724,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -464,7 +735,7 @@
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Responses - All Members",
+      "title": "Responses",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -503,8 +774,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -520,217 +790,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 17
-      },
-      "hiddenSeries": false,
-      "id": 47,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null as zero",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeRegions": [],
-      "title": "Requests - By Member",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5024",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5025",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
-      },
-      "decimals": 0,
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "links": []
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 17
-      },
-      "hiddenSeries": false,
-      "id": 45,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null as zero",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{member}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeRegions": [],
-      "title": "Responses - By Members",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5024",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5025",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
-      },
-      "decimals": 0,
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "links": []
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 26
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 48,
@@ -768,18 +828,18 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
+          "expr": "vendor:coherence_grpc_named_cache_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}}",
+          "legendFormat": "__auto",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Errors - By Member",
+      "title": "Errors ",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -818,8 +878,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -835,7 +894,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 49,
@@ -873,18 +932,18 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
+          "expr": "vendor:coherence_grpc_named_cache_proxy_task_timeout_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_task_timeout_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{member}}",
+          "legendFormat": "__auto",
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Timeouts - By Member",
+      "title": "Timeouts",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -980,6 +1039,29 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "current": {
+        },
+        "datasource": {
+          "type": "prometheus"
+        },
+        "definition": "label_values(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, member)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Member Name",
+        "multi": false,
+        "name": "MemberName",
+        "options": [],
+        "query": {
+          "query": "label_values(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, member)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -1013,8 +1095,8 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence gRPC Proxy Summary Dashboard",
-  "uid": "coh-grpc-proxy-summary",
-  "version": 19,
+  "title": "Coherence gRPC Proxy Details Dashboard",
+  "uid": "coh-grpc-proxy-details",
+  "version": 17,
   "weekStart": ""
 }

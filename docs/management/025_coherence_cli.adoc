@@ -94,3 +94,28 @@ For example, to list all the members of the cluster:
 kubectl exec storage-0 -c coherence -- /coherence-operator/utils/cohctl get members
 ----
 
+=== Disabling CLI Access
+
+There may be certain circumstances in which you wish to disable the use of the CLI in your cluster.
+To do this, add the `CLI_DISABLED` env variable to you config and set to `true`.
+
+[source]
+.minimal.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+    replicas: 3
+    env:
+     - name: "CLI_DISABLED"
+       value: "true"
+----
+
+If you try to run the CLI you will get the following message:
+
+[source]
+----
+cohctl has been disabled from running in the Coherence Operator
+----

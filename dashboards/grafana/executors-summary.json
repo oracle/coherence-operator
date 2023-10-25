@@ -112,7 +112,7 @@
           "decimals": 2,
           "link": true,
           "linkTooltip": "Drill down to executor details for ${__cell}",
-          "linkUrl": "/d/coh-executor-detail?var-ExecutorName=${__cell}&var-ClusterName=$ClusterName",
+          "linkUrl": "/d/coh-executor-details?var-ExecutorName=${__cell}&var-ClusterName=$ClusterName",
           "mappingType": 1,
           "pattern": "name",
           "thresholds": [],
