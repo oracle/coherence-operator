@@ -88,5 +88,32 @@ lang="bash"
 >kubectl exec storage-0 -c coherence -- /coherence-operator/utils/cohctl get members</markup>
 
 </div>
+
+<h3 id="_disabling_cli_access">Disabling CLI Access</h3>
+<div class="section">
+<p>There may be certain circumstances in which you wish to disable the use of the CLI in your cluster.
+To do this, add the <code>CLI_DISABLED</code> env variable to you config and set to <code>true</code>.</p>
+
+<markup
+
+title="minimal.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+    replicas: 3
+    env:
+     - name: "CLI_DISABLED"
+       value: "true"</markup>
+
+<p>If you try to run the CLI you will get the following message:</p>
+
+<markup
+
+
+>cohctl has been disabled from running in the Coherence Operator</markup>
+
+</div>
 </div>
 </doc-view>
