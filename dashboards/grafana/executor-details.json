@@ -541,8 +541,8 @@
     ]
   },
   "timezone": "",
-  "title": "Coherence Executor Detail",
-  "uid": "coh-executor-detail",
+  "title": "Coherence Executor Details",
+  "uid": "coh-executor-details",
   "variables": {
     "list": []
   },
