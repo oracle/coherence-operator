@@ -18,7 +18,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 51,
-  "iteration": 1698130409104,
+  "iteration": 1698635386970,
   "links": [
     {
       "icon": "dashboard",
@@ -45,8 +45,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "gridPos": {
         "h": 2,
@@ -64,17 +63,256 @@
       "type": "text"
     },
     {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      },
+      "id": 51,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Threads",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      },
+      "id": 52,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "count(vendor:coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      },
+      "id": 54,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Backlog",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      },
+      "id": 56,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"})",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Errors",
+      "type": "stat"
+    },
+    {
       "columns": [],
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 7
       },
       "id": 33,
       "links": [],
@@ -128,7 +366,7 @@
           "pattern": "Value #A",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:3787",
@@ -144,7 +382,7 @@
           "mappingType": 1,
           "pattern": "role",
           "thresholds": [],
-          "type": "string",
+          "type": "hidden",
           "unit": "short"
         },
         {
@@ -201,7 +439,7 @@
           "pattern": "Value #C",
           "thresholds": [],
           "type": "number",
-          "unit": "short"
+          "unit": "none"
         },
         {
           "$$hashKey": "object:6659",
@@ -224,6 +462,43 @@
           ],
           "type": "number",
           "unit": "short"
+        },
+        {
+          "$$hashKey": "object:13938",
+          "alias": "Thread Count",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #E",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:14951",
+          "alias": "Connections",
+          "align": "auto",
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "link": true,
+          "linkTooltip": "Drill down to gRPC proxy details for  ${__cell_1}",
+          "linkUrl": "/d/coh-grpc-proxy-details?var-ClusterName=$ClusterName&var-MemberName=${__cell_1}",
+          "mappingType": 1,
+          "pattern": "Value #F",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
         }
       ],
       "targets": [
@@ -232,7 +507,35 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count(vendor:coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member",
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -245,7 +548,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -259,7 +562,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -273,7 +576,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"}) by (member, role, node_id)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -293,8 +596,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -310,7 +612,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 13
       },
       "hiddenSeries": false,
       "id": 40,
@@ -398,8 +700,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -415,7 +716,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 13
       },
       "hiddenSeries": false,
       "id": 46,
@@ -503,8 +804,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -520,7 +820,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 22
       },
       "hiddenSeries": false,
       "id": 47,
@@ -608,8 +908,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -625,7 +924,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 22
       },
       "hiddenSeries": false,
       "id": 45,
@@ -713,8 +1012,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -730,7 +1028,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 31
       },
       "hiddenSeries": false,
       "id": 48,
@@ -818,8 +1116,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": {
-        "type": "prometheus",
-        "uid": "558Cbb7Sk"
+        "type": "prometheus"
       },
       "decimals": 0,
       "description": "",
@@ -835,7 +1132,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 31
       },
       "hiddenSeries": false,
       "id": 49,
