@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -199,18 +199,20 @@ func (s server) GetHostAndPort() string {
 
 // getSiteLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence site value.
 func (s server) getSiteLabelForNode(w http.ResponseWriter, r *http.Request) {
-	s.getLabelForNode(operator.GetSiteLabel(), w, r)
+	var prefix []string
+	s.getLabelForNode(operator.GetSiteLabel(), prefix, w, r)
 }
 
 // getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
 func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
-	s.getLabelForNode(operator.GetRackLabel(), w, r)
+	s.getLabelForNode(operator.GetRackLabel(), operator.GetSiteLabel(), w, r)
 }
 
-// getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
-func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.Request) {
+// getLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
+func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWriter, r *http.Request) {
 	var value string
 	labelUsed := "<None>"
+	prefixUsed := "<None>"
 
 	path := r.URL.Path
 	// strip off any trailing slash
@@ -228,9 +230,19 @@ func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.
 
 		queryLabel := r.URL.Query().Get("nodeLabel")
 		if queryLabel == "" {
+			prefixValue := ""
+			for _, label := range prefixLabels {
+				if prefix, ok := node.Labels[label]; ok && prefix != "" {
+					prefixUsed = label
+					prefixValue = prefix + "-"
+					break
+				}
+			}
+
 			for _, label := range labels {
 				if value, ok = node.Labels[label]; ok && value != "" {
 					labelUsed = label
+					value = prefixValue + value
 					break
 				}
 			}
@@ -240,9 +252,9 @@ func (s server) getLabelForNode(labels []string, w http.ResponseWriter, r *http.
 		}
 	} else {
 		if apierrors.IsNotFound(err) {
-			log.Info("GET query for node labels - NotFound", "node", name, "label", labelUsed, "value", value, "remoteAddress", r.RemoteAddr)
+			log.Info("GET query for node labels - NotFound", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
 		} else {
-			log.Error(err, "GET query for node labels - Error", "node", name, "label", labelUsed, "value", value, "remoteAddress", r.RemoteAddr)
+			log.Error(err, "GET query for node labels - Error", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
 		}
 		value = ""
 		labelUsed = ""
