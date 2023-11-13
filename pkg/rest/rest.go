@@ -212,7 +212,7 @@ func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
 func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWriter, r *http.Request) {
 	var value string
 	labelUsed := "<None>"
-	prefixUsed := "<None>"
+	var prefixUsed = "<None>"
 
 	path := r.URL.Path
 	// strip off any trailing slash
@@ -233,7 +233,7 @@ func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWr
 			prefixValue := ""
 			for _, label := range prefixLabels {
 				if prefix, ok := node.Labels[label]; ok && prefix != "" {
-					prefixUsed = label
+					labelUsed = label
 					prefixValue = prefix + "-"
 					break
 				}
@@ -264,7 +264,7 @@ func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWr
 	if _, err = fmt.Fprint(w, value); err != nil {
 		log.Error(err, "Error writing value response for node "+name)
 	} else {
-		log.Info("GET query for node labels", "node", name, "label", labelUsed, "value", value, "remoteAddress", r.RemoteAddr)
+		log.Info("GET query for node labels", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
 	}
 }
 
