@@ -58,7 +58,7 @@ func TestCustomSiteLabel(t *testing.T) {
 		return fmt.Sprintf("custom-site-zone-test-sts.%s.svc", namespace)
 	}
 
-	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, operator.DefaultSiteLabels, fn, dfn)
+	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, []string{}, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
