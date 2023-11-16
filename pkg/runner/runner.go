@@ -291,6 +291,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	details.addArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
 	details.addArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
 	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
+	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.localhost")
 	details.addArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
 	details.addArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
 	details.addArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")

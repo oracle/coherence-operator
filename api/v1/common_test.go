@@ -367,6 +367,8 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		})
 	}
 
+	lp, _ := deployment.GetSpec().Coherence.GetLocalPorts()
+
 	// The Coherence Container
 	cohContainer := corev1.Container{
 		Name:    coh.ContainerNameCoherence,
@@ -374,14 +376,24 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		Command: []string{coh.RunnerCommand, "server"},
 		Ports: []corev1.ContainerPort{
 			{
-				Name:          "coherence",
+				Name:          coh.PortNameCoherence,
 				ContainerPort: 7,
 				Protocol:      "TCP",
 			},
 			{
-				Name:          "health",
+				Name:          coh.PortNameHealth,
 				ContainerPort: spec.GetHealthPort(),
 				Protocol:      "TCP",
+			},
+			{
+				Name:          coh.PortNameCoherenceLocal,
+				ContainerPort: lp,
+				Protocol:      corev1.ProtocolTCP,
+			},
+			{
+				Name:          coh.PortNameCoherenceCluster,
+				ContainerPort: coh.DefaultClusterPort,
+				Protocol:      corev1.ProtocolTCP,
 			},
 		},
 		ReadinessProbe: spec.UpdateDefaultReadinessProbeAction(spec.CreateDefaultReadinessProbe()),

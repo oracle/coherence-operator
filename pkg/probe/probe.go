@@ -55,7 +55,7 @@ func (in *CoherenceProbe) SetGetPodHostName(fn func(pod corev1.Pod) string) {
 
 func (in *CoherenceProbe) GetPodHostName(pod corev1.Pod) string {
 	if in.getPodHostName == nil {
-		return pod.Status.PodIP
+		return pod.Spec.Hostname + "." + pod.Spec.Subdomain
 	}
 	return in.getPodHostName(pod)
 }

@@ -517,6 +517,9 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 	selector[LabelComponent] = LabelComponentCoherencePod
 	selector[LabelCoherenceWKAMember] = "true"
 
+	hp := in.GetHealthPort()
+	lp, _ := in.Coherence.GetLocalPorts()
+
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
@@ -535,7 +538,28 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 					Name:       "tcp-" + PortNameCoherence,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       7,
-					TargetPort: intstr.FromInt(7),
+					TargetPort: intstr.FromInt32(7),
+				},
+				{
+					Name:        "tcp-" + PortNameCoherenceLocal,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: pointer.String(AppProtocolTcp),
+					Port:        lp,
+					TargetPort:  intstr.FromString(PortNameCoherenceLocal),
+				},
+				{
+					Name:        "tcp-" + PortNameCoherenceCluster,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: pointer.String(AppProtocolTcp),
+					Port:        DefaultClusterPort,
+					TargetPort:  intstr.FromString(PortNameCoherenceCluster),
+				},
+				{
+					Name:        "http-" + PortNameHealth,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: pointer.String(AppProtocolHttp),
+					Port:        hp,
+					TargetPort:  intstr.FromString(PortNameHealth),
 				},
 			},
 			Selector: selector,
@@ -554,6 +578,9 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 	// The labels for the service
 	svcLabels := deployment.CreateCommonLabels()
 	svcLabels[LabelComponent] = LabelComponentCoherenceHeadless
+
+	hp := in.GetHealthPort()
+	lp, _ := in.Coherence.GetLocalPorts()
 
 	// The selector for the service
 	selector := in.CreatePodSelectorLabels(deployment)
@@ -574,7 +601,28 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 					Name:       "tcp-" + PortNameCoherence,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       7,
-					TargetPort: intstr.FromInt(7),
+					TargetPort: intstr.FromInt32(7),
+				},
+				{
+					Name:        "tcp-" + PortNameCoherenceLocal,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: pointer.String(AppProtocolTcp),
+					Port:        lp,
+					TargetPort:  intstr.FromString(PortNameCoherenceLocal),
+				},
+				{
+					Name:        "tcp-" + PortNameCoherenceCluster,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: pointer.String(AppProtocolTcp),
+					Port:        DefaultClusterPort,
+					TargetPort:  intstr.FromString(PortNameCoherenceCluster),
+				},
+				{
+					Name:        "http-" + PortNameHealth,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: pointer.String(AppProtocolHttp),
+					Port:        hp,
+					TargetPort:  intstr.FromString(PortNameHealth),
 				},
 			},
 		},
@@ -703,6 +751,7 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 
 	healthPort := in.GetHealthPort()
 	vm := in.CreateCommonVolumeMounts()
+	lp, _ := in.Coherence.GetLocalPorts()
 
 	c := corev1.Container{
 		Name:    ContainerNameCoherence,
@@ -718,6 +767,16 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 			{
 				Name:          PortNameHealth,
 				ContainerPort: healthPort,
+				Protocol:      corev1.ProtocolTCP,
+			},
+			{
+				Name:          PortNameCoherenceLocal,
+				ContainerPort: lp,
+				Protocol:      corev1.ProtocolTCP,
+			},
+			{
+				Name:          PortNameCoherenceCluster,
+				ContainerPort: DefaultClusterPort,
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
@@ -895,7 +954,7 @@ func (in *CoherenceResourceSpec) CreateDefaultReadinessProbe() *corev1.Probe {
 func (in *CoherenceResourceSpec) UpdateDefaultReadinessProbeAction(probe *corev1.Probe) *corev1.Probe {
 	probe.HTTPGet = &corev1.HTTPGetAction{
 		Path:   DefaultReadinessPath,
-		Port:   intstr.FromInt(int(DefaultHealthPort)),
+		Port:   intstr.FromInt32(DefaultHealthPort),
 		Scheme: corev1.URISchemeHTTP,
 	}
 	return probe
@@ -916,7 +975,7 @@ func (in *CoherenceResourceSpec) CreateDefaultLivenessProbe() *corev1.Probe {
 func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.Probe) *corev1.Probe {
 	probe.HTTPGet = &corev1.HTTPGetAction{
 		Path:   DefaultLivenessPath,
-		Port:   intstr.FromInt(int(DefaultHealthPort)),
+		Port:   intstr.FromInt32(DefaultHealthPort),
 		Scheme: corev1.URISchemeHTTP,
 	}
 	return probe

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -57,7 +57,7 @@ func TestCreateStatefulSetWithReadinessProbeSpec(t *testing.T) {
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultReadinessPath,
-				Port:   intstr.FromInt(int(coh.DefaultHealthPort)),
+				Port:   intstr.FromInt32(coh.DefaultHealthPort),
 				Scheme: "HTTP",
 			},
 			TCPSocket: nil,
@@ -77,7 +77,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithHttpGet(t *testing.T) {
 
 	handler := &corev1.HTTPGetAction{
 		Path: "/test/ready",
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 	}
 
 	probe := coh.ReadinessProbeSpec{
@@ -119,7 +119,7 @@ func TestCreateStatefulSetWithReadinessProbeSpecWithHttpGet(t *testing.T) {
 func TestCreateStatefulSetWithReadinessProbeSpecWithTCPSocket(t *testing.T) {
 
 	handler := &corev1.TCPSocketAction{
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 		Host: "foo.com",
 	}
 
@@ -241,7 +241,7 @@ func TestCreateStatefulSetWithLivenessProbeSpec(t *testing.T) {
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultLivenessPath,
-				Port:   intstr.FromInt(int(coh.DefaultHealthPort)),
+				Port:   intstr.FromInt32(coh.DefaultHealthPort),
 				Scheme: "HTTP",
 			},
 			TCPSocket: nil,
@@ -261,7 +261,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithHttpGet(t *testing.T) {
 
 	handler := &corev1.HTTPGetAction{
 		Path: "/test/ready",
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 	}
 
 	probe := coh.ReadinessProbeSpec{
@@ -303,7 +303,7 @@ func TestCreateStatefulSetWithLivenessProbeSpecWithHttpGet(t *testing.T) {
 func TestCreateStatefulSetWithLivenessProbeSpecWithTCPSocket(t *testing.T) {
 
 	handler := &corev1.TCPSocketAction{
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 		Host: "foo.com",
 	}
 
@@ -442,7 +442,7 @@ func TestCreateStatefulSetWithStartupProbeSpec(t *testing.T) {
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultLivenessPath,
-				Port:   intstr.FromInt(int(coh.DefaultHealthPort)),
+				Port:   intstr.FromInt32(coh.DefaultHealthPort),
 				Scheme: "HTTP",
 			},
 			TCPSocket: nil,
@@ -462,7 +462,7 @@ func TestCreateStatefulSetWithStartupProbeSpecWithHttpGet(t *testing.T) {
 
 	handler := &corev1.HTTPGetAction{
 		Path: "/test/ready",
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 	}
 
 	probe := coh.ReadinessProbeSpec{
@@ -504,7 +504,7 @@ func TestCreateStatefulSetWithStartupProbeSpecWithHttpGet(t *testing.T) {
 func TestCreateStatefulSetWithStartupProbeSpecWithTCPSocket(t *testing.T) {
 
 	handler := &corev1.TCPSocketAction{
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 		Host: "foo.com",
 	}
 

@@ -55,7 +55,7 @@ func TestCreateJobWithReadinessProbeSpec(t *testing.T) {
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultReadinessPath,
-				Port:   intstr.FromInt(int(coh.DefaultHealthPort)),
+				Port:   intstr.FromInt32(coh.DefaultHealthPort),
 				Scheme: "HTTP",
 			},
 			TCPSocket: nil,
@@ -74,7 +74,7 @@ func TestCreateJobWithReadinessProbeSpec(t *testing.T) {
 func TestCreateJobWithReadinessProbeSpecWithHttpGet(t *testing.T) {
 	handler := &corev1.HTTPGetAction{
 		Path: "/test/ready",
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 	}
 
 	probe := coh.ReadinessProbeSpec{
@@ -115,7 +115,7 @@ func TestCreateJobWithReadinessProbeSpecWithHttpGet(t *testing.T) {
 
 func TestCreateJobWithReadinessProbeSpecWithTCPSocket(t *testing.T) {
 	handler := &corev1.TCPSocketAction{
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 		Host: "foo.com",
 	}
 
@@ -235,7 +235,7 @@ func TestCreateJobWithLivenessProbeSpec(t *testing.T) {
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultLivenessPath,
-				Port:   intstr.FromInt(int(coh.DefaultHealthPort)),
+				Port:   intstr.FromInt32(coh.DefaultHealthPort),
 				Scheme: "HTTP",
 			},
 			TCPSocket: nil,
@@ -255,7 +255,7 @@ func TestCreateJobWithLivenessProbeSpecWithHttpGet(t *testing.T) {
 
 	handler := &corev1.HTTPGetAction{
 		Path: "/test/ready",
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 	}
 
 	probe := coh.ReadinessProbeSpec{
@@ -297,7 +297,7 @@ func TestCreateJobWithLivenessProbeSpecWithHttpGet(t *testing.T) {
 func TestCreateJobWithLivenessProbeSpecWithTCPSocket(t *testing.T) {
 
 	handler := &corev1.TCPSocketAction{
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 		Host: "foo.com",
 	}
 
@@ -436,7 +436,7 @@ func TestCreateJobWithStartupProbeSpec(t *testing.T) {
 			Exec: nil,
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   coh.DefaultLivenessPath,
-				Port:   intstr.FromInt(int(coh.DefaultHealthPort)),
+				Port:   intstr.FromInt32(coh.DefaultHealthPort),
 				Scheme: "HTTP",
 			},
 			TCPSocket: nil,
@@ -456,7 +456,7 @@ func TestCreateJobWithStartupProbeSpecWithHttpGet(t *testing.T) {
 
 	handler := &corev1.HTTPGetAction{
 		Path: "/test/ready",
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 	}
 
 	probe := coh.ReadinessProbeSpec{
@@ -498,7 +498,7 @@ func TestCreateJobWithStartupProbeSpecWithHttpGet(t *testing.T) {
 func TestCreateJobWithStartupProbeSpecWithTCPSocket(t *testing.T) {
 
 	handler := &corev1.TCPSocketAction{
-		Port: intstr.FromInt(1234),
+		Port: intstr.FromInt32(1234),
 		Host: "foo.com",
 	}
 

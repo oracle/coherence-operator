@@ -12,7 +12,6 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"testing"
 )
 
@@ -49,15 +48,8 @@ func TestCreateWKAServiceForMinimalJonDeployment(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -104,15 +96,8 @@ func TestCreateWKAServiceForJobWithAppLabel(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -159,15 +144,8 @@ func TestCreateWKAServiceForJobWithVersionLabel(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -211,15 +189,8 @@ func TestCreateWKAServiceForJobWithClusterName(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 

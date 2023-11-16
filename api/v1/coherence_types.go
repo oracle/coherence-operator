@@ -1122,13 +1122,15 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 			Name:       portName,
 			Protocol:   in.GetProtocol(),
 			Port:       in.GetServicePort(deployment),
-			TargetPort: intstr.FromInt(int(in.GetPort(deployment))),
+			TargetPort: intstr.FromInt32(in.GetPort(deployment)),
 			NodePort:   in.GetNodePort(),
 		},
 	}
 
 	if in.AppProtocol != nil {
 		serviceSpec.Ports[0].AppProtocol = in.AppProtocol
+	} else {
+		serviceSpec.Ports[0].AppProtocol = in.GetDefaultAppProtocol()
 	}
 
 	// Add the service selector
@@ -1242,6 +1244,21 @@ func (in *NamedPortSpec) GetServicePort(d CoherenceResource) int32 {
 		return spec.GetManagementPort()
 	default:
 		return in.Port
+	}
+}
+
+func (in *NamedPortSpec) GetDefaultAppProtocol() *string {
+	switch {
+	case in == nil:
+		return nil
+	case strings.ToLower(in.Name) == PortNameMetrics:
+		// special case for well known port - metrics
+		return pointer.String(AppProtocolHttp)
+	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
+		// special case for well known port - management
+		return pointer.String(AppProtocolHttp)
+	default:
+		return nil
 	}
 }
 
@@ -2142,7 +2159,7 @@ func (in *ReadinessProbeSpec) UpdateProbeSpec(port int32, path string, probe *co
 	default:
 		probe.HTTPGet = &corev1.HTTPGetAction{
 			Path:   path,
-			Port:   intstr.FromInt(int(port)),
+			Port:   intstr.FromInt32(port),
 			Scheme: corev1.URISchemeHTTP,
 		}
 	}
