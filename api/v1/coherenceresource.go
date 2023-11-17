@@ -76,6 +76,8 @@ type CoherenceResource interface {
 	GetStatus() *CoherenceResourceStatus
 	// AddAnnotation adds an annotation to this resource
 	AddAnnotation(key, value string)
+	// AddAnnotationIfMissing adds an annotation to this resource if it is not already present
+	AddAnnotationIfMissing(key, value string)
 	// GetAnnotations returns the annotations on this resource
 	GetAnnotations() map[string]string
 	// CreateKubernetesResources creates the kubernetes resources defined by this resource

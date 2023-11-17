@@ -291,12 +291,6 @@ func fromContext(ctx context.Context) *Execution {
 func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	var err error
 
-	//ns := os.Getenv(v1.EnvVarCoherenceNamespace)
-	hostname := os.Getenv(v1.EnvVarCohMemberName)
-	//subdomain := os.Getenv(v1.EnvVarCoherenceSubDomain)
-	//localhost := hostname + "." + subdomain + "." + ns
-	details.addArg("-Dcoherence.localhost=" + hostname)
-
 	// Set standard system properties
 	details.addArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
 	details.addArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")

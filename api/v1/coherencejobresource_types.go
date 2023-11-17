@@ -93,6 +93,17 @@ func (in *CoherenceJob) AddAnnotation(key, value string) {
 	}
 }
 
+func (in *CoherenceJob) AddAnnotationIfMissing(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		if _, found := in.Annotations[key]; !found {
+			in.Annotations[key] = value
+		}
+	}
+}
+
 // GetStatus returns this resource's CoherenceResourceSpec
 func (in *CoherenceJob) GetStatus() *CoherenceResourceStatus {
 	return &in.Status

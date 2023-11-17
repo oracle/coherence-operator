@@ -271,6 +271,17 @@ func (in *Coherence) AddAnnotation(key, value string) {
 	}
 }
 
+func (in *Coherence) AddAnnotationIfMissing(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		if _, found := in.Annotations[key]; !found {
+			in.Annotations[key] = value
+		}
+	}
+}
+
 // GetNamespacedName returns the namespace/name key to look up this resource.
 func (in *Coherence) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
