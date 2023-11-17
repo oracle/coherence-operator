@@ -6,6 +6,7 @@
 
 package com.oracle.coherence.k8s.testing;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -31,6 +32,16 @@ public class ExtendClient {
             NamedCache<String, String> cache = CacheFactory.getCache("test");
             System.out.println("Putting key and value into cache 'test'");
             cache.put("key-1", "value-1");
+
+            int cIter = Config.getInteger("coherence.client.iterations", 0);
+            int cMillis = Config.getInteger("coherence.client.wait", 1000);
+            for (int i = 0; i < cIter; i++) {
+                System.out.println("Test iteration " + i);
+                cache.put("key-1", "value-1");
+                Thread.sleep(cMillis);
+                cache.get("key-1");
+                Thread.sleep(cMillis);
+            }
 
             System.out.println("Test completed successfully");
             System.exit(0);

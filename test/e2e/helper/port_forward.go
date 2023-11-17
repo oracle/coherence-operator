@@ -49,6 +49,7 @@ type PortForwarder struct {
 	Running bool
 
 	stopChan   chan struct{}
+	forwarder  *portforward.PortForwarder
 	lock       sync.Mutex
 	KubeClient kubernetes.Interface
 }
@@ -148,7 +149,7 @@ func (f *PortForwarder) Start() error {
 
 	out, errOut := new(bytes.Buffer), new(bytes.Buffer)
 
-	forwarder, err := portforward.New(dialer, f.Ports, f.stopChan, readyChan, out, errOut)
+	f.forwarder, err = portforward.New(dialer, f.Ports, f.stopChan, readyChan, out, errOut)
 	if err != nil {
 		return err
 	}
@@ -162,7 +163,7 @@ func (f *PortForwarder) Start() error {
 	}()
 
 	go func() {
-		if err = forwarder.ForwardPorts(); err != nil { // Locks until stopChan is closed.
+		if err = f.forwarder.ForwardPorts(); err != nil { // Locks until stopChan is closed.
 			pfError = err
 			fmt.Println(err)
 			close(readyChan)
@@ -170,7 +171,7 @@ func (f *PortForwarder) Start() error {
 	}()
 
 	// blocks until forwarder is ready
-	<-forwarder.Ready
+	<-f.forwarder.Ready
 
 	f.Running = true
 
@@ -182,6 +183,7 @@ func (f *PortForwarder) Close() {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
+	f.forwarder.Close()
 	if f.stopChan != nil {
 		close(f.stopChan)
 	}
