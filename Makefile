@@ -27,7 +27,7 @@ CERTIFICATION_VERSION ?= $(VERSION)
 # The previous Operator version used to run the compatibility tests.
 COMPATIBLE_VERSION  ?= 3.3.1
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
-COMPATIBLE_SELECTOR = control-plane=coherence
+COMPATIBLE_SELECTOR ?= control-plane=coherence
 
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator

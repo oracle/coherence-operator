@@ -61,8 +61,9 @@ func TestCompatibility(t *testing.T) {
 	UpgradeToCurrentVersion(t, g, ns, name)
 
 	// wait a few minutes to allow the new Operator to reconcile the existing Coherence cluster
+	// usually this would be quick, but on a slow build machine it could be a few minutes
 	t.Logf("Upgraded to current Operator version - waiting for reconcile...\n")
-	time.Sleep(1 * time.Minute)
+	time.Sleep(5 * time.Minute)
 
 	// Get the current state of the StatefulSet
 	stsAfter := &appsv1.StatefulSet{}

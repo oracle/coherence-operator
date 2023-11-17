@@ -321,7 +321,14 @@ func (in *Coherence) GetVersionAnnotation() (string, bool) {
 // before the specified version, or is not set.
 // The version parameter must be a valid SemVer value.
 func (in *Coherence) IsBeforeVersion(version string) bool {
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
 	if actual, found := in.GetVersionAnnotation(); found {
+		if actual[0] != 'v' {
+			actual = "v" + actual
+		}
 		return semver.Compare(actual, version) < 0
 	}
 	return true

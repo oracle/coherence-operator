@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
@@ -35,8 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strconv"
-
-	coh "github.com/oracle/coherence-operator/api/v1"
 )
 
 const (
@@ -264,6 +263,16 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return ctrl.Result{Requeue: true}, err
 	}
 
+	// check for the "ignore" annotation
+	//shouldUpdate := true
+	//if ignore, found := deployment.Annotations[coh.AnnotationOperatorIgnore]; found {
+	//	if strings.ToLower(ignore) == "true" {
+	//		// We should skip applying any updates for this Coherence resource.
+	//		shouldUpdate = false
+	//	}
+	//}
+	//
+	//if shouldUpdate {
 	// process the secondary resources in the order they should be created
 	var failures []Failure
 	for _, rec := range in.reconcilers {
@@ -282,6 +291,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 		return reconcile.Result{}, fmt.Errorf("one or more secondary resource reconcilers failed to reconcile")
 	}
+	//} else {
+	//	log.Info("Skipping updates for Coherence resource, annotation " + coh.AnnotationOperatorIgnore + " is set to true")
+	//}
 
 	// if replica count is zero update the status to Stopped
 	if deployment.GetReplicas() == 0 {
@@ -348,11 +360,11 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
-		if c.IsBeforeVersion("3.2.8") {
-			// Before 3.2.8 there was a bug calculating the has in the defaulting web-hook
+		if c.IsBeforeVersion("3.3.0") {
+			// Before 3.3.0 there was a bug calculating the has in the defaulting web-hook
 			// This would cause the hashes to be different here, when in fact they should not be
 			// If the Coherence resource being processes has no version annotation, or a version
-			// prior to 3.2.8 then we return as if the hashes matched
+			// prior to 3.3.0 then we return as if the hashes matched
 			if labels == nil {
 				labels = make(map[string]string)
 			}
@@ -378,7 +390,7 @@ func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Contex
 	currentVersion, _ := c.GetVersionAnnotation()
 	operatorVersion := operator.GetVersion()
 
-	if currentVersion != operatorVersion {
+	if currentVersion == "" {
 		// make a copy of the Coherence resource to use in the three-way patch
 		latest := c.DeepCopy()
 		latest.AddAnnotation(coh.AnnotationOperatorVersion, operatorVersion)

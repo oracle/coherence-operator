@@ -64,8 +64,6 @@ const (
 	AnnotationFeatureSuspend = "com.oracle.coherence.operator/feature.suspend"
 	// AnnotationOperatorVersion is the Operator version annotations
 	AnnotationOperatorVersion = "com.oracle.coherence.operator/version"
-	// AnnotationOperatorIgnore is an annotation to tell the Operator to ignore changes to a Coherence resource
-	AnnotationOperatorIgnore = "com.oracle.coherence.operator/ignore"
 
 	// DefaultServiceAccount is the default k8s service account name.
 	DefaultServiceAccount = "default"
