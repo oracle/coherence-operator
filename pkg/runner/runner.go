@@ -50,6 +50,8 @@ const (
 	AppTypeHelidon = "helidon"
 	// AppTypeSpring is the argument to specify a Spring application.
 	AppTypeSpring = "spring"
+	// AppTypeOperator is the argument to specify running an Operator command.
+	AppTypeOperator = "operator"
 
 	// defaultConfig is the root name of the default configuration file
 	defaultConfig = ".coherence-runner"
@@ -123,6 +125,8 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(nodeCommand())
 	rootCmd.AddCommand(operatorCommand())
 	rootCmd.AddCommand(networkTestCommand())
+	rootCmd.AddCommand(jShellCommand())
+	rootCmd.AddCommand(sleepCommand())
 
 	return rootCmd, v
 }
@@ -287,11 +291,16 @@ func fromContext(ctx context.Context) *Execution {
 func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	var err error
 
+	//ns := os.Getenv(v1.EnvVarCoherenceNamespace)
+	hostname := os.Getenv(v1.EnvVarCohMemberName)
+	//subdomain := os.Getenv(v1.EnvVarCoherenceSubDomain)
+	//localhost := hostname + "." + subdomain + "." + ns
+	details.addArg("-Dcoherence.localhost=" + hostname)
+
 	// Set standard system properties
 	details.addArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
 	details.addArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
 	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
-	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.localhost")
 	details.addArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
 	details.addArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
 	details.addArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")
@@ -593,6 +602,9 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	case details.AppType == AppTypeCoherence:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
+	case details.AppType == AppTypeOperator:
+		app = "Operator"
+		cmd, err = createOperatorCommand(details)
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = createGraalCommand(details)
@@ -636,6 +648,25 @@ func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, er
 func _createJavaCommand(javaCmd string, details *RunDetails, args []string) (*exec.Cmd, error) {
 	args = append(args, details.MainArgs...)
 	cmd := exec.Command(javaCmd, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if details.Dir != "" {
+		_, err := os.Stat(details.Dir)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Working directory %s does not exists or is not a directory", details.Dir)
+		}
+		cmd.Dir = details.Dir
+	}
+
+	return cmd, nil
+}
+
+func createOperatorCommand(details *RunDetails) (*exec.Cmd, error) {
+	executable := os.Args[0]
+	args := details.MainArgs[1:]
+	cmd := exec.Command(executable, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin

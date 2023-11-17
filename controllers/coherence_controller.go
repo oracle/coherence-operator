@@ -220,7 +220,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// The "storeHash" is not "", so it must have been processed by the Operator (could have been a previous version).
 			// There was a bug prior to 3.2.8 where the hash was calculated at the wrong point in the defaulting web-hook,
 			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
-			if deployment.IsBeforeVersion("3.2.8") {
+			if deployment.IsBeforeVersion("3.3.0") {
 				// the AnnotationOperatorVersion annotation was added in the 3.2.8 web-hook, so if it is missing
 				// the Coherence resource was added or updated prior to 3.2.8
 				// In this case we just ignore the difference in hash.

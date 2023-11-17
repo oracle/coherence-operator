@@ -753,10 +753,17 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 	vm := in.CreateCommonVolumeMounts()
 	lp, _ := in.Coherence.GetLocalPorts()
 
+	cmd := []string{RunnerCommand}
+	if in.Application != nil && in.Application.Type != nil && *in.Application.Type == "operator" {
+		cmd = append(cmd, in.Application.Args...)
+	} else {
+		cmd = append(cmd, "server")
+	}
+
 	c := corev1.Container{
 		Name:    ContainerNameCoherence,
 		Image:   cohImage,
-		Command: []string{RunnerCommand, "server"},
+		Command: cmd,
 		Env:     in.Env,
 		Ports: []corev1.ContainerPort{
 			{
