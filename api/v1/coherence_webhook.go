@@ -110,7 +110,7 @@ func SetCommonDefaults(in CoherenceResource) {
 	}
 
 	// apply the Operator version annotation
-	in.AddAnnotationIfMissing(AnnotationOperatorVersion, operator.GetVersion())
+	in.AddAnnotation(AnnotationOperatorVersion, operator.GetVersion())
 
 	// apply a label with the hash of the spec - ths must be the last action here to make sure that
 	// any modifications to the spec field are included in the hash

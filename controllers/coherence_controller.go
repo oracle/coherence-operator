@@ -390,7 +390,7 @@ func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Contex
 	currentVersion, _ := c.GetVersionAnnotation()
 	operatorVersion := operator.GetVersion()
 
-	if currentVersion == "" {
+	if currentVersion != operatorVersion {
 		// make a copy of the Coherence resource to use in the three-way patch
 		latest := c.DeepCopy()
 		latest.AddAnnotation(coh.AnnotationOperatorVersion, operatorVersion)
