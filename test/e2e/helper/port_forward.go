@@ -183,7 +183,6 @@ func (f *PortForwarder) Close() {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
-	f.forwarder.Close()
 	if f.stopChan != nil {
 		close(f.stopChan)
 	}
