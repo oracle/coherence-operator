@@ -60,7 +60,7 @@
         <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
         <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
         <version.lib.hamcrest>1.3</version.lib.hamcrest>
-        <version.lib.helidon>2.6.4</version.lib.helidon>
+        <version.lib.helidon>2.2.1</version.lib.helidon>
         <version.lib.jandex>2.1.1.Final</version.lib.jandex>
         <version.lib.junit>4.13.1</version.lib.junit>
         <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
