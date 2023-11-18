@@ -812,9 +812,9 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 	}
 
 	switch {
-	case owner == nil || owner.GetReplicas() == 0:
+	case owner == nil:
 		if exists {
-			// The owning Coherence resource does not exist (or is scaled down to zero) but the resource still does,
+			// The owning Coherence resource does not exist but the resource still does,
 			// ensure that the resource is deleted.
 			// This should not actually be required as everything is owned by the owning Coherence resource
 			// and there should be a cascaded delete by k8s, so it's belt and braces.

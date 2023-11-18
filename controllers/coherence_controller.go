@@ -263,16 +263,6 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return ctrl.Result{Requeue: true}, err
 	}
 
-	// check for the "ignore" annotation
-	//shouldUpdate := true
-	//if ignore, found := deployment.Annotations[coh.AnnotationOperatorIgnore]; found {
-	//	if strings.ToLower(ignore) == "true" {
-	//		// We should skip applying any updates for this Coherence resource.
-	//		shouldUpdate = false
-	//	}
-	//}
-	//
-	//if shouldUpdate {
 	// process the secondary resources in the order they should be created
 	var failures []Failure
 	for _, rec := range in.reconcilers {
