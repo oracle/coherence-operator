@@ -585,6 +585,42 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 	// The selector for the service
 	selector := in.CreatePodSelectorLabels(deployment)
 
+	ports := []corev1.ServicePort{
+		{
+			Name:       "tcp-" + PortNameCoherence,
+			Protocol:   corev1.ProtocolTCP,
+			Port:       7,
+			TargetPort: intstr.FromInt32(7),
+		},
+		{
+			Name:        "tcp-" + PortNameCoherenceLocal,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(AppProtocolTcp),
+			Port:        lp,
+			TargetPort:  intstr.FromString(PortNameCoherenceLocal),
+		},
+		{
+			Name:        "tcp-" + PortNameCoherenceCluster,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(AppProtocolTcp),
+			Port:        DefaultClusterPort,
+			TargetPort:  intstr.FromString(PortNameCoherenceCluster),
+		},
+		{
+			Name:        "http-" + PortNameHealth,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(AppProtocolHttp),
+			Port:        hp,
+			TargetPort:  intstr.FromString(PortNameHealth),
+		},
+	}
+
+	for _, p := range in.Ports {
+		if p.ExposeOnSTS == nil || *p.ExposeOnSTS {
+			ports = append(ports, p.createServicePort(deployment))
+		}
+	}
+
 	// Create the Service
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -596,35 +632,7 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
 			Selector:                 selector,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt32(7),
-				},
-				{
-					Name:        "tcp-" + PortNameCoherenceLocal,
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: pointer.String(AppProtocolTcp),
-					Port:        lp,
-					TargetPort:  intstr.FromString(PortNameCoherenceLocal),
-				},
-				{
-					Name:        "tcp-" + PortNameCoherenceCluster,
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: pointer.String(AppProtocolTcp),
-					Port:        DefaultClusterPort,
-					TargetPort:  intstr.FromString(PortNameCoherenceCluster),
-				},
-				{
-					Name:        "http-" + PortNameHealth,
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: pointer.String(AppProtocolHttp),
-					Port:        hp,
-					TargetPort:  intstr.FromString(PortNameHealth),
-				},
-			},
+			Ports:                    ports,
 		},
 	}
 
@@ -838,7 +846,7 @@ func (in *CoherenceResourceSpec) CreateCommonVolumeMounts() []corev1.VolumeMount
 
 // CreateCommonEnv creates the common environment variables added all.
 func (in *CoherenceResourceSpec) CreateCommonEnv(deployment CoherenceResource) []corev1.EnvVar {
-	return []corev1.EnvVar{
+	env := []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
@@ -860,9 +868,15 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment CoherenceResource) [
 				},
 			},
 		},
-		{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
 		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
 	}
+
+	clusterName := deployment.GetCoherenceClusterName()
+	if clusterName != "" {
+		env = append(env, corev1.EnvVar{Name: EnvVarCohClusterName, Value: clusterName})
+	}
+
+	return env
 }
 
 // AddEnvVarIfAbsent adds the specified EnvVar if one with the same name does not already exist.
@@ -999,14 +1013,20 @@ func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment Coherenc
 
 	vm := in.CreateCommonVolumeMounts()
 
+	env := []corev1.EnvVar{
+		{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
+	}
+
+	clusterName := deployment.GetCoherenceClusterName()
+	if clusterName != "" {
+		env = append(env, corev1.EnvVar{Name: EnvVarCohClusterName, Value: clusterName})
+	}
+
 	c := corev1.Container{
-		Name:    ContainerNameOperatorInit,
-		Image:   image,
-		Command: []string{RunnerInitCommand, RunnerInit},
-		Env: []corev1.EnvVar{
-			{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
-			{Name: EnvVarCohClusterName, Value: deployment.GetCoherenceClusterName()},
-		},
+		Name:            ContainerNameOperatorInit,
+		Image:           image,
+		Command:         []string{RunnerInitCommand, RunnerInit},
+		Env:             env,
 		SecurityContext: in.ContainerSecurityContext,
 		VolumeMounts:    vm,
 	}

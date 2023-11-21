@@ -7,48 +7,38 @@
 package runner
 
 import (
-	"fmt"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"os"
-	"time"
 )
 
 const (
 	// CommandSleep is the argument to sleep for a number of seconds.
 	CommandSleep = "sleep"
-	// ArgSeconds is the number of seconds to sleep
-	ArgSeconds = "seconds"
 )
 
 // queryPlusCommand creates the corba "sleep" sub-command
 func sleepCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   CommandSleep,
 		Short: "Sleep for a number of seconds",
 		Long:  "Sleep for a number of seconds",
 		Args:  cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return sleep(cmd, args)
+			return run(cmd, sleep)
 		},
 	}
-
-	flagSet := cmd.Flags()
-	flagSet.Int64P(ArgSeconds, "t", 600, "The number of seconds to sleep")
-
-	return cmd
 }
 
-func sleep(cmd *cobra.Command, _ []string) error {
-	flagSet := cmd.Flags()
-
-	var seconds int64
-	seconds, err := flagSet.GetInt64(ArgSeconds)
-	if err != nil {
-		return err
+func sleep(details *RunDetails, _ *cobra.Command) {
+	details.Command = CommandSleep
+	details.AppType = AppTypeJava
+	details.MainClass = "com.oracle.coherence.k8s.Sleep"
+	if len(os.Args) > 2 {
+		details.MainArgs = os.Args[2:]
 	}
-
-	log.Info(fmt.Sprintf("Sleeping for %d seconds", seconds))
-	time.Sleep(time.Second * time.Duration(seconds))
-	os.Exit(0)
-	return nil
+	details.UseOperatorHealth = true
+	details.addArg("-Dcoherence.distributed.localstorage=false")
+	details.setenv(v1.EnvVarCohRole, "sleep")
+	details.unsetenv(v1.EnvVarJvmMemoryHeap)
 }

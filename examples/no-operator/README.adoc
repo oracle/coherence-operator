@@ -65,4 +65,11 @@ Expands the simple storage enabled server to expose metrics that can be scraped 
 --
 Expands the simple storage enabled server to secure Extend using TLS.
 --
+
+[CARD]
+.Running Coherence with Istio
+[link=examples/no-operator/04_istio/README.adoc]
+--
+Expands the simple storage enabled server to secure Extend using TLS.
+--
 ====

@@ -47,7 +47,6 @@ func (in *CoherenceJob) GetCoherenceClusterName() string {
 	if in == nil {
 		return ""
 	}
-
 	if in.Spec.Cluster == "" {
 		return in.Name
 	}

@@ -474,6 +474,7 @@ m| hostPort | Number of port to expose on the host. If specified, this must be a
 m| hostIP | What host IP to bind the external port to. m| &#42;string | false
 m| service | Service configures the Kubernetes Service used to expose the port. m| &#42;<<ServiceSpec,ServiceSpec>> | false
 m| serviceMonitor | The specification of a Prometheus ServiceMonitor resource that will be created for the Service being exposed for this port. m| &#42;<<ServiceMonitorSpec,ServiceMonitorSpec>> | false
+m| exposeOnSts | ExposeOnSTS is a flag to indicate that this port should also be exposed on the StatefulSetHeadless service. This is useful in cases where a service mesh such as Istio is being used and ports such as the Extend or gRPC ports are accessed via the StatefulSet service. The default is `true` so all additional ports are exposed on the StatefulSet headless service. m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>

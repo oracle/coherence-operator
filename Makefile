@@ -2110,6 +2110,9 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 	kubectl apply -f ./hack/istio-strict.yaml
 	kubectl -n $(OPERATOR_NAMESPACE) apply -f ./hack/istio-operator.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(CLUSTER_NAMESPACE) istio-injection=enabled --overwrite=true
+	kubectl apply -f $(ISTIO_HOME)/samples/addons
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Istio

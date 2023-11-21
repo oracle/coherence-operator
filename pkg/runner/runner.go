@@ -938,12 +938,16 @@ func cohPost12214(details *RunDetails) {
 }
 
 func cohPost2206(details *RunDetails) {
-	useOperator, found := os.LookupEnv(v1.EnvVarUseOperatorHealthCheck)
-	if found && strings.EqualFold("true", useOperator) {
+	if details.UseOperatorHealth {
 		details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
 	} else {
-		details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
-		details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+		useOperator := details.getenvOrDefault(v1.EnvVarUseOperatorHealthCheck, "false")
+		if strings.EqualFold("true", useOperator) {
+			details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
+		} else {
+			details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+			details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+		}
 	}
 }
 

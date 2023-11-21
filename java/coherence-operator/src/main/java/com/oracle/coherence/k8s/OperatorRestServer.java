@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -654,7 +654,7 @@ public class OperatorRestServer implements AutoCloseable {
      *
      * @return {@code true} if the Coherence cluster has members
      */
-    private boolean hasClusterMembers() {
+    protected boolean hasClusterMembers() {
         Cluster cluster = clusterSupplier.get();
         return cluster != null && cluster.isRunning() && !cluster.getMemberSet().isEmpty();
     }
