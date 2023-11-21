@@ -517,9 +517,6 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 	selector[LabelComponent] = LabelComponentCoherencePod
 	selector[LabelCoherenceWKAMember] = "true"
 
-	hp := in.GetHealthPort()
-	lp, _ := in.Coherence.GetLocalPorts()
-
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: deployment.GetNamespace(),
@@ -533,36 +530,8 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt32(7),
-				},
-				{
-					Name:        "tcp-" + PortNameCoherenceLocal,
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: pointer.String(AppProtocolTcp),
-					Port:        lp,
-					TargetPort:  intstr.FromString(PortNameCoherenceLocal),
-				},
-				{
-					Name:        "tcp-" + PortNameCoherenceCluster,
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: pointer.String(AppProtocolTcp),
-					Port:        DefaultClusterPort,
-					TargetPort:  intstr.FromString(PortNameCoherenceCluster),
-				},
-				{
-					Name:        "http-" + PortNameHealth,
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: pointer.String(AppProtocolHttp),
-					Port:        hp,
-					TargetPort:  intstr.FromString(PortNameHealth),
-				},
-			},
-			Selector: selector,
+			Ports:                    in.createDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -579,42 +548,10 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 	svcLabels := deployment.CreateCommonLabels()
 	svcLabels[LabelComponent] = LabelComponentCoherenceHeadless
 
-	hp := in.GetHealthPort()
-	lp, _ := in.Coherence.GetLocalPorts()
-
 	// The selector for the service
 	selector := in.CreatePodSelectorLabels(deployment)
 
-	ports := []corev1.ServicePort{
-		{
-			Name:       "tcp-" + PortNameCoherence,
-			Protocol:   corev1.ProtocolTCP,
-			Port:       7,
-			TargetPort: intstr.FromInt32(7),
-		},
-		{
-			Name:        "tcp-" + PortNameCoherenceLocal,
-			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(AppProtocolTcp),
-			Port:        lp,
-			TargetPort:  intstr.FromString(PortNameCoherenceLocal),
-		},
-		{
-			Name:        "tcp-" + PortNameCoherenceCluster,
-			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(AppProtocolTcp),
-			Port:        DefaultClusterPort,
-			TargetPort:  intstr.FromString(PortNameCoherenceCluster),
-		},
-		{
-			Name:        "http-" + PortNameHealth,
-			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(AppProtocolHttp),
-			Port:        hp,
-			TargetPort:  intstr.FromString(PortNameHealth),
-		},
-	}
-
+	ports := in.createDefaultServicePorts()
 	for _, p := range in.Ports {
 		if p.ExposeOnSTS == nil || *p.ExposeOnSTS {
 			ports = append(ports, p.createServicePort(deployment))
@@ -640,6 +577,42 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 		Kind: ResourceTypeService,
 		Name: svc.GetName(),
 		Spec: svc,
+	}
+}
+
+func (in *CoherenceResourceSpec) createDefaultServicePorts() []corev1.ServicePort {
+	hp := in.GetHealthPort()
+	lp, _ := in.Coherence.GetLocalPorts()
+
+	return []corev1.ServicePort{
+		{
+			Name:        PortNameCoherence,
+			Protocol:    corev1.ProtocolTCP,
+			Port:        7,
+			TargetPort:  intstr.FromInt32(7),
+			AppProtocol: pointer.String(AppProtocolTcp),
+		},
+		{
+			Name:        PortNameCoherenceLocal,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(AppProtocolTcp),
+			Port:        lp,
+			TargetPort:  intstr.FromString(PortNameCoherenceLocal),
+		},
+		{
+			Name:        PortNameCoherenceCluster,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(AppProtocolTcp),
+			Port:        DefaultClusterPort,
+			TargetPort:  intstr.FromString(PortNameCoherenceCluster),
+		},
+		{
+			Name:        PortNameHealth,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(AppProtocolHttp),
+			Port:        hp,
+			TargetPort:  intstr.FromString(PortNameHealth),
+		},
 	}
 }
 
