@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-wka
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: my-coherence-app
+    version: 1.0.0
+  ports:
+    - name: coherence
+      port: 7574
+      targetPort: coherence
+      appProtocol: tcp

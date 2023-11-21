@@ -9,7 +9,7 @@
 
 == Using Coherence with Istio
 
-You can run the Coherence cluster and manage then using the Coherence Operator alongside https://istio.io[Istio].
+You can run the Coherence cluster and manage them using the Coherence Operator alongside https://istio.io[Istio].
 Coherence clusters managed with the Coherence Operator 3.3.2 and later work with Istio 1.9.1 and later out of the box.
 Coherence caches can be accessed from outside the Coherence cluster via Coherence*Extend, REST, and other supported
 Coherence clients.
@@ -192,7 +192,7 @@ metadata:
   name: storage
 spec:
   replicas: 3
-  image: ghcr.io/oracle:coherence-ce:22.06.6
+  image: ghcr.io/oracle/coherence-ce:22.06.6
   labels:
     app: storage      # <1>
     version: 1.0.0    # <2>
