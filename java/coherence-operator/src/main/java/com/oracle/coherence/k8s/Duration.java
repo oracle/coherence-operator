@@ -66,7 +66,7 @@ public class Duration {
                 String sAmount = matcher.group(1);
                 double nAmount = Double.parseDouble(sAmount);
 
-                m_cNanos = Math.round(nAmount * m.getFactor());
+                durationNanos = Math.round(nAmount * m.getFactor());
                 fUsedDefault = true;
             }
         }
@@ -80,7 +80,7 @@ public class Duration {
                                                                  this.getClass().getName(), s));
             }
 
-            m_cNanos = 0;
+            durationNanos = 0;
 
             int i = 1;
 
@@ -95,7 +95,7 @@ public class Duration {
                     String sSuffix = matcher.group(i + 2);
                     Magnitude magnitude = Magnitude.fromSuffix(sSuffix);
 
-                    m_cNanos += Math.round(nAmount * magnitude.getFactor());
+                    durationNanos += Math.round(nAmount * magnitude.getFactor());
                 }
 
                 i += 3;
@@ -111,7 +111,7 @@ public class Duration {
      * @return The number of nanoseconds
      */
     public long getNanos() {
-        return m_cNanos;
+        return durationNanos;
     }
 
     /**
@@ -121,7 +121,7 @@ public class Duration {
      * @return The number of units of the specified {@link Magnitude}.
      */
     public long as(Magnitude magnitude) {
-        return m_cNanos / magnitude.getFactor();
+        return durationNanos / magnitude.getFactor();
     }
 
     /**
@@ -135,7 +135,7 @@ public class Duration {
      */
     public String toString(boolean fExact) {
         StringBuilder sbResult = new StringBuilder();
-        long cRemainingNanos = m_cNanos;
+        long cRemainingNanos = durationNanos;
         int cLimit = 2;
 
         for (Magnitude magnitude = Magnitude.HIGHEST; cRemainingNanos > 0 && (fExact || cLimit > 0);
@@ -148,8 +148,8 @@ public class Duration {
                 if (fExact || magnitude.ordinal() > Magnitude.SECOND.ordinal()) {
                     sbResult.append(cMagnitudeUnits);
                 }
-                else // non-exact and seconds or less, express as fraction
-                {
+                else {
+                    // non-exact and seconds or less, express as fraction
                     long cNanosPerMagnitudeFractionUnit = magnitude.getFactor() / 1000;
                     long cMagnitudeFractionUnits = (cNanosPerMagnitudeFractionUnit > 0)
                             ? cRemainingNanos / cNanosPerMagnitudeFractionUnit : 0;
@@ -198,7 +198,7 @@ public class Duration {
      */
     @Override
     public int hashCode() {
-        return 31 + (int) (m_cNanos ^ (m_cNanos >>> 32));
+        return 31 + (int) (durationNanos ^ (durationNanos >>> 32));
     }
 
     /**
@@ -206,7 +206,7 @@ public class Duration {
      */
     @Override
     public boolean equals(Object obj) {
-        return (this == obj) || ((obj != null) && (obj instanceof Duration) && ((Duration) obj).m_cNanos == m_cNanos);
+        return (this == obj) || ((obj != null) && (obj instanceof Duration) && ((Duration) obj).durationNanos == durationNanos);
     }
 
     /**
@@ -223,12 +223,33 @@ public class Duration {
      * The {@link Magnitude} of the {@link Duration}.
      */
     public enum Magnitude {
+        /**
+         * The nanosecond magnitude.
+         */
         NANO(1L, "ns"),
+        /**
+         * The microsecond magnitude.
+         */
         MICRO(1000L, "us", "\u00B5s", "\u039Cs", "\u03BCs"),
+        /**
+         * The millisecond magnitude.
+         */
         MILLI(1000000L, "ms"),
+        /**
+         * The second magnitude.
+         */
         SECOND(1000000000L, "s"),
+        /**
+         * The minute magnitude.
+         */
         MINUTE(60 * 1000000000L, "m"),
+        /**
+         * The hour magnitude.
+         */
         HOUR(60 * 60 * 1000000000L, "h"),
+        /**
+         * The day magnitude.
+         */
         DAY(24 * 60 * 60 * 1000000000L, "d");
 
         // ----- constructors -----------------------------------------------
@@ -240,8 +261,8 @@ public class Duration {
          * @param sSuffixes the suffix (case-insensitive) of the magnitude
          */
         Magnitude(long nFactor, String... sSuffixes) {
-            FACTOR = nFactor;
-            SUFFIXES = sSuffixes;
+            factor = nFactor;
+            suffixes = sSuffixes;
         }
 
         // ----- Magnitude methods ------------------------------------------
@@ -253,7 +274,7 @@ public class Duration {
          * @return the factor of the {@link Magnitude}
          */
         public long getFactor() {
-            return FACTOR;
+            return factor;
         }
 
         /**
@@ -263,7 +284,7 @@ public class Duration {
          * @return the suffix of the {@link Magnitude}.
          */
         public String getSuffix() {
-            return SUFFIXES[0];
+            return suffixes[0];
         }
 
         /**
@@ -273,7 +294,7 @@ public class Duration {
          * @return true iff the passed string is compatible with the suffix of this {@link Magnitude}.
          */
         public boolean isSuffix(String s) {
-            for (String sSuffix : SUFFIXES) {
+            for (String sSuffix : suffixes) {
                 if (sSuffix.equalsIgnoreCase(s)) {
                     return true;
                 }
@@ -341,19 +362,19 @@ public class Duration {
         // ----- constants --------------------------------------------------
 
         /**
-         * Cached copy of the VALUES array to avoid garbage creation
+         * Cached copy of the VALUES array to avoid garbage creation.
          */
         private static final Magnitude[] VALUES = Magnitude.values();
 
         /**
          * The lowest defined order of {@link Magnitude}.
          */
-        public final static Magnitude LOWEST = Magnitude.VALUES[0];
+        public static final Magnitude LOWEST = Magnitude.VALUES[0];
 
         /**
          * The highest defined order of {@link Magnitude}.
          */
-        public final static Magnitude HIGHEST = Magnitude.VALUES[Magnitude.VALUES.length - 1];
+        public static final Magnitude HIGHEST = Magnitude.VALUES[Magnitude.VALUES.length - 1];
 
         // ----- data members -----------------------------------------------
 
@@ -361,13 +382,13 @@ public class Duration {
          * The number of nanoseconds in a single unit of this magnitude. For
          * example, a minute has 60 billion nanoseconds.
          */
-        public final long FACTOR;
+        private final long factor;
 
         /**
          * The suffixes that for the {@link Magnitude}. For example, "MILLI" has
          * the suffix "ms".
          */
-        public final String[] SUFFIXES;
+        private final String[] suffixes;
     }
 
     // ----- constants ------------------------------------------------------
@@ -386,12 +407,12 @@ public class Duration {
     private static final String PATTERN_MICRO = "\\s*(" + NUMBER + "\\s*([Uu\u00B5Mm\\u039C\\u03BC][Ss]))?";
     private static final Pattern REGEX_NUMBER = Pattern.compile(NUMBER);
     private static final Pattern REGEX_PATTERN = Pattern.compile(PATTERN_DAY + PATTERN_HOUR + PATTERN_MINUTE
-                                                                         + PATTERN_SECOND + PATTERN_MILLI + PATTERN_MICRO + PATTERN_NANO);
+            + PATTERN_SECOND + PATTERN_MILLI + PATTERN_MICRO + PATTERN_NANO);
 
     // ----- data members ---------------------------------------------------
 
     /**
      * The number of nanos in the {@link Duration}.
      */
-    private long m_cNanos;
+    private long durationNanos;
 }

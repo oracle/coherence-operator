@@ -15,8 +15,24 @@ import com.tangosol.net.Cluster;
  * A main class that sleeps for a specific duration.
  */
 public class Sleep {
+    /**
+     * The default number of milliseconds to sleep.
+     */
     public static final long DEFAULT_SLEEP = 60000;
 
+    /**
+     * Private constructor for utility class.
+     */
+    private Sleep() {
+    }
+
+    /**
+     * Sleep main entry point.
+     *
+     * @param args  the arguments
+     *
+     * @throws Exception if an error occurs
+     */
     public static void main(String[] args) throws Exception {
 
         Properties props = new Properties();
@@ -39,9 +55,16 @@ public class Sleep {
         }
     }
 
-    protected static class ReadinessServer
+    /**
+     * A simple readiness probe server.
+     */
+    private static class ReadinessServer
             extends OperatorRestServer {
-        public ReadinessServer() {
+
+        /**
+         * Create a {@link ReadinessServer}.
+         */
+        private ReadinessServer() {
             super(() -> null, () -> {}, new Properties());
         }
 
