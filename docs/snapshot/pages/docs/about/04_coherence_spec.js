@@ -1572,6 +1572,12 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <td class=""><code>&#42;<router-link to="#_servicemonitorspec" @click.native="this.scrollFix('#_servicemonitorspec')">ServiceMonitorSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>exposeOnSts</code></td>
+<td class="">ExposeOnSTS is a flag to indicate that this port should also be exposed on the StatefulSetHeadless service. This is useful in cases where a service mesh such as Istio is being used and ports such as the Extend or gRPC ports are accessed via the StatefulSet service. The default is <code>true</code> so all additional ports are exposed on the StatefulSet headless service.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>

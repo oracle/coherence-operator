@@ -1131,6 +1131,19 @@ function createRoutes(){
             component: loadPage('examples-no-operator-03_extend_tls-README', '/examples/no-operator/03_extend_tls/README', {})
         },
         {
+            path: '/examples/no-operator/04_istio/README',
+            meta: {
+                h1: 'Running Coherence with Istio',
+                title: 'Running Coherence with Istio',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-no-operator-04_istio-README', '/examples/no-operator/04_istio/README', {})
+        },
+        {
             path: '/examples/no-operator/test-client/README',
             meta: {
                 h1: 'Example Extend Client',
@@ -1414,6 +1427,7 @@ function createNav(){
                 { href: '/examples/no-operator/01_simple_server/README', title: 'A Simple Coherence Cluster' },
                 { href: '/examples/no-operator/02_metrics/README', title: 'Enabling Coherence Metrics' },
                 { href: '/examples/no-operator/03_extend_tls/README', title: 'Secure Coherence Extend with TLS' },
+                { href: '/examples/no-operator/04_istio/README', title: 'Running Coherence with Istio' },
                 { href: '/examples/no-operator/test-client/README', title: 'Example Extend Client' }
             ]
         },
