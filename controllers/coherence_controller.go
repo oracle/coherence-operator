@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
@@ -35,8 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strconv"
-
-	coh "github.com/oracle/coherence-operator/api/v1"
 )
 
 const (
@@ -221,7 +220,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// The "storeHash" is not "", so it must have been processed by the Operator (could have been a previous version).
 			// There was a bug prior to 3.2.8 where the hash was calculated at the wrong point in the defaulting web-hook,
 			// so the "currentHash" may be wrong, and hence differ from the recalculated "hash".
-			if deployment.IsBeforeVersion("3.2.8") {
+			if deployment.IsBeforeVersion("3.3.0") {
 				// the AnnotationOperatorVersion annotation was added in the 3.2.8 web-hook, so if it is missing
 				// the Coherence resource was added or updated prior to 3.2.8
 				// In this case we just ignore the difference in hash.
@@ -282,6 +281,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 		return reconcile.Result{}, fmt.Errorf("one or more secondary resource reconcilers failed to reconcile")
 	}
+	//} else {
+	//	log.Info("Skipping updates for Coherence resource, annotation " + coh.AnnotationOperatorIgnore + " is set to true")
+	//}
 
 	// if replica count is zero update the status to Stopped
 	if deployment.GetReplicas() == 0 {
@@ -348,11 +350,11 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 	hash, _ := coh.EnsureHashLabel(latest)
 
 	if currentHash != hash {
-		if c.IsBeforeVersion("3.2.8") {
-			// Before 3.2.8 there was a bug calculating the has in the defaulting web-hook
+		if c.IsBeforeVersion("3.3.0") {
+			// Before 3.3.0 there was a bug calculating the has in the defaulting web-hook
 			// This would cause the hashes to be different here, when in fact they should not be
 			// If the Coherence resource being processes has no version annotation, or a version
-			// prior to 3.2.8 then we return as if the hashes matched
+			// prior to 3.3.0 then we return as if the hashes matched
 			if labels == nil {
 				labels = make(map[string]string)
 			}

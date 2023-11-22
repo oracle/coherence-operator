@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -45,7 +45,7 @@ func TestNamedPortSpec_CreateServiceWithMinimalFields(t *testing.T) {
 					Name:       "foo",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       19,
-					TargetPort: intstr.FromInt(19),
+					TargetPort: intstr.FromInt32(19),
 					NodePort:   0,
 				},
 			},
@@ -236,7 +236,7 @@ func TestNamedPortSpec_CreateServiceWithService(t *testing.T) {
 					Name:       "foo",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       99,
-					TargetPort: intstr.FromInt(19),
+					TargetPort: intstr.FromInt32(19),
 				},
 			},
 			Selector:                 selector,

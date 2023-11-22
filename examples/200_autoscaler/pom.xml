@@ -20,7 +20,7 @@
     <maven.compiler.target>11</maven.compiler.target>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>22.06.4</coherence.version>
+    <coherence.version>22.06.6</coherence.version>
 
     <jib.version>3.3.2</jib.version>
 

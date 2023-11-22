@@ -123,6 +123,10 @@ const (
 
 	// PortNameCoherence is the name of the Coherence port
 	PortNameCoherence = "coherence"
+	// PortNameCoherenceLocal is the name of the Coherence local port
+	PortNameCoherenceLocal = "coh-local"
+	// PortNameCoherenceCluster is the name of the Coherence cluster port
+	PortNameCoherenceCluster = "coh-cluster"
 	// PortNameDebug is the name of the debug port
 	PortNameDebug = "debug-port"
 	// PortNameHealth is the name of the health port
@@ -132,6 +136,11 @@ const (
 	// PortNameMetrics is the name of the Coherence metrics port
 	PortNameMetrics = "metrics"
 
+	// AppProtocolTcp is the appProtocol value for ports that use tcp
+	AppProtocolTcp = "tcp"
+	// AppProtocolHttp is the appProtocol value for ports that use http
+	AppProtocolHttp = "http"
+
 	// DefaultDebugPort is the default debug port
 	DefaultDebugPort int32 = 5005
 	// DefaultManagementPort is the Coherence manaement debug port
@@ -140,6 +149,8 @@ const (
 	DefaultMetricsPort int32 = 9612
 	// DefaultHealthPort is the default health port
 	DefaultHealthPort int32 = 6676
+	// DefaultClusterPort is the default Coherence cluster port
+	DefaultClusterPort int32 = 7574
 	// DefaultUnicastPort is the default Coherence unicast port
 	DefaultUnicastPort int32 = 7575
 	// DefaultUnicastPortAdjust is the default Coherence unicast port adjust value

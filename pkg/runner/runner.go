@@ -50,6 +50,8 @@ const (
 	AppTypeHelidon = "helidon"
 	// AppTypeSpring is the argument to specify a Spring application.
 	AppTypeSpring = "spring"
+	// AppTypeOperator is the argument to specify running an Operator command.
+	AppTypeOperator = "operator"
 
 	// defaultConfig is the root name of the default configuration file
 	defaultConfig = ".coherence-runner"
@@ -123,6 +125,8 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(nodeCommand())
 	rootCmd.AddCommand(operatorCommand())
 	rootCmd.AddCommand(networkTestCommand())
+	rootCmd.AddCommand(jShellCommand())
+	rootCmd.AddCommand(sleepCommand())
 
 	return rootCmd, v
 }
@@ -592,6 +596,9 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	case details.AppType == AppTypeCoherence:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
+	case details.AppType == AppTypeOperator:
+		app = "Operator"
+		cmd, err = createOperatorCommand(details)
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = createGraalCommand(details)
@@ -635,6 +642,25 @@ func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, er
 func _createJavaCommand(javaCmd string, details *RunDetails, args []string) (*exec.Cmd, error) {
 	args = append(args, details.MainArgs...)
 	cmd := exec.Command(javaCmd, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if details.Dir != "" {
+		_, err := os.Stat(details.Dir)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Working directory %s does not exists or is not a directory", details.Dir)
+		}
+		cmd.Dir = details.Dir
+	}
+
+	return cmd, nil
+}
+
+func createOperatorCommand(details *RunDetails) (*exec.Cmd, error) {
+	executable := os.Args[0]
+	args := details.MainArgs[1:]
+	cmd := exec.Command(executable, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -912,12 +938,16 @@ func cohPost12214(details *RunDetails) {
 }
 
 func cohPost2206(details *RunDetails) {
-	useOperator, found := os.LookupEnv(v1.EnvVarUseOperatorHealthCheck)
-	if found && strings.EqualFold("true", useOperator) {
+	if details.UseOperatorHealth {
 		details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
 	} else {
-		details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
-		details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+		useOperator := details.getenvOrDefault(v1.EnvVarUseOperatorHealthCheck, "false")
+		if strings.EqualFold("true", useOperator) {
+			details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
+		} else {
+			details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+			details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+		}
 	}
 }
 

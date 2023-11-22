@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -103,7 +103,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPort(t *testing.T) {
 					Name:       "test-port-one",
 					Protocol:   protocol,
 					Port:       9876,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					NodePort:   2020,
 				},
 			},
@@ -160,7 +160,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceName(t *testing.
 					Name:       "test-port-one",
 					Protocol:   protocol,
 					Port:       9876,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					NodePort:   2020,
 				},
 			},
@@ -217,7 +217,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServicePort(t *testing.
 					Name:       "test-port-one",
 					Protocol:   protocol,
 					Port:       80,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					NodePort:   2020,
 				},
 			},
@@ -296,7 +296,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceFields(t *testin
 					Name:       "test-port-one",
 					Protocol:   protocol,
 					Port:       9876,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					NodePort:   2020,
 				},
 			},
@@ -361,7 +361,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceLabels(t *testin
 				{
 					Name:       "test-port-one",
 					Port:       9876,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					Protocol:   corev1.ProtocolTCP,
 				},
 			},
@@ -412,7 +412,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceAnnotations(t *t
 				{
 					Name:       "test-port-one",
 					Port:       9876,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					Protocol:   corev1.ProtocolTCP,
 				},
 			},
@@ -472,7 +472,7 @@ func TestCreateServicesWithPortsWithTwoAdditionalPorts(t *testing.T) {
 				{
 					Name:       "test-port-one",
 					Port:       9876,
-					TargetPort: intstr.FromInt(9876),
+					TargetPort: intstr.FromInt32(9876),
 					Protocol:   protocolOne,
 				},
 			},
@@ -491,7 +491,7 @@ func TestCreateServicesWithPortsWithTwoAdditionalPorts(t *testing.T) {
 				{
 					Name:       "test-port-two",
 					Port:       5678,
-					TargetPort: intstr.FromInt(5678),
+					TargetPort: intstr.FromInt32(5678),
 					Protocol:   protocolTwo,
 				},
 			},

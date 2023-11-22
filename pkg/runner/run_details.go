@@ -39,19 +39,20 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 
 // RunDetails contains the information to run an application.
 type RunDetails struct {
-	Command       string
-	CoherenceHome string
-	JavaHome      string
-	UtilsDir      string
-	Dir           string
-	GetSite       bool
-	AppType       string
-	Classpath     string
-	Args          []string
-	MainClass     string
-	MainArgs      []string
-	BuildPacks    *bool
-	env           *viper.Viper
+	Command           string
+	CoherenceHome     string
+	JavaHome          string
+	UtilsDir          string
+	Dir               string
+	GetSite           bool
+	UseOperatorHealth bool
+	AppType           string
+	Classpath         string
+	Args              []string
+	MainClass         string
+	MainArgs          []string
+	BuildPacks        *bool
+	env               *viper.Viper
 }
 
 // Getenv returns the value for the specified environment variable, or empty string if not set.

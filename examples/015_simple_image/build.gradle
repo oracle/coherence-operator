@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-	implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.4")
+	implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.6")
 
 	implementation "com.oracle.coherence.ce:coherence"
 	implementation "com.oracle.coherence.ce:coherence-json"

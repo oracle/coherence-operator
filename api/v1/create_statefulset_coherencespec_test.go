@@ -135,7 +135,7 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjustFalse(t *testing.T) {
 }
 
 func TestCreateStatefulSetWithCoherenceLocalPortAdjust(t *testing.T) {
-	lpa := intstr.FromInt(9876)
+	lpa := intstr.FromInt32(9876)
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			LocalPortAdjust: &lpa,

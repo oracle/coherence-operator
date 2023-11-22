@@ -135,7 +135,7 @@ func TestJobCoherenceLocalPortIsNotSetOnUpdate(t *testing.T) {
 func TestJobCoherenceLocalPortAdjustIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	lpa := intstr.FromInt(int(coh.DefaultUnicastPortAdjust))
+	lpa := intstr.FromInt32(coh.DefaultUnicastPortAdjust)
 	c := coh.CoherenceJob{}
 	c.Default()
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
@@ -145,7 +145,7 @@ func TestJobCoherenceLocalPortAdjustIsSet(t *testing.T) {
 func TestJobCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	lpa := intstr.FromInt(9876)
+	lpa := intstr.FromInt32(9876)
 	c := coh.CoherenceJob{
 		Spec: coh.CoherenceJobResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{

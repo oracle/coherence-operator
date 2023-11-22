@@ -50,15 +50,8 @@ func TestCreateWKAServiceForMinimalDeployment(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -105,15 +98,8 @@ func TestCreateWKAServiceWithAppLabel(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -160,15 +146,8 @@ func TestCreateWKAServiceWithVersionLabel(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -212,15 +191,8 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 			ClusterIP: corev1.ClusterIPNone,
 			// Pods must be part of the WKA service even if not ready
 			PublishNotReadyAddresses: true,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "tcp-" + coh.PortNameCoherence,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       7,
-					TargetPort: intstr.FromInt(7),
-				},
-			},
-			Selector: selector,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
 		},
 	}
 
@@ -240,4 +212,37 @@ func assertWKAService(t *testing.T, deployment *coh.Coherence, expected *corev1.
 
 	diffs := deep.Equal(resActual, resExpected)
 	g.Expect(diffs).To(BeNil())
+}
+
+func getDefaultServicePorts() []corev1.ServicePort {
+	return []corev1.ServicePort{
+		{
+			Name:        coh.PortNameCoherence,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			Port:        7,
+			TargetPort:  intstr.FromInt32(7),
+		},
+		{
+			Name:        coh.PortNameCoherenceLocal,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			Port:        coh.DefaultUnicastPort,
+			TargetPort:  intstr.FromString(coh.PortNameCoherenceLocal),
+		},
+		{
+			Name:        coh.PortNameCoherenceCluster,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			Port:        coh.DefaultClusterPort,
+			TargetPort:  intstr.FromString(coh.PortNameCoherenceCluster),
+		},
+		{
+			Name:        coh.PortNameHealth,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(coh.AppProtocolHttp),
+			Port:        coh.DefaultHealthPort,
+			TargetPort:  intstr.FromString(coh.PortNameHealth),
+		},
+	}
 }

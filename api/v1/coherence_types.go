@@ -1065,6 +1065,14 @@ type NamedPortSpec struct {
 	// port.
 	// +optional
 	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty"`
+	// ExposeOnSTS is a flag to indicate that this port should also be exposed on
+	// the StatefulSetHeadless service. This is useful in cases where a service mesh
+	// such as Istio is being used and ports such as the Extend or gRPC ports are
+	// accessed via the StatefulSet service.
+	// The default is `true` so all additional ports are exposed on the StatefulSet
+	// headless service.
+	// +optional
+	ExposeOnSTS *bool `json:"exposeOnSts,omitempty"`
 }
 
 // GetServiceName returns the name of the Service used to expose this port, or returns
@@ -1090,13 +1098,6 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 
 	name, _ := in.GetServiceName(deployment)
 
-	var portName string
-	if in.Service != nil && in.Service.PortName != nil {
-		portName = *in.Service.PortName
-	} else {
-		portName = in.Name
-	}
-
 	// The labels for the service
 	svcLabels := deployment.CreateCommonLabels()
 	svcLabels[LabelComponent] = LabelComponentPortService
@@ -1118,17 +1119,7 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 
 	// Add the port
 	serviceSpec.Ports = []corev1.ServicePort{
-		{
-			Name:       portName,
-			Protocol:   in.GetProtocol(),
-			Port:       in.GetServicePort(deployment),
-			TargetPort: intstr.FromInt(int(in.GetPort(deployment))),
-			NodePort:   in.GetNodePort(),
-		},
-	}
-
-	if in.AppProtocol != nil {
-		serviceSpec.Ports[0].AppProtocol = in.AppProtocol
+		in.createServicePort(deployment),
 	}
 
 	// Add the service selector
@@ -1146,6 +1137,31 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 	}
 
 	return &svc
+}
+
+func (in *NamedPortSpec) createServicePort(deployment CoherenceResource) corev1.ServicePort {
+	var portName string
+	if in.Service != nil && in.Service.PortName != nil {
+		portName = *in.Service.PortName
+	} else {
+		portName = in.Name
+	}
+
+	sp := corev1.ServicePort{
+		Name:       portName,
+		Protocol:   in.GetProtocol(),
+		Port:       in.GetServicePort(deployment),
+		TargetPort: intstr.FromInt32(in.GetPort(deployment)),
+		NodePort:   in.GetNodePort(),
+	}
+
+	if in.AppProtocol != nil {
+		sp.AppProtocol = in.AppProtocol
+	} else {
+		sp.AppProtocol = in.GetDefaultAppProtocol()
+	}
+
+	return sp
 }
 
 // CreateServiceMonitor creates the Prometheus ServiceMonitor to expose this port if enabled.
@@ -1242,6 +1258,21 @@ func (in *NamedPortSpec) GetServicePort(d CoherenceResource) int32 {
 		return spec.GetManagementPort()
 	default:
 		return in.Port
+	}
+}
+
+func (in *NamedPortSpec) GetDefaultAppProtocol() *string {
+	switch {
+	case in == nil:
+		return nil
+	case strings.ToLower(in.Name) == PortNameMetrics:
+		// special case for well known port - metrics
+		return pointer.String(AppProtocolHttp)
+	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
+		// special case for well known port - management
+		return pointer.String(AppProtocolHttp)
+	default:
+		return nil
 	}
 }
 
@@ -2142,7 +2173,7 @@ func (in *ReadinessProbeSpec) UpdateProbeSpec(port int32, path string, probe *co
 	default:
 		probe.HTTPGet = &corev1.HTTPGetAction{
 			Path:   path,
-			Port:   intstr.FromInt(int(port)),
+			Port:   intstr.FromInt32(port),
 			Scheme: corev1.URISchemeHTTP,
 		}
 	}

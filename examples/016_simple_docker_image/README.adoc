@@ -205,7 +205,7 @@ The `image-assembly.xml` descriptor file is shown below, and configures the foll
 * There are two `<fileSets>` configured:
 ** The first copies any class files in `target/classes` to `app/classes` (which will actually be `target/docker/app/classes`)
 ** The second copies all files under `src/docker` (i.e. the `Dockerfile`) into `target/docker`
-* The `<dependencySets>` configuration copies all the project dependencies (including transitive dependencies) to the `app/libs` directory (actually the `target/docker/app/libs` directory). Any version information will be stripped from the files, so `coherence-22.06.4.jar` would become `coherence.jar`.
+* The `<dependencySets>` configuration copies all the project dependencies (including transitive dependencies) to the `app/libs` directory (actually the `target/docker/app/libs` directory). Any version information will be stripped from the files, so `coherence-22.06.6.jar` would become `coherence.jar`.
 
 [source,xml]
 .src/assembly/image-assembly.xml
@@ -274,7 +274,7 @@ In the `build.gradle` file we add the bom as a platform dependency and then add 
 .build.gradle
 ----
 dependencies {
-    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.4")
+    implementation platform("com.oracle.coherence.ce:coherence-bom:22.06.6")
 
     implementation "com.oracle.coherence.ce:coherence"
     implementation "com.oracle.coherence.ce:coherence-json"

@@ -271,6 +271,17 @@ func (in *Coherence) AddAnnotation(key, value string) {
 	}
 }
 
+func (in *Coherence) AddAnnotationIfMissing(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		if _, found := in.Annotations[key]; !found {
+			in.Annotations[key] = value
+		}
+	}
+}
+
 // GetNamespacedName returns the namespace/name key to look up this resource.
 func (in *Coherence) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
@@ -321,7 +332,14 @@ func (in *Coherence) GetVersionAnnotation() (string, bool) {
 // before the specified version, or is not set.
 // The version parameter must be a valid SemVer value.
 func (in *Coherence) IsBeforeVersion(version string) bool {
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
 	if actual, found := in.GetVersionAnnotation(); found {
+		if actual[0] != 'v' {
+			actual = "v" + actual
+		}
 		return semver.Compare(actual, version) < 0
 	}
 	return true

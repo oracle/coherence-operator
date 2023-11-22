@@ -27,7 +27,7 @@ CERTIFICATION_VERSION ?= $(VERSION)
 # The previous Operator version used to run the compatibility tests.
 COMPATIBLE_VERSION  ?= 3.3.1
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
-COMPATIBLE_SELECTOR = control-plane=coherence
+COMPATIBLE_SELECTOR ?= control-plane=coherence
 
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
@@ -1049,28 +1049,31 @@ run-prometheus-test: gotestsum
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
-compatibility-test: export CGO_ENABLED = 0
-compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
-compatibility-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
-compatibility-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
-compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
-compatibility-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
-compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
-compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
-compatibility-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
-compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
-compatibility-test: export VERSION := $(VERSION)
-compatibility-test: export COMPATIBLE_VERSION := $(COMPATIBLE_VERSION)
-compatibility-test: export COMPATIBLE_SELECTOR := $(COMPATIBLE_SELECTOR)
-compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
-compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum    ## Run the Operator backwards compatibility tests
+compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
+
+.PHONY: just-compatibility-test
+just-compatibility-test: export CGO_ENABLED = 0
+just-compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+just-compatibility-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
+just-compatibility-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+just-compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+just-compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+just-compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+just-compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
+just-compatibility-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+just-compatibility-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+just-compatibility-test: export VERSION := $(VERSION)
+just-compatibility-test: export COMPATIBLE_VERSION := $(COMPATIBLE_VERSION)
+just-compatibility-test: export COMPATIBLE_SELECTOR := $(COMPATIBLE_SELECTOR)
+just-compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+just-compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+just-compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+just-compatibility-test:  ## Run the Operator backwards compatibility tests WITHOUT building anything
 	helm repo add coherence https://oracle.github.io/coherence-operator/charts
 	helm repo update
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
@@ -2107,6 +2110,9 @@ install-istio: get-istio ## Install the latest version of Istio into k8s (or ove
 	kubectl apply -f ./hack/istio-strict.yaml
 	kubectl -n $(OPERATOR_NAMESPACE) apply -f ./hack/istio-operator.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(CLUSTER_NAMESPACE) istio-injection=enabled --overwrite=true
+	kubectl apply -f $(ISTIO_HOME)/samples/addons
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Istio

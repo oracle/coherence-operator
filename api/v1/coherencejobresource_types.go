@@ -47,7 +47,6 @@ func (in *CoherenceJob) GetCoherenceClusterName() string {
 	if in == nil {
 		return ""
 	}
-
 	if in.Spec.Cluster == "" {
 		return in.Name
 	}
@@ -90,6 +89,17 @@ func (in *CoherenceJob) AddAnnotation(key, value string) {
 			in.Annotations = make(map[string]string)
 		}
 		in.Annotations[key] = value
+	}
+}
+
+func (in *CoherenceJob) AddAnnotationIfMissing(key, value string) {
+	if in != nil {
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		if _, found := in.Annotations[key]; !found {
+			in.Annotations[key] = value
+		}
 	}
 }
 
