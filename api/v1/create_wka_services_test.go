@@ -217,27 +217,28 @@ func assertWKAService(t *testing.T, deployment *coh.Coherence, expected *corev1.
 func getDefaultServicePorts() []corev1.ServicePort {
 	return []corev1.ServicePort{
 		{
-			Name:       "tcp-" + coh.PortNameCoherence,
-			Protocol:   corev1.ProtocolTCP,
-			Port:       7,
-			TargetPort: intstr.FromInt32(7),
+			Name:        coh.PortNameCoherence,
+			Protocol:    corev1.ProtocolTCP,
+			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			Port:        7,
+			TargetPort:  intstr.FromInt32(7),
 		},
 		{
-			Name:        "tcp-" + coh.PortNameCoherenceLocal,
+			Name:        coh.PortNameCoherenceLocal,
 			Protocol:    corev1.ProtocolTCP,
 			AppProtocol: pointer.String(coh.AppProtocolTcp),
 			Port:        coh.DefaultUnicastPort,
 			TargetPort:  intstr.FromString(coh.PortNameCoherenceLocal),
 		},
 		{
-			Name:        "tcp-" + coh.PortNameCoherenceCluster,
+			Name:        coh.PortNameCoherenceCluster,
 			Protocol:    corev1.ProtocolTCP,
 			AppProtocol: pointer.String(coh.AppProtocolTcp),
 			Port:        coh.DefaultClusterPort,
 			TargetPort:  intstr.FromString(coh.PortNameCoherenceCluster),
 		},
 		{
-			Name:        "http-" + coh.PortNameHealth,
+			Name:        coh.PortNameHealth,
 			Protocol:    corev1.ProtocolTCP,
 			AppProtocol: pointer.String(coh.AppProtocolHttp),
 			Port:        coh.DefaultHealthPort,
