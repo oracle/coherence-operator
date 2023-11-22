@@ -119,6 +119,7 @@ func run(cmd *cobra.Command) error {
 	excludes = append(excludes, "https://127.0.0.1")
 	excludes = append(excludes, "https://host")
 	excludes = append(excludes, "http://host")
+	excludes = append(excludes, "https://cert-manager.io")
 
 	exitCode, failedLinks := checkDocs(files, excludes)
 	if exitCode != 0 {

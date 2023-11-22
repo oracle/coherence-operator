@@ -39,7 +39,7 @@ func TestSiteLabel(t *testing.T) {
 		return fmt.Sprintf("zone-zone-test-sts.%s.svc", namespace)
 	}
 
-	assertLabel(t, "zone", "zone-test.yaml", operator.DefaultSiteLabels, fn, dfn)
+	assertLabel(t, "zone", "zone-test.yaml", operator.DefaultSiteLabels, []string{}, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct site value
@@ -58,7 +58,7 @@ func TestCustomSiteLabel(t *testing.T) {
 		return fmt.Sprintf("custom-site-zone-test-sts.%s.svc", namespace)
 	}
 
-	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, fn, dfn)
+	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, []string{}, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -77,7 +77,7 @@ func TestRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "rack", "zone-test.yaml", operator.DefaultRackLabels, fn, dfn)
+	assertLabel(t, "rack", "zone-test.yaml", operator.DefaultRackLabels, operator.DefaultSiteLabels, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -96,10 +96,10 @@ func TestCustomRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "custom-rack", "zone-test-custom-rack.yaml", []string{"coherence.oracle.com/test"}, fn, dfn)
+	assertLabel(t, "custom-rack", "zone-test-custom-rack.yaml", []string{"coherence.oracle.com/test"}, []string{}, fn, dfn)
 }
 
-func assertLabel(t *testing.T, name string, fileName string, labels []string, fn func(management.MemberData) string, dfn func(string) string) {
+func assertLabel(t *testing.T, name string, fileName string, labels, prefixLabels []string, fn func(management.MemberData) string, dfn func(string) string) {
 	g := NewGomegaWithT(t)
 	namespace := helper.GetTestNamespace()
 
@@ -145,14 +145,25 @@ func assertLabel(t *testing.T, name string, fileName string, labels []string, fn
 		g.Expect(err).NotTo(HaveOccurred())
 
 		actual := fn(member)
-		expected := ""
 
+		// find the first non-blank prefix label as that is the label that should have been used
+		prefix := ""
+		for _, label := range prefixLabels {
+			labelValue := node.GetLabels()[label]
+			t.Logf("Node %s prefix label '%s' value '%s'", node.Name, label, labelValue)
+			if labelValue != "" {
+				prefix = labelValue + "-"
+				break
+			}
+		}
+
+		expected := ""
 		// find the first non-blank label as that is the label that should have been used
 		for _, label := range labels {
 			labelValue := node.GetLabels()[label]
 			t.Logf("Node %s label '%s' value '%s'", node.Name, label, labelValue)
 			if labelValue != "" {
-				expected = labelValue
+				expected = prefix + labelValue
 				break
 			}
 		}
