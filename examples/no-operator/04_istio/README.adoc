@@ -89,8 +89,8 @@ All the resources in this example contains those labels.
 === Cluster Discovery Service
 
 For Coherence cluster discovery to work in Kubernetes we have to configure Coherence well-known-addresses which
-requires a headless service. We cannot use the same headless service the we will create for the StatefulSet because
-the WKA service must have the `publishNotReadyAddresses` field set to `true`, wheres the StatefulSet service does not.
+requires a headless service. We cannot use the same headless service then we will create for the StatefulSet because
+the WKA service must have the `publishNotReadyAddresses` field set to `true`, whereas the StatefulSet service does not.
 We would not want the ports accessed via the StatefulSet service to route to unready Pods, but for cluster discovery
 we must allow unready Pods to be part of the Service.
 
@@ -128,6 +128,7 @@ All StatefulSets require a headless Service creating and the name of this Servic
 All the ports mentioned above will be exposed on this service.
 The yaml for the service could look like this:
 
+[#headless-svc]
 [source,yaml]
 .storage-service.yaml
 ----
@@ -193,6 +194,7 @@ Or, prefix the port name with the protocol, so instead of `management` the port 
 With the two Services defined, the StatefulSet can now be configured.
 Istio
 
+[#sts]
 [source,yaml]
 .storage.yaml
 ----
@@ -247,6 +249,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: "metadata.name"
+            - name: COHERENCE_EXTEND_PORT
+              value: "20000"
+            - name: COHERENCE_GRPC_SERVER_PORT
+              value: "1408"
           ports:
            - name: coherence         # <10>
              containerPort: 7574
@@ -295,6 +301,27 @@ Pod name.
 <10> All the ports required are exposed as container ports. The names must correspond to the names used for the container ports in the Service spec.
 <11> As we are using Coherence CE 22.06 we can use Coherence built in health check endpoints for the readiness and liveness probes.
 
+[NOTE]
+====
+The example above is using Coherence 22.06 which has built in health checks and health check endpoints which can be used
+as readiness and liveness probes in Kubernetes. These endpoints are only available if you start Coherence correctly
+using the Bootstrap API introduced in 22.06.
+
+Start Coherence using `com.tangosol.net.Coherence` as the main class.
+[source,bash]
+----
+java -cp coherence.jar com.tangosol.net.Coherence
+----
+
+Start Coherence in code:
+[source,java]
+----
+Coherence coherence = Coherence.clusterMember().start().join();
+----
+
+See the Coherence https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-applications/starting-and-stopping-cluster-members.html#GUID-A74280C1-AB23-48DB-8C0D-E494230ABFCA[Bootstrap API]
+documentation for more details
+====
 
 === Deploy the Cluster
 
@@ -313,9 +340,9 @@ We could combine them into  a single yaml file if we wanted to.
 
 [source,bash]
 ----
-kubectl apply -f wka-service.yaml
-kubectl apply -f storage-service.yaml
-kubectl apply -f storage.yaml
+kubectl -n coherence apply -f wka-service.yaml
+kubectl -n coherence apply -f storage-service.yaml
+kubectl -n coherence apply -f storage.yaml
 ----
 
 If we list the services, we see the two services we created
@@ -352,15 +379,351 @@ image::images/kiali-cluster-start.png[width=1024,height=512]
 
 Coherence clients (Extend or gRPC) can be configured to connect to the Coherence cluster.
 
-If the clients are also inside the cluster they can be configured to connect using the StatefulSet as the hostname
-for the endpoints. Clients inside Kubernetes can also use the minimal Coherence NameService configuration where the
+=== Extend Proxy Configuration
+
+To work correctly with Istio a Coherence Extend proxy in the server's cache configuration file must be configured
+to use a fixed port.
+For example, the XML snippet below configures the proxy to bind to all interfaces (`0.0.0.0`) on port 20000.
+
+[source,xml]
+----
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.extend.address">0.0.0.0</address>
+            <port system-property="coherence.extend.port">20000</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
+    </proxy-scheme>
+----
+
+The port could be changed by setting the `COHERENCE_EXTEND_PORT` environment variable in the server yaml.
+
+[source,yaml]
+----
+    spec:
+      containers:
+        - name: coherence
+          image: ghcr.io/oracle/coherence-ce:22.06.6
+          env:
+            - name: COHERENCE_EXTEND_PORT
+              value: "20001"
+----
+
+The Extend port should be exposed on the StatefulSet (as shown in the <<sts,StatefulSet yaml>> above) and
+on the StatefulSet headless service so that clients can discover it and connect
+to it (as shown in the <<headless-svc,Service yaml>> above).
+
+[TIP]
+====
+The default cache configuration file used by Coherence, and used in the Coherence images published on GitHub,
+contains an Extend Proxy service that uses the `COHERENCE_EXTEND_PORT` environment variable to set the port.
+====
+
+=== gRPC Proxy Configuration
+
+The Coherence gRPC proxy binds to an ephemeral port by default.
+This port can be changed by using the `COHERENCE_GRPC_SERVER_PORT` environment variable;
+
+[source,yaml]
+----
+    spec:
+      containers:
+        - name: coherence
+          image: ghcr.io/oracle/coherence-ce:22.06.6
+          env:
+            - name: COHERENCE_GRPC_SERVER_PORT
+              value: "1408"
+----
+
+[TIP]
+====
+The default configuration used by Coherence images published on GitHub sets the gRPC port to 1408.
+====
+
+Once the server StatefulSet and Service have been properly configured the clients can be configured.
+The options available for this will depend on where the client will run.
+
+=== Clients Inside Kubernetes
+
+If the clients are also inside the cluster they can be configured to connect using the StatefulSet headless service
+as the hostname for the proxy endpoints.
+There are two options for configuring Extend and
+
+* Clients inside Kubernetes can also use the minimal Coherence NameService configuration where the
 StatefulSet service name is used as the client's WKA address and the same cluster name is configured.
 
-Clients external to the Kubernetes cluster can be configured using any of the ingress or gateway features of Istio and Kubernetes.
+* Clients external to the Kubernetes cluster can be configured using any of the ingress or gateway features of Istio and Kubernetes.
 All the different ways to do this are beyond the scope of this simple example as there are many, and they
 depend on the versions of Istio and Kubernetes being used.
 
+==== Build a Client Image
+
+For this example we need a simple client image that can be run with different configurations.
+Instead of building an application we will use a Coherence Image from GitHub combined with the
+utilities from the Coherence Operator.
+
+The simple Dockerfile below is a multistage build file.
+It uses the Operator image as a "builder" and then the Coherence image as the base.
+Various utilities are copied from the Operator image into the base.
+
+[source]
+.Dockerfile
+----
+FROM ghcr.io/oracle/coherence-operator:3.3.2 AS Builder
+
+FROM ghcr.io/oracle/coherence-ce:22.06.6
+COPY --from=Builder /files /files
+COPY --from=Builder /files/lib/coherence-operator.jar /app/libs/coherence-operator.jar
+COPY coherence-java-client-22.06.6.jar /app/libs/coherence-java-client-22.06.6.jar
+
+ENTRYPOINT ["files/runner"]
+CMD ["-h"]
+----
+
+As we are going to show both the Coherence Extend client and gRPC client we need to add the
+Coherence gRPC client jar. We can download this with `curl` to the same directory as the Dockerfile.
+
+[source,bash]
+----
+curl -s https://repo1.maven.org/maven2/com/oracle/coherence/ce/coherence-java-client/22.06.6/coherence-java-client-22.06.6.jar \
+  -o coherence-java-client-22.06.6.jar
+----
+
+Build the image with the following command:
+
+[source,bash]
+----
+docker build -t coherence-client:1.0.0 -f Dockerfile .
+----
+
+There will now be an imaged named `coherence-client:1.0.0` which can be pushed somewhere Kubernetes can see it.
+We will use this example below.
+
+==== Using the Coherence NameService Configuration
+
+The minimal configuration in a client's cache configuration file is shown below.
+This configuration will use the Coherence NameService to look up the endpoints for the Extend Proxy services
+running in the Coherence cluster.
+
+[source,xml]
+----
+<remote-cache-scheme>
+  <scheme-name>thin-remote</scheme-name>
+  <service-name>RemoteCache</service-name>
+  <proxy-service-name>Proxy</proxy-service-name>
+</remote-cache-scheme>
+----
+
+For the NameService to work in Kubernetes, the client must be configured with the same cluster name, the same
+well known addresses and same cluster port as the server. When using Istio the server's cluster port, local port
+and Extend port should be exposed on the StatefulSet headless service.
+The client's well known address is then set to the qualified Kubernetes DNS name for the server's StatefulSet headless service.
+
+These can all be set using environment variables in the yaml for the client.
+
+For example, assuming the client will connect to the Coherence cluster configured in the <<sts,StatefulSet>> above:
+
+[source,yaml]
+----
+  env:
+    - name: COHERENCE_CLUSTER             # <1>
+      value: "test-cluster"
+    - name: COHERENCE_WKA                 # <2>
+      value: "storage-headless.coherence.svc"
+----
+<1> The cluster name is set to `test-cluster` the same as the StatefulSet
+<2> The `COHERENCE_WKA` value is set to the DNS name of the StatefulSet headless service, which has the format
+`<service-name>.<namespace>.svc` so in this case `storage-headless.coherence.svc`
+
+==== Run an Extend Client Pod
+
+Using the `coherence-client:1.0.0` image created above, we can run a simple Coherence client Pod.
+
+[source,yaml]
+.extend-client-pod.yaml
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: coherence-client
+    version: 1.0.0
+spec:
+  containers:
+    - name: coherence
+      image: coherence-client:1.0.0  # <1>
+      command:
+        - /files/runner   # <2>
+        - sleep
+        - "15m"
+      env:
+        - name: COHERENCE_CLUSTER              # <3>
+          value: "test-cluster"
+        - name: COHERENCE_WKA                  # <4>
+          value: "storage-headless.coherence.svc"
+        - name: COHERENCE_CLIENT               # <5>
+          value: "remote"
+----
+<1> The container image is set to the client image built above `coherence-client:1.0.0`
+<2> The command line the container will run is `/files/runner sleep 15m` which will just sleep for 15 minutes
+<3> The Coherence cluster name is set to the same name as the server deployed above in the <<sts,StatefulSet yaml>>
+<4> The WKA address is set to the StatefulSet's headless service name `storage-headless.coherence.svc`
+<5> For this example the `COHERENCE_CLIENT` which sets the default cache configuration file to run as an Extend
+client, using the NameService to look up the proxies.
+
+We can deploy the client into Kubernetes
+
+[source,bash]
+----
+kubectl -n coherence apply -f extend-client-pod.yaml
+----
+
+We deployed the client into the same namespace as the cluster, we could easily have deployed it to another namespace.
+If we list the Pods we will see the cluster and the client. All Pods has two containers, one being the Istio side-car.
+
+[source,bash]
+----
+$ k -n coherence get pod
+NAME        READY   STATUS    RESTARTS   AGE
+storage-0   2/2     Running   0          105m
+storage-1   2/2     Running   0          105m
+storage-2   2/2     Running   0          105m
+client      2/2     Running   0          8m27s
+----
+
+Now we can exec into the Pod and start a Coherence QueryPlus console session using the following command:
+
+[source,bash]
+----
+kubectl -n coherence exec -it client -- /files/runner queryplus
+----
+
+The QueryPlus session will start and eventually display the `CohQL>` prompt:
+
+
+[source,bash]
+----
+Coherence Command Line Tool
+
+CohQL>
+----
+
+A simple command to try is just creating a cache, so at the prompt type the command `create cache test` which will
+create a cache named `test`. If all is configured correctly this client will connect to the cluster over Extend
+and create the cache called `test` and return to the `CohQL` prompt.
+
+[source,bash]
+----
+Coherence Command Line Tool
+
+CohQL> create cache test
+----
+
+We can also try selecting data from the cache using the CohQL query `select * from test`
+(which will return nothing as the cache is empty).
+
+[source,bash]
+----
+CohQL> select * from test
+Results
+
+CohQL>
+----
+
+If we now look at the Kiali dashboard we can see that the client application has communicated with the storage cluster.
+All of this communication was using mTLS but without configuring Coherence to use TLS.
+
+image::images/kiali-client-remote-app.png[]
+
+If we look at the Kiali dashboard traffic tab for the client application we can see the traffic was TCP over mTLS.
+
+image::images/kiali-client-remote-traffic.png[]
+
+To exit from the `CohQL>` prompt type the `bye` command. The delete the client Pod
+
+[source,bash]
+----
+kubectl -n coherence delete -f extend-client-pod.yaml
+----
+
+==== Run a gRPC Client Pod
+
+We can run the same image as a gRPC client.
+For this example, instead of the NameService we will configure Coherence to
+
+[source,yaml]
+.grpc-client-pod.yaml
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: coherence-client
+    version: 1.0.0
+spec:
+  containers:
+    - name: coherence
+      image: coherence-client:1.0.0
+      command:
+        - /files/runner
+        - sleep
+        - "15m"
+      env:
+        - name: COHERENCE_CLIENT
+          value: "grpc-fixed"
+        - name: COHERENCE_GRPC_ADDRESS
+          value: "storage-headless.coherence.svc"
+        - name: COHERENCE_GRPC_PORT
+          value: "1408"
+----
+
+We can now deploy the gRPC client Pod
+
+[source,bash]
+----
+kubectl -n coherence delete -f grpc-client-pod.yaml
+----
+
+And exec into the Pod to create a QueryPlus session.
+
+[source,bash]
+----
+kubectl -n coherence exec -it client -- /files/runner queryplus
+----
+
+We can run the same `create cache test` and `select * from test` command that we ran above to connect the client
+to the cluster. This time the client should be connecting over gRPC.
+
+If we now look at the Kiali dashboard we can see again that the client application has communicated with the storage cluster.
+All of this communication was using mTLS but without configuring Coherence to use TLS.
+
+image::images/kiali-client-grpc-app.png[]
+
+If we look at the Kiali dashboard traffic tab for the client application we can see that this time the
+traffic was gRPC over mTLS.
+
+image::images/kiali-client-grpc-traffic.png[]
+
+To exit from the `CohQL>` prompt type the `bye` command. The delete the client Pod
+
+[source,bash]
+----
+kubectl -n coherence delete -f extend-client-pod.yaml
+----
+
+
+=== Clients Outside Kubernetes
+
 When connecting Coherence Extend or gRPC clients from outside Kubernetes, the Coherence NameService cannot be used
 by clients to look up the endpoints. The clients must be configured with fixed endpoints using the hostnames and ports
-of the configured ingress or gateway services.
+of the configured ingress or gateway services. Exactly how this is done will depend on the versions of Istio and Kubernetes
+being used and whether Ingress or the Kubernetes Gateway API is used. The different options available make it impossible
+to build an example that can cover all these scenarios.
 
