@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: coherence-client
+    version: 1.0.0
+spec:
+  containers:
+    - name: coherence
+      image: coherence-client:1.0.0
+      command:
+        - /files/runner
+        - sleep
+        - "15m"
+      env:
+        - name: COHERENCE_CLUSTER
+          value: "test-cluster"
+        - name: COHERENCE_WKA
+          value: "storage-headless.coherence.svc"
+        - name: COHERENCE_CLIENT
+          value: "remote"
