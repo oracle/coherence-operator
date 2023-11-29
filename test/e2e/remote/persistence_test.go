@@ -70,6 +70,16 @@ func TestSnapshotWithActivePersistence(t *testing.T) {
 	assertPersistence("persistence-active-snapshot.yaml", "snapshot-volume", true, true, true, t)
 }
 
+// Deploy a Coherence resource with both persistence and snapshot configured and a securityContext so
+// that the container is not running as the root user.
+// Persistence will be active, a PVC will be created for the StatefulSet. Put data in a cache, take a snapshot,
+// delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
+func TestSnapshotWithActivePersistenceWithSecurityContext(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	assertPersistence("persistence-active-snapshot-security.yaml", "snapshot-volume", true, true, true, t)
+}
+
 func assertPersistence(yamlFile, pVolName string, isSnapshot, isClearCanary, isRestart bool, t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
