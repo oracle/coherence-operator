@@ -282,7 +282,20 @@ public class CoherenceOperatorLifecycleListener
             String defaultProtocol = provider == null || provider.isEmpty() ? "http" : "https";
             String protocol        = Config.getProperty("coherence.operator.cli.protocol", defaultProtocol);
             String home            = System.getProperty("user.home");
+            File   fileHome        = new File(home);
             String connectionType  = "http";
+
+            if (!fileHome.exists() || !fileHome.isDirectory()) {
+                LOGGER.info("CoherenceOperator: user home \"" + home
+                        + "\" does not exist, creating default cohctl config at /coherence-operator/utils");
+                home = "/coherence-operator/utils";
+                fileHome = new File(home);
+            }
+
+            if (!fileHome.exists() || !fileHome.isDirectory()) {
+                LOGGER.error("CoherenceOperator: Cannot create cohctl config, directory " + home + " does not exist");
+                return;
+            }
 
             File cohctlHome = new File(home + File.separator + ".cohctl");
             File configFile = new File(cohctlHome, "cohctl.yaml");
@@ -320,7 +333,7 @@ public class CoherenceOperatorLifecycleListener
             }
         }
         catch (Exception e) {
-            LOGGER.error(e, "Coherence Operator: Failed to create default cohctl config");
+            LOGGER.error("Coherence Operator: Failed to create default cohctl config. " + e.getMessage());
         }
     }
 }

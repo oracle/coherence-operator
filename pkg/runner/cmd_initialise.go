@@ -88,9 +88,11 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 	persistenceTrashDir := persistenceDir + pathSep + "trash"
 	persistenceSnapshotsDir := persistenceDir + pathSep + "snapshots"
 
-	snapshotDir, err := flagSet.GetString(ArgSnapshotsDir)
-	if err != nil {
-		return false, err
+	clusterName := getEnv(v1.EnvVarCohClusterName)
+	if clusterName != "" {
+		persistenceActiveDir = persistenceActiveDir + pathSep + clusterName
+		persistenceTrashDir = persistenceTrashDir + pathSep + clusterName
+		persistenceSnapshotsDir = persistenceSnapshotsDir + pathSep + clusterName
 	}
 
 	fmt.Println("Starting container initialisation")
@@ -168,31 +170,11 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 		dirNames = append(dirNames, persistenceActiveDir, persistenceTrashDir, persistenceSnapshotsDir)
 	}
 
-	_, err = os.Stat(snapshotDir)
-	if err == nil {
-		// if "/snapshot" exists then we'll create the cluster snapshot directory
-		clusterName := getEnv(v1.EnvVarCohClusterName)
-		if clusterName != "" {
-			snapshotClusterDir := pathSep + "snapshot" + pathSep + clusterName
-			dirNames = append(dirNames, snapshotClusterDir)
-		}
-	}
-
 	for _, dirName := range dirNames {
 		fmt.Printf("Creating directory %s\n", dirName)
 		err = os.MkdirAll(dirName, os.ModePerm)
 		if err != nil {
 			return false, err
-		}
-		info, err := os.Stat(dirName)
-		if err != nil {
-			return false, err
-		}
-		if info.Mode().Perm() != os.ModePerm {
-			err = os.Chmod(dirName, os.ModePerm)
-			if err != nil {
-				return false, err
-			}
 		}
 	}
 
