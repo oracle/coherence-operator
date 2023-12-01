@@ -95,6 +95,19 @@ When running in Kubernetes cluster where <code>NetworkPolicy</code> rules are ap
 </v-card-text>
 </v-card>
 </v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/no-operator/04_istio/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Running Coherence with Istio</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Expands the simple storage enabled server to secure Extend using TLS.</p>
+</v-card-text>
+</v-card>
+</v-flex>
 </v-layout>
 </v-container>
 </v-flex>
