@@ -28,7 +28,7 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>22.06.6</coherence.version>
 
-    <jib.version>3.3.2</jib.version>
+    <jib.version>3.4.0</jib.version>
 
     <image.version>${project.version}</image.version>
     <test.extend.port>20000</test.extend.port>

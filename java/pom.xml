@@ -29,7 +29,7 @@
     </modules>
 
     <properties>
-        <revision>3.3.2</revision>
+        <revision>3.3.3</revision>
         <operator.version>${project.version}</operator.version>
 
         <build.java.version>17</build.java.version>
@@ -55,12 +55,12 @@
         <!-- library dependency versions -->
         <version.lib.activation-api>1.2.2</version.lib.activation-api>
         <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
-        <version.lib.bedrock>5.1.2</version.lib.bedrock>
+        <version.lib.bedrock>5.1.6</version.lib.bedrock>
         <version.lib.checkstyle>8.18</version.lib.checkstyle>
         <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
         <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
         <version.lib.hamcrest>1.3</version.lib.hamcrest>
-        <version.lib.helidon>2.2.1</version.lib.helidon>
+        <version.lib.helidon>2.6.5</version.lib.helidon>
         <version.lib.jandex>2.1.1.Final</version.lib.jandex>
         <version.lib.junit>4.13.1</version.lib.junit>
         <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
@@ -82,7 +82,7 @@
         <version.plugin.exec>3.0.0</version.plugin.exec>
         <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
         <version.plugin.javadoc>3.1.1</version.plugin.javadoc>
-        <version.plugin.jib>3.3.2</version.plugin.jib>
+        <version.plugin.jib>3.4.0</version.plugin.jib>
         <version.plugin.maven.assembly>3.1.1</version.plugin.maven.assembly>
         <version.plugin.maven.compiler>3.7.0</version.plugin.maven.compiler>
         <version.plugin.maven.dependency>3.2.0</version.plugin.maven.dependency>
