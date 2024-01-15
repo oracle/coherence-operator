@@ -28,14 +28,17 @@
         <dependency>
             <groupId>com.oracle.coherence.ce</groupId>
             <artifactId>coherence</artifactId>
+            <version>${coherence.version.2206}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.coherence.ce</groupId>
             <artifactId>coherence-cdi-server</artifactId>
+            <version>${coherence.version.2206}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.coherence.ce</groupId>
             <artifactId>coherence-management</artifactId>
+            <version>${coherence.version.2206}</version>
         </dependency>
 
         <dependency>
