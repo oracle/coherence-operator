@@ -40,7 +40,7 @@
 
         <!--  The Coherence jar version (compile time dependency) -->
         <coherence.version>21.12.4</coherence.version>
-        <coherence.version.2206>22.06.6</coherence.version.2206>
+        <coherence.version.2206>22.06.7</coherence.version.2206>
         <!-- The version of Coherence to use in the test images -->
         <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
         <coherence.test.version>${coherence.version}</coherence.test.version>

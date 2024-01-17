@@ -70,8 +70,8 @@ jobs:
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "22.06"
-            coherenceVersion: "22.06.6"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.6"
+            coherenceVersion: "22.06.7"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.7"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
@@ -88,9 +88,9 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0"
-            coherenceVersion: "14.1.1-0-15"
+            coherenceVersion: "14.1.1-0-16"
             javaVersion: 8
-            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-15"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-16"
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1.0.0"

@@ -192,7 +192,7 @@ metadata:
   name: storage
 spec:
   replicas: 3
-  image: ghcr.io/oracle/coherence-ce:22.06.6
+  image: ghcr.io/oracle/coherence-ce:22.06.7
   labels:
     app: storage      # <1>
     version: 1.0.0    # <2>
@@ -274,7 +274,7 @@ kind: CoherenceJob
 metadata:
   name: client
 spec:
-  image: ghcr.io/oracle/coherence-ce:22.06.6  # <1>
+  image: ghcr.io/oracle/coherence-ce:22.06.7  # <1>
   restartPolicy: Never
   cluster: storage  # <2>
   coherence:

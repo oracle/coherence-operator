@@ -23,7 +23,7 @@
         <maven.compiler.target>11</maven.compiler.target>
 
         <!--  The Coherence jar version (compile time dependency) -->
-        <coherence.version>22.06.6</coherence.version>
+        <coherence.version>22.06.7</coherence.version>
 
         <coherence.extend.socket.provider/>
         <working.dir>${project.basedir}</working.dir>
