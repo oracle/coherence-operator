@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -60,9 +60,9 @@ public class CoherenceVersionTest {
     @Test
     public void shouldWorkWithCE() throws Exception {
         assertThat(CoherenceVersion.versionCheck("14.1.1.0.15", "22.06.1"), is(false));
-        assertThat(CoherenceVersion.versionCheck("14.1.1.2206.5", "22.06.7"), is(false));
+        assertThat(CoherenceVersion.versionCheck("14.1.1.2206.5", "22.06.6"), is(false));
         assertThat(CoherenceVersion.versionCheck("14.1.1.2206.7", "22.06.7"), is(true));
-        assertThat(CoherenceVersion.versionCheck("22.06.5", "22.06.7"), is(false));
+        assertThat(CoherenceVersion.versionCheck("22.06.5", "22.06.6"), is(false));
         assertThat(CoherenceVersion.versionCheck("22.06.7", "22.06.7"), is(true));
     }
 
