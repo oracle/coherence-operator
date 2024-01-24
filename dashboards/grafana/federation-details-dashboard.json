@@ -66,7 +66,7 @@
         "content": "<center><h3>Federation Details - $ServiceName, Destiniation - $Destination</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "type": "text"
     },
     {
@@ -486,7 +486,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
           "datasource": "prometheus",
@@ -543,7 +543,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
           "datasource": "prometheus",
@@ -600,7 +600,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
           "datasource": "prometheus",
@@ -647,7 +647,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -739,7 +739,7 @@
         "alertThreshold": false
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -831,7 +831,7 @@
         "alertThreshold": false
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -923,7 +923,7 @@
         "alertThreshold": false
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1015,7 +1015,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1105,7 +1105,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1195,7 +1195,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1249,7 +1249,7 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
       "datasource": "prometheus",
@@ -1281,7 +1281,7 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
@@ -1289,7 +1289,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1305,19 +1305,207 @@
           "intervalFactor": 1,
           "legendFormat": "Error Responses Node: {{node_id}}",
           "refId": "A"
-        },
-        {
-          "expr": "sum(vendor:coherence_federation_destination_total_msg_unacked{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'}) by (node_id)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "Message Unacked Node: {{node_id}}",
-          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Errors and Un-Acked Messages",
+      "title": "Errors",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "decimals": 0,
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "hiddenSeries": false,
+      "id": 28,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": true,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.27",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "vendor:coherence_federation_destination_total_msg_unacked{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} - vendor:coherence_federation_destination_total_msg_unacked{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} offset $__interval",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Un-Acked  Node: {{node_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Un-Acked Messages",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:1277",
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:1278",
+          "decimals": 0,
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 49
+      },
+      "hiddenSeries": false,
+      "id": 29,
+      "interval": "",
+      "legend": {
+        "avg": false,
+        "current": true,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.27",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "vendor:coherence_federation_destination_total_retry_responses{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} - vendor:coherence_federation_destination_total_retry_responses{cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} offset $__interval",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Retires Node: {{node_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Retries",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1355,7 +1543,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 57
       },
       "id": 13,
       "links": [],
@@ -1363,7 +1551,7 @@
         "content": "<center><h3>Federation Details - $ServiceName, Origin - $Destination</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "type": "text"
     },
     {
@@ -1374,7 +1562,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 59
       },
       "id": 8,
       "links": [],
@@ -1631,7 +1819,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 65
       },
       "id": 15,
       "links": [],
@@ -1849,7 +2037,7 @@
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
       "datasource": "prometheus",
@@ -1865,7 +2053,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 71
       },
       "hiddenSeries": false,
       "id": 14,
@@ -1879,7 +2067,7 @@
         "total": false,
         "values": true
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
@@ -1887,7 +2075,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.13",
+      "pluginVersion": "8.5.27",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1921,6 +2109,7 @@
       },
       "yaxes": [
         {
+          "$$hashKey": "object:1700",
           "decimals": 0,
           "format": "short",
           "label": "",
@@ -1929,6 +2118,7 @@
           "show": true
         },
         {
+          "$$hashKey": "object:1701",
           "decimals": 0,
           "format": "short",
           "logBase": 1,
@@ -2054,6 +2244,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 9,
+  "version": 3,
   "weekStart": ""
 }
