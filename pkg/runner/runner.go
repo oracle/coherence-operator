@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -34,7 +34,7 @@ const (
 	// DefaultMain is an indicator to run the default main class.
 	DefaultMain = "$DEFAULT$"
 	// HelidonMain is the default Helidon main class name.
-	HelidonMain = "io.helidon.microprofile.server.Main"
+	HelidonMain = "io.helidon.microprofile.cdi.Main"
 	// ServerMain is the default server main class name.
 	ServerMain = "com.oracle.coherence.k8s.Main"
 	// SpringBootMain is the default Spring Boot main class name.

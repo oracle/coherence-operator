@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: coherence
-          image: ghcr.io/oracle/coherence-ce:22.06.6   # <2>
+          image: ghcr.io/oracle/coherence-ce:22.06.7   # <2>
           env:
             - name: COHERENCE_CLUSTER          # <3>
               value: "test-cluster"

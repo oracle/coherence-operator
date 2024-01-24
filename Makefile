@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2019, 2024, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -15,17 +15,17 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.3.2
+VERSION ?= 3.3.3
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.3.1
+PREV_VERSION ?= 3.3.2
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.3.1
+COMPATIBLE_VERSION  ?= 3.3.2
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
@@ -38,11 +38,12 @@ KUBERNETES_DOC_VERSION=v1.28
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
-COHERENCE_VERSION ?= 21.12.5
+COHERENCE_VERSION     ?= 21.12.5
+COHERENCE_VERSION_LTS ?= 22.06.7
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
-COHERENCE_IMAGE_TAG      ?= 22.06.6
+COHERENCE_IMAGE_TAG      ?= $(COHERENCE_VERSION_LTS)
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
@@ -87,7 +88,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version.2206=$(COHERENCE_VERSION_LTS) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -2139,7 +2140,7 @@ get-istio: $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.52.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.55.2
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

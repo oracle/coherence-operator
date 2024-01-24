@@ -8,8 +8,8 @@ metadata:
     app.kubernetes.io/name: coherence-operator
     app: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.3.2"
-    version: "3.3.2"
+    app.kubernetes.io/version: "3.3.3"
+    version: "3.3.3"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
 spec:
@@ -24,7 +24,7 @@ spec:
         app.kubernetes.io/name: coherence-operator
         app: coherence-operator
         app.kubernetes.io/instance: coherence-operator-manager
-        app.kubernetes.io/version: "3.3.2"
+        app.kubernetes.io/version: "3.3.3"
         version: "3.3.2"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
