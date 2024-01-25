@@ -15,8 +15,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 27,
-  "iteration": 1688515959665,
+  "id": 24,
+  "iteration": 1701755699160,
   "links": [
     {
       "icon": "dashboard",
@@ -42,7 +42,8 @@
   "liveNow": false,
   "panels": [
     {
-            "datasource": "prometheus",      "gridPos": {
+      "datasource": "prometheus",
+      "gridPos": {
         "h": 2,
         "w": 24,
         "x": 0,
@@ -54,12 +55,13 @@
         "content": "<center><h3>Caches Summary - $ClusterName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.13",
       "type": "text"
     },
     {
       "columns": [],
-            "datasource": "prometheus",      "fontSize": "100%",
+      "datasource": "prometheus",
+      "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -210,7 +212,8 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-            "datasource": "prometheus",      "description": "Shows a graph of cache related memory used.",
+      "datasource": "prometheus",
+      "description": "Shows a graph of cache related memory used.",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -240,7 +243,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -300,7 +303,8 @@
     },
     {
       "columns": [],
-            "datasource": "prometheus",      "fontSize": "100%",
+      "datasource": "prometheus",
+      "fontSize": "100%",
       "gridPos": {
         "h": 10,
         "w": 12,
@@ -429,7 +433,8 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-            "datasource": "prometheus",      "description": "Shows a graph of total cache evictions across all caches and members.",
+      "datasource": "prometheus",
+      "description": "Shows a graph of total cache evictions across all caches and members.",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -465,7 +470,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -522,7 +527,200 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-            "datasource": "prometheus",      "description": "Shows a graph of total cache evictions across all caches and members.",
+      "datasource": "prometheus",
+      "description": "Shows a graph of total cache evictions across all caches and members.",
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "hiddenSeries": false,
+      "id": 97,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": true,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.13",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_storage_manager_events_dispatched{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_storage_manager_events_dispatched{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Total Events",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Total Events Dispatched",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "min": 0,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "min": 0,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "description": "Shows a graph of total cache evictions across all caches and members.",
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "hiddenSeries": false,
+      "id": 99,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": true,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.5.13",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(vendor:coherence_storage_manager_events_dispatched{cluster=\"${ClusterName:raw}\"}) by (coherence_service) - sum(vendor:coherence_storage_manager_events_dispatched{cluster=\"${ClusterName:raw}\"} offset $__interval ) by (coherence_service) > 0",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{coherence_service}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Total Events Dispatched By Service",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "min": 0,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "min": 0,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "prometheus",
+      "description": "Shows a graph of total cache evictions across all caches and members.",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -535,7 +733,7 @@
         "h": 11,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 52
       },
       "hiddenSeries": false,
       "id": 95,
@@ -558,7 +756,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -632,7 +830,7 @@
         "h": 11,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 52
       },
       "hiddenSeries": false,
       "id": 96,
@@ -655,7 +853,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.13",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -720,7 +918,6 @@
     "list": [
       {
         "current": {
-          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -745,9 +942,6 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "14.1.1.2206.5",
-          "value": "14.1.1.2206.5"
         },
         "datasource": "prometheus",
         "definition": "",
@@ -858,6 +1052,6 @@
   "timezone": "",
   "title": "Coherence Caches Summary Dashboard",
   "uid": "coh-caches-summary",
-  "version": 4,
+  "version": 3,
   "weekStart": ""
 }
