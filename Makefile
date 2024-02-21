@@ -434,13 +434,13 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
 $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUILD_TARGETS)/cli
-	docker build --no-cache --build-arg version=$(VERSION) \
+	docker build --platform linux/amd64 --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=amd64 \
 		. -t $(OPERATOR_IMAGE)-amd64
-	docker build --no-cache --build-arg version=$(VERSION) \
+	docker build --platform linux/arm64 --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
