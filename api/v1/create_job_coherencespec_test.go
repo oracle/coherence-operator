@@ -450,6 +450,10 @@ func TestCreateJobWithGlobalLabels(t *testing.T) {
 	labelsExpected["one"] = "value-one"
 	labelsExpected["two"] = "value-two"
 
+	podLabelsExpected := jobExpected.Spec.Template.Labels
+	podLabelsExpected["one"] = "value-one"
+	podLabelsExpected["two"] = "value-two"
+
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
 }
@@ -476,6 +480,14 @@ func TestCreateJobWithGlobalAnnotations(t *testing.T) {
 	annExpected["one"] = "value-one"
 	annExpected["two"] = "value-two"
 	jobExpected.Annotations = annExpected
+
+	podAnnExpected := jobExpected.Spec.Template.Annotations
+	if podAnnExpected == nil {
+		podAnnExpected = make(map[string]string)
+	}
+	podAnnExpected["one"] = "value-one"
+	podAnnExpected["two"] = "value-two"
+	jobExpected.Spec.Template.Annotations = podAnnExpected
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)

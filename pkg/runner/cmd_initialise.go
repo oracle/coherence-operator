@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,6 +11,7 @@ import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -186,7 +187,7 @@ func initialiseWithEnv(cmd *cobra.Command, getEnv EnvFunction) (bool, error) {
 	}
 	if len(c) != 0 {
 		fmt.Printf("Running post initialisation command: %s\n", c)
-		_, err = ExecuteWithArgs(nil, c)
+		_, err = ExecuteWithArgsAndViper(nil, c, viper.GetViper())
 		return true, err
 	}
 

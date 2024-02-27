@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -119,7 +119,7 @@ func (r *CertReconciler) Reconcile(ctx context.Context, request reconcile.Reques
 // It also returns the duration after which a certificate rotation should be scheduled.
 func (r *CertReconciler) ReconcileResources(ctx context.Context) error {
 	var err error
-	secretName := viper.GetString(operator.FlagWebhookSecret)
+	secretName := operator.GetViper().GetString(operator.FlagWebhookSecret)
 	namespace := operator.GetNamespace()
 	updateSecret := true
 

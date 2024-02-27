@@ -24,7 +24,7 @@ func TestBasicOperator(t *testing.T) {
 	args := []string{"operator", "--dry-run"}
 	env := EnvVarsFromDeployment(d)
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 
@@ -47,7 +47,7 @@ func TestOperatorWithSingleGlobalLabel(t *testing.T) {
 	args := []string{"operator", "--dry-run", "--global-label", "one=value-one"}
 	env := EnvVarsFromDeployment(d)
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 
@@ -71,7 +71,7 @@ func TestOperatorWithMultipleGlobalLabels(t *testing.T) {
 	}
 	env := EnvVarsFromDeployment(d)
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 
@@ -93,7 +93,7 @@ func TestOperatorWithSingleGlobalAnnotation(t *testing.T) {
 	args := []string{"operator", "--dry-run", "--global-annotation", "one=value-one"}
 	env := EnvVarsFromDeployment(d)
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 
@@ -117,7 +117,7 @@ func TestOperatorWithMultipleGlobalAnnotations(t *testing.T) {
 	}
 	env := EnvVarsFromDeployment(d)
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 

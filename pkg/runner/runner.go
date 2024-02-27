@@ -93,8 +93,7 @@ type Execution struct {
 }
 
 // NewRootCommand builds the root cobra command that handles our command line tool.
-func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
-	v := viper.New()
+func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 	operator.SetViper(v)
 
 	// rootCommand is the Cobra root Command to execute
@@ -127,7 +126,7 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(jShellCommand())
 	rootCmd.AddCommand(sleepCommand())
 
-	return rootCmd, v
+	return rootCmd
 }
 
 func initializeConfig(cmd *cobra.Command, v *viper.Viper, env map[string]string) error {
@@ -174,7 +173,10 @@ func initializeConfig(cmd *cobra.Command, v *viper.Viper, env map[string]string)
 
 	// Bind the current command's flags to viper
 	bindFlags(cmd, v)
-	_ = v.BindPFlags(cmd.Parent().Flags())
+	parent := cmd.Parent()
+	if parent != nil {
+		_ = v.BindPFlags(cmd.Parent().Flags())
+	}
 	_ = v.BindPFlags(cmd.PersistentFlags())
 	return nil
 }
@@ -199,12 +201,17 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 
 // Execute runs the runner with a given environment.
 func Execute() (Execution, error) {
-	return ExecuteWithArgs(nil, nil)
+	return ExecuteWithArgsAndViper(nil, nil, viper.GetViper())
 }
 
-// ExecuteWithArgs runs the runner with a given environment and argument overrides.
-func ExecuteWithArgs(env map[string]string, args []string) (Execution, error) {
-	cmd, v := NewRootCommand(env)
+// ExecuteWithArgsAndNewViper runs the runner with a given environment and argument overrides.
+func ExecuteWithArgsAndNewViper(env map[string]string, args []string) (Execution, error) {
+	return ExecuteWithArgsAndViper(env, args, viper.New())
+}
+
+// ExecuteWithArgsAndViper runs the runner with a given environment and argument overrides.
+func ExecuteWithArgsAndViper(env map[string]string, args []string, v *viper.Viper) (Execution, error) {
+	cmd := NewRootCommand(env, v)
 
 	if len(args) > 0 {
 		cmd.SetArgs(args)

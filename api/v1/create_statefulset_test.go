@@ -677,13 +677,17 @@ func TestCreateStatefulSetWithGlobalLabels(t *testing.T) {
 	// Create the test deployment
 	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
-	jobExpected := createMinimalExpectedStatefulSet(deployment)
-	labelsExpected := jobExpected.Labels
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	labelsExpected := stsExpected.Labels
 	labelsExpected["one"] = "value-one"
 	labelsExpected["two"] = "value-two"
 
+	podLabelsExpected := stsExpected.Spec.Template.Labels
+	podLabelsExpected["one"] = "value-one"
+	podLabelsExpected["two"] = "value-two"
+
 	// assert that the Job is as expected
-	assertStatefulSetCreation(t, deployment, jobExpected)
+	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
 func TestCreateStatefulSetWithGlobalAnnotations(t *testing.T) {
@@ -700,15 +704,23 @@ func TestCreateStatefulSetWithGlobalAnnotations(t *testing.T) {
 	// Create the test deployment
 	deployment := createTestCoherenceDeployment(spec)
 	// Create expected Job
-	jobExpected := createMinimalExpectedStatefulSet(deployment)
-	annExpected := jobExpected.Annotations
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	annExpected := stsExpected.Annotations
 	if annExpected == nil {
 		annExpected = make(map[string]string)
 	}
 	annExpected["one"] = "value-one"
 	annExpected["two"] = "value-two"
-	jobExpected.Annotations = annExpected
+	stsExpected.Annotations = annExpected
+
+	podAnnExpected := stsExpected.Spec.Template.Annotations
+	if podAnnExpected == nil {
+		podAnnExpected = make(map[string]string)
+	}
+	podAnnExpected["one"] = "value-one"
+	podAnnExpected["two"] = "value-two"
+	stsExpected.Spec.Template.Annotations = podAnnExpected
 
 	// assert that the Job is as expected
-	assertStatefulSetCreation(t, deployment, jobExpected)
+	assertStatefulSetCreation(t, deployment, stsExpected)
 }
