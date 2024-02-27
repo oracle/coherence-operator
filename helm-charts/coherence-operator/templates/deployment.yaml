@@ -117,6 +117,16 @@ spec:
 {{- if (eq .Values.webhooks false) }}
         - --enable-webhook=false
 {{- end }}
+{{- if (.Values.globalLabels) }}
+{{- range $k, $v := .Values.globalLabels }}
+        - --global-label={{ $k }}={{ $v }}
+{{- end }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+{{- range $k, $v := .Values.globalAnnotations }}
+        - --global-annotation={{ $k }}={{ $v }}
+{{- end }}
+{{- end }}
 {{- end }}
         command:
         - "/files/runner"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -75,9 +76,6 @@ var (
 
 	// log is the logger used by the runner
 	log = ctrl.Log.WithName("runner")
-
-	// dryRun is true if the execution is a dry-run
-	dryRun = false
 )
 
 // contextKey allows type safe Context Values.
@@ -97,6 +95,7 @@ type Execution struct {
 // NewRootCommand builds the root cobra command that handles our command line tool.
 func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	v := viper.New()
+	operator.SetViper(v)
 
 	// rootCommand is the Cobra root Command to execute
 	rootCmd := &cobra.Command{
@@ -112,7 +111,7 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 		},
 	}
 
-	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Just print information about the commands that would execute")
+	rootCmd.PersistentFlags().Bool(operator.FlagDryRun, false, "Just print information about the commands that would execute")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", fmt.Sprintf("config file (default is $HOME/%s.yaml)", defaultConfig))
 	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 
@@ -123,7 +122,7 @@ func NewRootCommand(env map[string]string) (*cobra.Command, *viper.Viper) {
 	rootCmd.AddCommand(statusCommand())
 	rootCmd.AddCommand(readyCommand())
 	rootCmd.AddCommand(nodeCommand())
-	rootCmd.AddCommand(operatorCommand())
+	rootCmd.AddCommand(operatorCommand(v))
 	rootCmd.AddCommand(networkTestCommand())
 	rootCmd.AddCommand(jShellCommand())
 	rootCmd.AddCommand(sleepCommand())
@@ -151,7 +150,8 @@ func initializeConfig(cmd *cobra.Command, v *viper.Viper, env map[string]string)
 	// if we cannot parse the config file.
 	if err := v.ReadInConfig(); err != nil {
 		// It's okay if there isn't a config file
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
 			return err
 		}
 	}
@@ -174,7 +174,8 @@ func initializeConfig(cmd *cobra.Command, v *viper.Viper, env map[string]string)
 
 	// Bind the current command's flags to viper
 	bindFlags(cmd, v)
-
+	_ = v.BindPFlags(cmd.Parent().Flags())
+	_ = v.BindPFlags(cmd.PersistentFlags())
 	return nil
 }
 
@@ -204,6 +205,7 @@ func Execute() (Execution, error) {
 // ExecuteWithArgs runs the runner with a given environment and argument overrides.
 func ExecuteWithArgs(env map[string]string, args []string) (Execution, error) {
 	cmd, v := NewRootCommand(env)
+
 	if len(args) > 0 {
 		cmd.SetArgs(args)
 	}
@@ -267,6 +269,7 @@ func maybeRun(cmd *cobra.Command, fn MaybeRunFunction) error {
 				sep = ", "
 			}
 
+			dryRun := operator.IsDryRun()
 			log.Info("Executing command", "dryRun", dryRun, "application", e.App,
 				"path", e.OsCmd.Path, "args", strings.Join(e.OsCmd.Args, " "), "env", b.String())
 

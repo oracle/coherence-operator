@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,7 @@ package v1
 
 import (
 	"fmt"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -186,6 +187,13 @@ func (in *Coherence) GetEnvVarFrom() []corev1.EnvFromSource {
 	return in.Spec.EnvFrom
 }
 
+func (in *Coherence) GetGlobalSpec() *GlobalSpec {
+	if in == nil {
+		return nil
+	}
+	return in.Spec.Global
+}
+
 // FindFullyQualifiedPortServiceNames returns a map of the exposed ports of this resource mapped to their Service's
 // fully qualified domain name.
 func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
@@ -226,6 +234,24 @@ func (in *Coherence) FindPortServiceName(name string) (string, bool) {
 	return in.Spec.FindPortServiceName(name, in)
 }
 
+// CreateGlobalLabels creates the common label set for all resources.
+func (in *Coherence) CreateGlobalLabels() map[string]string {
+	labels := operator.GetGlobalLabelsNoError()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	globalSpec := in.GetGlobalSpec()
+	if globalSpec != nil {
+		for k, v := range globalSpec.Labels {
+			labels[k] = v
+		}
+	}
+	for k, v := range in.CreateCommonLabels() {
+		labels[k] = v
+	}
+	return labels
+}
+
 // CreateCommonLabels creates the deployment's common label set.
 func (in *Coherence) CreateCommonLabels() map[string]string {
 	labels := make(map[string]string)
@@ -244,17 +270,37 @@ func (in *Coherence) CreateCommonLabels() map[string]string {
 	return labels
 }
 
+// CreateGlobalAnnotations creates the common annotation set for all resources.
+func (in *Coherence) CreateGlobalAnnotations() map[string]string {
+	annotations := operator.GetGlobalAnnotationsNoError()
+	globalSpec := in.GetGlobalSpec()
+	if globalSpec != nil && globalSpec.Annotations != nil {
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
+		for k, v := range globalSpec.Annotations {
+			annotations[k] = v
+		}
+	}
+	return annotations
+}
+
 // CreateAnnotations returns the annotations to apply to this cluster's
 // deployment (StatefulSet).
 func (in *Coherence) CreateAnnotations() map[string]string {
-	var annotations map[string]string
+	annotations := in.CreateGlobalAnnotations()
+
 	if in.Spec.StatefulSetAnnotations != nil {
-		annotations = make(map[string]string)
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
 		for k, v := range in.Spec.StatefulSetAnnotations {
 			annotations[k] = v
 		}
 	} else if in.Annotations != nil {
-		annotations = make(map[string]string)
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
 		for k, v := range in.Annotations {
 			annotations[k] = v
 		}
@@ -449,6 +495,8 @@ type CoherenceStatefulSetResourceSpec struct {
 	// Cannot be updated.
 	// +optional
 	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
+	// Global contains attributes that will be applied to all resources managed by the Coherence Operator.
+	Global *GlobalSpec `json:"global,omitempty"`
 }
 
 // CreateStatefulSetResource creates the deployment's StatefulSet resource.
@@ -468,7 +516,7 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   deployment.GetNamespace(),
 			Name:        deployment.GetName(),
-			Labels:      deployment.CreateCommonLabels(),
+			Labels:      deployment.CreateGlobalLabels(),
 			Annotations: deployment.CreateAnnotations(),
 		},
 	}

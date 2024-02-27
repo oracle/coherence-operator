@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -508,7 +508,7 @@ func (in *CoherenceResourceSpec) CreatePodSelectorLabels(deployment CoherenceRes
 
 // CreateWKAService creates the headless WKA Service
 func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) Resource {
-	labels := deployment.CreateCommonLabels()
+	labels := deployment.CreateGlobalLabels()
 	labels[LabelComponent] = LabelComponentWKA
 
 	// The selector for the service (match all Pods with the same cluster label)
@@ -517,14 +517,18 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 	selector[LabelComponent] = LabelComponentCoherencePod
 	selector[LabelCoherenceWKAMember] = "true"
 
+	ann := deployment.CreateGlobalAnnotations()
+	if ann == nil {
+		ann = make(map[string]string)
+	}
+	ann["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
+
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: deployment.GetNamespace(),
-			Name:      deployment.GetWkaServiceName(),
-			Labels:    labels,
-			Annotations: map[string]string{
-				"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true",
-			},
+			Namespace:   deployment.GetNamespace(),
+			Name:        deployment.GetWkaServiceName(),
+			Labels:      labels,
+			Annotations: ann,
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP: corev1.ClusterIPNone,
@@ -545,7 +549,7 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 // CreateHeadlessService creates the headless Service for the deployment's StatefulSet.
 func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResource) Resource {
 	// The labels for the service
-	svcLabels := deployment.CreateCommonLabels()
+	svcLabels := deployment.CreateGlobalLabels()
 	svcLabels[LabelComponent] = LabelComponentCoherenceHeadless
 
 	// The selector for the service
@@ -561,9 +565,10 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 	// Create the Service
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: deployment.GetNamespace(),
-			Name:      deployment.GetHeadlessServiceName(),
-			Labels:    svcLabels,
+			Namespace:   deployment.GetNamespace(),
+			Name:        deployment.GetHeadlessServiceName(),
+			Labels:      svcLabels,
+			Annotations: deployment.CreateGlobalAnnotations(),
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP:                "None",
@@ -618,7 +623,36 @@ func (in *CoherenceResourceSpec) createDefaultServicePorts() []corev1.ServicePor
 
 func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResource) corev1.PodTemplateSpec {
 	// Create the PodSpec labels
-	podLabels := in.CreatePodSelectorLabels(deployment)
+	selectorLabels := in.CreatePodSelectorLabels(deployment)
+	globalLabels := deployment.CreateGlobalLabels()
+
+	podLabels := make(map[string]string)
+	for k, v := range globalLabels {
+		podLabels[k] = v
+	}
+	for k, v := range selectorLabels {
+		podLabels[k] = v
+	}
+
+	var annotations map[string]string
+	globalAnnotations := deployment.CreateGlobalAnnotations()
+	if globalAnnotations != nil {
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
+		for k, v := range globalAnnotations {
+			annotations[k] = v
+		}
+	}
+	if in.Annotations != nil {
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
+		for k, v := range in.Annotations {
+			annotations[k] = v
+		}
+	}
+
 	// Add the WKA member label
 	podLabels[LabelCoherenceWKAMember] = strconv.FormatBool(in.Coherence.IsWKAMember())
 	// Add any labels specified for the deployment
@@ -639,7 +673,7 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 	podTemplate := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      podLabels,
-			Annotations: in.Annotations,
+			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
 			Affinity:                     in.EnsurePodAffinity(deployment),

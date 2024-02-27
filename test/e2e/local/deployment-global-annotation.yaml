@@ -1,0 +1,10 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: global-annotation
+spec:
+  global:
+    annotations:
+      one: "value-one"
+      two: "value-two"
+

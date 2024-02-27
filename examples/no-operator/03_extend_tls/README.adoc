@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -42,7 +42,7 @@ We will use these files to securely provide the passwords to the client and serv
 == Configure Coherence Extend TLS
 
 The Coherence documentation explains how to
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/secure/using-ssl-secure-communication.html#GUID-90E20139-3945-4993-9048-7FBC93B243A3[Use TLS Secure Communication].
+https://{commercial-docs-base-url}/secure/using-ssl-secure-communication.html#GUID-90E20139-3945-4993-9048-7FBC93B243A3[Use TLS Secure Communication].
 This example is going to use a standard approach to securing Extend with TLS. To provide the keystores and credentials the example will make use of Kubernetes `Secrets` to mount those files as `Volumes` in the `StatefulSet`. This is much more flexible and secure than baking them into an application's code or image.
 
 === Configure the Extend Proxy

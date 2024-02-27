@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -33,9 +33,7 @@ func TestCreateServicesWithAdditionalPortsEmpty(t *testing.T) {
 }
 
 func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceEnabledFalse(t *testing.T) {
-
 	protocol := corev1.ProtocolUDP
-
 	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
@@ -60,9 +58,7 @@ func TestCreateServicesWithPortsWithOneAdditionalPortWithServiceEnabledFalse(t *
 }
 
 func TestCreateServicesWithPortsWithOneAdditionalPort(t *testing.T) {
-
 	protocol := corev1.ProtocolUDP
-
 	spec := coh.CoherenceResourceSpec{
 		Ports: []coh.NamedPortSpec{
 			{
@@ -501,6 +497,141 @@ func TestCreateServicesWithPortsWithTwoAdditionalPorts(t *testing.T) {
 
 	// assert that the Services are as expected
 	assertService(t, deployment, &svcExpectedOne, &svcExpectedTwo)
+}
+
+func TestCreateServiceWithGlobalLabels(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	protocol := corev1.ProtocolUDP
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		Global: &coh.GlobalSpec{
+			Labels: m,
+		},
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Ports: []coh.NamedPortSpec{
+				{
+					Name:     "test-port-one",
+					Port:     9876,
+					Protocol: &protocol,
+					NodePort: int32Ptr(2020),
+					HostPort: int32Ptr(1234),
+					HostIP:   stringPtr("10.10.1.0"),
+					Service: &coh.ServiceSpec{
+						Enabled: boolPtr(true),
+					},
+				},
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+
+	// Create the expected labels
+	labels := deployment.CreateCommonLabels()
+	labels[coh.LabelComponent] = coh.LabelComponentPortService
+	labels[coh.LabelPort] = "test-port-one"
+	labels["one"] = "value-one"
+	labels["two"] = "value-two"
+
+	// Create the expected service selector labels
+	selectorLabels := deployment.CreateCommonLabels()
+	selectorLabels[coh.LabelComponent] = coh.LabelComponentCoherencePod
+
+	// Create expected Service
+	svcExpected := corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   fmt.Sprintf("%s-test-port-one", deployment.Name),
+			Labels: labels,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "test-port-one",
+					Protocol:   protocol,
+					Port:       9876,
+					TargetPort: intstr.FromInt32(9876),
+					NodePort:   2020,
+				},
+			},
+			Selector: selectorLabels,
+		},
+	}
+
+	// assert that the Services are as expected
+	assertService(t, deployment, &svcExpected)
+}
+
+func TestCreateServiceWithGlobalAnnotations(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	protocol := corev1.ProtocolUDP
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		Global: &coh.GlobalSpec{
+			Annotations: m,
+		},
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Ports: []coh.NamedPortSpec{
+				{
+					Name:     "test-port-one",
+					Port:     9876,
+					Protocol: &protocol,
+					NodePort: int32Ptr(2020),
+					HostPort: int32Ptr(1234),
+					HostIP:   stringPtr("10.10.1.0"),
+					Service: &coh.ServiceSpec{
+						Enabled: boolPtr(true),
+					},
+				},
+			},
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+
+	// Create the expected labels
+	labels := deployment.CreateCommonLabels()
+	labels[coh.LabelComponent] = coh.LabelComponentPortService
+	labels[coh.LabelPort] = "test-port-one"
+
+	ann := make(map[string]string)
+	ann["one"] = "value-one"
+	ann["two"] = "value-two"
+
+	// Create the expected service selector labels
+	selectorLabels := deployment.CreateCommonLabels()
+	selectorLabels[coh.LabelComponent] = coh.LabelComponentCoherencePod
+
+	// Create expected Service
+	svcExpected := corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        fmt.Sprintf("%s-test-port-one", deployment.Name),
+			Labels:      labels,
+			Annotations: ann,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "test-port-one",
+					Protocol:   protocol,
+					Port:       9876,
+					TargetPort: intstr.FromInt32(9876),
+					NodePort:   2020,
+				},
+			},
+			Selector: selectorLabels,
+		},
+	}
+
+	// assert that the Services are as expected
+	assertService(t, deployment, &svcExpected)
 }
 
 func assertService(t *testing.T, deployment *coh.Coherence, servicesExpected ...metav1.Object) {

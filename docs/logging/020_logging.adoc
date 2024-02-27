@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -32,7 +32,7 @@ to write to log files. One way to do this is to add a Java Util Logging configur
 Coherence to use the JDK logger.
 
 In the `jvm.args` section of the `Coherence` CRD the system properties should be added to set the configuration file used by Java util logging and to configure Coherence logging.
-See the Coherence https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/operational-configuration-elements.html[Logging Config]
+See the Coherence https://{commercial-docs-base-url}/develop-applications/operational-configuration-elements.html[Logging Config]
 documentation for more details.
 
 There are alternative ways to configure the Java util logger besides using a configuration file, just as there are

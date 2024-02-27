@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -661,4 +661,54 @@ func TestCreateStatefulSetWithTopologySpreadConstraints(t *testing.T) {
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithGlobalLabels(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		Global: &coh.GlobalSpec{
+			Labels: m,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+	// Create expected StatefulSet
+	jobExpected := createMinimalExpectedStatefulSet(deployment)
+	labelsExpected := jobExpected.Labels
+	labelsExpected["one"] = "value-one"
+	labelsExpected["two"] = "value-two"
+
+	// assert that the Job is as expected
+	assertStatefulSetCreation(t, deployment, jobExpected)
+}
+
+func TestCreateStatefulSetWithGlobalAnnotations(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		Global: &coh.GlobalSpec{
+			Annotations: m,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedStatefulSet(deployment)
+	annExpected := jobExpected.Annotations
+	if annExpected == nil {
+		annExpected = make(map[string]string)
+	}
+	annExpected["one"] = "value-one"
+	annExpected["two"] = "value-two"
+	jobExpected.Annotations = annExpected
+
+	// assert that the Job is as expected
+	assertStatefulSetCreation(t, deployment, jobExpected)
 }

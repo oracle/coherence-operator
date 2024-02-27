@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -864,13 +864,14 @@ func (in *PersistentStorageSpec) CreatePersistentVolumeClaim(deployment *Coheren
 		in.PersistentVolumeClaim.DeepCopyInto(&spec)
 	}
 
-	labels := deployment.CreateCommonLabels()
+	labels := deployment.CreateGlobalLabels()
 	labels[LabelComponent] = LabelComponentPVC
 
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   name,
-			Labels: labels,
+			Name:        name,
+			Labels:      labels,
+			Annotations: deployment.CreateGlobalAnnotations(),
 		},
 		Spec: spec,
 	}
@@ -1099,7 +1100,7 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 	name, _ := in.GetServiceName(deployment)
 
 	// The labels for the service
-	svcLabels := deployment.CreateCommonLabels()
+	svcLabels := deployment.CreateGlobalLabels()
 	svcLabels[LabelComponent] = LabelComponentPortService
 	svcLabels[LabelPort] = in.Name
 	if in.Service != nil {
@@ -1109,9 +1110,15 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 	}
 
 	// The service annotations
-	var ann map[string]string
+	ann := deployment.CreateGlobalAnnotations()
 	if in.Service != nil && in.Service.Annotations != nil {
-		ann = in.Service.Annotations
+		if ann == nil {
+			ann = in.Service.Annotations
+		} else {
+			for k, v := range in.Service.Annotations {
+				ann[k] = v
+			}
+		}
 	}
 
 	// Create the Service serviceSpec
@@ -1181,7 +1188,7 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *mon
 	}
 
 	// The labels for the ServiceMonitor
-	labels := deployment.CreateCommonLabels()
+	labels := deployment.CreateGlobalLabels()
 	labels[LabelComponent] = LabelComponentPortServiceMonitor
 	for k, v := range in.ServiceMonitor.Labels {
 		labels[k] = v
@@ -1206,9 +1213,10 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *mon
 
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: deployment.GetNamespace(),
-			Labels:    labels,
+			Name:        name,
+			Namespace:   deployment.GetNamespace(),
+			Labels:      labels,
+			Annotations: deployment.CreateGlobalAnnotations(),
 		},
 		Spec: spec,
 	}
@@ -2977,6 +2985,25 @@ func (in *PersistentVolumeClaimObjectMeta) toObjectMeta() metav1.ObjectMeta {
 		Annotations: in.Annotations,
 		Labels:      in.Labels,
 	}
+}
+
+// ----- GlobalSpec ---------------------------------------------------------
+
+// GlobalSpec is attributes that will be applied to all resources managed by the Operator.
+type GlobalSpec struct {
+	// Map of string keys and values that can be used to organize and categorize
+	// (scope and select) objects. May match selectors of replication controllers
+	// and services.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+	// +optional
+	Labels map[string]string `json:"labels,omitempty" protobuf:"bytes,11,rep,name=labels"`
+
+	// Annotations is an unstructured key value map stored with a resource that may be
+	// set by external tools to store and retrieve arbitrary metadata. They are not
+	// queryable and should be preserved when modifying objects.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty" protobuf:"bytes,12,rep,name=annotations"`
 }
 
 // ----- helper methods -----------------------------------------------------

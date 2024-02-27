@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -21,7 +21,7 @@ Once the Management port has been exposed, for example via a load balancer or po
 endpoint is available at `http://host:port/management/coherence/cluster`.
 The Swagger JSON document for the API is available at `http://host:port/management/coherence/cluster/metadata-catalog`.
 
-See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/[REST API for Managing Oracle Coherence]
+See the https://{commercial-docs-base-url}/rest-reference/[REST API for Managing Oracle Coherence]
 documentation for full details on each of the endpoints.
 
 NOTE: Note: Use of Management over REST is available only when using the operator with clusters running
@@ -223,9 +223,9 @@ Management over REST can be used for all Coherence management functions, the sam
 standard MBean access over JMX.
 
 Please see the
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/[Coherence REST API] for more information on these features.
+https://{commercial-docs-base-url}/rest-reference/[Coherence REST API] for more information on these features.
 
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC[Connecting JVisualVM to Management over REST]
+* https://{commercial-docs-base-url}/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC[Connecting JVisualVM to Management over REST]
 * <<docs/clusters/058_coherence_management.adoc,Enabling SSL>>
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html[Produce and extract a Java Flight Recorder (JFR) file]
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/api-reporter.html[Access the Reporter]
+* https://{commercial-docs-base-url}/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html[Produce and extract a Java Flight Recorder (JFR) file]
+* https://{commercial-docs-base-url}/rest-reference/api-reporter.html[Access the Reporter]

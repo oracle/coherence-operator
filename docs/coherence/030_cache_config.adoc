@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -17,7 +17,7 @@ property will be set in the Coherence JVM.
 When the `spec.coherence.cacheConfig` is blank or not specified, Coherence use its default behaviour to find the
 cache configuration file to use. Typically, this is to use the first occurrence of `coherence-cache-config.xml` that is
 found on the classpath
-(consult the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5[Coherence documentation]
+(consult the https://{commercial-docs-base-url}/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5[Coherence documentation]
 for an explanation of the default behaviour).
 
 To set a specific cache configuration file to use set the `spec.coherence.cacheConfig` field, for example:
