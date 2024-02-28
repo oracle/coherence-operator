@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,7 +13,7 @@ import (
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 	"time"
 )
@@ -62,7 +62,7 @@ func TestDeleteDeploymentWithZeroReadyPods(t *testing.T) {
 	name := deployment.Name
 
 	// set the image to an invalid name so that Pods never start
-	deployment.Spec.Image = pointer.String("invalid-image:1.0.0")
+	deployment.Spec.Image = ptr.To("invalid-image:1.0.0")
 
 	err = testContext.Client.Create(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())

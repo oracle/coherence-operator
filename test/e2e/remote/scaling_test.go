@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/context"
 	"io"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/testing_frameworks/integration"
 	"strings"
 	"testing"
@@ -78,7 +78,7 @@ func TestScaleDownToZero(t *testing.T) {
 func TestScaleDownToZeroWithSuspendTrue(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.Bool(true))
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, ptr.To(true))
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
@@ -87,7 +87,7 @@ func TestScaleDownToZeroWithSuspendTrue(t *testing.T) {
 func TestScaleDownToZeroWithSuspendFalse(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
-	assertScaleDownToZero(t, "DownToZero", deploymentScaler, pointer.Bool(false))
+	assertScaleDownToZero(t, "DownToZero", deploymentScaler, ptr.To(false))
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,7 +13,7 @@ import (
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -46,7 +46,7 @@ func (in *CoherenceJob) Default() {
 
 	// default to storage disabled to false
 	if coherenceSpec.StorageEnabled == nil {
-		coherenceSpec.StorageEnabled = pointer.Bool(false)
+		coherenceSpec.StorageEnabled = ptr.To(false)
 	}
 
 	// default the restart policy to never
@@ -57,7 +57,7 @@ func (in *CoherenceJob) Default() {
 	co := spec.Coherence
 	if co != nil {
 		if co.StorageEnabled == nil {
-			co.StorageEnabled = pointer.Bool(false)
+			co.StorageEnabled = ptr.To(false)
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,7 +14,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"net/http"
 	"os"
 	"testing"
@@ -53,7 +53,7 @@ func TestMetrics(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// require 2-way auth
-	ssl.RequireClientCert = pointer.Bool(true)
+	ssl.RequireClientCert = ptr.To(true)
 
 	// load the test Coherence resource from a yaml files
 	deploymentWithoutSSL, err := helper.NewSingleCoherenceFromYaml(namespace, "metrics-test.yaml")
@@ -69,7 +69,7 @@ func TestMetrics(t *testing.T) {
 
 	// Set the SSL settings
 	deploymentSSL.Name = "metrics-ssl"
-	deploymentSSL.Spec.Coherence.Metrics.Enabled = pointer.Bool(true)
+	deploymentSSL.Spec.Coherence.Metrics.Enabled = ptr.To(true)
 	deploymentSSL.Spec.Coherence.Metrics.SSL = ssl
 
 	// Create the test cases

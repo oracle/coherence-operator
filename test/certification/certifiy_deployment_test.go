@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,7 +13,7 @@ import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	"os/exec"
 	"strings"
@@ -55,10 +55,10 @@ func TestCertifyScaling(t *testing.T) {
 		},
 		Spec: v1.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
-				Replicas: pointer.Int32(1),
+				Replicas: ptr.To(int32(1)),
 				ReadinessProbe: &v1.ReadinessProbeSpec{
-					InitialDelaySeconds: pointer.Int32(10),
-					PeriodSeconds:       pointer.Int32(10),
+					InitialDelaySeconds: ptr.To(int32(10)),
+					PeriodSeconds:       ptr.To(int32(10)),
 				},
 			},
 		},

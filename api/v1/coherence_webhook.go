@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -83,12 +83,12 @@ func SetCommonDefaults(in CoherenceResource) {
 		if spec.Coherence == nil {
 			var lpa = intstr.FromInt32(DefaultUnicastPortAdjust)
 			spec.Coherence = &CoherenceSpec{
-				LocalPort:       pointer.Int32(DefaultUnicastPort),
+				LocalPort:       ptr.To(DefaultUnicastPort),
 				LocalPortAdjust: &lpa,
 			}
 		} else {
 			if spec.Coherence.LocalPort == nil {
-				spec.Coherence.LocalPort = pointer.Int32(DefaultUnicastPort)
+				spec.Coherence.LocalPort = ptr.To(DefaultUnicastPort)
 			}
 			if spec.Coherence.LocalPortAdjust == nil {
 				lpa := intstr.FromInt32(DefaultUnicastPortAdjust)

@@ -1,4 +1,4 @@
-# Copyright 2020, 2023, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2020, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -45,14 +45,16 @@ jobs:
           - v1.26
           - v1.25
         include:
+          - matrixName: v1.29
+            k8s: v1.29.2
           - matrixName: v1.28
-            k8s: v1.28.2
+            k8s: v1.28.6
           - matrixName: v1.27
-            k8s: v1.27.6
+            k8s: v1.27.11
           - matrixName: v1.26
-            k8s: v1.26.9
+            k8s: v1.26.14
           - matrixName: v1.25
-            k8s: 1.25.14
+            k8s: 1.25.16
 
     steps:
     - uses: actions/checkout@v3
@@ -90,7 +92,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.21.x
+        go-version: 1.22.x
 
     - name: Cache Go Modules
       uses: actions/cache@v3

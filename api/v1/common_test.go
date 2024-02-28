@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -19,7 +19,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	"sort"
 	"strings"
@@ -214,12 +214,12 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			Labels: labels,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: pointer.Int32(spec.GetReplicas()),
+			Replicas: ptr.To(spec.GetReplicas()),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: selector,
 			},
 			ServiceName:          deployment.GetHeadlessServiceName(),
-			RevisionHistoryLimit: pointer.Int32(5),
+			RevisionHistoryLimit: ptr.To(int32(5)),
 			UpdateStrategy:       appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType},
 			PodManagementPolicy:  appsv1.ParallelPodManagement,
 			Template:             podTemplate,
@@ -247,7 +247,7 @@ func createMinimalExpectedJob(deployment *coh.CoherenceJob) *batchv1.Job {
 			Labels: labels,
 		},
 		Spec: batchv1.JobSpec{
-			Parallelism: pointer.Int32(spec.GetReplicas()),
+			Parallelism: ptr.To(spec.GetReplicas()),
 			Template:    podTemplate,
 		},
 		Status: batchv1.JobStatus{},
@@ -350,7 +350,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
 					Key:                  coh.OperatorConfigKeyHost,
-					Optional:             pointer.Bool(true),
+					Optional:             ptr.To(true),
 				},
 			},
 		},

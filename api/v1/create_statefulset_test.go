@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -49,7 +49,7 @@ func TestCreateStatefulSetWithName(t *testing.T) {
 func TestCreateStatefulSetWithReplicas(t *testing.T) {
 	// create a spec with a name
 	spec := coh.CoherenceResourceSpec{
-		Replicas: pointer.Int32(50),
+		Replicas: ptr.To(int32(50)),
 	}
 
 	// Create the test deployment
@@ -63,7 +63,7 @@ func TestCreateStatefulSetWithReplicas(t *testing.T) {
 
 func TestCreateStatefulSetWithRackLabel(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		RackLabel: pointer.String("coherence.oracle.com/test"),
+		RackLabel: ptr.To("coherence.oracle.com/test"),
 	}
 
 	// Create the test deployment
@@ -79,7 +79,7 @@ func TestCreateStatefulSetWithRackLabel(t *testing.T) {
 
 func TestCreateStatefulSetWithSiteLabel(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		SiteLabel: pointer.String("coherence.oracle.com/test"),
+		SiteLabel: ptr.To("coherence.oracle.com/test"),
 	}
 
 	// Create the test deployment
@@ -133,7 +133,7 @@ func TestCreateStatefulSetWithEnvVarsFrom(t *testing.T) {
 		LocalObjectReference: corev1.LocalObjectReference{
 			Name: "test-vars",
 		},
-		Optional: pointer.Bool(true),
+		Optional: ptr.To(true),
 	}
 
 	var from []corev1.EnvFromSource
@@ -379,7 +379,7 @@ func TestCreateStatefulSetWithTolerations(t *testing.T) {
 
 func TestCreateStatefulSetWithSecurityContext(t *testing.T) {
 	ctx := corev1.PodSecurityContext{
-		RunAsUser:    pointer.Int64(1000),
+		RunAsUser:    ptr.To(int64(1000)),
 		RunAsNonRoot: boolPtr(true),
 	}
 
@@ -402,7 +402,7 @@ func TestCreateStatefulSetWithContainerSecurityContext(t *testing.T) {
 		Capabilities: &corev1.Capabilities{
 			Add: []corev1.Capability{"foo"},
 		},
-		RunAsUser:    pointer.Int64(1000),
+		RunAsUser:    ptr.To(int64(1000)),
 		RunAsNonRoot: boolPtr(true),
 	}
 
@@ -500,14 +500,14 @@ func TestCreateStatefulSetWithAppLabel(t *testing.T) {
 
 func TestCreateStatefulSetWithActiveDeadlineSeconds(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		ActiveDeadlineSeconds: pointer.Int64(19),
+		ActiveDeadlineSeconds: ptr.To(int64(19)),
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.ActiveDeadlineSeconds = pointer.Int64(19)
+	stsExpected.Spec.Template.Spec.ActiveDeadlineSeconds = ptr.To(int64(19))
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -515,14 +515,14 @@ func TestCreateStatefulSetWithActiveDeadlineSeconds(t *testing.T) {
 
 func TestCreateStatefulSetWithEnableServiceLinksFalse(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		EnableServiceLinks: pointer.Bool(false),
+		EnableServiceLinks: ptr.To(false),
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.Bool(false)
+	stsExpected.Spec.Template.Spec.EnableServiceLinks = ptr.To(false)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -530,14 +530,14 @@ func TestCreateStatefulSetWithEnableServiceLinksFalse(t *testing.T) {
 
 func TestCreateStatefulSetWithEnableServiceLinksTrue(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
-		EnableServiceLinks: pointer.Bool(true),
+		EnableServiceLinks: ptr.To(true),
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.EnableServiceLinks = pointer.Bool(true)
+	stsExpected.Spec.Template.Spec.EnableServiceLinks = ptr.To(true)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -646,7 +646,7 @@ func TestCreateStatefulSetWithTopologySpreadConstraints(t *testing.T) {
 		LabelSelector: &metav1.LabelSelector{
 			MatchLabels: selector,
 		},
-		MinDomains: pointer.Int32(2),
+		MinDomains: ptr.To(int32(2)),
 	}
 
 	spec := coh.CoherenceResourceSpec{

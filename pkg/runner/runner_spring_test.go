@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	"strings"
 	"testing"
@@ -24,7 +24,7 @@ func TestSpringBootApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeSpring),
+					Type: ptr.To(AppTypeSpring),
 				},
 			},
 		},
@@ -55,7 +55,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             pointer.String(AppTypeSpring),
+					Type:             ptr.To(AppTypeSpring),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -87,9 +87,9 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             pointer.String(AppTypeSpring),
+					Type:             ptr.To(AppTypeSpring),
 					SpringBootFatJar: &jar,
-					Main:             pointer.String("foo.Bar"),
+					Main:             ptr.To("foo.Bar"),
 				},
 			},
 		},
@@ -119,9 +119,9 @@ func TestSpringBootBuildpacks(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeSpring),
+					Type: ptr.To(AppTypeSpring),
 					CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
-						Enabled: pointer.Bool(true),
+						Enabled: ptr.To(true),
 					},
 				},
 			},

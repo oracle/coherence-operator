@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -1201,7 +1201,6 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *mon
 
 	endpoint := in.ServiceMonitor.CreateEndpoint()
 	endpoint.Port = in.Name
-	endpoint.TargetPort = nil
 	endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, &monitoringv1.RelabelConfig{
 		Action: "labeldrop",
 		Regex:  "(endpoint|instance|job|service)",
@@ -1275,10 +1274,10 @@ func (in *NamedPortSpec) GetDefaultAppProtocol() *string {
 		return nil
 	case strings.ToLower(in.Name) == PortNameMetrics:
 		// special case for well known port - metrics
-		return pointer.String(AppProtocolHttp)
+		return ptr.To(AppProtocolHttp)
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameManagement:
 		// special case for well known port - management
-		return pointer.String(AppProtocolHttp)
+		return ptr.To(AppProtocolHttp)
 	default:
 		return nil
 	}
@@ -1332,7 +1331,7 @@ type ServiceMonitorSpec struct {
 	// SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec
 	// +optional
-	SampleLimit uint64 `json:"sampleLimit,omitempty"`
+	SampleLimit *uint64 `json:"sampleLimit,omitempty"`
 	// HTTP path to scrape for metrics.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
 	// +optional
@@ -1366,7 +1365,7 @@ type ServiceMonitorSpec struct {
 	// the Prometheus Operator.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
 	// +optional
-	BearerTokenSecret corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
+	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
 	// HonorLabels chooses the metric labels on collisions with target labels.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
 	// +optional
@@ -1844,7 +1843,7 @@ func (in *PortSpecWithSSL) AddSSLVolumesForPod(podTemplate *corev1.PodTemplateSp
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName:  *in.SSL.Secrets,
-					DefaultMode: pointer.Int32(int32(0777)),
+					DefaultMode: ptr.To(int32(0777)),
 				},
 			},
 		})

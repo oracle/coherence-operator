@@ -1,4 +1,4 @@
-# Copyright 2023, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2023, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -39,7 +39,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.21.x
+        go-version: 1.22.x
 
     - name: Cache Go Modules
       uses: actions/cache@v3

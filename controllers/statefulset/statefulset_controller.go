@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -20,7 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -253,8 +253,8 @@ func buildActionJob(actionName string, actionJob *coh.ActionJob, deployment coh.
 					Kind:               gvk.Kind,
 					Name:               deployment.GetName(),
 					UID:                deployment.GetUID(),
-					Controller:         pointer.Bool(true),
-					BlockOwnerDeletion: pointer.Bool(false),
+					Controller:         ptr.To(true),
+					BlockOwnerDeletion: ptr.To(false),
 				},
 			},
 		},

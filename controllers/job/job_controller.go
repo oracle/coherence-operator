@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -19,7 +19,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -432,11 +432,11 @@ func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job,
 			_, err := p.RunProbe(ctx, pod, &action.Probe)
 			if err == nil {
 				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", "nil")
-				probeStatus.Success = pointer.Bool(true)
+				probeStatus.Success = ptr.To(true)
 			} else {
 				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", err)
-				probeStatus.Success = pointer.Bool(false)
-				probeStatus.Error = pointer.String(err.Error())
+				probeStatus.Success = ptr.To(false)
+				probeStatus.Error = ptr.To(err.Error())
 			}
 			now := metav1.Now()
 			probeStatus.LastProbeTime = &now

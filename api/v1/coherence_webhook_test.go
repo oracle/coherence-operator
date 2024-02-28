@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
- *
  */
 
 package v1_test
@@ -15,7 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -431,7 +430,7 @@ func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 	current := &coh.Coherence{
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Replicas: pointer.Int32(19),
+				Replicas: ptr.To(int32(19)),
 			},
 		},
 	}
@@ -446,7 +445,7 @@ func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 	current := &coh.Coherence{
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Replicas: pointer.Int32(19),
+				Replicas: ptr.To(int32(19)),
 			},
 		},
 	}
@@ -462,7 +461,7 @@ func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Replicas: pointer.Int32(-1),
+				Replicas: ptr.To(int32(-1)),
 			},
 		},
 	}
@@ -492,7 +491,7 @@ func TestValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 	current := &coh.Coherence{
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Replicas: pointer.Int32(19),
+				Replicas: ptr.To(int32(19)),
 			},
 		},
 	}
@@ -511,7 +510,7 @@ func TestValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 	current := &coh.Coherence{
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Replicas: pointer.Int32(19),
+				Replicas: ptr.To(int32(19)),
 			},
 		},
 	}
@@ -531,7 +530,7 @@ func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "foo"},
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Replicas: pointer.Int32(-1),
+				Replicas: ptr.To(int32(-1)),
 			},
 		},
 	}
@@ -639,12 +638,12 @@ func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 					{
 						Name:     "p1",
 						Port:     1234,
-						NodePort: pointer.Int32(30000),
+						NodePort: ptr.To(int32(30000)),
 					},
 					{
 						Name:     "p2",
 						Port:     1235,
-						NodePort: pointer.Int32(32767),
+						NodePort: ptr.To(int32(32767)),
 					},
 				},
 			},
@@ -666,17 +665,17 @@ func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 					{
 						Name:     "p1",
 						Port:     1234,
-						NodePort: pointer.Int32(30000),
+						NodePort: ptr.To(int32(30000)),
 					},
 					{
 						Name:     "p2",
 						Port:     1235,
-						NodePort: pointer.Int32(32767),
+						NodePort: ptr.To(int32(32767)),
 					},
 					{
 						Name:     "p3",
 						Port:     1235,
-						NodePort: pointer.Int32(1234),
+						NodePort: ptr.To(int32(1234)),
 					},
 				},
 			},
@@ -698,12 +697,12 @@ func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 					{
 						Name:     "p1",
 						Port:     1234,
-						NodePort: pointer.Int32(30000),
+						NodePort: ptr.To(int32(30000)),
 					},
 					{
 						Name:     "p2",
 						Port:     1235,
-						NodePort: pointer.Int32(32767),
+						NodePort: ptr.To(int32(32767)),
 					},
 				},
 			},
@@ -730,17 +729,17 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 					{
 						Name:     "p1",
 						Port:     1234,
-						NodePort: pointer.Int32(30000),
+						NodePort: ptr.To(int32(30000)),
 					},
 					{
 						Name:     "p2",
 						Port:     1235,
-						NodePort: pointer.Int32(32767),
+						NodePort: ptr.To(int32(32767)),
 					},
 					{
 						Name:     "p3",
 						Port:     1235,
-						NodePort: pointer.Int32(1234),
+						NodePort: ptr.To(int32(1234)),
 					},
 				},
 			},

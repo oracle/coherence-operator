@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -23,7 +23,7 @@ func TestServerWithPersistenceMode(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
 					Persistence: &coh.PersistenceSpec{
-						Mode: pointer.String("active"),
+						Mode: ptr.To("active"),
 					},
 				},
 			},

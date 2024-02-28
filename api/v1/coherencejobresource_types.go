@@ -13,7 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // ----- Coherence type ------------------------------------------------------------------
@@ -481,7 +481,7 @@ func (in *CoherenceJobResourceSpec) UpdateJob(spec *batchv1.JobSpec) {
 	}
 
 	if in.IsSyncCompletions() {
-		spec.Completions = pointer.Int32(in.GetReplicas())
+		spec.Completions = ptr.To(in.GetReplicas())
 	} else {
 		spec.Completions = in.Completions
 	}
