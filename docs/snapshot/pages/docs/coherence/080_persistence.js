@@ -25,7 +25,7 @@ as required.</p>
 <div class="section">
 <p>The <code>Coherence</code> CRD allows the default persistence mode, and the storage location of persistence data to be
 configured. Persistence can be configured in the <code>spec.coherence.persistence</code> section of the CRD.
-See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1">Coherence Persistence</a>
+See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1">Coherence Persistence</a>
 documentation for more details of how persistence works and its configuration.</p>
 
 </div>

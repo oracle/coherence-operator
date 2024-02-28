@@ -9,7 +9,7 @@ By setting this field the <code>coherence.override</code> system property will b
 <p>When the <code>spec.coherence.overrideConfig</code> is blank or not specified, Coherence use its default behaviour to find the
 operational configuration file to use. Typically, this is to use the first occurrence of <code>tangosol-coherence-override.xml</code>
 that is found on the classpath
-(consult the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5">Coherence documentation</a>
+(consult the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5">Coherence documentation</a>
 for an explanation of the default behaviour).</p>
 
 <p>To set a specific operational configuration file to use set the <code>spec.coherence.overrideConfig</code> field, for example:</p>

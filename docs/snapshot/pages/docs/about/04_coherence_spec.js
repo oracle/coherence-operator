@@ -67,6 +67,10 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 
 </li>
 <li>
+<p><router-link to="#_globalspec" @click.native="this.scrollFix('#_globalspec')">GlobalSpec</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#_imagespec" @click.native="this.scrollFix('#_imagespec')">ImageSpec</router-link></p>
 
 </li>
@@ -1038,6 +1042,47 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <td class=""><code>optional</code></td>
 <td class="">Specify whether the ConfigMap or its keys must be defined</td>
 <td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_globalspec">GlobalSpec</h3>
+<div class="section">
+<p>GlobalSpec is attributes that will be applied to all resources managed by the Operator.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>labels</code></td>
+<td class="">Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>annotations</code></td>
+<td class="">Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/</a></td>
+<td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -3161,6 +3206,12 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <td class=""><code>envFrom</code></td>
 <td class="">List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated.</td>
 <td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>global</code></td>
+<td class="">Global contains attributes that will be applied to all resources managed by the Coherence Operator.</td>
+<td class=""><code>&#42;<router-link to="#_globalspec" @click.native="this.scrollFix('#_globalspec')">GlobalSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
 </tbody>

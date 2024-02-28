@@ -40,7 +40,7 @@ We will use these files to securely provide the passwords to the client and serv
 <h2 id="_configure_coherence_extend_tls">Configure Coherence Extend TLS</h2>
 <div class="section">
 <p>The Coherence documentation explains how to
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/secure/using-ssl-secure-communication.html#GUID-90E20139-3945-4993-9048-7FBC93B243A3">Use TLS Secure Communication</a>.
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html#GUID-90E20139-3945-4993-9048-7FBC93B243A3">Use TLS Secure Communication</a>.
 This example is going to use a standard approach to securing Extend with TLS. To provide the keystores and credentials the example will make use of Kubernetes <code>Secrets</code> to mount those files as <code>Volumes</code> in the <code>StatefulSet</code>. This is much more flexible and secure than baking them into an application&#8217;s code or image.</p>
 
 

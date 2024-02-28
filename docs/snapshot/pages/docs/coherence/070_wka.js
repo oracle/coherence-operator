@@ -6,7 +6,7 @@
 discover other cluster members. The default mechanism for discovery is multicast broadcast but this does not work in
 most container environments. Coherence provides an alternative mechanism where the addresses of the hosts where the
 members of the cluster will run is provided in the form of a
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/setting-cluster.html#GUID-E8CC7C9A-5739-4D12-B88E-A3575F20D63B">"well known address" (or WKA) list</a>.
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-applications/setting-cluster.html#GUID-E8CC7C9A-5739-4D12-B88E-A3575F20D63B">"well known address" (or WKA) list</a>.
 This address list is then used by Coherence when it starts in a JVM to discover other cluster members running on the
 hosts in the WKA list.</p>
 

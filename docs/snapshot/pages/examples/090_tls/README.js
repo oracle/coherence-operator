@@ -494,7 +494,7 @@ lang="bash"
 <p>When configuring Coherence to use TLS, we need to configure a socket provider that Coherence can use to create secure socket. We then tell Coherence to use this provider in various places, such as Extend connections, cluster member TCMP connections etc.
 This configuration is typically done by adding the provider configuration to the Coherence operational configuration override file.</p>
 
-<p>The Coherence documentation has a lot of details on configuring socket providers in the section on <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/secure/using-ssl-secure-communication.html#GUID-21CBAF48-BA78-4373-AC90-BF668CF31776">Using SSL Secure Communication</a></p>
+<p>The Coherence documentation has a lot of details on configuring socket providers in the section on <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html#GUID-21CBAF48-BA78-4373-AC90-BF668CF31776">Using SSL Secure Communication</a></p>
 
 <p>Below is an example that we will use on the server cluster members</p>
 
@@ -592,7 +592,7 @@ title="src/main/resources/server-cache-config.xml"
 
 <h2 id="tcmp">Secure Cluster Membership</h2>
 <div class="section">
-<p>Now we have a "tls" socket provider we can use it to secure Coherence. The Coherence documentation has a section on <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/secure/using-ssl-secure-communication.html#GUID-21CBAF48-BA78-4373-AC90-BF668CF31776">Securing Coherence TCMP with TLS</a>.
+<p>Now we have a "tls" socket provider we can use it to secure Coherence. The Coherence documentation has a section on <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html#GUID-21CBAF48-BA78-4373-AC90-BF668CF31776">Securing Coherence TCMP with TLS</a>.
 Securing communication between cluster members is very simple, we just set the <code>coherence.socketprovider</code> system property to the name of the socket provider we want to use. In our case this will be the "tls" provider we configured above, so we would use <code>-Dcoherence.socketprovider=tls</code></p>
 
 <p>The yaml below is a <code>Coherence</code> resource that will cause the Operator to create a three member Coherence cluster.</p>
@@ -816,7 +816,7 @@ kubectl -n coherence-test delete -f manifests/coherence-cluster.yaml</markup>
 
 <h3 id="extend">Secure Extend Connections</h3>
 <div class="section">
-<p>A common connection type to secure are client connections into the cluster from Coherence Extend clients. The Coherence documentation contains details on <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/secure/using-ssl-secure-communication.html#GUID-0F636928-8731-4228-909C-8B8AB09613DB">Using SSL to Secure Extend Client Communication</a> for more in-depth details.</p>
+<p>A common connection type to secure are client connections into the cluster from Coherence Extend clients. The Coherence documentation contains details on <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/secure/using-ssl-secure-communication.html#GUID-0F636928-8731-4228-909C-8B8AB09613DB">Using SSL to Secure Extend Client Communication</a> for more in-depth details.</p>
 
 <p>As with securing TCMP, we can specify a socket provider in the Extend proxy configuration in the server&#8217;s cache configuration file and also in the remote scheme in the client&#8217;s cache configuration. In this example we will use exactly the same TLS socket provider configuration that we created above. The only difference being the name of the <code>PasswordProvider</code> class used by the client. At the time of writing this, Coherence does not include an implementation of <code>PasswordProvider</code> that reads from a file. The Coherence Operator injects one into the classpath of the server, but our simple client is not managed by the Operator. We have added a simple <code>FileBasedPasswordProvider</code> class to the client code in this example.</p>
 

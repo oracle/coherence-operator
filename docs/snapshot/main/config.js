@@ -806,6 +806,19 @@ function createRoutes(){
             component: loadPage('docs-other-040_annotations', '/docs/other/040_annotations', {})
         },
         {
+            path: '/docs/other/041_global_labels',
+            meta: {
+                h1: 'Global Labels and Annotations',
+                title: 'Global Labels and Annotations',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-other-041_global_labels', '/docs/other/041_global_labels', {})
+        },
+        {
             path: '/docs/other/045_security_context',
             meta: {
                 h1: 'Pod & Container SecurityContext',
@@ -1380,7 +1393,7 @@ function createNav(){
             ]
         },
         {
-            title: 'Other Pod Settings',
+            title: 'Other Settings',
             action: 'widgets',
             group: '/other',
             items: [
@@ -1388,6 +1401,7 @@ function createNav(){
                 { href: '/docs/other/020_environment', title: 'Environment Variables' },
                 { href: '/docs/other/030_labels', title: 'Pod Labels' },
                 { href: '/docs/other/040_annotations', title: 'Adding Annotations' },
+                { href: '/docs/other/041_global_labels', title: 'Global Labels and Annotations' },
                 { href: '/docs/other/045_security_context', title: 'Pod & Container SecurityContext' },
                 { href: '/docs/other/050_configmap_volumes', title: 'Add ConfigMap Volumes' },
                 { href: '/docs/other/060_secret_volumes', title: 'Add Secrets Volumes' },

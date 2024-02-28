@@ -36,7 +36,7 @@ to write to log files. One way to do this is to add a Java Util Logging configur
 Coherence to use the JDK logger.</p>
 
 <p>In the <code>jvm.args</code> section of the <code>Coherence</code> CRD the system properties should be added to set the configuration file used by Java util logging and to configure Coherence logging.
-See the Coherence <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/operational-configuration-elements.html">Logging Config</a>
+See the Coherence <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-applications/operational-configuration-elements.html">Logging Config</a>
 documentation for more details.</p>
 
 <p>There are alternative ways to configure the Java util logger besides using a configuration file, just as there are

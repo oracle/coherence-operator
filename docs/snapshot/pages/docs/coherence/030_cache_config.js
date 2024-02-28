@@ -9,7 +9,7 @@ property will be set in the Coherence JVM.</p>
 <p>When the <code>spec.coherence.cacheConfig</code> is blank or not specified, Coherence use its default behaviour to find the
 cache configuration file to use. Typically, this is to use the first occurrence of <code>coherence-cache-config.xml</code> that is
 found on the classpath
-(consult the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5">Coherence documentation</a>
+(consult the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-applications/understanding-configuration.html#GUID-360B798E-2120-44A9-8B09-1FDD9AB40EB5">Coherence documentation</a>
 for an explanation of the default behaviour).</p>
 
 <p>To set a specific cache configuration file to use set the <code>spec.coherence.cacheConfig</code> field, for example:</p>
