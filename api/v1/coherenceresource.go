@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -43,6 +43,10 @@ type CoherenceResource interface {
 	FindPortServiceName(name string) (string, bool)
 	// CreateCommonLabels creates the deployment's common label set.
 	CreateCommonLabels() map[string]string
+	// CreateGlobalLabels creates the common label set for all resources.
+	CreateGlobalLabels() map[string]string
+	// CreateGlobalAnnotations creates the common annotation set for all resources.
+	CreateGlobalAnnotations() map[string]string
 	// CreateAnnotations returns the annotations to apply to this cluster's
 	// deployment (StatefulSet).
 	CreateAnnotations() map[string]string
@@ -92,4 +96,6 @@ type CoherenceResource interface {
 	IsForceExit() bool
 	// GetEnvVarFrom returns the array of EnvVarSource configurations
 	GetEnvVarFrom() []corev1.EnvFromSource
+	// GetGlobalSpec returns the attributes to be applied to all resources
+	GetGlobalSpec() *GlobalSpec
 }

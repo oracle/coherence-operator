@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -109,8 +109,10 @@ func baseWebhookSecret(ns string) *corev1.Secret {
 			Kind:       "Secret",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      viper.GetString(operator.FlagWebhookSecret),
-			Namespace: ns,
+			Name:        viper.GetString(operator.FlagWebhookSecret),
+			Namespace:   ns,
+			Labels:      operator.GetGlobalLabelsNoError(),
+			Annotations: operator.GetGlobalAnnotationsNoError(),
 		},
 		Type: "kubernetes.io/tls",
 	}
@@ -303,13 +305,18 @@ func createMutatingWebhookConfiguration(ns string) admissionv1.MutatingWebhookCo
 	noSideEffects := admissionv1.SideEffectClassNone
 	path := coh.MutatingWebHookPath
 	clientConfig := createWebhookClientConfig(ns, path)
+	labels := operator.GetGlobalLabelsNoError()
+	ann := operator.GetGlobalAnnotationsNoError()
+	if ann == nil {
+		ann = make(map[string]string)
+	}
+	ann[certTypeAnnotation] = viper.GetString(operator.FlagCertType)
 
 	return admissionv1.MutatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: viper.GetString(operator.FlagMutatingWebhookName),
-			Annotations: map[string]string{
-				certTypeAnnotation: viper.GetString(operator.FlagCertType),
-			},
+			Name:        viper.GetString(operator.FlagMutatingWebhookName),
+			Labels:      labels,
+			Annotations: ann,
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "MutatingWebhookConfiguration",
@@ -346,13 +353,18 @@ func createValidatingWebhookConfiguration(ns string) admissionv1.ValidatingWebho
 	noSideEffects := admissionv1.SideEffectClassNone
 	path := coh.ValidatingWebHookPath
 	clientConfig := createWebhookClientConfig(ns, path)
+	labels := operator.GetGlobalLabelsNoError()
+	ann := operator.GetGlobalAnnotationsNoError()
+	if ann == nil {
+		ann = make(map[string]string)
+	}
+	ann[certTypeAnnotation] = viper.GetString(operator.FlagCertType)
 
 	return admissionv1.ValidatingWebhookConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: viper.GetString(operator.FlagValidatingWebhookName),
-			Annotations: map[string]string{
-				certTypeAnnotation: viper.GetString(operator.FlagCertType),
-			},
+			Name:        viper.GetString(operator.FlagValidatingWebhookName),
+			Labels:      labels,
+			Annotations: ann,
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ValidatingWebhookConfiguration",
@@ -406,13 +418,17 @@ func createWebhookClientConfig(ns, path string) admissionv1.WebhookClientConfig 
 func issuer(ns string, group string, apiVersion string) *unstructured.Unstructured {
 	apiString := fmt.Sprintf("%s/%s", group, apiVersion)
 	certIssuer := viper.GetString(operator.FlagCertIssuer)
+	labels := operator.GetGlobalLabelsNoError()
+	ann := operator.GetGlobalAnnotationsNoError()
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": apiString,
 			"kind":       "Issuer",
 			"metadata": map[string]interface{}{
-				"name":      certIssuer,
-				"namespace": ns,
+				"name":        certIssuer,
+				"namespace":   ns,
+				"labels":      labels,
+				"annotations": ann,
 			},
 			"spec": map[string]interface{}{
 				"selfSigned": map[string]interface{}{},
@@ -426,13 +442,17 @@ func certificate(ns string, group string, apiVersion string) *unstructured.Unstr
 	name := viper.GetString(operator.FlagWebhookService)
 	certIssuer := viper.GetString(operator.FlagCertIssuer)
 	dns := operator.GetWebhookServiceDNSNames()
+	labels := operator.GetGlobalLabelsNoError()
+	ann := operator.GetGlobalAnnotationsNoError()
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": apiString,
 			"kind":       "Certificate",
 			"metadata": map[string]interface{}{
-				"name":      certManagerCertName,
-				"namespace": ns,
+				"name":        certManagerCertName,
+				"namespace":   ns,
+				"labels":      labels,
+				"annotations": ann,
 			},
 			"spec": map[string]interface{}{
 				"commonName": fmt.Sprintf("%s.%s.svc", name, ns),

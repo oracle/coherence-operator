@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,6 +7,7 @@
 package v1
 
 import (
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/mod/semver"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -66,6 +67,13 @@ func (in *CoherenceJob) GetEnvVarFrom() []corev1.EnvFromSource {
 		return make([]corev1.EnvFromSource, 0)
 	}
 	return in.Spec.EnvFrom
+}
+
+func (in *CoherenceJob) GetGlobalSpec() *GlobalSpec {
+	if in == nil {
+		return nil
+	}
+	return in.Spec.Global
 }
 
 // GetSpec returns this resource's CoherenceResourceSpec
@@ -193,6 +201,25 @@ func (in *CoherenceJob) FindPortServiceName(name string) (string, bool) {
 	return in.Spec.FindPortServiceName(name, in)
 }
 
+// CreateGlobalLabels creates the common label set for all resources.
+func (in *CoherenceJob) CreateGlobalLabels() map[string]string {
+	labels := operator.GetGlobalLabelsNoError()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+
+	globalSpec := in.GetGlobalSpec()
+	if globalSpec != nil {
+		for k, v := range globalSpec.Labels {
+			labels[k] = v
+		}
+	}
+	for k, v := range in.CreateCommonLabels() {
+		labels[k] = v
+	}
+	return labels
+}
+
 // CreateCommonLabels creates the deployment's common label set.
 func (in *CoherenceJob) CreateCommonLabels() map[string]string {
 	labels := make(map[string]string)
@@ -209,6 +236,21 @@ func (in *CoherenceJob) CreateCommonLabels() map[string]string {
 	}
 
 	return labels
+}
+
+// CreateGlobalAnnotations creates the common annotation set for all resources.
+func (in *CoherenceJob) CreateGlobalAnnotations() map[string]string {
+	annotations := operator.GetGlobalAnnotationsNoError()
+	globalSpec := in.GetGlobalSpec()
+	if globalSpec != nil && globalSpec.Annotations != nil {
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
+		for k, v := range globalSpec.Annotations {
+			annotations[k] = v
+		}
+	}
+	return annotations
 }
 
 // CreateAnnotations returns the annotations to apply to this cluster's
@@ -409,6 +451,8 @@ type CoherenceJobResourceSpec struct {
 	// Cannot be updated.
 	// +optional
 	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
+	// Global contains attributes that will be applied to all resources managed by the Coherence Operator.
+	Global *GlobalSpec `json:"global,omitempty"`
 }
 
 // GetRestartPolicy returns the name of the application image to use
@@ -458,7 +502,7 @@ func (in *CoherenceJobResourceSpec) IsSyncCompletions() bool {
 }
 
 // CreateJobResource creates the deployment's Job resource.
-func (in *CoherenceJobResourceSpec) CreateJobResource(deployment CoherenceResource) Resource {
+func (in *CoherenceJobResourceSpec) CreateJobResource(deployment *CoherenceJob) Resource {
 	job := in.CreateJob(deployment)
 
 	return Resource{
@@ -469,13 +513,14 @@ func (in *CoherenceJobResourceSpec) CreateJobResource(deployment CoherenceResour
 }
 
 // CreateJob creates the deployment's Job.
-func (in *CoherenceJobResourceSpec) CreateJob(deployment CoherenceResource) batchv1.Job {
+func (in *CoherenceJobResourceSpec) CreateJob(deployment *CoherenceJob) batchv1.Job {
+	ann := deployment.CreateGlobalAnnotations()
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   deployment.GetNamespace(),
 			Name:        deployment.GetName(),
-			Labels:      deployment.CreateCommonLabels(),
-			Annotations: deployment.CreateAnnotations(),
+			Labels:      deployment.CreateGlobalLabels(),
+			Annotations: ann,
 		},
 	}
 

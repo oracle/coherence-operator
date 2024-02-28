@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -52,9 +52,12 @@ const (
 	FlagCertType              = "cert-type"
 	FlagCertIssuer            = "cert-issuer"
 	FlagCoherenceImage        = "coherence-image"
-	FlagDevMode               = "coherence-dev-mode"
 	FlagCRD                   = "install-crd"
+	FlagDevMode               = "coherence-dev-mode"
+	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"
+	FlagGlobalAnnotation      = "global-annotation"
+	FlagGlobalLabel           = "global-label"
 	FlagHealthAddress         = "health-addr"
 	FlagLeaderElection        = "enable-leader-election"
 	FlagMetricsAddress        = "metrics-addr"
@@ -89,13 +92,15 @@ const (
 
 var setupLog = ctrl.Log.WithName("setup")
 
+var currentViper *viper.Viper
+
 var (
 	operatorVersion   = "999.0.0"
 	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 	DefaultRackLabels = []string{LabelOciNodeFaultDomain, corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 )
 
-func SetupOperatorManagerFlags(cmd *cobra.Command) {
+func SetupOperatorManagerFlags(cmd *cobra.Command, v *viper.Viper) {
 	flags := cmd.Flags()
 	flags.String(FlagMetricsAddress, ":8080", "The address the metric endpoint binds to.")
 	flags.String(FlagHealthAddress, ":8088", "The address the health endpoint binds to.")
@@ -103,34 +108,22 @@ func SetupOperatorManagerFlags(cmd *cobra.Command) {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 
-	SetupFlags(cmd)
+	SetupFlags(cmd, v)
 
 	// Add flags registered by imported packages (e.g. glog and controller-runtime)
 	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
 	flagSet.AddGoFlagSet(flag.CommandLine)
-	if err := viper.BindPFlags(flagSet); err != nil {
-		setupLog.Error(err, "binding flags")
-		os.Exit(1)
-	}
-
-	// Validate the command line flags and environment variables
-	if err := ValidateFlags(); err != nil {
-		fmt.Println(err.Error())
-		_ = cmd.Help()
-		os.Exit(1)
-	}
-
 }
 
-func SetupFlags(cmd *cobra.Command) {
+func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	f, err := data.Assets.Open("assets/config.json")
 	if err != nil {
 		setupLog.Error(err, "finding config.json asset")
 		os.Exit(1)
 	}
 
-	viper.SetConfigType("json")
-	if err := viper.ReadConfig(f); err != nil {
+	v.SetConfigType("json")
+	if err := v.ReadConfig(f); err != nil {
 		setupLog.Error(err, "reading configuration file")
 		os.Exit(1)
 	}
@@ -250,55 +243,85 @@ func SetupFlags(cmd *cobra.Command) {
 		"webhook-service",
 		"The K8s service used for the webhook",
 	)
+	cmd.Flags().StringArray(
+		FlagGlobalAnnotation,
+		nil,
+		"An annotation to apply to all resources managed by the Operator (can be used multiple times)")
+	cmd.Flags().StringArray(
+		FlagGlobalLabel,
+		nil,
+		"A label to apply to all resources managed by the Operator (can be used multiple times)")
 
 	// enable using dashed notation in flags and underscores in env
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	if err := viper.BindPFlags(cmd.Flags()); err != nil {
+	if err := v.BindPFlags(cmd.Flags()); err != nil {
 		setupLog.Error(err, "binding flags")
 		os.Exit(1)
 	}
 
-	viper.AutomaticEnv()
+	v.AutomaticEnv()
 }
 
-func ValidateFlags() error {
-	certValidity := viper.GetDuration(FlagCACertValidity)
-	certRotateBefore := viper.GetDuration(FlagCACertRotateBefore)
+func ValidateFlags(v *viper.Viper) error {
+	var err error
+	certValidity := v.GetDuration(FlagCACertValidity)
+	certRotateBefore := v.GetDuration(FlagCACertRotateBefore)
 	if certRotateBefore > certValidity {
 		return fmt.Errorf("%s must be larger than %s", FlagCACertValidity, FlagCACertRotateBefore)
 	}
 
-	certType := viper.GetString(FlagCertType)
+	certType := v.GetString(FlagCertType)
 	if certType != CertTypeSelfSigned && certType != CertTypeCertManager && certType != CertTypeManual {
 		return fmt.Errorf("%s parameter is invalid", FlagCertType)
 	}
 
-	return nil
+	_, err = GetGlobalAnnotations(v)
+	if err != nil {
+		return err
+	}
+
+	_, err = GetGlobalLabels(v)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func SetViper(v *viper.Viper) {
+	currentViper = v
+}
+
+func GetViper() *viper.Viper {
+	if currentViper == nil {
+		return viper.GetViper()
+	}
+	return currentViper
 }
 
 func IsDevMode() bool {
-	return viper.GetBool(FlagDevMode)
+	return GetViper().GetBool(FlagDevMode)
 }
 
 func GetDefaultCoherenceImage() string {
-	return viper.GetString(FlagCoherenceImage)
+	return GetViper().GetString(FlagCoherenceImage)
 }
 
 func GetDefaultOperatorImage() string {
-	return viper.GetString(FlagOperatorImage)
+	return GetViper().GetString(FlagOperatorImage)
 }
 
 func GetRestHost() string {
-	return viper.GetString(FlagRestHost)
+	return GetViper().GetString(FlagRestHost)
 }
 
 func GetRestPort() int32 {
-	return viper.GetInt32(FlagRestPort)
+	return GetViper().GetInt32(FlagRestPort)
 }
 
 func GetRestServiceName() string {
-	s := viper.GetString(FlagServiceName)
+	s := GetViper().GetString(FlagServiceName)
 	if s != "" {
 		ns := GetNamespace()
 		return s + "." + ns + ".svc"
@@ -307,47 +330,51 @@ func GetRestServiceName() string {
 }
 
 func GetRestServicePort() int32 {
-	return viper.GetInt32(FlagServicePort)
+	return GetViper().GetInt32(FlagServicePort)
 }
 func GetSiteLabel() []string {
-	return viper.GetStringSlice(FlagSiteLabel)
+	return GetViper().GetStringSlice(FlagSiteLabel)
 }
 
 func GetRackLabel() []string {
-	return viper.GetStringSlice(FlagRackLabel)
+	return GetViper().GetStringSlice(FlagRackLabel)
 }
 
 func ShouldInstallCRDs() bool {
-	return viper.GetBool(FlagCRD)
+	return GetViper().GetBool(FlagCRD) && !IsDryRun()
 }
 
 func ShouldEnableWebhooks() bool {
-	return viper.GetBool(FlagEnableWebhook)
+	return GetViper().GetBool(FlagEnableWebhook) && !IsDryRun()
+}
+
+func IsDryRun() bool {
+	return GetViper().GetBool(FlagDryRun)
 }
 
 func ShouldUseSelfSignedCerts() bool {
-	return viper.GetString(FlagCertType) == CertTypeSelfSigned
+	return GetViper().GetString(FlagCertType) == CertTypeSelfSigned
 }
 
 func ShouldUseCertManager() bool {
-	return viper.GetString(FlagCertType) == CertTypeCertManager
+	return GetViper().GetString(FlagCertType) == CertTypeCertManager
 }
 
 func GetNamespace() string {
-	return viper.GetString(FlagOperatorNamespace)
+	return GetViper().GetString(FlagOperatorNamespace)
 }
 
 func GetWebhookCertDir() string {
-	return viper.GetString(FlagWebhookCertDir)
+	return GetViper().GetString(FlagWebhookCertDir)
 }
 
 func GetCACertRotateBefore() time.Duration {
-	return viper.GetDuration(FlagCACertRotateBefore)
+	return GetViper().GetDuration(FlagCACertRotateBefore)
 }
 
 func GetWebhookServiceDNSNames() []string {
 	var dns []string
-	s := viper.GetString(FlagWebhookService)
+	s := GetViper().GetString(FlagWebhookService)
 	if IsDevMode() {
 		dns = []string{s}
 	} else {
@@ -400,4 +427,46 @@ func GetWatchNamespace() []string {
 		watches = append(watches, strings.TrimSpace(s))
 	}
 	return watches
+}
+
+func GetGlobalAnnotationsNoError() map[string]string {
+	m, _ := GetGlobalAnnotations(GetViper())
+	return m
+}
+
+func GetGlobalAnnotations(v *viper.Viper) (map[string]string, error) {
+	args := v.GetStringSlice(FlagGlobalAnnotation)
+	return stringSliceToMap(args, FlagGlobalAnnotation)
+}
+
+func GetGlobalLabelsNoError() map[string]string {
+	m, _ := GetGlobalLabels(GetViper())
+	return m
+}
+
+func GetGlobalLabels(v *viper.Viper) (map[string]string, error) {
+	args := v.GetStringSlice(FlagGlobalLabel)
+	return stringSliceToMap(args, FlagGlobalLabel)
+}
+
+func stringSliceToMap(args []string, flag string) (map[string]string, error) {
+	var m map[string]string
+	if args != nil {
+		m = make(map[string]string)
+		for _, arg := range args {
+			kv := strings.SplitN(arg, "=", 2)
+			if len(kv) <= 1 {
+				return nil, fmt.Errorf("invalid argument --%s=%s - must be in the format --%s=key=value",
+					flag, arg, flag)
+			}
+			key := strings.TrimSpace(kv[0])
+			value := strings.TrimSpace(kv[1])
+			if key == "" || value == "" {
+				return nil, fmt.Errorf("invalid argument --%s=%s - must be in the format --%s=\"key=value\" where the key and value cannot be blank",
+					flag, arg, flag)
+			}
+			m[key] = value
+		}
+	}
+	return m, nil
 }

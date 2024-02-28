@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -12,7 +12,7 @@
 
 Coherence provides utilities that can be used to test network performance, which obviously has a big impact on
 a distributed system such as Coherence. The documentation for these utilities can be found in the official
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
+https://{commercial-docs-base-url}/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
 
 Whilst generally these tests would be run on server hardware, with more and more Coherence deployments moving into the
 cloud and into Kubernetes these tests can also be performed in `Pods` to measure inter-Pod network performance.
@@ -69,7 +69,7 @@ spec:
 ----
 <1> This example uses a Coherence CE image, but any image with `coherence.jar` in it could be used.
 <2> The command line that the container will execute is exactly the same as that for the listener process in the
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
+https://{commercial-docs-base-url}/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
 
 Start the listener `Pod`:
 [source,bash]
@@ -113,7 +113,7 @@ spec:
         - tmb://message-bus-listener:8000  # <2>
 ----
 <1> Again, the command line is the same as that for the sender process in the
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
+https://{commercial-docs-base-url}/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523[Coherence Documentation].
 <2> The `peer` address uses the `Service` name `message-bus-listener` from the sender `yaml`.
 
 Start the sender `Pod`:

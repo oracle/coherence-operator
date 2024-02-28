@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -168,7 +168,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	}
 
 	// configure viper for the flags and env-vars
-	operator.SetupFlags(Cmd)
+	operator.SetupFlags(Cmd, viper.GetViper())
 	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
 	flagSet.AddGoFlagSet(flag.CommandLine)
 	if err := viper.BindPFlags(flagSet); err != nil {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -660,5 +660,67 @@ func TestCreateStatefulSetWithTopologySpreadConstraints(t *testing.T) {
 	stsExpected.Spec.Template.Spec.TopologySpreadConstraints = []corev1.TopologySpreadConstraint{constraint}
 
 	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithGlobalLabels(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		Global: &coh.GlobalSpec{
+			Labels: m,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	labelsExpected := stsExpected.Labels
+	labelsExpected["one"] = "value-one"
+	labelsExpected["two"] = "value-two"
+
+	podLabelsExpected := stsExpected.Spec.Template.Labels
+	podLabelsExpected["one"] = "value-one"
+	podLabelsExpected["two"] = "value-two"
+
+	// assert that the Job is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithGlobalAnnotations(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		Global: &coh.GlobalSpec{
+			Annotations: m,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+	// Create expected Job
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	annExpected := stsExpected.Annotations
+	if annExpected == nil {
+		annExpected = make(map[string]string)
+	}
+	annExpected["one"] = "value-one"
+	annExpected["two"] = "value-two"
+	stsExpected.Annotations = annExpected
+
+	podAnnExpected := stsExpected.Spec.Template.Annotations
+	if podAnnExpected == nil {
+		podAnnExpected = make(map[string]string)
+	}
+	podAnnExpected["one"] = "value-one"
+	podAnnExpected["two"] = "value-two"
+	stsExpected.Spec.Template.Annotations = podAnnExpected
+
+	// assert that the Job is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }

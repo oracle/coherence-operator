@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -35,7 +35,7 @@ func TestJvmArgsEmpty(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -65,7 +65,7 @@ func TestJvmArgs(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dfoo=foo-value", "-Dbar=bar-value")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -99,7 +99,7 @@ func TestJvmArgsWithEnvExpansion(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-Dfoo=foo-value", "-Dbar=bar-value")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -129,7 +129,7 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-XX:+UseContainerSupport")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -159,7 +159,7 @@ func TestJvmUseContainerLimitsTrue(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -191,7 +191,7 @@ func TestJvmGarbageCollectorG1(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseG1GC")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -223,7 +223,7 @@ func TestJvmGarbageCollectorCMS(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseConcMarkSweepGC")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -255,7 +255,7 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseParallelGC")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -294,7 +294,7 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 		"-XX:+PrintGCApplicationStoppedTime",
 		"-XX:+PrintGCApplicationConcurrentTime")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -326,7 +326,7 @@ func TestJvmGarbageCollectorArgsEmpty(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -358,7 +358,7 @@ func TestJvmGarbageCollectorArgs(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:Arg1", "-XX:Arg2")
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())

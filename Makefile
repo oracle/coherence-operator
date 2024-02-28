@@ -71,17 +71,22 @@ endif
 # By default we target amd64 as this is by far the most common local build environment
 # We actually build images for amd64 and arm64
 # ----------------------------------------------------------------------------------------------------------------------
-IMAGE_ARCH      ?= amd64
-ARCH            ?= amd64
+UNAME_S         =  $(shell uname -s)
+UNAME_M         =  $(shell uname -m)
+ifeq (x86_64, $(UNAME_M))
+	IMAGE_ARCH  = amd64
+	ARCH        = amd64
+else
+	IMAGE_ARCH  = $(UNAME_M)
+	ARCH        = $(UNAME_M)
+endif
+
 OS              ?= linux
-UNAME_S         := $(shell uname -s)
 GOPROXY         ?= https://proxy.golang.org
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Set the location of the Operator SDK executable
 # ----------------------------------------------------------------------------------------------------------------------
-UNAME_S               = $(shell uname -s)
-UNAME_M               = $(shell uname -m)
 OPERATOR_SDK_VERSION := v1.9.0
 
 # ----------------------------------------------------------------------------------------------------------------------

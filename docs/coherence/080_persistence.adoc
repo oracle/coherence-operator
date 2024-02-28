@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -17,7 +17,7 @@ as required.
 
 The `Coherence` CRD allows the default persistence mode, and the storage location of persistence data to be
 configured. Persistence can be configured in the `spec.coherence.persistence` section of the CRD.
-See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[Coherence Persistence]
+See the https://{commercial-docs-base-url}/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[Coherence Persistence]
 documentation for more details of how persistence works and its configuration.
 
 == Persistence Mode

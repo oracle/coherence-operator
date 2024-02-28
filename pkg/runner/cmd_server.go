@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,7 +23,7 @@ const (
 
 // serverCommand creates the corba "server" sub-command
 func serverCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   CommandServer,
 		Short: "Start a Coherence server",
 		Long:  "Starts a Coherence server",
@@ -31,6 +31,8 @@ func serverCommand() *cobra.Command {
 			return run(cmd, server)
 		},
 	}
+
+	return cmd
 }
 
 // Configure the runner to run a Coherence Server

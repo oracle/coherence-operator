@@ -1,0 +1,187 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Global Labels and Annotations
+
+== Global Labels and Annotations
+
+It is possible to specify a global set of labels and annotations that will be applied to all resources.
+Global labels and annotations can be specified in two ways:
+
+* For an individual `Coherence` deployment, in which case they will be applied to all the Kubernetes resources
+created for that deployment
+* As part of the Operator install, in which case they will be applied to all Kubernetes resources managed by the
+Operator, including all Coherence clusters and related resources
+
+== Specify Global Labels for a Coherence Resource
+
+The `Coherence` CRD contains a `global` field that allows global labels and annotations to be specified.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  global:
+    labels:
+      one: "label-one"
+      two: "label-two"
+----
+
+If the yaml above is applied to Kubernetes, then every resource the Operator creates for the `storage` Coherence
+deployment, it will add the two labels, `one=label-one` and `two=label-two`. This includes the `StatefulSet`,
+the `Pods`, any `Service` such as the stateful set service, the WKA service, etc.
+
+If any of the labels in the `global` section are also in the Pod labels section or for the Services for exposed ports,
+those labels will take precedence.
+
+For example
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  labels:
+    one: "pod-label-one"
+  global:
+    labels:
+      one: "label-one"
+      two: "label-one"
+----
+
+In the yaml above, the global label `one=label-one` and `two=labl-two` will be applied to every resource created for
+the `Coherence` deployment except for the Pods. The Operator uses the `spec.labels` field to define Pods specific labels,
+so in this case the Pod labels will be `one=pod-label-one` from the `spec.labels` field and `two=labl-two` from the global
+labels.
+
+== Specify Global Labels when Installing the Operator
+
+The Operator `runner` binary has various command line flags that can be specified on its command line.
+Two of these flags when starting the Operator are:
+
+* `--global-label` to specify a global label key and value
+* `--global-annotation` to specify a global annotation key and value
+
+Both of these command line flags can be specified multiple times if required.
+
+For example:
+
+[source,bash]
+----
+runner operator --global-label one=label-one --global-annoataion foo=bar --global-label two=label-two
+----
+
+The command above will start the Operator with two global labels,`one=label-one` and `two=labl-two` and with
+one global annotation `foo=bar`.
+
+The Operator will then apply these labels and annotations to every Kubernetes resource that it creates.
+
+=== Installing Using the Manifest Files
+
+When installing the Operator using the manifest yaml files, additional command line flags can be configured
+by manually editing the yaml file before installing.
+
+Download the yaml manifest file from the GitHub repo
+https://github.com/oracle/coherence-operator/releases/download/v3.3.3/coherence-operator.yaml
+
+Find the section of the yaml file the defines the Operator container args, the default looks like this
+
+[source,yaml]
+.coherence-operator.yaml
+----
+      - args:
+        - operator
+        - --enable-leader-election
+----
+
+Then edit the argument list to add the required `--global-label` and `--global-annotation` flags.
+
+For example, to add the same `--global-label one=label-one --global-annotation foo=bar --global-label two=label-two`
+flags, the file would look like this:
+
+[source,yaml]
+.coherence-operator.yaml
+----
+      - args:
+        - operator
+        - --enable-leader-election
+        - --global-label
+        - one=label-one
+        - --global-annotation
+        - foo=bar
+        - --global-label
+        - two=label-two`
+----
+
+[IMPORTANT]
+====
+Container arguments must each be a separate entry in the arg list.
+This is valid
+
+[source,yaml]
+.coherence-operator.yaml
+----
+      - args:
+        - operator
+        - --enable-leader-election
+        - --global-label
+        - one=label-one
+----
+
+This is not valid
+
+
+[source,yaml]
+.coherence-operator.yaml
+----
+      - args:
+        - operator
+        - --enable-leader-election
+        - --global-label  one=label-one
+----
+====
+
+
+=== Installing Using the Helm Chart
+
+If installing the Operator using the Helm chart, the global labels and annotations can be specified as values
+as part of the Helm command or in a values file.
+
+For example, to add the same `--global-label one=label-one --global-annotation foo=bar --global-label two=label-two`
+flags, create a simple values file:
+
+[source]
+.global-values.yaml
+----
+globalLabels:
+  one: "label-one"
+  two: "label-two"
+
+globalAnnotations:
+  foo: "bar"
+----
+
+Use the values file when installing the Helm chart
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --values global-values.yaml
+    coherence \
+    coherence/coherence-operator
+----
+
+
+

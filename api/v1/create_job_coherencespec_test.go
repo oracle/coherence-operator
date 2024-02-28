@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -426,6 +426,68 @@ func TestCreateJobWithCoherenceSpecWithMultipleWkaAddresses(t *testing.T) {
 	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
 	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	jobExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
+}
+
+func TestCreateJobWithGlobalLabels(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	spec := coh.CoherenceJobResourceSpec{
+		Global: &coh.GlobalSpec{
+			Labels: m,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJobDeployment(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	labelsExpected := jobExpected.Labels
+	labelsExpected["one"] = "value-one"
+	labelsExpected["two"] = "value-two"
+
+	podLabelsExpected := jobExpected.Spec.Template.Labels
+	podLabelsExpected["one"] = "value-one"
+	podLabelsExpected["two"] = "value-two"
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
+}
+
+func TestCreateJobWithGlobalAnnotations(t *testing.T) {
+	m := make(map[string]string)
+	m["one"] = "value-one"
+	m["two"] = "value-two"
+
+	spec := coh.CoherenceJobResourceSpec{
+		Global: &coh.GlobalSpec{
+			Annotations: m,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJobDeployment(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	annExpected := jobExpected.Annotations
+	if annExpected == nil {
+		annExpected = make(map[string]string)
+	}
+	annExpected["one"] = "value-one"
+	annExpected["two"] = "value-two"
+	jobExpected.Annotations = annExpected
+
+	podAnnExpected := jobExpected.Spec.Template.Annotations
+	if podAnnExpected == nil {
+		podAnnExpected = make(map[string]string)
+	}
+	podAnnExpected["one"] = "value-one"
+	podAnnExpected["two"] = "value-two"
+	jobExpected.Spec.Template.Annotations = podAnnExpected
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)

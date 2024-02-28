@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -37,7 +37,7 @@ type Storage interface {
 	// GetPrevious obtains the deployment resources for the version prior to the specified version
 	GetPrevious() coh.Resources
 	// Store will store the deployment resources, this will create a new version in the store
-	Store(coh.Resources, metav1.Object) error
+	Store(coh.Resources, coh.CoherenceResource) error
 	// Destroy will destroy the store
 	Destroy()
 	// GetHash will return the hash label of the owning resource
@@ -121,7 +121,7 @@ func (in *secretStore) GetPrevious() coh.Resources {
 	return in.previous
 }
 
-func (in *secretStore) Store(r coh.Resources, owner metav1.Object) error {
+func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error {
 	secret, exists, err := in.getSecret()
 	if err != nil {
 		// an error occurred other than NotFound
@@ -147,7 +147,24 @@ func (in *secretStore) Store(r coh.Resources, owner metav1.Object) error {
 		labels = make(map[string]string)
 	}
 	labels[coh.LabelCoherenceHash] = owner.GetLabels()[coh.LabelCoherenceHash]
+
+	globalLabels := owner.CreateGlobalLabels()
+	for k, v := range globalLabels {
+		labels[k] = v
+	}
 	secret.SetLabels(labels)
+
+	ann := secret.GetAnnotations()
+	globalAnn := owner.CreateGlobalAnnotations()
+	if globalAnn != nil {
+		if ann == nil {
+			ann = make(map[string]string)
+		}
+		for k, v := range globalAnn {
+			ann[k] = v
+		}
+	}
+	secret.SetAnnotations(ann)
 
 	secret.Data[storeKeyLatest] = newLatest
 	secret.Data[storeKeyPrevious] = oldLatest

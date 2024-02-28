@@ -61,6 +61,14 @@ deploymentLabels:
 deploymentAnnotations:
 
 # ---------------------------------------------------------------------------
+# Additional labels that are added to all te resources managed by  the Operator Deployment.
+globalLabels:
+
+# ---------------------------------------------------------------------------
+# Additional annotations that are added to all te resources managed by the Operator Deployment.
+globalAnnotations:
+
+# ---------------------------------------------------------------------------
 # Operator Pod securityContext
 # This sets the securityContext configuration for the Pod, for example
 # to run as a non-root user:

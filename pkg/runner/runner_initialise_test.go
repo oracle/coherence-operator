@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -36,7 +36,7 @@ func TestInitialise(t *testing.T) {
 	args, err := createArgs()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ex, err := ExecuteWithArgs(env, args)
+	ex, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(ex).NotTo(BeNil())
 	g.Expect(ex.OsCmd).To(BeNil())
@@ -56,7 +56,7 @@ func TestInitialiseWithCommand(t *testing.T) {
 
 	args = append(args, "--cmd", "server,--dry-run")
 
-	ex, err := ExecuteWithArgs(env, args)
+	ex, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(ex).NotTo(BeNil())
 	g.Expect(ex.OsCmd).NotTo(BeNil())

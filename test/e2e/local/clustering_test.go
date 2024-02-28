@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,6 +11,7 @@ import (
 	"fmt"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -41,7 +42,7 @@ func TestDeploymentWithOneReplica(t *testing.T) {
 	helper.AssertDeployments(testContext, t, "deployment-one-replica.yaml")
 }
 
-// Test that a deployment works using the a yaml file containing two Coherence
+// Test that a deployment works using a yaml file containing two Coherence
 // specs that have the same cluster name.
 func TestTwoDeploymentsOneCluster(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
@@ -162,4 +163,54 @@ func TestAllowUnsafeDelete(t *testing.T) {
 
 	hasFinalizer := controllerutil.ContainsFinalizer(&data, coh.CoherenceFinalizer)
 	g.Expect(hasFinalizer).To(BeFalse())
+}
+
+// Test that a deployment works using global labels
+func TestGlobalLabels(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	g := NewWithT(t)
+
+	deployments, pods := helper.AssertDeployments(testContext, t, "deployment-global-label.yaml")
+
+	podLabels := pods[0].GetLabels()
+	g.Expect(podLabels["one"]).To(Equal("value-one"), "expected label \"one\" in Pod")
+	g.Expect(podLabels["two"]).To(Equal("value-two"), "expected label \"two\" in Pod")
+
+	data, ok := deployments["global-label"]
+	g.Expect(ok).To(BeTrue(), "did not find expected 'global-label' deployment")
+
+	storage, err := utils.NewStorage(data.GetNamespacedName(), testContext.Manager)
+	g.Expect(err).NotTo(HaveOccurred())
+	latest := storage.GetLatest()
+	for _, res := range latest.Items {
+		l := res.Spec.GetLabels()
+		g.Expect(l["one"]).To(Equal("value-one"), fmt.Sprintf("expected label \"one\" in %s %s", res.Kind.Name(), res.Name))
+		g.Expect(l["two"]).To(Equal("value-two"), fmt.Sprintf("expected label \"two\" in %s %s", res.Kind.Name(), res.Name))
+	}
+}
+
+// Test that a deployment works using global labels
+func TestGlobalAnnotations(t *testing.T) {
+	// Make sure we defer clean-up when we're done!!
+	testContext.CleanupAfterTest(t)
+	g := NewWithT(t)
+
+	deployments, pods := helper.AssertDeployments(testContext, t, "deployment-global-annotation.yaml")
+
+	podAnnotations := pods[0].GetAnnotations()
+	g.Expect(podAnnotations["one"]).To(Equal("value-one"), "expected label \"one\" in Pod")
+	g.Expect(podAnnotations["two"]).To(Equal("value-two"), "expected label \"two\" in Pod")
+
+	data, ok := deployments["global-annotation"]
+	g.Expect(ok).To(BeTrue(), "did not find expected 'global-annotation' deployment")
+
+	storage, err := utils.NewStorage(data.GetNamespacedName(), testContext.Manager)
+	g.Expect(err).NotTo(HaveOccurred())
+	latest := storage.GetLatest()
+	for _, res := range latest.Items {
+		l := res.Spec.GetAnnotations()
+		g.Expect(l["one"]).To(Equal("value-one"), fmt.Sprintf("expected label \"one\" in %s %s", res.Kind.Name(), res.Name))
+		g.Expect(l["two"]).To(Equal("value-two"), fmt.Sprintf("expected label \"two\" in %s %s", res.Kind.Name(), res.Name))
+	}
 }

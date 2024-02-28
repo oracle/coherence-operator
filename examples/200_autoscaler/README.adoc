@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
 = Autoscaling Coherence Clusters
 
 == Kubernetes Horizontal Pod autoscaler Example
@@ -62,9 +69,9 @@ The Java code in this example contains a simple MBean class `HeapUsage` and corr
 that obtain heap use metrics in the way detailed above. There is also a configuration file `custom-mbeans.xml` that
 Coherence will use to automatically add the custom MBean to Coherence management and metrics.
 There is Coherence documentation on
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-coherence-metrics.html#GUID-CFC31D23-06B8-49AF-8996-ADBA806E0DD9[how to add custom metrics]
+https://{commercial-docs-base-url}/manage/using-coherence-metrics.html#GUID-CFC31D23-06B8-49AF-8996-ADBA806E0DD9[how to add custom metrics]
 and
-https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/registering-custom-mbeans.html#GUID-1EE749C5-BC0D-4353-B5FE-1C5DCDEAE48C[how to register custom MBeans].
+https://{commercial-docs-base-url}/manage/registering-custom-mbeans.html#GUID-1EE749C5-BC0D-4353-B5FE-1C5DCDEAE48C[how to register custom MBeans].
 
 The custom heap use MBean will be added with an ObjectName of `Coherence:type=HeapUsage,nodeId=1` where `nodeId` will change to
 match the Coherence member id for the specific JVM. There will be one heap usage MBean for each cluster member.

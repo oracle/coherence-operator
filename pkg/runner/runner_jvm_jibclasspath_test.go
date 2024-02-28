@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -37,7 +37,7 @@ func TestJibClasspath(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -69,7 +69,7 @@ func TestJibClasspathFile(t *testing.T) {
 	defer os.Remove(f.Name())
 	expectedArgs := GetMinimalExpectedArgsWithAppClasspathFile()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -101,7 +101,7 @@ func TestJibMainClassFile(t *testing.T) {
 	defer os.Remove(f.Name())
 	expectedArgs := GetMinimalExpectedArgsWithAppMainClassFile()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
@@ -135,7 +135,7 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 	defer os.Remove(f2.Name())
 	expectedArgs := GetMinimalExpectedArgsWithAppClasspathFileAndMainClassFile()
 
-	e, err := ExecuteWithArgs(env, args)
+	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())

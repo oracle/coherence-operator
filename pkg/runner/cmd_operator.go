@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -57,7 +57,7 @@ func init() {
 }
 
 // operatorCommand runs the Coherence Operator manager
-func operatorCommand() *cobra.Command {
+func operatorCommand(v *viper.Viper) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   CommandOperator,
 		Short: "Run the Coherence Operator",
@@ -67,7 +67,7 @@ func operatorCommand() *cobra.Command {
 		},
 	}
 
-	operator.SetupOperatorManagerFlags(cmd)
+	operator.SetupOperatorManagerFlags(cmd, v)
 
 	return cmd
 }
@@ -75,8 +75,8 @@ func operatorCommand() *cobra.Command {
 func execute() error {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	setupLog.Info(fmt.Sprintf("Operator Coherence Image: %s", viper.GetString(operator.FlagCoherenceImage)))
-	setupLog.Info(fmt.Sprintf("Operator Image: %s", viper.GetString(operator.FlagOperatorImage)))
+	setupLog.Info(fmt.Sprintf("Operator Coherence Image: %s", operator.GetDefaultCoherenceImage()))
+	setupLog.Info(fmt.Sprintf("Operator Image: %s", operator.GetDefaultOperatorImage()))
 
 	cfg := ctrl.GetConfigOrDie()
 	cs, err := clients.NewForConfig(cfg)
@@ -160,59 +160,62 @@ func execute() error {
 		return errors.Wrap(err, "unable to create CoherenceJob controller")
 	}
 
-	// We intercept the signal handler here so that we can do clean-up before the Manager stops
-	handler := ctrl.SetupSignalHandler()
+	dryRun := operator.IsDryRun()
+	if !dryRun {
+		// We intercept the signal handler here so that we can do clean-up before the Manager stops
+		handler := ctrl.SetupSignalHandler()
 
-	// Set-up webhooks if required
-	var cr *webhook.CertReconciler
-	if operator.ShouldEnableWebhooks() {
-		// Set up the webhook certificate reconciler
-		cr = &webhook.CertReconciler{
-			Clientset: cs,
+		// Set-up webhooks if required
+		var cr *webhook.CertReconciler
+		if operator.ShouldEnableWebhooks() {
+			// Set up the webhook certificate reconciler
+			cr = &webhook.CertReconciler{
+				Clientset: cs,
+			}
+			if err := cr.SetupWithManager(handler, mgr); err != nil {
+				return errors.Wrap(err, " unable to create webhook certificate controller")
+			}
+
+			// Set up the webhooks
+			if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
+				return errors.Wrap(err, " unable to create webhook")
+			}
+		} else {
+			setupLog.Info("Operator is running with web-hooks disabled")
 		}
-		if err := cr.SetupWithManager(handler, mgr); err != nil {
-			return errors.Wrap(err, " unable to create webhook certificate controller")
+
+		// Create the REST server
+		restServer := rest.NewServer(cs)
+		if err := restServer.SetupWithManager(mgr); err != nil {
+			return errors.Wrap(err, " unable to start REST server")
 		}
 
-		// Set up the webhooks
-		if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
-			return errors.Wrap(err, " unable to create webhook")
+		var health healthz.Checker = func(_ *http.Request) error {
+			<-restServer.Running()
+			return nil
 		}
-	} else {
-		setupLog.Info("Operator is running with web-hooks disabled")
-	}
 
-	// Create the REST server
-	restServer := rest.NewServer(cs)
-	if err := restServer.SetupWithManager(mgr); err != nil {
-		return errors.Wrap(err, " unable to start REST server")
-	}
-
-	var health healthz.Checker = func(_ *http.Request) error {
-		<-restServer.Running()
-		return nil
-	}
-
-	if err := mgr.AddHealthzCheck("health", health); err != nil {
-		return errors.Wrap(err, "unable to set up health check")
-	}
-	if err := mgr.AddReadyzCheck("ready", health); err != nil {
-		return errors.Wrap(err, "unable to set up ready check")
-	}
-
-	// +kubebuilder:scaffold:builder
-
-	go func() {
-		<-handler.Done()
-		if cr != nil {
-			cr.Cleanup()
+		if err := mgr.AddHealthzCheck("health", health); err != nil {
+			return errors.Wrap(err, "unable to set up health check")
 		}
-	}()
+		if err := mgr.AddReadyzCheck("ready", health); err != nil {
+			return errors.Wrap(err, "unable to set up ready check")
+		}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(handler); err != nil {
-		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
+		// +kubebuilder:scaffold:builder
+
+		go func() {
+			<-handler.Done()
+			if cr != nil {
+				cr.Cleanup()
+			}
+		}()
+
+		setupLog.Info("starting manager")
+		if err := mgr.Start(handler); err != nil {
+			setupLog.Error(err, "problem running manager")
+			os.Exit(1)
+		}
 	}
 
 	return nil

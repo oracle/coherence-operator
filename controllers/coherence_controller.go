@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 	coreV1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -192,7 +193,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = in.ensureOperatorSecret(ctx, request.Namespace, in.GetClient(), in.Log); err != nil {
+	if err = in.ensureOperatorSecret(ctx, deployment, in.GetClient(), in.Log); err != nil {
 		err = errors.Wrap(err, "ensuring Operator configuration secret")
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -475,8 +476,16 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 }
 
 // ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, namespace string, c client.Client, log logr.Logger) error {
-	s := &coreV1.Secret{}
+func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, deployment *coh.Coherence, c client.Client, log logr.Logger) error {
+	namespace := deployment.Namespace
+	s := &coreV1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        coh.OperatorConfigName,
+			Namespace:   namespace,
+			Labels:      deployment.CreateGlobalLabels(),
+			Annotations: deployment.CreateGlobalAnnotations(),
+		},
+	}
 
 	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, s)
 	if err != nil && !apierrors.IsNotFound(err) {
@@ -484,9 +493,6 @@ func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, namespa
 	}
 
 	restHostAndPort := rest.GetServerHostAndPort()
-
-	s.SetNamespace(namespace)
-	s.SetName(coh.OperatorConfigName)
 
 	oldValue := s.Data[coh.OperatorConfigKeyHost]
 	if oldValue == nil || string(oldValue) != restHostAndPort {

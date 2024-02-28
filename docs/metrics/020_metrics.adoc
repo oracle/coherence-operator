@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -25,7 +25,7 @@ The example below shows how to enable and access Coherence metrics.
 Once the metrics port has been exposed, for example via a load balancer or port-forward command, the metrics
 endpoint is available at `http://host:port/metrics`.
 
-See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-coherence-metrics.html[Using Coherence Metrics]
+See the https://{commercial-docs-base-url}/manage/using-coherence-metrics.html[Using Coherence Metrics]
 documentation for full details on the available metrics.
 
 === Deploy Coherence with Metrics Enabled
