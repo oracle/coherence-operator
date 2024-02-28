@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -552,6 +552,61 @@ func TestSetAdditionalDeploymentAnnotations(t *testing.T) {
 	g.Expect(len(annotations)).To(BeZero())
 }
 
+func TestGlobalLabelsAndAnnotations(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	cmd, err := createHelmCommand("--set", "globalLabels.one=label-one",
+		"--set", "globalLabels.two=label-two",
+		"--set", "globalAnnotations.three=annotation-three",
+		"--set", "globalAnnotations.four=annotation-four")
+	g.Expect(err).NotTo(HaveOccurred())
+	AssertHelmInstallWithStatefulSetSubTest(t, "basic", cmd, g, AssertLabelsAndAnnotations)
+
+	//result, err := helmInstall("--set", "globalLabels.one=label-one",
+	//	"--set", "globalLabels.two=label-two",
+	//	"--set", "globalAnnotations.three=annotation-three",
+	//	"--set", "globalAnnotations.four=annotation-four")
+	//
+	//g.Expect(err).NotTo(HaveOccurred())
+	//g.Expect(result).NotTo(BeNil())
+	//
+	//dep := &appsv1.Deployment{}
+	//err = result.Get("coherence-operator", dep)
+	//g.Expect(err).NotTo(HaveOccurred())
+	//
+	//t.Logf("Asserting Helm install. Deploying Coherence resource")
+	//ns := helper.GetTestNamespace()
+	//deployment, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
+	//g.Expect(err).NotTo(HaveOccurred())
+	//
+	//defer deleteCoherence(t, &deployment)
+	//
+	//err = testContext.Client.Create(goctx.TODO(), &deployment)
+	//g.Expect(err).NotTo(HaveOccurred())
+	//
+	//var sts *appsv1.StatefulSet
+	//sts, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
+	//g.Expect(err).NotTo(HaveOccurred())
+	//
+	//g.Expect(sts.Labels).NotTo(BeNil())
+	//g.Expect(sts.Labels["one"]).To(Equal("label-one"))
+	//g.Expect(sts.Labels["two"]).To(Equal("label-two"))
+	//
+	//g.Expect(sts.Annotations).NotTo(BeNil())
+	//g.Expect(sts.Annotations["three"]).To(Equal("annotation-three"))
+	//g.Expect(sts.Annotations["four"]).To(Equal("annotation-four"))
+}
+
+func AssertLabelsAndAnnotations(t *testing.T, g *GomegaWithT, _ *coh.Coherence, sts *appsv1.StatefulSet) {
+	g.Expect(sts.Labels).NotTo(BeNil())
+	g.Expect(sts.Labels["one"]).To(Equal("label-one"))
+	g.Expect(sts.Labels["two"]).To(Equal("label-two"))
+
+	g.Expect(sts.Annotations).NotTo(BeNil())
+	g.Expect(sts.Annotations["three"]).To(Equal("annotation-three"))
+	g.Expect(sts.Annotations["four"]).To(Equal("annotation-four"))
+}
+
 func AssertResources() error {
 	ns := helper.GetTestNamespace()
 	pods, err := helper.ListOperatorPods(testContext, ns)
@@ -647,6 +702,17 @@ func createHelmCommand(args ...string) (*exec.Cmd, error) {
 
 type SubTest func() error
 
+type StatefulSetSubTest func(*testing.T, *GomegaWithT, *coh.Coherence, *appsv1.StatefulSet)
+
+type SubTestRunner struct {
+	Test SubTest
+}
+
+func (in SubTestRunner) run(_ *testing.T, g *GomegaWithT, _ *coh.Coherence, _ *appsv1.StatefulSet) {
+	err := in.Test()
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
 var emptySubTest = func() error {
 	return nil
 }
@@ -729,6 +795,13 @@ func AssertRBAC(allowNode bool) error {
 }
 
 func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, test SubTest) {
+	runner := SubTestRunner{
+		Test: test,
+	}
+	AssertHelmInstallWithStatefulSetSubTest(t, id, cmd, g, runner.run)
+}
+
+func AssertHelmInstallWithStatefulSetSubTest(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, test StatefulSetSubTest) {
 	ns := helper.GetTestNamespace()
 
 	t.Cleanup(func() {
@@ -770,11 +843,11 @@ func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *Gom
 	err = testContext.Client.Create(goctx.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
+	var sts *appsv1.StatefulSet
+	sts, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = test()
-	g.Expect(err).NotTo(HaveOccurred())
+	test(t, g, &deployment, sts)
 }
 
 func deleteCoherence(t *testing.T, d *coh.Coherence) {
