@@ -11,7 +11,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	"testing"
 )
@@ -118,7 +118,7 @@ func TestApplicationMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Main: pointer.String("com.oracle.test.Main"),
+					Main: ptr.To("com.oracle.test.Main"),
 				},
 			},
 		},

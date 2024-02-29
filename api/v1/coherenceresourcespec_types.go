@@ -15,7 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"strconv"
 	"strings"
 )
@@ -595,26 +595,26 @@ func (in *CoherenceResourceSpec) createDefaultServicePorts() []corev1.ServicePor
 			Protocol:    corev1.ProtocolTCP,
 			Port:        7,
 			TargetPort:  intstr.FromInt32(7),
-			AppProtocol: pointer.String(AppProtocolTcp),
+			AppProtocol: ptr.To(AppProtocolTcp),
 		},
 		{
 			Name:        PortNameCoherenceLocal,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(AppProtocolTcp),
+			AppProtocol: ptr.To(AppProtocolTcp),
 			Port:        lp,
 			TargetPort:  intstr.FromString(PortNameCoherenceLocal),
 		},
 		{
 			Name:        PortNameCoherenceCluster,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(AppProtocolTcp),
+			AppProtocol: ptr.To(AppProtocolTcp),
 			Port:        DefaultClusterPort,
 			TargetPort:  intstr.FromString(PortNameCoherenceCluster),
 		},
 		{
 			Name:        PortNameHealth,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(AppProtocolHttp),
+			AppProtocol: ptr.To(AppProtocolHttp),
 			Port:        hp,
 			TargetPort:  intstr.FromString(PortNameHealth),
 		},
@@ -932,7 +932,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment CoherenceResource) 
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: OperatorConfigName},
 					Key:                  OperatorConfigKeyHost,
-					Optional:             pointer.Bool(true),
+					Optional:             ptr.To(true),
 				},
 			},
 		},

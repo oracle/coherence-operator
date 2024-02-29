@@ -11,7 +11,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -21,7 +21,7 @@ func TestCoherenceClusterName(t *testing.T) {
 	d := &coh.Coherence{
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 		Spec: coh.CoherenceStatefulSetResourceSpec{
-			Cluster: pointer.String("test-cluster"),
+			Cluster: ptr.To("test-cluster"),
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestCoherenceCacheConfig(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					CacheConfig: pointer.String("test-config.xml"),
+					CacheConfig: ptr.To("test-config.xml"),
 				},
 			},
 		},
@@ -81,7 +81,7 @@ func TestCoherenceOperationalConfig(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					OverrideConfig: pointer.String("test-override.xml"),
+					OverrideConfig: ptr.To("test-override.xml"),
 				},
 			},
 		},
@@ -112,7 +112,7 @@ func TestCoherenceStorageEnabledTrue(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					StorageEnabled: pointer.Bool(true),
+					StorageEnabled: ptr.To(true),
 				},
 			},
 		},
@@ -143,7 +143,7 @@ func TestCoherenceStorageEnabledFalse(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					StorageEnabled: pointer.Bool(false),
+					StorageEnabled: ptr.To(false),
 				},
 			},
 		},
@@ -174,7 +174,7 @@ func TestCoherenceExcludeFromWKATrue(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					ExcludeFromWKA: pointer.Bool(true),
+					ExcludeFromWKA: ptr.To(true),
 				},
 			},
 		},
@@ -204,7 +204,7 @@ func TestCoherenceLogLevel(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					LogLevel: pointer.Int32(9),
+					LogLevel: ptr.To(int32(9)),
 				},
 			},
 		},
@@ -394,7 +394,7 @@ func TestCoherenceEnableIpMonitor(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					EnableIPMonitor: pointer.Bool(true),
+					EnableIPMonitor: ptr.To(true),
 				},
 			},
 		},
@@ -424,7 +424,7 @@ func TestCoherenceDisableIpMonitor(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					EnableIPMonitor: pointer.Bool(false),
+					EnableIPMonitor: ptr.To(false),
 				},
 			},
 		},

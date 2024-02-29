@@ -1857,6 +1857,11 @@ func (in *ServiceMonitorSpec) DeepCopyInto(out *ServiceMonitorSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.SampleLimit != nil {
+		in, out := &in.SampleLimit, &out.SampleLimit
+		*out = new(uint64)
+		**out = **in
+	}
 	if in.Params != nil {
 		in, out := &in.Params, &out.Params
 		*out = make(map[string][]string, len(*in))
@@ -1877,7 +1882,11 @@ func (in *ServiceMonitorSpec) DeepCopyInto(out *ServiceMonitorSpec) {
 		*out = new(monitoringv1.TLSConfig)
 		(*in).DeepCopyInto(*out)
 	}
-	in.BearerTokenSecret.DeepCopyInto(&out.BearerTokenSecret)
+	if in.BearerTokenSecret != nil {
+		in, out := &in.BearerTokenSecret, &out.BearerTokenSecret
+		*out = new(corev1.SecretKeySelector)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.HonorTimestamps != nil {
 		in, out := &in.HonorTimestamps, &out.HonorTimestamps
 		*out = new(bool)

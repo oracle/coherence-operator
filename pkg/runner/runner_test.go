@@ -12,7 +12,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	"os/exec"
 	"strings"
@@ -50,7 +50,7 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Coherence: &coh.CoherenceSpec{
-					SkipVersionCheck: pointer.Bool(true),
+					SkipVersionCheck: ptr.To(true),
 				},
 			},
 		},

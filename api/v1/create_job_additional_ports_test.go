@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -152,7 +152,7 @@ func TestCreateJobWithMetricsPortWhenMetricsPortValueSpecified(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
-				Port: pointer.Int32(1234),
+				Port: ptr.To(int32(1234)),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},
@@ -185,7 +185,7 @@ func TestCreateJobWithMetricsPortAndServicePortWhenNoPortValueSpecified(t *testi
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameMetrics,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32(1234),
+			Port: ptr.To(int32(1234)),
 		},
 	}
 
@@ -220,14 +220,14 @@ func TestCreateJobWithMetricsPortAndServicePortWhenMetricsPortValueSpecified(t *
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameMetrics,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32(1234),
+			Port: ptr.To(int32(1234)),
 		},
 	}
 
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Metrics: &coh.PortSpecWithSSL{
-				Port: pointer.Int32(9876),
+				Port: ptr.To(int32(9876)),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},
@@ -296,7 +296,7 @@ func TestCreateJobWithManagementPortWhenManagementPortValueSpecified(t *testing.
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Management: &coh.PortSpecWithSSL{
-				Port: pointer.Int32(1234),
+				Port: ptr.To(int32(1234)),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},
@@ -329,7 +329,7 @@ func TestCreateJobWithManagementPortAndServicePortWhenNoPortValueSpecified(t *te
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameManagement,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32(1234),
+			Port: ptr.To(int32(1234)),
 		},
 	}
 
@@ -364,14 +364,14 @@ func TestCreateJobWithManagementPortAndServicePortWhenManagementPortValueSpecifi
 	np := coh.NamedPortSpec{
 		Name: coh.PortNameManagement,
 		Service: &coh.ServiceSpec{
-			Port: pointer.Int32(1234),
+			Port: ptr.To(int32(1234)),
 		},
 	}
 
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Management: &coh.PortSpecWithSSL{
-				Port: pointer.Int32(9876),
+				Port: ptr.To(int32(9876)),
 			},
 		},
 		Ports: []coh.NamedPortSpec{np},

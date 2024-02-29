@@ -1,4 +1,4 @@
-# Copyright 2020, 2023, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2020, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -40,42 +40,42 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
+          - v1.29
+          - v1.28
           - v1.27
           - v1.26
           - v1.25
           - v1.24
           - v1.23
-          - v1.22
-          - v1.21
         include:
+          - matrixName: v1.29
+            k8s: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
+            kindCommand: kind-calico
+            runNetTests: true
+          - matrixName: v1.28
+            k8s: kindest/node:v1.28.7@sha256:9bc6c451a289cf96ad0bbaf33d416901de6fd632415b076ab05f5fa7e4f65c58
+            kindCommand: kind-calico
+            runNetTests: true
           - matrixName: v1.27
-            k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
+            k8s: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.26
-            k8s: kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb
+            k8s: kindest/node:v1.26.14@sha256:5d548739ddef37b9318c70cb977f57bf3e5015e4552be4e27e57280a8cbb8e4f
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.25
-            k8s: kindest/node:v1.25.11@sha256:227fa11ce74ea76a0474eeefb84cb75d8dad1b08638371ecf0e86259b35be0c8
+            k8s: kindest/node:v1.25.16@sha256:e8b50f8e06b44bb65a93678a65a26248fae585b3d3c2a669e5ca6c90c69dc519
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.24
-            k8s: kindest/node:v1.24.15@sha256:7db4f8bea3e14b82d12e044e25e34bd53754b7f2b0e9d56df21774e6f66a70ab
+            k8s: kindest/node:v1.24.17@sha256:bad10f9b98d54586cba05a7eaa1b61c6b90bfc4ee174fdc43a7b75ca75c95e51
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.23
-            k8s: kindest/node:v1.23.17@sha256:e5fd1d9cd7a9a50939f9c005684df5a6d145e8d695e78463637b79464292e66c
+            k8s: kindest/node:v1.23.17@sha256:14d0a9a892b943866d7e6be119a06871291c517d279aedb816a4b4bc0ec0a5b3
             kindCommand: kind-calico
             runNetTests: true
-          - matrixName: v1.22
-            k8s: kindest/node:v1.22.17@sha256:c8a828709a53c25cbdc0790c8afe12f25538617c7be879083248981945c38693
-            kindCommand: kind-calico
-            runNetTests: true
-          - matrixName: v1.21
-            k8s: kindest/node:v1.21.14@sha256:27ef72ea623ee879a25fe6f9982690a3e370c68286f4356bf643467c552a3888
-            kindCommand: kind
-            runNetTests: false
 
     steps:
     - uses: actions/checkout@v3
@@ -113,7 +113,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.21.x
+        go-version: 1.22.x
 
     - name: Cache Go Modules
       uses: actions/cache@v3

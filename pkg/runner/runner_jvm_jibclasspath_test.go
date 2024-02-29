@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"os"
 	"testing"
 )
@@ -25,7 +25,7 @@ func TestJibClasspath(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
-					UseJibClasspath: pointer.Bool(true),
+					UseJibClasspath: ptr.To(true),
 				},
 			},
 		},
@@ -55,7 +55,7 @@ func TestJibClasspathFile(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
-					UseJibClasspath: pointer.Bool(true),
+					UseJibClasspath: ptr.To(true),
 				},
 			},
 		},
@@ -87,7 +87,7 @@ func TestJibMainClassFile(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
-					UseJibClasspath: pointer.Bool(true),
+					UseJibClasspath: ptr.To(true),
 				},
 			},
 		},
@@ -119,7 +119,7 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
-					UseJibClasspath: pointer.Bool(true),
+					UseJibClasspath: ptr.To(true),
 				},
 			},
 		},

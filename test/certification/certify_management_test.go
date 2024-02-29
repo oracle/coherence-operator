@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
- *
  */
 
 package certification
@@ -14,7 +13,7 @@ import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"net/http"
 	"testing"
 	"time"
@@ -36,7 +35,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
 				Coherence: &v1.CoherenceSpec{
 					Management: &v1.PortSpecWithSSL{
-						Enabled: pointer.Bool(true),
+						Enabled: ptr.To(true),
 					},
 				},
 				Ports: []v1.NamedPortSpec{
@@ -103,8 +102,8 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
 				Coherence: &v1.CoherenceSpec{
 					Management: &v1.PortSpecWithSSL{
-						Enabled: pointer.Bool(true),
-						Port:    pointer.Int32(30009),
+						Enabled: ptr.To(true),
+						Port:    ptr.To(int32(30009)),
 					},
 				},
 				Ports: []v1.NamedPortSpec{

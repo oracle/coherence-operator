@@ -11,7 +11,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -24,7 +24,7 @@ func TestJvmHeapSize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						HeapSize: pointer.String("10g"),
+						HeapSize: ptr.To("10g"),
 					},
 				},
 			},
@@ -56,7 +56,7 @@ func TestJvmInitialHeapSize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						InitialHeapSize: pointer.String("10g"),
+						InitialHeapSize: ptr.To("10g"),
 					},
 				},
 			},
@@ -88,7 +88,7 @@ func TestJvmMaxHeapSize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						MaxHeapSize: pointer.String("10g"),
+						MaxHeapSize: ptr.To("10g"),
 					},
 				},
 			},
@@ -120,9 +120,9 @@ func TestJvmHeapSizeOverridesInitialAndMaxHeapSize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						HeapSize:        pointer.String("5g"),
-						InitialHeapSize: pointer.String("1g"),
-						MaxHeapSize:     pointer.String("10g"),
+						HeapSize:        ptr.To("5g"),
+						InitialHeapSize: ptr.To("1g"),
+						MaxHeapSize:     ptr.To("10g"),
 					},
 				},
 			},
@@ -154,7 +154,7 @@ func TestJvmMaxRam(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						MaxRAM: pointer.String("10g"),
+						MaxRAM: ptr.To("10g"),
 					},
 				},
 			},
@@ -359,7 +359,7 @@ func TestJvmStackSize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						StackSize: pointer.String("500k"),
+						StackSize: ptr.To("500k"),
 					},
 				},
 			},
@@ -391,7 +391,7 @@ func TestJvmMetaspaceSize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						MetaspaceSize: pointer.String("5g"),
+						MetaspaceSize: ptr.To("5g"),
 					},
 				},
 			},
@@ -423,7 +423,7 @@ func TestJvmDirectMemorySize(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						DirectMemorySize: pointer.String("5g"),
+						DirectMemorySize: ptr.To("5g"),
 					},
 				},
 			},
@@ -455,7 +455,7 @@ func TestJvmNativeMemoryTracking(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
-						NativeMemoryTracking: pointer.String("detail"),
+						NativeMemoryTracking: ptr.To("detail"),
 					},
 				},
 			},
@@ -488,7 +488,7 @@ func TestJvmOOMHeapDumpOff(t *testing.T) {
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
 						OnOutOfMemory: &coh.JvmOutOfMemorySpec{
-							HeapDump: pointer.Bool(false),
+							HeapDump: ptr.To(false),
 						},
 					},
 				},
@@ -522,7 +522,7 @@ func TestJvmOOMExitOff(t *testing.T) {
 				JVM: &coh.JVMSpec{
 					Memory: &coh.JvmMemorySpec{
 						OnOutOfMemory: &coh.JvmOutOfMemorySpec{
-							Exit: pointer.Bool(false),
+							Exit: ptr.To(false),
 						},
 					},
 				},

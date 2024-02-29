@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,7 +15,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"net/http"
 	"os"
 	"testing"
@@ -53,7 +53,7 @@ func TestManagementOverRest(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// require 2-way auth
-	ssl.RequireClientCert = pointer.Bool(true)
+	ssl.RequireClientCert = ptr.To(true)
 
 	// load the test Coherence from a yaml files
 	deploymentWithoutSSL, err := helper.NewSingleCoherenceFromYaml(namespace, "management-test.yaml")
@@ -72,7 +72,7 @@ func TestManagementOverRest(t *testing.T) {
 
 	// Set the SSL settings
 	deploymentSSL.Name = "management-ssl"
-	deploymentSSL.Spec.Coherence.Management.Enabled = pointer.Bool(true)
+	deploymentSSL.Spec.Coherence.Management.Enabled = ptr.To(true)
 	deploymentSSL.Spec.Coherence.Management.SSL = ssl
 
 	j, _ = json.Marshal(deploymentWithoutSSL)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,7 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -35,7 +35,7 @@ func TestCreateStatefulSetWithPersistenceModeOnDemand(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
-				Mode: pointer.String("on-demand"),
+				Mode: ptr.To("on-demand"),
 			},
 		},
 	}
@@ -55,7 +55,7 @@ func TestCreateStatefulSetWithPersistenceModeActive(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
-				Mode: pointer.String("active"),
+				Mode: ptr.To("active"),
 			},
 		},
 	}
@@ -74,7 +74,7 @@ func TestCreateStatefulSetWithPersistenceModeActiveAsync(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		Coherence: &coh.CoherenceSpec{
 			Persistence: &coh.PersistenceSpec{
-				Mode: pointer.String("active-async"),
+				Mode: ptr.To("active-async"),
 			},
 		},
 	}

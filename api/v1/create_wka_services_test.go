@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -13,7 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -163,7 +163,7 @@ func TestCreateWKAServiceForDeploymentWithClusterName(t *testing.T) {
 			Name:      "test",
 		},
 		Spec: coh.CoherenceStatefulSetResourceSpec{
-			Cluster: pointer.String("test-cluster"),
+			Cluster: ptr.To("test-cluster"),
 		},
 	}
 
@@ -219,28 +219,28 @@ func getDefaultServicePorts() []corev1.ServicePort {
 		{
 			Name:        coh.PortNameCoherence,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			AppProtocol: ptr.To(coh.AppProtocolTcp),
 			Port:        7,
 			TargetPort:  intstr.FromInt32(7),
 		},
 		{
 			Name:        coh.PortNameCoherenceLocal,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			AppProtocol: ptr.To(coh.AppProtocolTcp),
 			Port:        coh.DefaultUnicastPort,
 			TargetPort:  intstr.FromString(coh.PortNameCoherenceLocal),
 		},
 		{
 			Name:        coh.PortNameCoherenceCluster,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(coh.AppProtocolTcp),
+			AppProtocol: ptr.To(coh.AppProtocolTcp),
 			Port:        coh.DefaultClusterPort,
 			TargetPort:  intstr.FromString(coh.PortNameCoherenceCluster),
 		},
 		{
 			Name:        coh.PortNameHealth,
 			Protocol:    corev1.ProtocolTCP,
-			AppProtocol: pointer.String(coh.AppProtocolHttp),
+			AppProtocol: ptr.To(coh.AppProtocolHttp),
 			Port:        coh.DefaultHealthPort,
 			TargetPort:  intstr.FromString(coh.PortNameHealth),
 		},

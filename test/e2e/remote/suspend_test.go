@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
- *
  */
 
 package remote
@@ -20,7 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -81,7 +80,7 @@ func TestNotSuspendServicesWhenSuspendDisabled(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
-	c.Spec.SuspendServicesOnShutdown = pointer.Bool(false)
+	c.Spec.SuspendServicesOnShutdown = ptr.To(false)
 
 	installSimpleDeployment(t, c)
 
@@ -178,7 +177,7 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Set the flag to NOT suspend on shutdown
-	c.Spec.SuspendServicesOnShutdown = pointer.Bool(false)
+	c.Spec.SuspendServicesOnShutdown = ptr.To(false)
 
 	installSimpleDeployment(t, c)
 

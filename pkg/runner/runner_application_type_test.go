@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -22,7 +22,7 @@ func TestApplicationTypeNone(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeNone),
+					Type: ptr.To(AppTypeNone),
 				},
 			},
 		},
@@ -52,8 +52,8 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeNone),
-					Main: pointer.String("com.foo.Bar"),
+					Type: ptr.To(AppTypeNone),
+					Main: ptr.To("com.foo.Bar"),
 				},
 			},
 		},
@@ -83,7 +83,7 @@ func TestApplicationTypeCoherence(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeCoherence),
+					Type: ptr.To(AppTypeCoherence),
 				},
 			},
 		},
@@ -113,8 +113,8 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeCoherence),
-					Main: pointer.String("com.foo.Bar"),
+					Type: ptr.To(AppTypeCoherence),
+					Main: ptr.To("com.foo.Bar"),
 				},
 			},
 		},
@@ -144,7 +144,7 @@ func TestApplicationTypeJava(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeJava),
+					Type: ptr.To(AppTypeJava),
 				},
 			},
 		},
@@ -174,8 +174,8 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeJava),
-					Main: pointer.String("com.foo.Bar"),
+					Type: ptr.To(AppTypeJava),
+					Main: ptr.To("com.foo.Bar"),
 				},
 			},
 		},
@@ -205,7 +205,7 @@ func TestApplicationTypeHelidon(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeHelidon),
+					Type: ptr.To(AppTypeHelidon),
 				},
 			},
 		},
@@ -235,8 +235,8 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: pointer.String(AppTypeHelidon),
-					Main: pointer.String("com.foo.Bar"),
+					Type: ptr.To(AppTypeHelidon),
+					Main: ptr.To("com.foo.Bar"),
 				},
 			},
 		},

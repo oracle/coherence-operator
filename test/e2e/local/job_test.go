@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,7 +12,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 	"time"
 )
@@ -130,7 +130,7 @@ func deployJob(t *testing.T, ns, name string, replicas int32) []corev1.Pod {
 	g.Expect(len(jobs)).To(Equal(1))
 
 	jobs[0].Name = name
-	jobs[0].Spec.Replicas = pointer.Int32(replicas)
+	jobs[0].Spec.Replicas = ptr.To(replicas)
 
 	m, pods := helper.AssertCoherenceJobsSpec(testContext, t, jobs)
 

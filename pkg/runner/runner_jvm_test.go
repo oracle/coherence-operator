@@ -11,7 +11,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -117,7 +117,7 @@ func TestJvmUseContainerLimitsFalse(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
-					UseContainerLimits: pointer.Bool(false),
+					UseContainerLimits: ptr.To(false),
 				},
 			},
 		},
@@ -147,7 +147,7 @@ func TestJvmUseContainerLimitsTrue(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
-					UseContainerLimits: pointer.Bool(true),
+					UseContainerLimits: ptr.To(true),
 				},
 			},
 		},
@@ -178,7 +178,7 @@ func TestJvmGarbageCollectorG1(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Gc: &coh.JvmGarbageCollectorSpec{
-						Collector: pointer.String("g1"),
+						Collector: ptr.To("g1"),
 					},
 				},
 			},
@@ -210,7 +210,7 @@ func TestJvmGarbageCollectorCMS(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Gc: &coh.JvmGarbageCollectorSpec{
-						Collector: pointer.String("cms"),
+						Collector: ptr.To("cms"),
 					},
 				},
 			},
@@ -242,7 +242,7 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Gc: &coh.JvmGarbageCollectorSpec{
-						Collector: pointer.String("parallel"),
+						Collector: ptr.To("parallel"),
 					},
 				},
 			},
@@ -274,7 +274,7 @@ func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				JVM: &coh.JVMSpec{
 					Gc: &coh.JvmGarbageCollectorSpec{
-						Logging: pointer.Bool(true),
+						Logging: ptr.To(true),
 					},
 				},
 			},

@@ -16,7 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // Coherence resource Condition Types
@@ -532,7 +532,7 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 			Type: appsv1.RollingUpdateStatefulSetStrategyType,
 		},
-		RevisionHistoryLimit: pointer.Int32(5),
+		RevisionHistoryLimit: ptr.To(int32(5)),
 		ServiceName:          deployment.GetHeadlessServiceName(),
 		Selector: &metav1.LabelSelector{
 			MatchLabels: in.CreatePodSelectorLabels(deployment),
