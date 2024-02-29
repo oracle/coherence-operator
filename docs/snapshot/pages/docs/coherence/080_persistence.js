@@ -25,7 +25,7 @@ as required.</p>
 <div class="section">
 <p>The <code>Coherence</code> CRD allows the default persistence mode, and the storage location of persistence data to be
 configured. Persistence can be configured in the <code>spec.coherence.persistence</code> section of the CRD.
-See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1">Coherence Persistence</a>
+See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1">Coherence Persistence</a>
 documentation for more details of how persistence works and its configuration.</p>
 
 </div>
@@ -132,7 +132,7 @@ spec:
 the <code>/mnt/ssd/coherence/persistence</code> directory on the Node.</li>
 </ul>
 <p>The configuration under the <code>spec.coherence.persistence.volume</code> section is a normal Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core">VolumeSource</a>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core">VolumeSource</a>
 so any valid <code>VolumeSource</code> configuration can be used.
 See the Kubernetes <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/volumes/">Volumes</a> documentation for more details.</p>
 

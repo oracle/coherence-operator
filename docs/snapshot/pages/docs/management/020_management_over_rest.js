@@ -14,7 +14,7 @@ setting the relevant fields in the <code>Coherence</code> CRD.</p>
 endpoint is available at <code><a id="" title="" target="_blank" href="http://host:port/management/coherence/cluster">http://host:port/management/coherence/cluster</a></code>.
 The Swagger JSON document for the API is available at <code><a id="" title="" target="_blank" href="http://host:port/management/coherence/cluster/metadata-catalog">http://host:port/management/coherence/cluster/metadata-catalog</a></code>.</p>
 
-<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/">REST API for Managing Oracle Coherence</a>
+<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/rest-reference/">REST API for Managing Oracle Coherence</a>
 documentation for full details on each of the endpoints.</p>
 
 <div class="admonition note">
@@ -236,11 +236,11 @@ lang="json"
 standard MBean access over JMX.</p>
 
 <p>Please see the
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/">Coherence REST API</a> for more information on these features.</p>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/rest-reference/">Coherence REST API</a> for more information on these features.</p>
 
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC">Connecting JVisualVM to Management over REST</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/manage/using-jmx-manage-oracle-coherence.html#GUID-D160B16B-7C1B-4641-AE94-3310DF8082EC">Connecting JVisualVM to Management over REST</a></p>
 
 </li>
 <li>
@@ -248,11 +248,11 @@ standard MBean access over JMX.</p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html">Produce and extract a Java Flight Recorder (JFR) file</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/rest-reference/op-management-coherence-cluster-members-memberidentifier-diagnostic-cmd-jfrcmd-post.html">Produce and extract a Java Flight Recorder (JFR) file</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/rest-reference/api-reporter.html">Access the Reporter</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/rest-reference/api-reporter.html">Access the Reporter</a></p>
 
 </li>
 </ul>

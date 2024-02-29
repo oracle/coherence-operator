@@ -38,7 +38,7 @@ spec:
 </ul>
 <p>The containers will added to the <code>sideCars</code> will be added to the <code>Pods</code> exactly as configured.
 Any configuration that is valid in a Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#container-v1-core">Container Spec</a>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#container-v1-core">Container Spec</a>
 may be added to an entry in <code>sideCars</code></p>
 
 </div>
@@ -48,7 +48,7 @@ may be added to an entry in <code>sideCars</code></p>
 <p>Just like normal containers above, additional init-containers can also be added to the <code>Pods</code>.
 To add an init-container to the <code>Pods</code> specify the container in the <code>initContainers</code> list in the <code>Coherence</code> CRD spec.
 As with containers, for init-containers any configuration that is valid in a Kubernetes
-<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#container-v1-core">Container Spec</a>
+<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#container-v1-core">Container Spec</a>
 may be added to an entry in <code>initContainers</code></p>
 
 <p>For example:</p>

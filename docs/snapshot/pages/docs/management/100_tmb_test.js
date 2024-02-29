@@ -4,7 +4,7 @@
 <div class="section">
 <p>Coherence provides utilities that can be used to test network performance, which obviously has a big impact on
 a distributed system such as Coherence. The documentation for these utilities can be found in the official
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523">Coherence Documentation</a>.</p>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523">Coherence Documentation</a>.</p>
 
 <p>Whilst generally these tests would be run on server hardware, with more and more Coherence deployments moving into the
 cloud and into Kubernetes these tests can also be performed in <code>Pods</code> to measure inter-Pod network performance.
@@ -66,7 +66,7 @@ spec:
 <ul class="colist">
 <li data-value="1">This example uses a Coherence CE image, but any image with <code>coherence.jar</code> in it could be used.</li>
 <li data-value="2">The command line that the container will execute is exactly the same as that for the listener process in the
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523">Coherence Documentation</a>.</li>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523">Coherence Documentation</a>.</li>
 </ul>
 <p>Start the listener <code>Pod</code>:</p>
 
@@ -113,7 +113,7 @@ spec:
 
 <ul class="colist">
 <li data-value="1">Again, the command line is the same as that for the sender process in the
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523">Coherence Documentation</a>.</li>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/administer/performing-network-performance-test.html#GUID-7267AB06-6353-416E-B9FD-A75F7FBFE523">Coherence Documentation</a>.</li>
 <li data-value="2">The <code>peer</code> address uses the <code>Service</code> name <code>message-bus-listener</code> from the sender <code>yaml</code>.</li>
 </ul>
 <p>Start the sender <code>Pod</code>:</p>

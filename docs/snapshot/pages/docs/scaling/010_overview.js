@@ -82,7 +82,7 @@ behaviour. The scaling policy has three possible values:</p>
 <td class=""><code>ParallelUpSafeDown</code></td>
 <td class="">This is the default scaling policy.
 With this policy when scaling up <code>Pods</code> are added in parallel (the same as using the <code>Parallel</code> <code>podManagementPolicy</code>
-in a <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#statefulsetspec-v1-apps">StatefulSet</a>) and
+in a <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#statefulsetspec-v1-apps">StatefulSet</a>) and
 when scaling down <code>Pods</code> are removed one at a time (the same as the <code>OrderedReady</code> <code>podManagementPolicy</code> for a
 StatefulSet). When scaling down a check is done to ensure that the members of the cluster have a safe StatusHA value
 before a <code>Pod</code> is removed (i.e. none of the Coherence cache services have an endangered status).
@@ -92,7 +92,7 @@ adding members, but offers safe, albeit slower,  scaling down as <code>Pods</cod
 <tr>
 <td class=""><code>Parallel</code></td>
 <td class="">With this policy when scaling up <code>Pods</code> are added in parallel (the same as using the <code>Parallel</code> <code>podManagementPolicy</code>
-in a <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#statefulsetspec-v1-apps">StatefulSet</a>).
+in a <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#statefulsetspec-v1-apps">StatefulSet</a>).
 With this policy no StatusHA check is performed either when scaling up or when scaling down.
 This policy allows faster start and scaling times but at the cost of no data safety; it is ideal for deployments that are
 storage disabled.</td>

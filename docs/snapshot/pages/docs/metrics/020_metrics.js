@@ -18,7 +18,7 @@ in your application.</p>
 <p>Once the metrics port has been exposed, for example via a load balancer or port-forward command, the metrics
 endpoint is available at <code><a id="" title="" target="_blank" href="http://host:port/metrics">http://host:port/metrics</a></code>.</p>
 
-<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-coherence-metrics.html">Using Coherence Metrics</a>
+<p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/manage/using-coherence-metrics.html">Using Coherence Metrics</a>
 documentation for full details on the available metrics.</p>
 
 

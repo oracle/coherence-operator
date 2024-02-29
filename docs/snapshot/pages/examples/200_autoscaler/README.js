@@ -71,9 +71,9 @@ We can use this to then sum up the usages for the different heap memory pools.</
 that obtain heap use metrics in the way detailed above. There is also a configuration file <code>custom-mbeans.xml</code> that
 Coherence will use to automatically add the custom MBean to Coherence management and metrics.
 There is Coherence documentation on
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-coherence-metrics.html#GUID-CFC31D23-06B8-49AF-8996-ADBA806E0DD9">how to add custom metrics</a>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/manage/using-coherence-metrics.html#GUID-CFC31D23-06B8-49AF-8996-ADBA806E0DD9">how to add custom metrics</a>
 and
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/registering-custom-mbeans.html#GUID-1EE749C5-BC0D-4353-B5FE-1C5DCDEAE48C">how to register custom MBeans</a>.</p>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/manage/registering-custom-mbeans.html#GUID-1EE749C5-BC0D-4353-B5FE-1C5DCDEAE48C">how to register custom MBeans</a>.</p>
 
 <p>The custom heap use MBean will be added with an ObjectName of <code>Coherence:type=HeapUsage,nodeId=1</code> where <code>nodeId</code> will change to
 match the Coherence member id for the specific JVM. There will be one heap usage MBean for each cluster member.</p>
