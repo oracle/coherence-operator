@@ -47,7 +47,7 @@ jobs:
         include:
           - matrixName: "15.1.1-0-SNAPSHOT"
             coherenceVersion: "15.1.1-0-0-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-0-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-0-SNAPSHOT-java17"
             javaVersion: 17
             baseImage: "gcr.io/distroless/java17-debian12"
 
@@ -112,7 +112,7 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -145,12 +145,12 @@ jobs:
         release: 21
 
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
         go-version: 1.22.x
 
     - name: Cache Go Modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
@@ -158,14 +158,14 @@ jobs:
           ${{ runner.os }}-go-mods-
 
     - name: Cache Maven packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
     - name: Cache Tools
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: build/tools
         key: ${{ runner.os }}-build-tools-${{ hashFiles('**/Makefile') }}
