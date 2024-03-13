@@ -106,7 +106,7 @@ lang="groovy"
 title="build.gradle"
 >plugins {
     id 'java'
-    id 'com.google.cloud.tools.jib' version '3.3.2'
+    id 'com.google.cloud.tools.jib' version '3.3.4'
 }</markup>
 
 </div>
