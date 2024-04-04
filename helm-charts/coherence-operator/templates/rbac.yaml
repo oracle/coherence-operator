@@ -246,6 +246,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: leader-election-role
+  labels:
+    control-plane: coherence
 rules:
 - apiGroups:
   - ""
@@ -287,6 +289,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: leader-election-rolebinding
+  labels:
+    control-plane: coherence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
