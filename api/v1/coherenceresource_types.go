@@ -194,6 +194,13 @@ func (in *Coherence) GetGlobalSpec() *GlobalSpec {
 	return in.Spec.Global
 }
 
+func (in *Coherence) GetInitResources() *corev1.ResourceRequirements {
+	if in == nil {
+		return nil
+	}
+	return in.Spec.InitResources
+}
+
 // FindFullyQualifiedPortServiceNames returns a map of the exposed ports of this resource mapped to their Service's
 // fully qualified domain name.
 func (in *Coherence) FindFullyQualifiedPortServiceNames() map[string]string {
@@ -497,6 +504,12 @@ type CoherenceStatefulSetResourceSpec struct {
 	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
 	// Global contains attributes that will be applied to all resources managed by the Coherence Operator.
 	Global *GlobalSpec `json:"global,omitempty"`
+	// InitResources is the optional resource requests and limits for the init-container that the Operator
+	// adds to the Pod.
+	//  ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// The Coherence operator does not apply any default resources.
+	// +optional
+	InitResources *corev1.ResourceRequirements `json:"initResources,omitempty"`
 }
 
 // CreateStatefulSetResource creates the deployment's StatefulSet resource.

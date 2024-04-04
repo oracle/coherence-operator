@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -37,7 +37,36 @@ spec:
       memory: "128Mi"
       cpu: "500m"
 ----
-<1> The `coherence` container in the `Pods` has a request of 0.25 cpu and 64MiB of memory.
-The `coherence` container has a limit of 0.5 cpu and 128MiB of memory.
+<1> The `coherence` container in the `Pods` will have requests of 0.25 cpu and 64MiB of memory,
+and limits of 0.5 cpu and 128MiB of memory.
 
 
+== InitContainer Resource Limits
+
+The Coherence Operator adds an init-container to the Pods that it manages. This init container does nothing more
+than copy some files and ensure some directories exist. In terms of resource use it is extremely light.
+Some customers have expressed a desire to still be able to set limits fo this init container, so this is possible
+using the `spec.initResources` field.
+
+For example:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  initResources:           # <1>
+    requests:
+      memory: "64Mi"
+      cpu: "250m"
+    limits:
+      memory: "128Mi"
+      cpu: "500m"
+----
+<1> The `coherence-k8s-utils` init-container in the `Pods` will have requests of 0.25 cpu and 64MiB of memory,
+and limits of 0.5 cpu and 128MiB of memory.
+
+These resources only applies to the init-container that the Operator creates, any other init-containers added in the
+`spec.initContainers` section should have their own resources configured.

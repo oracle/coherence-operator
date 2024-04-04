@@ -1046,6 +1046,12 @@ func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment Coherenc
 	// set the persistence volume mounts if required
 	in.Coherence.AddPersistenceVolumeMounts(&c)
 
+	// set the container resources if specified
+	r := deployment.GetInitResources()
+	if r != nil {
+		c.Resources = *r
+	}
+
 	return c
 }
 
