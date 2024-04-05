@@ -98,4 +98,6 @@ type CoherenceResource interface {
 	GetEnvVarFrom() []corev1.EnvFromSource
 	// GetGlobalSpec returns the attributes to be applied to all resources
 	GetGlobalSpec() *GlobalSpec
+	// GetInitResources returns the optional resource requirements for the init container
+	GetInitResources() *corev1.ResourceRequirements
 }

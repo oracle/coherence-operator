@@ -921,6 +921,9 @@ m| allowUnsafeDelete | AllowUnsafeDelete controls whether the Operator will add 
 m| actions | Actions to execute once all the Pods are ready after an initial deployment m| []<<Action,Action>> | false
 m| envFrom | List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated. m| []https://{k8s-doc-link}/#envfromsource-v1-core[corev1.EnvFromSource] | false
 m| global | Global contains attributes that will be applied to all resources managed by the Coherence Operator. m| &#42;<<GlobalSpec,GlobalSpec>> | false
+m| initResources | InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod. +
+ ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ + +
+The Coherence operator does not apply any default resources. m| &#42;https://{k8s-doc-link}/#resourcerequirements-v1-core[corev1.ResourceRequirements] | false
 |===
 
 <<Table of Contents,Back to TOC>>

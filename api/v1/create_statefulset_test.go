@@ -280,6 +280,31 @@ func TestCreateStatefulSetWithPodAnnotations(t *testing.T) {
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
 
+func TestCreateStatefulSetWithInitContainerResources(t *testing.T) {
+	res := corev1.ResourceRequirements{
+		Limits: map[corev1.ResourceName]resource.Quantity{
+			corev1.ResourceCPU: resource.MustParse("8"),
+		},
+		Requests: map[corev1.ResourceName]resource.Quantity{
+			corev1.ResourceCPU: resource.MustParse("4"),
+		},
+	}
+
+	spec := coh.CoherenceStatefulSetResourceSpec{
+		InitResources: &res,
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceDeployment(spec)
+
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.InitContainers[0].Resources = res
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
 func TestCreateStatefulSetWithResources(t *testing.T) {
 	res := corev1.ResourceRequirements{
 		Limits: map[corev1.ResourceName]resource.Quantity{

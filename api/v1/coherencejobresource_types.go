@@ -76,6 +76,13 @@ func (in *CoherenceJob) GetGlobalSpec() *GlobalSpec {
 	return in.Spec.Global
 }
 
+func (in *CoherenceJob) GetInitResources() *corev1.ResourceRequirements {
+	if in == nil {
+		return nil
+	}
+	return in.Spec.InitResources
+}
+
 // GetSpec returns this resource's CoherenceResourceSpec
 func (in *CoherenceJob) GetSpec() *CoherenceResourceSpec {
 	return &in.Spec.CoherenceResourceSpec
@@ -453,6 +460,12 @@ type CoherenceJobResourceSpec struct {
 	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
 	// Global contains attributes that will be applied to all resources managed by the Coherence Operator.
 	Global *GlobalSpec `json:"global,omitempty"`
+	// InitResources is the optional resource requests and limits for the init-container that the Operator
+	// adds to the Pod.
+	//  ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+	// The Coherence operator does not apply any default resources.
+	// +optional
+	InitResources *corev1.ResourceRequirements `json:"initResources,omitempty"`
 }
 
 // GetRestartPolicy returns the name of the application image to use
