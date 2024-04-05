@@ -3214,6 +3214,14 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <td class=""><code>&#42;<router-link to="#_globalspec" @click.native="this.scrollFix('#_globalspec')">GlobalSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>initResources</code></td>
+<td class="">InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod.<br>
+ ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
+The Coherence operator does not apply any default resources.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>
