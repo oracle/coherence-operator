@@ -11,12 +11,12 @@ metadata:
     description: >-
       Coherence Operator implements features to assist with deploying and
       managing Coherence clusters in a Kubernetes environment.
-    containerImage: 'ghcr.io/oracle/coherence-operator:3.3.4'
+    containerImage: 'ghcr.io/oracle/coherence-operator:3.3.5'
     support: ''
     repository: 'https://github.com/oracle/coherence-operator'
     operators.operatorframework.io/builder: operator-sdk-v1.0.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-  name: coherence-operator.v3.3.4
+  name: coherence-operator.v3.3.5
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -65,4 +65,4 @@ spec:
   provider:
     name: Oracle
     url: https://oracle.github.io/coherence-operator/docs/latest
-  version: 3.3.4
+  version: 3.3.5
