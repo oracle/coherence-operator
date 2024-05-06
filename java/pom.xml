@@ -82,7 +82,7 @@
         <version.plugin.exec>3.0.0</version.plugin.exec>
         <version.plugin.helidon-build-tools>2.0.0-M3</version.plugin.helidon-build-tools>
         <version.plugin.javadoc>3.1.1</version.plugin.javadoc>
-        <version.plugin.jib>3.4.0</version.plugin.jib>
+        <version.plugin.jib>3.4.2</version.plugin.jib>
         <version.plugin.maven.assembly>3.1.1</version.plugin.maven.assembly>
         <version.plugin.maven.compiler>3.7.0</version.plugin.maven.compiler>
         <version.plugin.maven.dependency>3.2.0</version.plugin.maven.dependency>
