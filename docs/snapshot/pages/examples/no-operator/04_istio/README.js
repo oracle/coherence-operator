@@ -502,7 +502,7 @@ Various utilities are copied from the Operator image into the base.</p>
 <markup
 
 title="Dockerfile"
->FROM ghcr.io/oracle/coherence-operator:3.3.4 AS Builder
+>FROM ghcr.io/oracle/coherence-operator:3.3.5 AS Builder
 
 FROM ghcr.io/oracle/coherence-ce:22.06.7
 COPY --from=Builder /files /files
