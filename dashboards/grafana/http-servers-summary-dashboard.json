@@ -13,10 +13,10 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 33,
-  "iteration": 1592182512663,
+  "id": 5,
+  "iteration": 1715651460781,
   "links": [
     {
       "icon": "dashboard",
@@ -39,9 +39,9 @@
       "type": "dashboards"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
       "datasource": "prometheus",
       "gridPos": {
         "h": 2,
@@ -51,8 +51,11 @@
       },
       "id": 35,
       "links": [],
-      "mode": "html",
-      "title": "",
+      "options": {
+        "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.27",
       "type": "text"
     },
     {
@@ -67,7 +70,6 @@
       },
       "id": 33,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -85,7 +87,6 @@
         {
           "alias": "Member Count",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -102,7 +103,6 @@
         {
           "alias": "Service",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -122,7 +122,6 @@
         {
           "alias": "Total Requests",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -159,7 +158,6 @@
         {
           "alias": "Avg Request Time",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -176,7 +174,6 @@
         {
           "alias": "Unauth Connection Attemps",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(50, 172, 45, 0.97)",
             "rgba(237, 129, 40, 0.89)",
@@ -196,7 +193,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -245,52 +241,91 @@
       ],
       "title": "HTTP Servers List",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "prometheus",
-      "decimals": 0,
-      "fill": 1,
-      "fillGradient": 0,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 8
       },
-      "hiddenSeries": false,
       "id": 37,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval ",
+          "datasource": "prometheus",
+          "expr": "vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -298,93 +333,91 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
       "title": "HTTP Requests/ sec",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "reqps",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "prometheus",
-      "decimals": 0,
-      "fill": 1,
-      "fillGradient": 0,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 8
       },
-      "hiddenSeries": false,
       "id": 39,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval",
+          "datasource": "prometheus",
+          "expr": "vendor:coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -392,7 +425,8 @@
           "refId": "A"
         },
         {
-          "expr": "vendor:coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval ",
+          "datasource": "prometheus",
+          "expr": "vendor:coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -400,7 +434,8 @@
           "refId": "B"
         },
         {
-          "expr": "vendor:coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval",
+          "datasource": "prometheus",
+          "expr": "vendor:coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -408,7 +443,8 @@
           "refId": "C"
         },
         {
-          "expr": "vendor:coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval ",
+          "datasource": "prometheus",
+          "expr": "vendor:coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -416,7 +452,8 @@
           "refId": "D"
         },
         {
-          "expr": "vendor:coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval",
+          "datasource": "prometheus",
+          "expr": "vendor:coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -424,51 +461,12 @@
           "refId": "E"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
       "title": "HTTP Response Codes",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "short",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 22,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -476,49 +474,51 @@
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
-        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size, cluster)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "refId": "prometheus-ClusterName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
-        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "refId": "prometheus-CoherenceVersion-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -526,7 +526,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -557,8 +557,6 @@
   "timezone": "",
   "title": "Coherence HTTP Servers Summary Dashboard",
   "uid": "coh-http-servers-summary",
-  "variables": {
-    "list": []
-  },
-  "version": 2
+  "version": 1,
+  "weekStart": ""
 }
