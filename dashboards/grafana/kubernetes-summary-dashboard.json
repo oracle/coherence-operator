@@ -27,10 +27,10 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1564640113413,
+  "id": 6,
+  "iteration": 1715651352122,
   "links": [
     {
       "icon": "dashboard",
@@ -53,9 +53,10 @@
       "type": "dashboards"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "content": "<center><h3>Kubernetes Summary - $ClusterName</h3></center>",
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -64,12 +65,16 @@
       },
       "id": 2,
       "links": [],
-      "mode": "html",
-      "title": "",
+      "options": {
+        "content": "<center><h3>Kubernetes Summary - $ClusterName</h3></center>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.27",
       "type": "text"
     },
     {
       "columns": [],
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
@@ -79,7 +84,6 @@
       },
       "id": 4,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -89,13 +93,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "hidden"
         },
         {
           "alias": "Pod Name",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -114,7 +119,7 @@
         },
         {
           "alias": "",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -130,7 +135,7 @@
         },
         {
           "alias": "Kubernetes Namespace",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -146,7 +151,7 @@
         },
         {
           "alias": "",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -162,7 +167,7 @@
         },
         {
           "alias": "Coherence Version",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -187,14 +192,63 @@
       ],
       "title": "Kubernetes Pod List",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -202,27 +256,22 @@
         "y": 9
       },
       "id": 6,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
       "targets": [
         {
           "expr": "avg(vendor:coherence_os_process_cpu_load{cluster=\"${ClusterName:raw}\"}) by (pod)",
@@ -233,54 +282,63 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
       "title": "Pod Process CPU Load",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "percentunit",
-          "label": null,
-          "logBase": 1,
-          "max": "1",
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -288,27 +346,22 @@
         "y": 9
       },
       "id": 7,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
       "targets": [
         {
           "expr": "vendor:coherence_memory_heap_memory_usage_used{cluster=\"${ClusterName:raw}\"} ",
@@ -319,51 +372,12 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
       "title": "Pod Heap Memory Usage",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "decbytes",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -371,8 +385,8 @@
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -382,20 +396,22 @@
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size, cluster)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "refId": "prometheus-ClusterName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -405,13 +421,15 @@
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "refId": "prometheus-CoherenceVersion-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -450,5 +468,6 @@
   "timezone": "",
   "title": "Coherence Kubernetes Summary Dashboard",
   "uid": "coh-kubernetes-summary",
-  "version": 1
+  "version": 1,
+  "weekStart": ""
 }

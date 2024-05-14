@@ -3,9 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -17,8 +15,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 51,
-  "iteration": 1698635386970,
+  "id": 21,
+  "iteration": 1715651098174,
   "links": [
     {
       "icon": "dashboard",
@@ -44,9 +42,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -59,13 +55,11 @@
         "content": "<center><h3>gRPC Proxy Summary - $ClusterName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.27",
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -105,12 +99,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
@@ -119,9 +111,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -161,12 +151,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "count(vendor:coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
@@ -175,9 +163,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -225,12 +211,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
@@ -239,9 +223,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -289,12 +271,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.3",
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
@@ -304,9 +284,7 @@
     },
     {
       "columns": [],
-      "datasource": {
-        "type": "prometheus"
-      },
+      "datasource": "prometheus",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
@@ -503,9 +481,7 @@
       ],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
@@ -517,9 +493,7 @@
           "refId": "E"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "count(vendor:coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
@@ -531,9 +505,7 @@
           "refId": "F"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
@@ -544,9 +516,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
@@ -558,9 +528,7 @@
           "refId": "C"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
@@ -572,9 +540,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
@@ -591,66 +557,90 @@
       "type": "table-old"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "decimals": 0,
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "links": []
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 13
       },
-      "hiddenSeries": false,
       "id": 40,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": true,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null as zero",
       "options": {
-        "alertThreshold": true
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -659,102 +649,94 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeRegions": [],
       "title": "Requests - All Members",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5421",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5422",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "decimals": 0,
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "links": []
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 13
       },
-      "hiddenSeries": false,
       "id": 46,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": true,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null as zero",
       "options": {
-        "alertThreshold": true
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -763,102 +745,93 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeRegions": [],
       "title": "Responses - All Members",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5421",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5422",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "decimals": 0,
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "links": []
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 22
       },
-      "hiddenSeries": false,
       "id": 47,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null as zero",
       "options": {
-        "alertThreshold": true
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
+          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -867,102 +840,93 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeRegions": [],
       "title": "Requests - By Member",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5024",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5025",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "decimals": 0,
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "links": []
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 22
       },
-      "hiddenSeries": false,
       "id": 45,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null as zero",
       "options": {
-        "alertThreshold": true
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
+          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -971,102 +935,93 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeRegions": [],
       "title": "Responses - By Members",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5024",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5025",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "decimals": 0,
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "links": []
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 31
       },
-      "hiddenSeries": false,
       "id": 48,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null as zero",
       "options": {
-        "alertThreshold": true
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
+          "expr": "vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1075,102 +1030,93 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeRegions": [],
       "title": "Errors - By Member",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5024",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5025",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": {
-        "type": "prometheus"
-      },
-      "decimals": 0,
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "links": []
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
-      "fill": 1,
-      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 31
       },
-      "hiddenSeries": false,
       "id": 49,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null as zero",
       "options": {
-        "alertThreshold": true
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pluginVersion": "8.5.3",
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval",
+          "expr": "vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1179,40 +1125,8 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeRegions": [],
       "title": "Timeouts - By Member",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "mode": "time",
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:5024",
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:5025",
-          "format": "short",
-          "logBase": 1,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false
-      }
+      "type": "timeseries"
     }
   ],
   "refresh": "10s",
@@ -1225,10 +1139,9 @@
     "list": [
       {
         "current": {
+          "selected": false
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1251,13 +1164,9 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "23.09",
-          "value": "23.09"
+          "selected": false
         },
-        "datasource": {
-          "type": "prometheus"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1281,7 +1190,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1312,6 +1221,6 @@
   "timezone": "",
   "title": "Coherence gRPC Proxy Summary Dashboard",
   "uid": "coh-grpc-proxy-summary",
-  "version": 19,
+  "version": 1,
   "weekStart": ""
 }

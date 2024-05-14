@@ -42,10 +42,10 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 42,
-  "iteration": 1592183103035,
+  "id": 11,
+  "iteration": 1715655067818,
   "links": [
     {
       "icon": "dashboard",
@@ -68,9 +68,9 @@
       "type": "dashboards"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "content": "<center><h3>Services Summary - Version: $CoherenceVersion</h3></center>",
       "datasource": "prometheus",
       "gridPos": {
         "h": 2,
@@ -80,8 +80,11 @@
       },
       "id": 95,
       "links": [],
-      "mode": "html",
-      "title": "",
+      "options": {
+        "content": "<center><h3>Services Summary - Version: $CoherenceVersion</h3></center>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.27",
       "type": "text"
     },
     {
@@ -96,7 +99,6 @@
       },
       "id": 32,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -114,7 +116,6 @@
         {
           "alias": "Members",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -131,7 +132,6 @@
         {
           "alias": "Name",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -197,7 +197,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -230,7 +229,7 @@
       ],
       "title": "Storage Service List",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
@@ -244,7 +243,6 @@
       },
       "id": 92,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -262,7 +260,6 @@
         {
           "alias": "Members",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -279,7 +276,6 @@
         {
           "alias": "Name",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -299,7 +295,6 @@
         {
           "alias": "Service Type",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -316,7 +311,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -341,51 +335,87 @@
       ],
       "title": "Non-Storage Service List",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "prometheus",
-      "decimals": 0,
       "description": "",
-      "fill": 1,
-      "fillGradient": 0,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 24,
         "x": 0,
         "y": 9
       },
-      "hiddenSeries": false,
       "id": 97,
-      "legend": {
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": true,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
           "expr": "sum(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
@@ -396,97 +426,94 @@
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
       "title": "Service Task Count - All Services",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "prometheus",
-      "decimals": 0,
       "description": "",
-      "fill": 1,
-      "fillGradient": 0,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
         "y": 18
       },
-      "hiddenSeries": false,
       "id": 98,
       "interval": "",
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "hideZero": true,
-        "max": true,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": false,
-      "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": true,
-      "steppedLine": false,
+      "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "datasource": "prometheus",
+          "expr": "sum(vendor:coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -494,7 +521,8 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "datasource": "prometheus",
+          "expr": "sum(vendor:coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -502,7 +530,8 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\"} offset $__interval)",
+          "datasource": "prometheus",
+          "expr": "sum(vendor:coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -510,47 +539,8 @@
           "refId": "C"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
       "title": "Request/Task Timeouts - All Services",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": 0,
-          "format": "none",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "type": "timeseries"
     },
     {
       "columns": [],
@@ -564,7 +554,6 @@
       },
       "id": 77,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -582,7 +571,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -619,7 +607,6 @@
         {
           "alias": "Service",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -639,7 +626,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -665,7 +651,7 @@
       ],
       "title": "Services With Endangered Partitions",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
@@ -679,7 +665,6 @@
       },
       "id": 78,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -704,7 +689,6 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value",
           "thresholds": [
@@ -717,7 +701,6 @@
         {
           "alias": "Name",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -737,7 +720,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -763,7 +745,7 @@
       ],
       "title": "Services With Vulnerable Partitions",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
@@ -777,7 +759,6 @@
       },
       "id": 79,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -795,14 +776,12 @@
         {
           "alias": "Partition Count",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": null,
           "mappingType": 1,
           "pattern": "Value",
           "thresholds": [
@@ -815,7 +794,6 @@
         {
           "alias": "Name",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -835,7 +813,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -861,7 +838,7 @@
       ],
       "title": "Services With Unbalanced Partitions",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
@@ -876,7 +853,6 @@
       },
       "id": 48,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -894,7 +870,6 @@
         {
           "alias": "Task Count",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -913,7 +888,6 @@
         {
           "alias": "Name",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -933,7 +907,6 @@
         {
           "alias": "Service Type",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -950,7 +923,6 @@
         {
           "alias": "Member",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -970,7 +942,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -995,7 +966,7 @@
       ],
       "title": "Top $TopLimit Services - Task Count  - Current Range",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     },
     {
       "columns": [],
@@ -1010,7 +981,6 @@
       },
       "id": 93,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -1028,7 +998,6 @@
         {
           "alias": "Task Backlog",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1047,7 +1016,6 @@
         {
           "alias": "Name",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1067,7 +1035,6 @@
         {
           "alias": "Service Type",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1084,7 +1051,6 @@
         {
           "alias": "Member",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1104,7 +1070,6 @@
         {
           "alias": "",
           "align": "auto",
-          "colorMode": null,
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -1129,11 +1094,11 @@
       ],
       "title": "Current Top $TopLimit Services - Task Backlog - Current Range",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 22,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1141,57 +1106,58 @@
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
-        "index": -1,
         "label": "Cluster Name",
         "multi": false,
         "name": "ClusterName",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size, cluster)",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "refId": "prometheus-ClusterName-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
-        "index": -1,
         "label": "Coherence Version",
         "multi": false,
         "name": "CoherenceVersion",
         "options": [],
-        "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version) ",
+        "query": {
+          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version) ",
+          "refId": "prometheus-CoherenceVersion-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1199,26 +1165,29 @@
         "definition": "",
         "hide": 2,
         "includeAll": true,
-        "index": -1,
         "label": "Services",
         "multi": false,
         "name": "Services",
         "options": [],
-        "query": "label_values(vendor:coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
+        "query": {
+          "query": "label_values(vendor:coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
+          "refId": "prometheus-Services-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
-          "text": "All",
+          "selected": true,
+          "text": [
+            "All"
+          ],
           "value": [
             "$__all"
           ]
@@ -1227,24 +1196,24 @@
         "definition": "",
         "hide": 2,
         "includeAll": true,
-        "index": -1,
         "label": "Caches",
         "multi": true,
         "name": "Caches",
         "options": [],
-        "query": "label_values(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
+        "query": {
+          "query": "label_values(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
+          "refId": "prometheus-Caches-Variable-Query"
+        },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
       },
       {
-        "allValue": null,
         "current": {
           "selected": true,
           "text": "3",
@@ -1320,8 +1289,6 @@
   "timezone": "",
   "title": "Coherence Services Summary Dashboard",
   "uid": "coh-services-summary",
-  "variables": {
-    "list": []
-  },
-  "version": 1
+  "version": 1,
+  "weekStart": ""
 }
