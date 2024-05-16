@@ -30,13 +30,6 @@ Using the Coherence CLI in Pods
 --
 
 [CARD]
-.VisualVM
-[link=docs/management/030_visualvm.adoc]
---
-Coherence VisualVM plugin.
---
-
-[CARD]
 .SSL
 [link=docs/management/040_ssl.adoc]
 --
