@@ -2257,7 +2257,7 @@
         },
         {
             "location": "/docs/management/010_overview",
-            "text": " There are a number of management and diagnostic features available with Oracle Coherence that can be used in a cluster deployed in Kubernetes. Management Over REST Coherence Management over REST feature The Coherence CLI Using the Coherence CLI in Pods VisualVM Coherence VisualVM plugin. SSL Enable SSL on the Management over REST endpoint. ",
+            "text": " There are a number of management and diagnostic features available with Oracle Coherence that can be used in a cluster deployed in Kubernetes. Management Over REST Coherence Management over REST feature The Coherence CLI Using the Coherence CLI in Pods SSL Enable SSL on the Management over REST endpoint. ",
             "title": "Overview"
         },
         {
