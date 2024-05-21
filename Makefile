@@ -1824,7 +1824,7 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 # ======================================================================================================================
 ##@ Miscellaneous
 
-TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.32.1
+TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.51.2
 .PHONY: trivy-scan
 trivy-scan: $(BUILD_TARGETS)/build-operator ## Scan the Operator image using Trivy
 	docker pull $(TRIVY_IMAGE)
