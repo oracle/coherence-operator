@@ -232,7 +232,7 @@ include::manifests/minimal-job.yaml[]
 
 To be able to run the client we need to set in three pieces of information.
 
-* The name of the cache configuration file. We set this using the `COHERENCE_CACHE_CONFIG` environment variable, and set the value to `minimal-client-cache-config.xml`, which is the configuration file we're using in this example.
+* The name of the cache configuration file. We set this using the `COHERENCE_CACHECONFIG` environment variable, and set the value to `minimal-client-cache-config.xml`, which is the configuration file we're using in this example.
 * The client needs to be able to discover the storage Pods to connect to. Just like the server cluster uses well known addresses to discover a cluster, the client can do the same. We set the `COHERENCE_WKA` environment variable to the name of the WKA service created for the server when we deployed it above, in this case it is `storage-wka`.
 * Finally, we set the name of the Coherence cluster the client will connect to. When we deployed the server we did not specify a name, so the default cluster name will be the same as the `Coherence` resource name, in this case `storage`. So we set the `COHERENCE_CLUSTER` environment variable to `storage`.
 

@@ -10,7 +10,7 @@ spec:
         - name: client
           image: simple-extend-client:1.0.0
           env:
-            - name: COHERENCE_CACHE_CONFIG
+            - name: COHERENCE_CACHECONFIG
               value: minimal-client-cache-config.xml
             - name: COHERENCE_WKA
               value: storage-wka.default.svc
