@@ -273,7 +273,7 @@ spec:
         - name: client
           image: simple-extend-client:1.0.0
           env:
-            - name: COHERENCE_CACHE_CONFIG
+            - name: COHERENCE_CACHECONFIG
               value: minimal-client-cache-config.xml
             - name: COHERENCE_WKA
               value: storage-wka
@@ -284,7 +284,7 @@ spec:
 
 <ul class="ulist">
 <li>
-<p>The name of the cache configuration file. We set this using the <code>COHERENCE_CACHE_CONFIG</code> environment variable, and set the value to <code>minimal-client-cache-config.xml</code>, which is the configuration file we&#8217;re using in this example.</p>
+<p>The name of the cache configuration file. We set this using the <code>COHERENCE_CACHECONFIG</code> environment variable, and set the value to <code>minimal-client-cache-config.xml</code>, which is the configuration file we&#8217;re using in this example.</p>
 
 </li>
 <li>
@@ -392,7 +392,7 @@ spec:
         - name: client
           image: simple-extend-client:1.0.0
           env:
-            - name: COHERENCE_CACHE_CONFIG
+            - name: COHERENCE_CACHECONFIG
               value: minimal-client-cache-config.xml
             - name: COHERENCE_WKA
               value: storage-wka.default.svc
