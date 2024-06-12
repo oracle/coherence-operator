@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 	"testing"
+	"time"
 )
 
 func TestDefaultReplicasIsSet(t *testing.T) {
@@ -75,6 +76,26 @@ func TestShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
 	g.Expect(finalizers).To(ContainElement("foo"))
 	g.Expect(finalizers).To(ContainElement("bar"))
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
+}
+
+func TestNoNotAddFinalizerToDeletedResource(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	dt := &metav1.Time{
+		Time: time.Now(),
+	}
+
+	c := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "foo",
+			DeletionTimestamp: dt,
+		},
+		Spec: coh.CoherenceStatefulSetResourceSpec{},
+	}
+
+	c.Default()
+	finalizers := c.GetFinalizers()
+	g.Expect(finalizers).To(BeNil())
 }
 
 func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
