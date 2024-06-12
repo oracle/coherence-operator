@@ -61,6 +61,14 @@ func SetCommonDefaults(in CoherenceResource) {
 	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
 	status := in.GetStatus()
 	spec := in.GetSpec()
+	dt := in.GetDeletionTimestamp()
+
+	if dt != nil {
+		// the deletion timestamp is set so do nothing
+		logger.Info("Skipping updating defaults for deleted resource", "deletionTimestamp", *dt)
+		return
+	}
+
 	if status.Phase == "" {
 		logger.Info("Setting defaults for new resource")
 
@@ -105,8 +113,8 @@ func SetCommonDefaults(in CoherenceResource) {
 		// Set the features supported by this version
 		in.AddAnnotation(AnnotationFeatureSuspend, "true")
 	} else {
-		logger.Info("Updating defaults for existing resource")
 		// this is an update
+		logger.Info("Updating defaults for existing resource")
 	}
 
 	// apply the Operator version annotation
@@ -134,7 +142,15 @@ var commonWebHook = CommonWebHook{}
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
 func (in *Coherence) ValidateCreate() (admission.Warnings, error) {
+	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
 	var warnings admission.Warnings
+
+	dt := in.GetDeletionTimestamp()
+	if dt != nil {
+		// the deletion timestamp is set so do nothing
+		logger.Info("Skipping validation for deleted resource", "deletionTimestamp", *dt)
+		return warnings, nil
+	}
 
 	webhookLogger.Info("validate create", "name", in.Name)
 	if err := commonWebHook.validateReplicas(in); err != nil {
@@ -154,7 +170,15 @@ func (in *Coherence) ValidateCreate() (admission.Warnings, error) {
 // Return an error if the object is invalid.
 func (in *Coherence) ValidateUpdate(previous runtime.Object) (admission.Warnings, error) {
 	webhookLogger.Info("validate update", "name", in.Name)
+	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
 	var warnings admission.Warnings
+
+	dt := in.GetDeletionTimestamp()
+	if dt != nil {
+		// the deletion timestamp is set so do nothing
+		logger.Info("Skipping validation for deleted resource", "deletionTimestamp", *dt)
+		return warnings, nil
+	}
 
 	if err := commonWebHook.validateReplicas(in); err != nil {
 		return warnings, err
