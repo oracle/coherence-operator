@@ -110,7 +110,7 @@ In the `build.gradle` file we add JIB to the `plugins` section.
 ----
 plugins {
     id 'java'
-    id 'com.google.cloud.tools.jib' version '3.3.5'
+    id 'com.google.cloud.tools.jib' version '3.3.6'
 }
 ----
 

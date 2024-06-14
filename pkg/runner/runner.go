@@ -827,7 +827,11 @@ func httpGetWithBackoff(url string, details *RunDetails) string {
 		if err == nil && status == http.StatusOK {
 			return s
 		}
-		log.Info("http get backoff", "url", url, "backoff", backoff.String(), "status", strconv.Itoa(status), "error", err.Error())
+		errorMsg := ""
+		if err != nil {
+			errorMsg = err.Error()
+		}
+		log.Info("http get backoff", "url", url, "backoff", backoff.String(), "status", strconv.Itoa(status), "error", errorMsg)
 		time.Sleep(backoff)
 	}
 
@@ -837,7 +841,11 @@ func httpGetWithBackoff(url string, details *RunDetails) string {
 		if err == nil && status == http.StatusOK {
 			return s
 		}
-		log.Info("http get backoff", "url", url, "backoff", backoff.String(), "status", strconv.Itoa(status), "error", err.Error())
+		errorMsg := ""
+		if err != nil {
+			errorMsg = err.Error()
+		}
+		log.Info("http get backoff", "url", url, "backoff", backoff.String(), "status", strconv.Itoa(status), "error", errorMsg)
 		time.Sleep(backoff)
 	}
 
