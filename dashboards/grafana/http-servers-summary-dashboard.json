@@ -15,8 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 5,
-  "iteration": 1715651460781,
+  "id": 24,
   "links": [
     {
       "icon": "dashboard",
@@ -52,16 +51,225 @@
       "id": 35,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>HTTP Servers Summary - $ClusterName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
-      "columns": [],
-      "datasource": "prometheus",
-      "fontSize": "100%",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member Count"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to service details for ${__data.fields[1]}",
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]}&var-ClusterName=$ClusterName"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Requests"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error Count"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 1
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Request Time"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -70,144 +278,27 @@
       },
       "id": 33,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": false
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Member Count",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Service",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Total Requests",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Error Count",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            "1",
-            "2"
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Avg Request Time",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Unauth Connection Attemps",
-          "align": "auto",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [
-            "0",
-            "1"
-          ],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "count(vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "count(coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -215,7 +306,11 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "expr": "sum(coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -223,25 +318,29 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_total_error_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(coherence_connection_manager_total_error_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "C"
-        },
-        {
-          "expr": "sum(vendor:coherence_connection_manager_average_request_time{cluster=\"${ClusterName:raw}\",protocol=~\"http\"}) by (name) ",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "D"
         }
       ],
       "title": "HTTP Servers List",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -251,6 +350,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -314,7 +415,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -325,7 +427,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - coherence_connection_manager_total_request_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -344,6 +446,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -406,7 +510,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -417,7 +522,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - coherence_connection_manager_response_1xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -426,7 +531,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - coherence_connection_manager_response_2xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -435,7 +540,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - coherence_connection_manager_response_3xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -444,7 +549,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - coherence_connection_manager_response_4xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -453,7 +558,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - vendor:coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} - coherence_connection_manager_response_5xx_count{cluster=\"${ClusterName:raw}\",protocol=~\"http\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -466,7 +571,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -475,9 +580,14 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "topics-cluster",
+          "value": "topics-cluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -486,7 +596,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -500,9 +610,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "15.1.1.0.0 (dev-timmiddleton)",
+          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -511,7 +626,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -526,7 +641,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -557,6 +672,6 @@
   "timezone": "",
   "title": "Coherence HTTP Servers Summary Dashboard",
   "uid": "coh-http-servers-summary",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }

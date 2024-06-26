@@ -15,8 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 21,
-  "iteration": 1671437805818,
+  "id": 26,
   "links": [
     {
       "icon": "dashboard",
@@ -52,10 +51,15 @@
       "id": 93,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Topics Summary - $ClusterName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
@@ -101,13 +105,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -161,13 +165,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(count(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"}) by (id))",
+          "expr": "count(count(\ncoherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"}) by (id))",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -221,13 +225,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(count(\nvendor:coherence_paged_topic_subscriber_group_polled_count{cluster=\"${ClusterName:raw}\"}) by (name))",
+          "expr": "count(count(\ncoherence_paged_topic_subscriber_group_polled_count{cluster=\"${ClusterName:raw}\"}) by (name))",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -280,13 +284,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -343,13 +347,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(\ncoherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -406,13 +410,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.6",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(\nvendor:coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(\ncoherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -422,10 +426,149 @@
       "type": "stat"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
       "description": "",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Topic"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to topic details for ${__data.fields[1]}",
+                    "url": " /d/coh-topic-details?var-ClusterName=$ClusterName&var-ServiceName=${__data.fields[1]:raw}&var-TopicName=${__data.fields[2]}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "coherence_service"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to service details for ${__data.fields[1]}",
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Published Messages"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -434,100 +577,25 @@
       },
       "id": 45,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": true
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "$$hashKey": "object:293",
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "$$hashKey": "object:294",
-          "alias": "Topic",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to topic details for ${__cell}",
-          "linkUrl": " /d/coh-topic-details?var-ClusterName=$ClusterName&var-ServiceName=${__cell_1}&var-TopicName=${__cell}",
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:295",
-          "alias": "Service",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "coherence_service",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:1459",
-          "alias": "Total Published Messages",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "$$hashKey": "object:299",
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} ) by (coherence_service, name)",
+          "expr": "sum(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} ) by (coherence_service, name)",
           "format": "table",
           "instant": true,
           "interval": "0",
@@ -538,8 +606,15 @@
         }
       ],
       "title": "Topic List",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -550,6 +625,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -605,8 +682,9 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -618,7 +696,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}) - sum (coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -639,6 +717,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -694,8 +774,9 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -707,7 +788,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"}) - sum (vendor:coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"}) - sum (coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -721,7 +802,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -730,8 +811,14 @@
     "list": [
       {
         "current": {
+          "selected": false,
+          "text": "topics-cluster",
+          "value": "topics-cluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -740,7 +827,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -754,9 +841,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "15.1.1.0.0 (dev-timmiddleton)",
+          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -765,7 +857,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -783,7 +875,10 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -792,7 +887,7 @@
         "name": "Services",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-Services-Variable-Query"
         },
         "refresh": 1,
@@ -814,7 +909,10 @@
             "$__all"
           ]
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -823,7 +921,7 @@
         "name": "Caches",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
+          "query": "label_values(coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
           "refId": "prometheus-Caches-Variable-Query"
         },
         "refresh": 1,
@@ -838,7 +936,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -869,6 +967,6 @@
   "timezone": "",
   "title": "Coherence Topics Summary Dashboard",
   "uid": "coh-topics-summary",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

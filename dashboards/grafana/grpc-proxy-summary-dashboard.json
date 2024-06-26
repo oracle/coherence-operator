@@ -15,8 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 21,
-  "iteration": 1715651098174,
+  "id": 23,
   "links": [
     {
       "icon": "dashboard",
@@ -52,10 +51,15 @@
       "id": 37,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>gRPC Proxy Summary - $ClusterName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
@@ -99,11 +103,11 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
       ],
@@ -151,11 +155,11 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "count(vendor:coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "count(coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
       ],
@@ -211,11 +215,11 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
       ],
@@ -271,11 +275,11 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"})",
           "refId": "A"
         }
       ],
@@ -283,9 +287,309 @@
       "type": "stat"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "member"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to member details for  ${__cell}",
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Request Count"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "role"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Role"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "node_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Node Id"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Backlog"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 1
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 10
+                    },
+                    {
+                      "value": 20
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Responses Sent"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Errors"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 1
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 10
+                    },
+                    {
+                      "value": 20
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #E"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Thread Count"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #F"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Connections"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to gRPC proxy details for  ${__cell_1}",
+                    "url": "/d/coh-grpc-proxy-details?var-ClusterName=$ClusterName&var-MemberName=${__cell_1}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -294,196 +598,24 @@
       },
       "id": 33,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": true
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "$$hashKey": "object:3130",
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "$$hashKey": "object:3131",
-          "alias": "Member",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "link": true,
-          "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "string",
-          "unit": "none"
-        },
-        {
-          "$$hashKey": "object:3776",
-          "alias": "Request Count",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "$$hashKey": "object:3787",
-          "alias": "Role",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "role",
-          "thresholds": [],
-          "type": "hidden",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:4052",
-          "alias": "Node Id",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "node_id",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:4386",
-          "alias": "Backlog",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [
-            "1",
-            "10",
-            "20"
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:5956",
-          "alias": "Responses Sent",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "$$hashKey": "object:6659",
-          "alias": "Errors",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [
-            "1",
-            "10",
-            "20"
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:13938",
-          "alias": "Thread Count",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #E",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "$$hashKey": "object:14951",
-          "alias": "Connections",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "link": true,
-          "linkTooltip": "Drill down to gRPC proxy details for  ${__cell_1}",
-          "linkUrl": "/d/coh-grpc-proxy-details?var-ClusterName=$ClusterName&var-MemberName=${__cell_1}",
-          "mappingType": 1,
-          "pattern": "Value #F",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_named_cache_proxy_daemon_thread_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -495,7 +627,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "count(vendor:coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "count(coherence_grpc_connection_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -507,7 +639,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -518,7 +650,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -530,7 +662,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_named_cache_proxy_task_backlog{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -542,7 +674,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -553,8 +685,15 @@
         }
       ],
       "title": "gRpc Proxy List",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -565,6 +704,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -628,7 +769,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -640,7 +782,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -661,6 +803,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -724,7 +868,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -736,7 +881,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_named_cache_proxy_responses_sent_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -757,6 +902,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -819,7 +966,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -831,7 +979,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -852,6 +1000,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -914,7 +1064,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -926,7 +1077,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -982,8 +1133,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1009,7 +1159,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1021,7 +1172,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_error_request_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1077,8 +1228,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1104,7 +1254,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1116,7 +1267,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} - vendor:coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_task_timeout_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1130,7 +1281,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -1150,7 +1301,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1175,7 +1326,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -1190,7 +1341,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {

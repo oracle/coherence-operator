@@ -13,7 +13,7 @@
       {
         "datasource": "prometheus",
         "enable": true,
-        "expr": "changes(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}[1m])",
+        "expr": "changes(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -27,7 +27,7 @@
       {
         "datasource": "prometheus",
         "enable": true,
-        "expr": "changes(vendor:coherence_service_owned_partitions_primary{cluster=\"${ClusterName:raw}\", name='$ServiceName'}[1m])",
+        "expr": "changes(coherence_service_owned_partitions_primary{cluster=\"${ClusterName:raw}\", name='$ServiceName'}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -45,8 +45,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 16,
-  "iteration": 1715654754417,
+  "id": 19,
   "links": [
     {
       "icon": "dashboard",
@@ -91,16 +90,244 @@
       "id": 34,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Service Details - $ServiceName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Current Thread Count"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Idle Thread Count"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Current Thread Utilization"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)"
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "member"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to member details for  ",
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Task Average"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #E"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Request Average"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -109,141 +336,22 @@
       },
       "id": 21,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": false
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Current Thread Count",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Idle Thread Count",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Current Thread Utilization",
-          "align": "auto",
-          "colorMode": "cell",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            ".50",
-            ".90"
-          ],
-          "type": "number",
-          "unit": "percentunit"
-        },
-        {
-          "alias": "Member",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Task Average",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Request Average",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #E",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_task_average_duration{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_task_average_duration{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -251,7 +359,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(vendor:coherence_service_request_average_duration{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_request_average_duration{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -259,7 +367,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(vendor:coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -268,7 +376,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_service_thread_idle_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_thread_idle_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -277,7 +385,7 @@
           "refId": "B"
         },
         {
-          "expr": "(sum(vendor:coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member) - sum(vendor:coherence_service_thread_idle_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member))",
+          "expr": "(sum(coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member) - sum(coherence_service_thread_idle_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)) / (sum(coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member))",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -286,8 +394,15 @@
         }
       ],
       "title": "Member Service Threads",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -298,6 +413,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -361,7 +478,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -371,7 +489,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "((sum(vendor:coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member) -sum(vendor:coherence_service_thread_idle_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)) / (sum(vendor:coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)))",
+          "expr": "((sum(coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member) -sum(coherence_service_thread_idle_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)) / (sum(coherence_service_thread_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member)))",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -392,6 +510,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -456,7 +576,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -467,7 +588,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(vendor:coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) - sum(vendor:coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'} offset $__interval) > 0",
+          "expr": "sum(coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) - sum(coherence_service_request_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -477,7 +598,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(vendor:coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) - sum(vendor:coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'} offset $__interval) > 0",
+          "expr": "sum(coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) - sum(coherence_service_task_timeout_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -487,7 +608,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(vendor:coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) - sum(vendor:coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'} offset $__interval) > 0",
+          "expr": "sum(coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) - sum(coherence_service_task_hung_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -508,6 +629,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -566,12 +689,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -582,7 +703,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "irate(vendor:coherence_service_task_count{cluster=\"${ClusterName:raw}\", name='$ServiceName'}[1m])",
+          "expr": "irate(coherence_service_task_count{cluster=\"${ClusterName:raw}\", name='$ServiceName'}[1m])",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -595,13 +716,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -659,12 +785,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -674,7 +798,12 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_service_task_backlog{cluster=\"${ClusterName:raw}\", name='$ServiceName'} > 0",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "coherence_service_task_backlog{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -694,6 +823,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -752,12 +883,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -768,7 +897,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_service_request_pending_count{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
+          "expr": "coherence_service_request_pending_count{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -788,6 +917,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -845,12 +976,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -861,7 +990,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_service_request_pending_duration{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
+          "expr": "coherence_service_request_pending_duration{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -881,6 +1010,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -941,7 +1072,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -951,7 +1083,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_service_task_average_duration{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
+          "expr": "coherence_service_task_average_duration{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -971,6 +1103,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1032,7 +1166,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1042,7 +1177,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_service_request_average_duration{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
+          "expr": "coherence_service_request_average_duration{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1065,10 +1200,15 @@
       "id": 35,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Storage Details</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
@@ -1134,10 +1274,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_endangered{cluster=\"${ClusterName:raw}\",name='$ServiceName'})",
+          "expr": "avg(coherence_service_partitions_endangered{cluster=\"${ClusterName:raw}\",name='$ServiceName'})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1209,10 +1349,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_vulnerable{cluster=\"${ClusterName:raw}\",name='$ServiceName'})  ",
+          "expr": "avg(coherence_service_partitions_vulnerable{cluster=\"${ClusterName:raw}\",name='$ServiceName'})  ",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1286,10 +1426,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\",name='$ServiceName'})",
+          "expr": "avg(coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\",name='$ServiceName'})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1363,10 +1503,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}) ",
+          "expr": "sum(coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}) ",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1439,10 +1579,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'})",
+          "expr": "sum(coherence_storage_manager_index_total_units{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1510,10 +1650,10 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "count(sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}) by (name))",
+          "expr": "count(sum(coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}) by (name))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1531,6 +1671,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1592,7 +1734,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1602,7 +1745,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_partitions_endangered{cluster=\"${ClusterName:raw}\", name='$ServiceName'})   ",
+          "expr": "avg(coherence_service_partitions_endangered{cluster=\"${ClusterName:raw}\", name='$ServiceName'})   ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1610,7 +1753,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(vendor:coherence_service_partitions_vulnerable{cluster=\"${ClusterName:raw}\", name='$ServiceName'})  ",
+          "expr": "avg(coherence_service_partitions_vulnerable{cluster=\"${ClusterName:raw}\", name='$ServiceName'})  ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1618,7 +1761,7 @@
           "refId": "B"
         },
         {
-          "expr": "avg(vendor:coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\", name='$ServiceName'})",
+          "expr": "avg(coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\", name='$ServiceName'})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1637,6 +1780,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1698,7 +1843,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1708,7 +1854,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_service_owned_partitions_primary{cluster=\"${ClusterName:raw}\", name='$ServiceName'})   ",
+          "expr": "avg(coherence_service_owned_partitions_primary{cluster=\"${ClusterName:raw}\", name='$ServiceName'})   ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1716,7 +1862,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(vendor:coherence_service_owned_partitions_backup{cluster=\"${ClusterName:raw}\", name='$ServiceName'})  ",
+          "expr": "avg(coherence_service_owned_partitions_backup{cluster=\"${ClusterName:raw}\", name='$ServiceName'})  ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1728,9 +1874,226 @@
       "type": "timeseries"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Used  Space"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "member"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cache"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to cache details for ${__data.fields[1]}",
+                    "url": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-CacheName=${__data.fields[1]}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cache Memory"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cache Size"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Gets"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Puts"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -1739,153 +2102,22 @@
       },
       "id": 8,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": false
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Used  Space",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Member",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Cache",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to cache details for ${__cell}",
-          "linkUrl": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-CacheName=${__cell}",
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Cache Memory",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Cache Size",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Total Gets",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Total Puts",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}) by (name)  ",
+          "expr": "sum(coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}) by (name)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1893,7 +2125,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}) by (name)",
+          "expr": "sum(coherence_cache_size{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1901,7 +2133,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_cache_total_gets{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}) by (name)",
+          "expr": "sum(coherence_cache_total_gets{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1909,7 +2141,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor:coherence_cache_total_puts{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}) by (name)",
+          "expr": "sum(coherence_cache_total_puts{cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName'}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1918,8 +2150,15 @@
         }
       ],
       "title": "Caches for Service $ServiceName",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -1932,17 +2171,174 @@
       "id": 38,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Persistence Details</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
       "description": "",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Active Space Used"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Average Persistence Latency"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Max Persistence Latency"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "member"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "",
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -1951,104 +2347,22 @@
       },
       "id": 42,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 0,
-        "desc": true
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Active Space Used",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 1,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Average Persistence Latency",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Max Persistence Latency",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [],
-          "type": "number",
-          "unit": "ms"
-        },
-        {
-          "alias": "Member",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2056,7 +2370,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_service_persistence_latency_average{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_persistence_latency_average{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2064,7 +2378,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_service_persistence_latency_max{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
+          "expr": "sum(coherence_service_persistence_latency_max{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -2073,12 +2387,17 @@
         }
       ],
       "title": "Persistence Details across Members",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "type": "table"
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -2087,9 +2406,14 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "topics-cluster",
+          "value": "topics-cluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2098,7 +2422,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -2112,9 +2436,14 @@
       },
       {
         "current": {
-          "selected": true
+          "selected": false,
+          "text": "DistributedCache",
+          "value": "DistributedCache"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2123,7 +2452,7 @@
         "name": "ServiceName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-ServiceName-Variable-Query"
         },
         "refresh": 1,
@@ -2169,6 +2498,6 @@
   "timezone": "",
   "title": "Coherence Service Details Dashboard",
   "uid": "coh-service-details",
-  "version": 1,
+  "version": 4,
   "weekStart": ""
 }

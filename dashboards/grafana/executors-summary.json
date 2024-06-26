@@ -172,7 +172,7 @@
       ],
       "targets": [
         {
-          "expr": "count(vendor:coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "expr": "count(coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}) by (name) ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -181,7 +181,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "expr": "sum(coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -190,7 +190,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "expr": "sum(coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -199,7 +199,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor:coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "expr": "sum(coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"}) by (name) ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -294,7 +294,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -386,7 +386,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"}) - sum(coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -394,7 +394,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"}) - sum(vendor:coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"}) - sum(coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -427,7 +427,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -451,7 +451,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
