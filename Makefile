@@ -1844,14 +1844,14 @@ controller-gen: $(TOOLS_BIN)/controller-gen ## Download controller-gen locally i
 
 $(TOOLS_BIN)/controller-gen:
 	@echo "Downloading controller-gen"
-	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0
+	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
 	ls -al $(TOOLS_BIN)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-KUSTOMIZE_VERSION ?= v3.8.7
+KUSTOMIZE_VERSION ?= v5.4.2
 
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
