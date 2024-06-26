@@ -8,8 +8,8 @@ metadata:
     app.kubernetes.io/name: coherence-operator
     app: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.3.5"
-    version: "3.3.5"
+    app.kubernetes.io/version: "3.3.6"
+    version: "3.3.6"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
 spec:
@@ -24,8 +24,8 @@ spec:
         app.kubernetes.io/name: coherence-operator
         app: coherence-operator
         app.kubernetes.io/instance: coherence-operator-manager
-        app.kubernetes.io/version: "3.3.5"
-        version: "3.3.5"
+        app.kubernetes.io/version: "3.3.6"
+        version: "3.3.6"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
     spec:
@@ -107,7 +107,7 @@ spec:
                     control-plane: coherence
                     app.kubernetes.io/name: coherence-operator
                     app.kubernetes.io/instance: coherence-operator-manager
-                    app.kubernetes.io/version: "3.3.5"
+                    app.kubernetes.io/version: "3.3.6"
               weight: 50
             - podAffinityTerm:
                 topologyKey: "oci.oraclecloud.com/fault-domain"
@@ -116,7 +116,7 @@ spec:
                     control-plane: coherence
                     app.kubernetes.io/name: coherence-operator
                     app.kubernetes.io/instance: coherence-operator-manager
-                    app.kubernetes.io/version: "3.3.5"
+                    app.kubernetes.io/version: "3.3.6"
               weight: 10
             - podAffinityTerm:
                 topologyKey: "kubernetes.io/hostname"
@@ -125,5 +125,5 @@ spec:
                     control-plane: coherence
                     app.kubernetes.io/name: coherence-operator
                     app.kubernetes.io/instance: coherence-operator-manager
-                    app.kubernetes.io/version: "3.3.5"
+                    app.kubernetes.io/version: "3.3.6"
               weight: 1

@@ -29,7 +29,7 @@
     </modules>
 
     <properties>
-        <revision>3.3.5</revision>
+        <revision>3.3.6</revision>
         <operator.version>${project.version}</operator.version>
 
         <build.java.version>17</build.java.version>
