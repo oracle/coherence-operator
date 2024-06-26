@@ -212,7 +212,7 @@ jobs:
         export TEST_LOGS_DIR=build/_output/test-logs/${{ matrix.matrixName }}
         make coherence-compatibility-test 
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output-${{ matrix.matrixName }}

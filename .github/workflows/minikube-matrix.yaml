@@ -140,7 +140,7 @@ jobs:
         docker pull gcr.io/distroless/java17-debian11
         ./hack/k8s-certification.sh
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output-${{ matrix.matrixName }}

@@ -155,7 +155,7 @@ jobs:
         export RUN_NET_TEST=${{ matrix.runNetTests }}
         ./hack/k8s-certification.sh
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output-${{ matrix.matrixName }}

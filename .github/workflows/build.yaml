@@ -146,27 +146,27 @@ jobs:
         make e2e-helm-test
 
     - name: Upload Manifests
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       if: success()
       with:
         name: coherence-operator-manifests.tar.gz
         path: build/_output/coherence-operator-manifests.tar.gz
 
     - name: Upload Yaml
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       if: success()
       with:
         name: coherence-operator.yaml
         path: build/_output/coherence-operator.yaml
 
     - name: Upload CRD
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       if: success()
       with:
         name: coherence.oracle.com_coherence.yaml
         path: build/_output/manifests/crd/coherence.oracle.com_coherence.yaml
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output
