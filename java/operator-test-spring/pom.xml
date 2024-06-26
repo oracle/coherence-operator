@@ -28,9 +28,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${coherence.version.2206}</version>
+      <version>${coherence.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

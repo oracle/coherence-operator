@@ -15,17 +15,17 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.3.6
+VERSION ?= 3.4.0
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.3.4
+PREV_VERSION ?= 3.3.5
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.3.4
+COMPATIBLE_VERSION  ?= 3.3.5
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
@@ -39,12 +39,13 @@ KUBERNETES_DOC_VERSION=v1.29
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 22.06.7
+COHERENCE_VERSION_LTS ?= 22.06.8
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
 COHERENCE_IMAGE_TAG      ?= $(COHERENCE_VERSION_LTS)
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
+COHERENCE_GROUP_ID       ?= com.oracle.coherence.ce
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
 BUILD_JAVA_VERSION        ?= 11
@@ -93,7 +94,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version.2206=$(COHERENCE_VERSION_LTS) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names

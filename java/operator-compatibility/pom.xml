@@ -26,9 +26,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>${coherence.test.groupId}</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${coherence.test.version}</version>
+      <version>${coherence.version}</version>
     </dependency>
   </dependencies>
 

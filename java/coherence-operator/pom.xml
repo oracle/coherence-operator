@@ -36,9 +36,9 @@
     <dependencies>
         <!-- module dependencies -->
         <dependency>
-            <groupId>com.oracle.coherence.ce</groupId>
+            <groupId>${coherence.legacy.groupId}</groupId>
             <artifactId>coherence</artifactId>
-            <version>${coherence.version}</version>
+            <version>${coherence.legacy.version}</version>
             <scope>provided</scope>
         </dependency>
 

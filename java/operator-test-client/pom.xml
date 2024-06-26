@@ -28,11 +28,11 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence-java-client</artifactId>
       <version>${coherence.version}</version>
     </dependency>
