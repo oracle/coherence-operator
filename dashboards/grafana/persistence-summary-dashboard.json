@@ -63,10 +63,7 @@
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -557,10 +554,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1318,10 +1312,7 @@
           "text": "mainp",
           "value": "mainp"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1348,10 +1339,7 @@
           "text": "15.1.1.0.0 (dev-timmiddleton)",
           "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1378,10 +1366,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -1412,10 +1397,7 @@
             "$__all"
           ]
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,

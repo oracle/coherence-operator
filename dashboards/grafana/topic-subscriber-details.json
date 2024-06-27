@@ -895,10 +895,7 @@
           "text": "topics-cluster",
           "value": "topics-cluster"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -925,10 +922,7 @@
           "text": "PartitionedTopic",
           "value": "PartitionedTopic"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
         "hide": 0,
         "includeAll": false,
@@ -955,10 +949,7 @@
           "text": "sms-messages",
           "value": "sms-messages"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
         "hide": 0,
         "includeAll": false,
@@ -985,10 +976,7 @@
           "text": "26623797699",
           "value": "26623797699"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_subscriber_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, id)",
         "hide": 0,
         "includeAll": false,
@@ -1011,10 +999,7 @@
           "text": "6",
           "value": "6"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_subscriber_receive_completions{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\",id=\"$Subscriber\"}, node_id)",
         "hide": 2,
         "includeAll": false,

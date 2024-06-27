@@ -1075,10 +1075,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1232,10 +1229,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "avg(coherence_service_partitions_unbalanced{cluster=\"${ClusterName:raw}\",type=~\"DistributedCache|FederatedCache|PagedTopic\"}) by (name) > 0",
           "format": "table",
@@ -1702,10 +1696,7 @@
           "text": "cache-store",
           "value": "cache-store"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1732,10 +1723,7 @@
           "text": "15.1.1.0.0 (dev-timmiddleton)",
           "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1762,10 +1750,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -1796,10 +1781,7 @@
             "$__all"
           ]
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,

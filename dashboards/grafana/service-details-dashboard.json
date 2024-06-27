@@ -716,10 +716,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -798,10 +795,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "coherence_service_task_backlog{cluster=\"${ClusterName:raw}\", name='$ServiceName'}",
           "format": "time_series",
@@ -2183,10 +2177,7 @@
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -2362,10 +2353,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(coherence_service_persistence_latency_average{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
@@ -2374,10 +2362,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
@@ -2387,10 +2372,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "expr": "sum(coherence_service_persistence_latency_max{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
@@ -2423,10 +2405,7 @@
           "text": "cache-store",
           "value": "cache-store"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2453,10 +2432,7 @@
           "text": "DistributedCache",
           "value": "DistributedCache"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,

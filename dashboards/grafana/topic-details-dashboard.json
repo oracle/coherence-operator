@@ -1686,10 +1686,7 @@
           "text": "cache-store",
           "value": "cache-store"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1716,10 +1713,7 @@
           "text": "DistributedCache",
           "value": "DistributedCache"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
         "hide": 0,
         "includeAll": false,
@@ -1747,10 +1741,7 @@
           "text": "None",
           "value": ""
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
         "hide": 0,
         "includeAll": false,

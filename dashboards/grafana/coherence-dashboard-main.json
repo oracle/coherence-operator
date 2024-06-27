@@ -62,10 +62,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -87,7 +84,7 @@
       "type": "text"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "datasource": "prometheus",
       "gridPos": {
         "h": 1,
@@ -96,87 +93,88 @@
         "y": 2
       },
       "id": 111,
-      "panels": [],
+      "panels": [
+        {
+          "dashboardFilter": "",
+          "dashboardTags": [],
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 0,
+            "y": 3
+          },
+          "id": 106,
+          "limit": 10,
+          "links": [],
+          "nameFilter": "",
+          "onlyAlertsOnDashboard": false,
+          "options": {
+            "alertInstanceLabelFilter": "",
+            "alertName": "",
+            "dashboardAlerts": false,
+            "groupBy": [],
+            "groupMode": "default",
+            "maxItems": 20,
+            "sortOrder": 1,
+            "stateFilter": {
+              "error": true,
+              "firing": true,
+              "noData": false,
+              "normal": false,
+              "pending": true
+            },
+            "viewMode": "list"
+          },
+          "show": "current",
+          "sortOrder": 1,
+          "stateFilter": [
+            "alerting"
+          ],
+          "title": "Current Alerts",
+          "type": "alertlist"
+        },
+        {
+          "dashboardFilter": "",
+          "dashboardTags": [],
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 12,
+            "y": 3
+          },
+          "id": 107,
+          "limit": 10,
+          "links": [],
+          "nameFilter": "",
+          "onlyAlertsOnDashboard": false,
+          "options": {
+            "alertInstanceLabelFilter": "",
+            "alertName": "",
+            "dashboardAlerts": false,
+            "groupBy": [],
+            "groupMode": "default",
+            "maxItems": 20,
+            "sortOrder": 1,
+            "stateFilter": {
+              "error": true,
+              "firing": true,
+              "noData": false,
+              "normal": false,
+              "pending": true
+            },
+            "viewMode": "list"
+          },
+          "show": "changes",
+          "sortOrder": 1,
+          "stateFilter": [
+            "alerting"
+          ],
+          "title": "Recent Alert State Changes",
+          "type": "alertlist"
+        }
+      ],
       "title": "Alerts",
       "type": "row"
-    },
-    {
-      "dashboardFilter": "",
-      "dashboardTags": [],
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
-        "y": 3
-      },
-      "id": 106,
-      "limit": 10,
-      "links": [],
-      "nameFilter": "",
-      "onlyAlertsOnDashboard": false,
-      "options": {
-        "alertInstanceLabelFilter": "",
-        "alertName": "",
-        "dashboardAlerts": false,
-        "groupBy": [],
-        "groupMode": "default",
-        "maxItems": 20,
-        "sortOrder": 1,
-        "stateFilter": {
-          "error": true,
-          "firing": true,
-          "noData": false,
-          "normal": false,
-          "pending": true
-        },
-        "viewMode": "list"
-      },
-      "show": "current",
-      "sortOrder": 1,
-      "stateFilter": [
-        "alerting"
-      ],
-      "title": "Current Alerts",
-      "type": "alertlist"
-    },
-    {
-      "dashboardFilter": "",
-      "dashboardTags": [],
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 3
-      },
-      "id": 107,
-      "limit": 10,
-      "links": [],
-      "nameFilter": "",
-      "onlyAlertsOnDashboard": false,
-      "options": {
-        "alertInstanceLabelFilter": "",
-        "alertName": "",
-        "dashboardAlerts": false,
-        "groupBy": [],
-        "groupMode": "default",
-        "maxItems": 20,
-        "sortOrder": 1,
-        "stateFilter": {
-          "error": true,
-          "firing": true,
-          "noData": false,
-          "normal": false,
-          "pending": true
-        },
-        "viewMode": "list"
-      },
-      "show": "changes",
-      "sortOrder": 1,
-      "stateFilter": [
-        "alerting"
-      ],
-      "title": "Recent Alert State Changes",
-      "type": "alertlist"
     },
     {
       "collapsed": false,
@@ -185,7 +183,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 3
       },
       "id": 109,
       "panels": [],
@@ -232,7 +230,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 10
+        "y": 4
       },
       "id": 95,
       "links": [
@@ -314,7 +312,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 10
+        "y": 4
       },
       "id": 80,
       "links": [],
@@ -393,7 +391,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 10
+        "y": 4
       },
       "id": 92,
       "links": [
@@ -473,7 +471,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 10
+        "y": 4
       },
       "id": 55,
       "links": [],
@@ -547,7 +545,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 10
+        "y": 4
       },
       "id": 38,
       "links": [],
@@ -626,7 +624,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 10
+        "y": 4
       },
       "id": 9,
       "links": [],
@@ -718,7 +716,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 15
+        "y": 9
       },
       "id": 14,
       "links": [],
@@ -822,7 +820,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 9
       },
       "id": 15,
       "links": [
@@ -1050,7 +1048,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 17
       },
       "id": 122,
       "links": [],
@@ -1175,7 +1173,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 17
       },
       "id": 120,
       "interval": "",
@@ -1231,7 +1229,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1294,7 +1293,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(245, 54, 54, 0.9)"
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)"
@@ -1346,7 +1346,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 30
+        "y": 24
       },
       "id": 104,
       "links": [],
@@ -1407,7 +1407,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1526,7 +1527,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)"
@@ -1545,7 +1547,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 30
+        "y": 24
       },
       "id": 103,
       "links": [],
@@ -1585,10 +1587,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the highest heap memory % used over the current time range.",
       "fieldConfig": {
         "defaults": {
@@ -1609,7 +1608,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1728,7 +1728,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)"
@@ -1747,7 +1748,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 30
+        "y": 24
       },
       "id": 102,
       "links": [],
@@ -1766,10 +1767,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "topk($TopLimit, avg(avg_over_time(coherence_memory_heap_memory_usage_used{cluster=\"${ClusterName:raw}\"}[$__range]) / avg_over_time(coherence_memory_heap_memory_usage_max{cluster=\"${ClusterName:raw}\"}[$__range])) by (member))",
           "format": "table",
@@ -1928,7 +1926,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 36
+        "y": 30
       },
       "id": 74,
       "links": [],
@@ -1967,10 +1965,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "The top  $TopLimit Members that have the greatest change in the Task Count over the current time range.",
       "fieldConfig": {
         "defaults": {
@@ -2102,7 +2097,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 36
+        "y": 30
       },
       "id": 119,
       "links": [],
@@ -2121,10 +2116,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": " topk($TopLimit,sum(delta(coherence_service_task_count{cluster=\"${ClusterName:raw}\"}[$__range])) by (member)) > 0",
           "format": "table",
@@ -2278,7 +2270,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 36
+        "y": 30
       },
       "id": 73,
       "links": [],
@@ -2379,7 +2371,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 42
+        "y": 36
       },
       "id": 114,
       "links": [
@@ -2415,10 +2407,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "Total task backlog by service.",
       "fieldConfig": {
         "defaults": {
@@ -2479,7 +2468,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 42
+        "y": 36
       },
       "id": 113,
       "links": [
@@ -2503,10 +2492,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "sum(coherence_service_task_backlog{cluster=\"${ClusterName:raw}\"}) by (name)",
           "format": "time_series",
@@ -2602,7 +2588,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 42
+        "y": 36
       },
       "id": 118,
       "links": [
@@ -2775,7 +2761,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 50
+        "y": 44
       },
       "id": 52,
       "links": [],
@@ -2946,7 +2932,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 50
+        "y": 44
       },
       "id": 75,
       "links": [],
@@ -3164,7 +3150,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 56
+        "y": 50
       },
       "id": 86,
       "links": [],
@@ -3382,7 +3368,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 56
+        "y": 50
       },
       "id": 85,
       "links": [],
@@ -3421,10 +3407,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3484,7 +3467,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 62
+        "y": 56
       },
       "id": 116,
       "links": [],
@@ -3506,10 +3489,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "coherence_node_guard_recover_count{cluster=\"${ClusterName:raw}\"} - coherence_node_guard_recover_count{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
@@ -3584,7 +3564,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 62
+        "y": 56
       },
       "id": 117,
       "links": [],
@@ -3626,14 +3606,11 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "main-grpc",
-          "value": "main-grpc"
+          "selected": true,
+          "text": "main",
+          "value": "main"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -3660,10 +3637,7 @@
           "text": "15.1.1.0.0 (dev-timmiddleton)",
           "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -3690,10 +3664,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -3724,10 +3695,7 @@
             "$__all"
           ]
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": true,
@@ -3824,6 +3792,6 @@
   "timezone": "",
   "title": "Coherence Dashboard Main",
   "uid": "coh-main",
-  "version": 18,
+  "version": 21,
   "weekStart": ""
 }

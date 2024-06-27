@@ -92,10 +92,7 @@
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -369,10 +366,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "count( coherence_federation_destination_total_msg_sent{cluster=\"${ClusterName:raw}\"})by (coherence_service, name, participant_type)",
           "format": "table",
@@ -382,10 +376,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
+          "datasource": "prometheus",
           "editorMode": "code",
           "expr": "avg(coherence_federation_destination_status {cluster=\"${ClusterName:raw}\"}) by (coherence_service, name, participant_type)",
           "format": "table",
@@ -1971,10 +1962,7 @@
           "text": "ClusterA",
           "value": "ClusterA"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2001,10 +1989,7 @@
           "text": "14.1.1.2206.8",
           "value": "14.1.1.2206.8"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,

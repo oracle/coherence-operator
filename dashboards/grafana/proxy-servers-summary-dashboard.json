@@ -478,10 +478,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "prometheus",
       "description": "Total bytes sent (bytes/sec) of all Proxy Server members.",
       "fieldConfig": {
         "defaults": {
@@ -1061,10 +1058,7 @@
           "text": "ClusterA",
           "value": "ClusterA"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1091,10 +1085,7 @@
           "text": "14.1.1.2206.8",
           "value": "14.1.1.2206.8"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,

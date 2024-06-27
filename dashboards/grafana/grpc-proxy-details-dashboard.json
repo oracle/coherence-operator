@@ -1032,10 +1032,7 @@
           "text": "main-grpc",
           "value": "main-grpc"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1062,10 +1059,7 @@
           "text": "15.1.1.0.0 (dev-timmiddleton)",
           "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1092,10 +1086,7 @@
           "text": "storage-0",
           "value": "storage-0"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, member)",
         "hide": 0,
         "includeAll": false,

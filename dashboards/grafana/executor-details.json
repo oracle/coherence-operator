@@ -558,10 +558,7 @@
           "text": "my-cluster",
           "value": "my-cluster"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -588,10 +585,7 @@
           "text": "15.1.1.0.0 (dev-timmiddleton)",
           "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -618,10 +612,7 @@
           "text": "coherence-concurrent-default-executor",
           "value": "coherence-concurrent-default-executor"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}, name)",
         "hide": 0,
         "includeAll": false,

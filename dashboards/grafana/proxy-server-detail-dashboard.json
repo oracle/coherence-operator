@@ -1080,10 +1080,7 @@
           "text": "cache-store",
           "value": "cache-store"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1110,10 +1107,7 @@
           "text": "15.1.1.0.0 (dev-timmiddleton)",
           "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1140,10 +1134,7 @@
           "text": "DistributedCache",
           "value": "DistributedCache"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_connection_manager_total_messages_sent{cluster=\"${ClusterName:raw}\"}, name)",
         "hide": 0,
         "includeAll": false,

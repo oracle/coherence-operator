@@ -855,10 +855,7 @@
           "text": "topics-cluster",
           "value": "topics-cluster"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -885,10 +882,7 @@
           "text": "PartitionedTopic",
           "value": "PartitionedTopic"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
         "hide": 0,
         "includeAll": false,
@@ -915,10 +909,7 @@
           "text": "sms-messages",
           "value": "sms-messages"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
         "hide": 0,
         "includeAll": false,
@@ -945,10 +936,7 @@
           "text": "sms-processor",
           "value": "sms-processor"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_subscriber_group_channels_polled_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, name)",
         "hide": 0,
         "includeAll": false,
@@ -972,10 +960,7 @@
           "text": "1",
           "value": "1"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_subscriber_group_channels_polled_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\", name=\"$SubscriberGroup\"}, node_id)",
         "hide": 0,
         "includeAll": true,
