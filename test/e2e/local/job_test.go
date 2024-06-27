@@ -35,7 +35,7 @@ func TestJobWithSingleSuccessfulReplica(t *testing.T) {
 	g := NewWithT(t)
 
 	ns := helper.GetTestNamespace()
-	name := "test-job"
+	name := "job-single-successful"
 
 	pods := deployJob(t, ns, name, 1)
 	pod := &pods[0]
@@ -59,7 +59,7 @@ func TestJobWithMultipleSuccessfulReplicas(t *testing.T) {
 	g := NewWithT(t)
 
 	ns := helper.GetTestNamespace()
-	name := "test-job"
+	name := "job-multiple-successful"
 
 	replicas := 3
 	pods := deployJob(t, ns, name, int32(replicas))
@@ -89,7 +89,7 @@ func TestJobWithSingleFailedReplica(t *testing.T) {
 	g := NewWithT(t)
 
 	ns := helper.GetTestNamespace()
-	name := "test-job"
+	name := "job-single-failed"
 
 	pods := deployJob(t, ns, name, 1)
 	pod := &pods[0]
@@ -108,7 +108,7 @@ func TestJobWithReadyAction(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	g := NewWithT(t)
 
-	name := "test-job"
+	name := "job-with-ready"
 
 	jobs, _ := helper.AssertCoherenceJobs(testContext, t, "job-with-ready-action.yaml")
 

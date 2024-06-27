@@ -339,6 +339,7 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
+# The version of kube-prometheus to use (main = latest main branch from https://github.com/prometheus-operator/kube-prometheus)
 PROMETHEUS_VERSION           ?= main
 PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSION)
 PROMETHEUS_NAMESPACE         ?= monitoring
@@ -1568,7 +1569,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245"
+KIND_IMAGE     ?= "kindest/node:v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2028,8 +2029,11 @@ push-release-images: push-operator-image tanzu-repo
 get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
 
 $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
-	#curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
-	curl -sL  https://github.com/prometheus-operator/kube-prometheus/archive/main.zip -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+ifeq (main, $(PROMETHEUS_VERSION))
+	curl -sL  https://github.com/prometheus-operator/kube-prometheus/archive/main.tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+else
+	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+endif
 	mkdir -p $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
 	rm $(BUILD_OUTPUT)/prometheus.tar.gz
