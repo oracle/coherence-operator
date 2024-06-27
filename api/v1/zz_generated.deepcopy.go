@@ -1909,24 +1909,16 @@ func (in *ServiceMonitorSpec) DeepCopyInto(out *ServiceMonitorSpec) {
 	}
 	if in.MetricRelabelings != nil {
 		in, out := &in.MetricRelabelings, &out.MetricRelabelings
-		*out = make([]*monitoringv1.RelabelConfig, len(*in))
+		*out = make([]monitoringv1.RelabelConfig, len(*in))
 		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(monitoringv1.RelabelConfig)
-				(*in).DeepCopyInto(*out)
-			}
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.Relabelings != nil {
 		in, out := &in.Relabelings, &out.Relabelings
-		*out = make([]*monitoringv1.RelabelConfig, len(*in))
+		*out = make([]monitoringv1.RelabelConfig, len(*in))
 		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(monitoringv1.RelabelConfig)
-				(*in).DeepCopyInto(*out)
-			}
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	if in.ProxyURL != nil {

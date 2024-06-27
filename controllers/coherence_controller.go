@@ -532,10 +532,10 @@ func watchSecondaryResource(mgr ctrl.Manager, s reconciler.SecondaryResourceReco
 		return err
 	}
 
-	src := source.Kind(mgr.GetCache(), s.GetTemplate())
 	h := handler.EnqueueRequestForOwner(mgr.GetScheme(), mgr.GetRESTMapper(), owner)
 	p := predicates.SecondaryPredicate{}
-	err = c.Watch(src, h, p)
+	src := source.Kind(mgr.GetCache(), s.GetTemplate(), h, p)
+	err = c.Watch(src)
 	return err
 }
 

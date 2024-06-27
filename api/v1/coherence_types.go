@@ -1201,7 +1201,7 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *mon
 
 	endpoint := in.ServiceMonitor.CreateEndpoint()
 	endpoint.Port = in.Name
-	endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, &monitoringv1.RelabelConfig{
+	endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, monitoringv1.RelabelConfig{
 		Action: "labeldrop",
 		Regex:  "(endpoint|instance|job|service)",
 	})
@@ -1383,13 +1383,13 @@ type ServiceMonitorSpec struct {
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
 	// +listType=atomic
 	// +optional
-	MetricRelabelings []*monitoringv1.RelabelConfig `json:"metricRelabelings,omitempty"`
+	MetricRelabelings []monitoringv1.RelabelConfig `json:"metricRelabelings,omitempty"`
 	// Relabelings to apply to samples before scraping.
 	// More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
 	// +listType=atomic
 	// +optional
-	Relabelings []*monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
+	Relabelings []monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
 	// ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
 	// +optional

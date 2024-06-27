@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -103,6 +103,10 @@ func (f *FakeManager) GetLogger() logr.Logger {
 }
 
 func (f *FakeManager) Elected() <-chan struct{} {
+	panic("implement me")
+}
+
+func (f *FakeManager) AddMetricsServerExtraHandler(path string, handler http.Handler) error {
 	panic("implement me")
 }
 
@@ -273,6 +277,10 @@ func (f *FakeManager) AssertWkaService(namespace string, deployment *coh.Coheren
 var _ cache.Cache = fakeCache{}
 
 type fakeCache struct {
+}
+
+func (f fakeCache) RemoveInformer(ctx context.Context, obj client.Object) error {
+	panic("implement me")
 }
 
 func (f fakeCache) GetInformer(ctx context.Context, obj client.Object, opts ...cache.InformerGetOption) (cache.Informer, error) {
