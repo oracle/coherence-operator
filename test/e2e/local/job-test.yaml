@@ -5,6 +5,9 @@ metadata:
 spec:
   cluster: test
   image: ${TEST_APPLICATION_IMAGE}
+  env:
+    - name: APPLICATION_LIFETIME_SECONDS
+      value: "30"
   ports:
   - name: rest
     port: 8080

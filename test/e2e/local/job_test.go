@@ -37,15 +37,11 @@ func TestJobWithSingleSuccessfulReplica(t *testing.T) {
 	ns := helper.GetTestNamespace()
 	name := "job-single-successful"
 
-	pods := deployJob(t, ns, name, 1)
-	pod := &pods[0]
-
-	t.Logf("Shutting down Pod %s with exit code zero", pod.Name)
-	err := helper.Shutdown(pod)
-	g.Expect(err).NotTo(HaveOccurred())
+	pods := deployJob(t, ns, name, 1, 0)
+	g.Expect(len(pods)).To(Equal(1))
 
 	condition := helper.JobSucceededCondition(1)
-	_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+	_, err := helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	condition = helper.StatusPhaseCondition(coh.ConditionTypeCompleted)
@@ -62,19 +58,14 @@ func TestJobWithMultipleSuccessfulReplicas(t *testing.T) {
 	name := "job-multiple-successful"
 
 	replicas := 3
-	pods := deployJob(t, ns, name, int32(replicas))
+	pods := deployJob(t, ns, name, int32(replicas), 0)
+	g.Expect(len(pods)).To(Equal(replicas))
 
 	var condition helper.DeploymentStateCondition
 
 	for i := 0; i < replicas; i++ {
-		pod := &pods[i]
-
-		t.Logf("Shutting down Pod %s with exit code zero", pod.Name)
-		err := helper.Shutdown(pod)
-		g.Expect(err).NotTo(HaveOccurred())
-
 		condition := helper.JobSucceededCondition(int32(i + 1))
-		_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+		_, err := helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
 
@@ -91,15 +82,11 @@ func TestJobWithSingleFailedReplica(t *testing.T) {
 	ns := helper.GetTestNamespace()
 	name := "job-single-failed"
 
-	pods := deployJob(t, ns, name, 1)
-	pod := &pods[0]
-
-	t.Logf("Shutting down Pod %s with exit code 1", pod.Name)
-	err := helper.ShutdownWithExitCode(pod, 1)
-	g.Expect(err).NotTo(HaveOccurred())
+	pods := deployJob(t, ns, name, 1, 1)
+	g.Expect(len(pods)).To(Equal(1))
 
 	condition := helper.JobFailedCondition(1)
-	_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+	_, err := helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -120,7 +107,7 @@ func TestJobWithReadyAction(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func deployJob(t *testing.T, ns, name string, replicas int32) []corev1.Pod {
+func deployJob(t *testing.T, ns, name string, replicas, exitCode int32) []corev1.Pod {
 	g := NewWithT(t)
 
 	t.Logf("Deploying CoherenceJob %s in namespace %s", name, ns)
@@ -131,6 +118,12 @@ func deployJob(t *testing.T, ns, name string, replicas int32) []corev1.Pod {
 
 	jobs[0].Name = name
 	jobs[0].Spec.Replicas = ptr.To(replicas)
+
+	ev := corev1.EnvVar{
+		Name:  "APPLICATION_EXIT_CODE",
+		Value: fmt.Sprintf("%d", exitCode),
+	}
+	jobs[0].Spec.Env = append(jobs[0].Spec.Env, ev)
 
 	m, pods := helper.AssertCoherenceJobsSpec(testContext, t, jobs)
 
