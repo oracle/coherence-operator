@@ -13,7 +13,7 @@
       {
         "datasource": "prometheus",
         "enable": true,
-        "expr": "changes(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}[1m])",
+        "expr": "changes(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -29,8 +29,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 7,
-  "iteration": 1715651606364,
+  "id": 13,
   "links": [
     {
       "icon": "dashboard",
@@ -66,16 +65,265 @@
       "id": 94,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Machines Summary - Version: $CoherenceVersion</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Physical Memory"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "site"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Site"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Free Swap Space"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Free Physical Memory %"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "machine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Machine"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Available Processors"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #E"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Free Physical Memory"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -84,155 +332,24 @@
       },
       "id": 21,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "desc": false
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Total Physical Memory",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Site",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "site",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Free Swap Space",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Free Physical Memory %",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [
-            ".25",
-            ".50"
-          ],
-          "type": "number",
-          "unit": "percentunit"
-        },
-        {
-          "alias": "Machine",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": false,
-          "linkUrl": "",
-          "mappingType": 1,
-          "pattern": "machine",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Available Processors",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Free Physical Memory",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #E",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_os_available_processors{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "avg(coherence_os_available_processors{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -242,7 +359,8 @@
           "refId": "D"
         },
         {
-          "expr": "avg(vendor:coherence_os_free_swap_space_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "datasource": "prometheus",
+          "expr": "avg(coherence_os_free_swap_space_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -252,7 +370,8 @@
           "refId": "B"
         },
         {
-          "expr": "avg(vendor:coherence_os_total_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "datasource": "prometheus",
+          "expr": "avg(coherence_os_total_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -262,7 +381,8 @@
           "refId": "A"
         },
         {
-          "expr": "avg(vendor:coherence_os_free_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "datasource": "prometheus",
+          "expr": "avg(coherence_os_free_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -272,7 +392,8 @@
           "refId": "E"
         },
         {
-          "expr": "avg(vendor:coherence_os_free_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine) / avg(vendor:coherence_os_total_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "datasource": "prometheus",
+          "expr": "avg(coherence_os_free_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine) / avg(coherence_os_total_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -283,8 +404,15 @@
         }
       ],
       "title": "Current Cluster Machines",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -294,6 +422,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -355,7 +485,8 @@
             "min"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -365,7 +496,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "avg(vendor:coherence_os_free_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "expr": "avg(coherence_os_free_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -373,7 +504,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(vendor:coherence_os_total_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "expr": "avg(coherence_os_total_physical_memory_size{cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -392,6 +523,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -452,7 +585,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -462,7 +596,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "avg(avg_over_time(vendor:coherence_os_system_load_average{cluster=\"${ClusterName:raw}\"}[1m])) by (machine)",
+          "expr": "avg(avg_over_time(coherence_os_system_load_average{cluster=\"${ClusterName:raw}\"}[1m])) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -470,7 +604,7 @@
           "refId": "A"
         },
         {
-          "expr": "avg(avg_over_time(vendor:coherence_os_system_load_average{cluster=\"${ClusterName:raw}\"}[5m])) by (machine)",
+          "expr": "avg(avg_over_time(coherence_os_system_load_average{cluster=\"${ClusterName:raw}\"}[5m])) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -478,7 +612,7 @@
           "refId": "B"
         },
         {
-          "expr": "avg(avg_over_time(vendor:coherence_os_system_load_average{cluster=\"${ClusterName:raw}\"}[15m])) by (machine)",
+          "expr": "avg(avg_over_time(coherence_os_system_load_average{cluster=\"${ClusterName:raw}\"}[15m])) by (machine)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -491,7 +625,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -511,7 +645,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -536,7 +670,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -563,7 +697,7 @@
         "name": "Services",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-Services-Variable-Query"
         },
         "refresh": 1,
@@ -578,7 +712,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
