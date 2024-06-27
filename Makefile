@@ -1679,18 +1679,18 @@ $(TOOLS_BIN)/minikube:
 ifeq (Darwin, $(UNAME_S))
 ifeq (x86_64, $(UNAME_M))
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-amd64
-	mkdir -p $(TOOLS_BIN)/minikube || true
+	mkdir -p $(TOOLS_BIN) || true
 	install minikube-darwin-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-darwin-amd64
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-arm64
-	mkdir -p $(TOOLS_BIN)/minikube || true
+	mkdir -p $(TOOLS_BIN) || true
 	install minikube-darwin-arm64 $(TOOLS_BIN)/minikube
 	rm minikube-darwin-arm64
 endif
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-linux-amd64
-	mkdir -p $(TOOLS_BIN)/minikube || true
+	mkdir -p $(TOOLS_BIN) || true
 	install minikube-linux-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-linux-amd64
 endif
