@@ -693,7 +693,7 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to member details for ${__cell}",
+                    "title": "Drill down to member details for ${__data.fields[3]}",
                     "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[3]}"
                   }
                 ]
@@ -1394,8 +1394,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1684,8 +1683,8 @@
       {
         "current": {
           "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
+          "text": "cache-store",
+          "value": "cache-store"
         },
         "datasource": {
           "type": "prometheus",
@@ -1714,8 +1713,8 @@
       {
         "current": {
           "selected": false,
-          "text": "PartitionedTopic",
-          "value": "PartitionedTopic"
+          "text": "DistributedCache",
+          "value": "DistributedCache"
         },
         "datasource": {
           "type": "prometheus",
@@ -1743,9 +1742,10 @@
       },
       {
         "current": {
+          "isNone": true,
           "selected": false,
-          "text": "sms-messages",
-          "value": "sms-messages"
+          "text": "None",
+          "value": ""
         },
         "datasource": {
           "type": "prometheus",
@@ -1805,6 +1805,6 @@
   "timezone": "",
   "title": "Coherence Topic Details Dashboard",
   "uid": "coh-topic-details",
-  "version": 7,
+  "version": 8,
   "weekStart": ""
 }

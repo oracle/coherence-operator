@@ -2183,7 +2183,10 @@
       "type": "text"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -2200,16 +2203,13 @@
           "decimals": 2,
           "displayName": "",
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -2328,7 +2328,7 @@
                   {
                     "targetBlank": false,
                     "title": "",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
                   }
                 ]
               },
@@ -2362,14 +2362,10 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
-          "format": "table",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(coherence_service_persistence_latency_average{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
@@ -2378,6 +2374,23 @@
           "refId": "B"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
           "expr": "sum(coherence_service_persistence_latency_max{cluster=\"${ClusterName:raw}\", name='$ServiceName'}) by (member)",
           "format": "table",
           "instant": true,
@@ -2407,8 +2420,8 @@
       {
         "current": {
           "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
+          "text": "cache-store",
+          "value": "cache-store"
         },
         "datasource": {
           "type": "prometheus",
@@ -2498,6 +2511,6 @@
   "timezone": "",
   "title": "Coherence Service Details Dashboard",
   "uid": "coh-service-details",
-  "version": 4,
+  "version": 6,
   "weekStart": ""
 }

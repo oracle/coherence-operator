@@ -185,7 +185,7 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to Proxy Server Details for ${__cell_1}",
+                    "title": "Drill down to Proxy Server Details for ${__data.fields[1]}",
                     "url": "/d/coh-proxy-server-detail?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
                   }
                 ]
@@ -905,8 +905,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -999,8 +998,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1060,8 +1058,8 @@
       {
         "current": {
           "selected": false,
-          "text": "mainp",
-          "value": "mainp"
+          "text": "ClusterA",
+          "value": "ClusterA"
         },
         "datasource": {
           "type": "prometheus",
@@ -1090,8 +1088,8 @@
       {
         "current": {
           "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "text": "14.1.1.2206.8",
+          "value": "14.1.1.2206.8"
         },
         "datasource": {
           "type": "prometheus",
@@ -1151,6 +1149,6 @@
   "timezone": "",
   "title": "Coherence Proxy Servers Summary Dashboard",
   "uid": "coh-proxy-services-summary",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }

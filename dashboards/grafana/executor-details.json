@@ -15,8 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 23,
-  "iteration": 1715650018918,
+  "id": 9,
   "links": [
     {
       "icon": "external link",
@@ -61,16 +60,247 @@
       "id": 35,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Executor Detail - $ExecutorName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "minWidth": 50
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "machine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Machine"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to machines summary",
+                    "url": "/d/coh-machines-summary?var-ClusterName=$ClusterName"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "member"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member Name"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to member details for ${__data.fields[2]}",
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[2]}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "member_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member Id"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Executor Name"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "State"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "1": {
+                        "index": 0,
+                        "text": "JOINING"
+                      },
+                      "2": {
+                        "color": "green",
+                        "index": 1,
+                        "text": "RUNNING"
+                      },
+                      "3": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "CLOSING GRACEFULLY"
+                      },
+                      "4": {
+                        "color": "orange",
+                        "index": 3,
+                        "text": "CLOSING"
+                      },
+                      "5": {
+                        "index": 4,
+                        "text": "CLOSED"
+                      },
+                      "6": {
+                        "color": "red",
+                        "index": 5,
+                        "text": "REJECTING TASKS"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -79,135 +309,19 @@
       },
       "id": 33,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": false
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Machine",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "link": true,
-          "linkTooltip": "Drill down to machines summary",
-          "linkUrl": "/d/coh-machines-summary?var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "machine",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Member Name",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to member details for  ${__cell}",
-          "linkUrl": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}",
-          "mappingType": 1,
-          "pattern": "member",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Member Id",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "member_id",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Executor Name",
-          "align": "auto",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [
-            ""
-          ],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "State",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short",
-          "valueMaps": [
-            {
-              "text": "JOINING",
-              "value": "1"
-            },
-            {
-              "text": "RUNNING",
-              "value": "2"
-            },
-            {
-              "text": "CLOSING GRACEFULLY",
-              "value": "3"
-            },
-            {
-              "text": "CLOSING",
-              "value": "4"
-            },
-            {
-              "text": "CLOSED",
-              "value": "5"
-            },
-            {
-              "text": "REJECTING TASKS",
-              "value": "6"
-            }
-          ]
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "expr": "avg(coherence_executor_state_code{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) by (machine, member, member_id, name)",
@@ -220,8 +334,15 @@
         }
       ],
       "title": "Executor Members",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -232,6 +353,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Task Count",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -294,8 +417,9 @@
             "lastNotNull",
             "max"
           ],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
@@ -325,6 +449,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Task Count",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -386,8 +512,9 @@
           "calcs": [
             "lastNotNull"
           ],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
@@ -418,7 +545,7 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -427,9 +554,14 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "my-cluster",
+          "value": "my-cluster"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -452,9 +584,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "15.1.1.0.0 (dev-timmiddleton)",
+          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -477,12 +614,14 @@
       },
       {
         "current": {
-          "isNone": true,
           "selected": false,
-          "text": "None",
-          "value": ""
+          "text": "coherence-concurrent-default-executor",
+          "value": "coherence-concurrent-default-executor"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "label_values(coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}, name)",
         "hide": 0,
         "includeAll": false,
@@ -537,6 +676,6 @@
   "timezone": "",
   "title": "Coherence Executor Details",
   "uid": "coh-executor-details",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }

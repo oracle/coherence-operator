@@ -85,8 +85,10 @@
             "cellOptions": {
               "type": "auto"
             },
-            "inspect": false
+            "inspect": false,
+            "minWidth": 50
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -148,7 +150,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "coherence_service='$ServiceName'"
+              "options": "coherence_service"
             },
             "properties": [
               {
@@ -168,8 +170,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to service details for ${__cell}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName"
+                    "title": "Drill down to service details for ${__data.fields[1]}",
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
                   }
                 ]
               },
@@ -263,7 +265,7 @@
               },
               {
                 "id": "decimals",
-                "value": 1
+                "value": 0
               },
               {
                 "id": "custom.align"
@@ -286,7 +288,7 @@
               },
               {
                 "id": "decimals",
-                "value": 1
+                "value": 0
               },
               {
                 "id": "custom.align"
@@ -309,7 +311,7 @@
               },
               {
                 "id": "decimals",
-                "value": 1
+                "value": 0
               },
               {
                 "id": "custom.align"
@@ -351,7 +353,7 @@
               },
               {
                 "id": "unit",
-                "value": "percent"
+                "value": "none"
               },
               {
                 "id": "custom.align"
@@ -366,10 +368,88 @@
                       "value": null
                     },
                     {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": null
+                      "color": "rgba(237, 129, 40, 0.89)"
                     }
                   ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "index": 0,
+                        "text": "INITIAL"
+                      },
+                      "1": {
+                        "index": 1,
+                        "text": "STARTING"
+                      },
+                      "2": {
+                        "color": "green",
+                        "index": 2,
+                        "text": "CONNECTING"
+                      },
+                      "3": {
+                        "color": "orange",
+                        "index": 3,
+                        "text": "CONNECT_WAIT"
+                      },
+                      "4": {
+                        "color": "green",
+                        "index": 4,
+                        "text": "IDLE"
+                      },
+                      "5": {
+                        "color": "green",
+                        "index": 5,
+                        "text": "READY"
+                      },
+                      "6": {
+                        "color": "green",
+                        "index": 6,
+                        "text": "SENDING"
+                      },
+                      "7": {
+                        "color": "orange",
+                        "index": 7,
+                        "text": "STOPPED"
+                      },
+                      "8": {
+                        "color": "orange",
+                        "index": 8,
+                        "text": "PAUSED"
+                      },
+                      "9": {
+                        "color": "red",
+                        "index": 9,
+                        "text": "ERROR"
+                      },
+                      "10": {
+                        "color": "orange",
+                        "index": 10,
+                        "text": "YIELDING"
+                      },
+                      "11": {
+                        "color": "red",
+                        "index": 11,
+                        "text": "DISCONNECTED"
+                      },
+                      "12": {
+                        "color": "orange",
+                        "index": 12,
+                        "text": "DISCONNECTING"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
                 }
               }
             ]
@@ -401,8 +481,7 @@
                       "value": null
                     },
                     {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": null
+                      "color": "rgba(237, 129, 40, 0.89)"
                     }
                   ]
                 }
@@ -1675,9 +1754,11 @@
             "cellOptions": {
               "type": "auto"
             },
-            "inspect": false
+            "inspect": false,
+            "minWidth": 50
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1724,11 +1805,11 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "none"
               },
               {
                 "id": "decimals",
-                "value": 2
+                "value": 0
               },
               {
                 "id": "custom.align"
@@ -1738,7 +1819,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "coherence_service='$ServiceName'"
+              "options": "coherence_service"
             },
             "properties": [
               {
@@ -1755,6 +1836,15 @@
               },
               {
                 "id": "custom.align"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Drill down to service details for ${__data.fields[1]}",
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                  }
+                ]
               }
             ]
           },
@@ -2114,7 +2204,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "coherence_service='$ServiceName'"
+              "options": "coherence_service"
             },
             "properties": [
               {
@@ -2134,8 +2224,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to service details for ${__cell}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName"
+                    "title": "Drill down to service details for ${__data.fields[1]}",
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
                   }
                 ]
               },
@@ -2293,8 +2383,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to member details for  ${__cell}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
+                    "title": "Drill down to member details for  ${__data.fields[2]}",
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[2]}"
                   }
                 ]
               },
@@ -2484,9 +2574,14 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "ClusterA",
+          "value": "ClusterA"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2509,9 +2604,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "ClusterB",
+          "value": "ClusterB"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2534,9 +2634,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "FederatedCache",
+          "value": "FederatedCache"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -2560,7 +2665,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -2591,6 +2696,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 2,
+  "version": 7,
   "weekStart": ""
 }

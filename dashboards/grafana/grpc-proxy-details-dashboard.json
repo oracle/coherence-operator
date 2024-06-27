@@ -320,10 +320,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
@@ -364,13 +360,7 @@
               },
               {
                 "id": "links",
-                "value": [
-                  {
-                    "targetBlank": false,
-                    "title": "Drill down to member details for  ${__cell}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
-                  }
-                ]
+                "value": []
               },
               {
                 "id": "custom.align"
@@ -1037,9 +1027,14 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "main-grpc",
+          "value": "main-grpc"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1062,9 +1057,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "15.1.1.0.0 (dev-timmiddleton)",
+          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1087,9 +1087,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "storage-0",
+          "value": "storage-0"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "label_values(coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, member)",
         "hide": 0,
         "includeAll": false,
@@ -1110,7 +1115,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1141,6 +1146,6 @@
   "timezone": "",
   "title": "Coherence gRPC Proxy Details Dashboard",
   "uid": "coh-grpc-proxy-details",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

@@ -253,7 +253,7 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to member details for ${__cell}",
+                    "title": "Drill down to member details for ${__data.fields[1]}",
                     "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&var-ClusterName=$ClusterName"
                   }
                 ]
@@ -1077,8 +1077,8 @@
       {
         "current": {
           "selected": false,
-          "text": "mainp",
-          "value": "mainp"
+          "text": "cache-store",
+          "value": "cache-store"
         },
         "datasource": {
           "type": "prometheus",
@@ -1137,8 +1137,8 @@
       {
         "current": {
           "selected": false,
-          "text": "Proxy",
-          "value": "Proxy"
+          "text": "DistributedCache",
+          "value": "DistributedCache"
         },
         "datasource": {
           "type": "prometheus",
@@ -1167,7 +1167,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1198,6 +1198,6 @@
   "timezone": "",
   "title": "Coherence Proxy Server Detail Dashboard",
   "uid": "coh-proxy-server-detail",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }

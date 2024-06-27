@@ -653,10 +653,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -844,7 +840,7 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-text"
+                  "type": "auto"
                 }
               },
               {
@@ -917,12 +913,6 @@
                 "value": 1
               },
               {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
                 "id": "custom.align"
               }
             ]
@@ -948,27 +938,7 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 1
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 1000
-                    }
-                  ]
+                  "type": "auto"
                 }
               }
             ]
@@ -1100,6 +1070,17 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
+          "expr": "avg(coherence_cache_store_write_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "G"
+        },
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
           "expr": "avg(coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
@@ -1118,17 +1099,6 @@
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "F"
-        },
-        {
-          "datasource": "prometheus",
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_write_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "G"
         },
         {
           "datasource": "prometheus",
@@ -1152,420 +1122,6 @@
         }
       ],
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "right",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "decimals": 2,
-          "displayName": "",
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Time"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Time"
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #A"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Queue Size"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "member"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Member"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "targetBlank": false,
-                    "title": "Drill down to member details for  ${__cell}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
-                  }
-                ]
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #B"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Store Writes"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #C"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Avg Batch Size"
-              },
-              {
-                "id": "unit",
-                "value": "none"
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": ""
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #D"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Total Write Time"
-              },
-              {
-                "id": "unit",
-                "value": "ms"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #E"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Store Reads"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #F"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Total Read Time"
-              },
-              {
-                "id": "unit",
-                "value": "dtdurationms"
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #G"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Avg Write Time"
-              },
-              {
-                "id": "unit",
-                "value": "ms"
-              },
-              {
-                "id": "decimals",
-                "value": 1
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #H"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Avg Read Time"
-              },
-              {
-                "id": "unit",
-                "value": "ms"
-              },
-              {
-                "id": "decimals",
-                "value": 1
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 33
-      },
-      "id": 47,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "10.0.13",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_queue_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_average_batch_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_write_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "G"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_write_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "D"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)\n",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "editorMode": "code",
-          "expr": "avg(coherence_cache_store_read_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n  coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "H"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P1809F7CD0C75ACF3"
-          },
-          "expr": "avg(coherence_cache_store_read_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "F"
-        }
-      ],
-      "title": "Member Cache Store Details",
-      "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {
-            "reducers": []
-          }
-        }
-      ],
-      "type": "table"
     }
   ],
   "refresh": "10s",
@@ -1579,8 +1135,8 @@
       {
         "current": {
           "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
+          "text": "cache-store",
+          "value": "cache-store"
         },
         "datasource": {
           "type": "prometheus",
@@ -1609,8 +1165,8 @@
       {
         "current": {
           "selected": true,
-          "text": "PartitionedTopic",
-          "value": "PartitionedTopic"
+          "text": "DistributedCache",
+          "value": "DistributedCache"
         },
         "datasource": {
           "type": "prometheus",
@@ -1639,8 +1195,8 @@
       {
         "current": {
           "selected": false,
-          "text": "$topic$sms-messages",
-          "value": "$topic$sms-messages"
+          "text": "test",
+          "value": "test"
         },
         "datasource": {
           "type": "prometheus",
@@ -1669,7 +1225,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1700,6 +1256,6 @@
   "timezone": "",
   "title": "Coherence Cache Store Details Dashboard",
   "uid": "coh-cachestore-details",
-  "version": 4,
+  "version": 7,
   "weekStart": ""
 }

@@ -301,6 +301,7 @@
             "inspect": false
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -354,8 +355,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to member details for  ${__cell}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__cell}"
+                    "title": "Drill down to member details for ${__data.fields[1]}",
+                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
                   }
                 ]
               },
@@ -578,8 +579,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to gRPC proxy details for  ${__cell_1}",
-                    "url": "/d/coh-grpc-proxy-details?var-ClusterName=$ClusterName&var-MemberName=${__cell_1}"
+                    "title": "Drill down to gRPC proxy details for  ${__data.fields[1]}",
+                    "url": "/d/coh-grpc-proxy-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
                   }
                 ]
               },
@@ -1098,6 +1099,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1133,7 +1136,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1193,6 +1197,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1228,7 +1234,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1290,9 +1297,14 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": true,
+          "text": "main-grpc",
+          "value": "main-grpc"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1315,9 +1327,14 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "15.1.1.0.0 (dev-timmiddleton)",
+          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1341,7 +1358,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1372,6 +1389,6 @@
   "timezone": "",
   "title": "Coherence gRPC Proxy Summary Dashboard",
   "uid": "coh-grpc-proxy-summary",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }
