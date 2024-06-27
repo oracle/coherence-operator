@@ -58,7 +58,7 @@
                   <image>docker://${coherence.test.base.image}</image>
               </from>
               <container>
-                  <mainClass>com.tangosol.net.Coherence</mainClass>
+                  <mainClass>com.oracle.coherence.k8s.testing.RestServer</mainClass>
                   <format>OCI</format>
               </container>
           </configuration>
