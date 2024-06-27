@@ -311,7 +311,8 @@
             "cellOptions": {
               "type": "auto"
             },
-            "inspect": false
+            "inspect": false,
+            "minWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -513,7 +514,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",
@@ -1146,6 +1147,6 @@
   "timezone": "",
   "title": "Coherence gRPC Proxy Details Dashboard",
   "uid": "coh-grpc-proxy-details",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
