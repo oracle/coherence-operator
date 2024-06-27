@@ -339,7 +339,7 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
-PROMETHEUS_VERSION           ?= v0.13.0
+PROMETHEUS_VERSION           ?= main
 PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSION)
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
@@ -1679,15 +1679,18 @@ $(TOOLS_BIN)/minikube:
 ifeq (Darwin, $(UNAME_S))
 ifeq (x86_64, $(UNAME_M))
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-amd64
+	mkdir -p $(TOOLS_BIN)/minikube || true
 	install minikube-darwin-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-darwin-amd64
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-arm64
+	mkdir -p $(TOOLS_BIN)/minikube || true
 	install minikube-darwin-arm64 $(TOOLS_BIN)/minikube
 	rm minikube-darwin-arm64
 endif
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-linux-amd64
+	mkdir -p $(TOOLS_BIN)/minikube || true
 	install minikube-linux-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-linux-amd64
 endif
@@ -2025,7 +2028,8 @@ push-release-images: push-operator-image tanzu-repo
 get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
 
 $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
-	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+	#curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+	curl -sL  https://github.com/prometheus-operator/kube-prometheus/archive/main.zip -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
 	mkdir -p $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
 	rm $(BUILD_OUTPUT)/prometheus.tar.gz
