@@ -61,16 +61,12 @@ func TestJobWithMultipleSuccessfulReplicas(t *testing.T) {
 	pods := deployJob(t, ns, name, int32(replicas), 0)
 	g.Expect(len(pods)).To(Equal(replicas))
 
-	var condition helper.DeploymentStateCondition
-
-	for i := 0; i < replicas; i++ {
-		condition := helper.JobSucceededCondition(int32(i + 1))
-		_, err := helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
-		g.Expect(err).NotTo(HaveOccurred())
-	}
+	condition := helper.JobSucceededCondition(3)
+	_, err := helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	condition = helper.StatusPhaseCondition(coh.ConditionTypeCompleted)
-	_, err := helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForCoherenceJobCondition(testContext, ns, name, condition, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
