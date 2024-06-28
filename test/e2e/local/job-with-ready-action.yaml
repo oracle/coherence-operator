@@ -6,6 +6,7 @@ spec:
   cluster: test
   replicas: 3
   image: ${TEST_APPLICATION_IMAGE}
+  restartPolicy: Never
   readyAction:
     httpGet:
       port: rest

@@ -4,5 +4,6 @@ metadata:
   name: minimal-job
 spec:
   cluster: test
+  restartPolicy: Never
 
 
