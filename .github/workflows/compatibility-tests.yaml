@@ -37,6 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.3.5
         - 3.3.4
         - 3.3.3
         - 3.3.2
@@ -48,6 +49,10 @@ jobs:
         - 3.2.7
         - 3.2.6
         include:
+        - compatibilityVersion: 3.3.5
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.7"
+          compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
         - compatibilityVersion: 3.3.4
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.7"
           compatibilitySelector: control-plane=coherence
@@ -187,7 +192,7 @@ jobs:
         export COMPATIBLE_SELECTOR=${{ matrix.compatibilitySelector }}
         make compatibility-test
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output-${{ matrix.compatibilityVersion }}

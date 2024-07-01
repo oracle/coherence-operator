@@ -29,7 +29,7 @@
     </modules>
 
     <properties>
-        <revision>3.3.6</revision>
+        <revision>3.4.0</revision>
         <operator.version>${project.version}</operator.version>
 
         <build.java.version>17</build.java.version>
@@ -39,15 +39,14 @@
         <java.version.release>${build.java.version}</java.version.release> <!-- maven-compiler-plugin "release" version -->
 
         <!--  The Coherence jar version (compile time dependency) -->
-        <coherence.version>21.12.4</coherence.version>
-        <coherence.version.2206>22.06.7</coherence.version.2206>
-        <!-- The version of Coherence to use in the test images -->
-        <coherence.test.groupId>com.oracle.coherence.ce</coherence.test.groupId>
-        <coherence.test.version>${coherence.version}</coherence.test.version>
+        <coherence.legacy.groupId>com.oracle.coherence.ce</coherence.legacy.groupId>
+        <coherence.legacy.version>21.12.5</coherence.legacy.version>
+
+        <coherence.version>22.06.8</coherence.version>
+        <coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
 
         <coherence.test.base.image>gcr.io/distroless/java11-debian11</coherence.test.base.image>
-        <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}
-        </coherence.compatibility.coherence.image>
+        <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>
 
@@ -102,32 +101,32 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.oracle.coherence.ce</groupId>
+                <groupId>${coherence.groupId}</groupId>
                 <artifactId>coherence</artifactId>
                 <version>${coherence.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle.coherence.ce</groupId>
+                <groupId>${coherence.groupId}</groupId>
                 <artifactId>coherence-management</artifactId>
                 <version>${coherence.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle.coherence.ce</groupId>
+                <groupId>${coherence.groupId}</groupId>
                 <artifactId>coherence-metrics</artifactId>
                 <version>${coherence.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.oracle.coherence.ce</groupId>
+                <groupId>${coherence.groupId}</groupId>
                 <artifactId>coherence-cdi-server</artifactId>
                 <version>${coherence.version}</version>
             </dependency>
             <dependency>
-              <groupId>com.oracle.coherence.ce</groupId>
+              <groupId>${coherence.groupId}</groupId>
               <artifactId>coherence-java-client</artifactId>
               <version>${coherence.version}</version>
             </dependency>
             <dependency>
-              <groupId>com.oracle.coherence.ce</groupId>
+              <groupId>${coherence.groupId}</groupId>
               <artifactId>coherence-grpc-proxy</artifactId>
               <version>${coherence.version}</version>
             </dependency>

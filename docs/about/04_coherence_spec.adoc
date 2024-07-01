@@ -765,8 +765,8 @@ m| bearerTokenSecret | Secret to mount to read bearer token for scraping targets
 m| honorLabels | HonorLabels chooses the metric labels on collisions with target labels. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| bool | false
 m| honorTimestamps | HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| &#42;bool | false
 m| basicAuth | BasicAuth allow an endpoint to authenticate over basic authentication More info: https://prometheus.io/docs/operating/configuration/#endpoints See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| &#42;monitoringv1.BasicAuth | false
-m| metricRelabelings | MetricRelabelings to apply to samples before ingestion. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| []&#42;monitoringv1.RelabelConfig | false
-m| relabelings | Relabelings to apply to samples before scraping. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| []&#42;monitoringv1.RelabelConfig | false
+m| metricRelabelings | MetricRelabelings to apply to samples before ingestion. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| []monitoringv1.RelabelConfig | false
+m| relabelings | Relabelings to apply to samples before scraping. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| []monitoringv1.RelabelConfig | false
 m| proxyURL | ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint m| &#42;string | false
 |===
 

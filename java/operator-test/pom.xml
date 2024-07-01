@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2019, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -26,22 +26,43 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence</artifactId>
+      <version>${coherence.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
+      <version>${coherence.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence-management</artifactId>
       <version>${coherence.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence-metrics</artifactId>
       <version>${coherence.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${version.plugin.jib}</version>
+          <configuration>
+              <from>
+                  <image>docker://${coherence.test.base.image}</image>
+              </from>
+              <container>
+                  <mainClass>com.oracle.coherence.k8s.testing.RestServer</mainClass>
+                  <format>OCI</format>
+              </container>
+          </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -139,13 +139,13 @@ jobs:
         make kind-load
         make run-certification OPERATOR_NAMESPACE=coherence
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: tanzu-artifacts
         path: build/_output/tanzu
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-output

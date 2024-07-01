@@ -15,17 +15,17 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.3.6
+VERSION ?= 3.4.0
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.3.4
+PREV_VERSION ?= 3.3.5
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.3.4
+COMPATIBLE_VERSION  ?= 3.3.5
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
@@ -39,12 +39,13 @@ KUBERNETES_DOC_VERSION=v1.29
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 22.06.7
+COHERENCE_VERSION_LTS ?= 22.06.8
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
 COHERENCE_IMAGE_TAG      ?= $(COHERENCE_VERSION_LTS)
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
+COHERENCE_GROUP_ID       ?= com.oracle.coherence.ce
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
 BUILD_JAVA_VERSION        ?= 11
@@ -93,7 +94,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version.2206=$(COHERENCE_VERSION_LTS) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -338,7 +339,8 @@ TEST_SSL_SECRET := coherence-ssl-secret
 # ----------------------------------------------------------------------------------------------------------------------
 # Prometheus Operator settings (used in integration tests)
 # ----------------------------------------------------------------------------------------------------------------------
-PROMETHEUS_VERSION           ?= v0.13.0
+# The version of kube-prometheus to use (main = latest main branch from https://github.com/prometheus-operator/kube-prometheus)
+PROMETHEUS_VERSION           ?= main
 PROMETHEUS_HOME               = $(TOOLS_DIRECTORY)/prometheus/$(PROMETHEUS_VERSION)
 PROMETHEUS_NAMESPACE         ?= monitoring
 PROMETHEUS_ADAPTER_VERSION   ?= 2.5.0
@@ -1567,7 +1569,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245"
+KIND_IMAGE     ?= "kindest/node:v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1678,15 +1680,18 @@ $(TOOLS_BIN)/minikube:
 ifeq (Darwin, $(UNAME_S))
 ifeq (x86_64, $(UNAME_M))
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-amd64
+	mkdir -p $(TOOLS_BIN) || true
 	install minikube-darwin-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-darwin-amd64
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-darwin-arm64
+	mkdir -p $(TOOLS_BIN) || true
 	install minikube-darwin-arm64 $(TOOLS_BIN)/minikube
 	rm minikube-darwin-arm64
 endif
 else
 	curl -LOs https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-linux-amd64
+	mkdir -p $(TOOLS_BIN) || true
 	install minikube-linux-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-linux-amd64
 endif
@@ -1843,14 +1848,14 @@ controller-gen: $(TOOLS_BIN)/controller-gen ## Download controller-gen locally i
 
 $(TOOLS_BIN)/controller-gen:
 	@echo "Downloading controller-gen"
-	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0
+	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
 	ls -al $(TOOLS_BIN)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-KUSTOMIZE_VERSION ?= v3.8.7
+KUSTOMIZE_VERSION ?= v5.4.2
 
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
@@ -2024,7 +2029,11 @@ push-release-images: push-operator-image tanzu-repo
 get-prometheus: $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt ## Download Prometheus Operator kube-prometheus
 
 $(PROMETHEUS_HOME)/$(PROMETHEUS_VERSION).txt: $(BUILD_PROPS)
+ifeq (main, $(PROMETHEUS_VERSION))
+	curl -sL  https://github.com/prometheus-operator/kube-prometheus/archive/main.tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+else
 	curl -sL https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/$(PROMETHEUS_VERSION).tar.gz -o $(BUILD_OUTPUT)/prometheus.tar.gz  --header $(GH_AUTH)
+endif
 	mkdir -p $(PROMETHEUS_HOME)
 	tar -zxf $(BUILD_OUTPUT)/prometheus.tar.gz --directory $(PROMETHEUS_HOME) --strip-components=1
 	rm $(BUILD_OUTPUT)/prometheus.tar.gz
