@@ -2610,13 +2610,13 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>metricRelabelings</code></td>
 <td class="">MetricRelabelings to apply to samples before ingestion. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
-<td class=""><code>[]&#42;monitoringv1.RelabelConfig</code></td>
+<td class=""><code>[]monitoringv1.RelabelConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>relabelings</code></td>
 <td class="">Relabelings to apply to samples before scraping. More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
-<td class=""><code>[]&#42;monitoringv1.RelabelConfig</code></td>
+<td class=""><code>[]monitoringv1.RelabelConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
