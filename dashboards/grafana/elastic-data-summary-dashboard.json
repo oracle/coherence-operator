@@ -16,8 +16,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 21,
-  "iteration": 1715656073465,
+  "id": 8,
   "links": [
     {
       "icon": "dashboard",
@@ -53,10 +52,15 @@
       "id": 2,
       "links": [],
       "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
         "content": "<center><h3>Elastic Data Summary - $ClusterName</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
@@ -118,13 +122,16 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
+          "datasource": "prometheus",
+          "editorMode": "code",
           "expr": "sum(coherence_journal_file_count{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -189,7 +196,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "expr": "sum(coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\",name=~\"RamJournalRM\"})",
@@ -261,7 +268,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "expr": "sum(coherence_journal_file_count{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"})",
@@ -332,7 +339,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "targets": [
         {
           "expr": "sum(coherence_journal_total_data_size{cluster=\"${ClusterName:raw}\",name=~\"FlashJournalRM\"})",
@@ -353,6 +360,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -414,7 +423,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -443,6 +453,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -504,7 +516,8 @@
             "lastNotNull"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -533,6 +546,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -545,7 +560,7 @@
               "viz": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -564,6 +579,7 @@
           "links": [],
           "mappings": [],
           "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -596,7 +612,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -635,6 +652,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -666,6 +685,7 @@
           "links": [],
           "mappings": [],
           "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -698,7 +718,8 @@
             "max"
           ],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -731,7 +752,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
@@ -740,7 +761,9 @@
     "list": [
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "ClusterA",
+          "value": "ClusterA"
         },
         "datasource": "prometheus",
         "definition": "",
@@ -765,7 +788,9 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "14.1.1.2206.8",
+          "value": "14.1.1.2206.8"
         },
         "datasource": "prometheus",
         "definition": "",
@@ -822,6 +847,6 @@
   "timezone": "",
   "title": "Coherence Elastic Data Summary Dashboard",
   "uid": "coh-elastic-data-summary",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }

@@ -15,7 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 18,
+  "id": 25,
   "links": [
     {
       "icon": "dashboard",
@@ -76,7 +76,7 @@
             },
             "inspect": false
           },
-          "decimals": 2,
+          "decimals": 0,
           "displayName": "",
           "mappings": [],
           "thresholds": {
@@ -1127,9 +1127,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

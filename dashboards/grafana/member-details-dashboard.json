@@ -30,7 +30,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 14,
+  "id": 25,
   "links": [
     {
       "icon": "dashboard",
@@ -372,6 +372,9 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -380,8 +383,8 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "showUnfilled": true,
+        "valueMode": "color"
       },
       "pluginVersion": "10.0.13",
       "targets": [
@@ -395,7 +398,7 @@
         }
       ],
       "title": "Publisher Success",
-      "type": "gauge"
+      "type": "bargauge"
     },
     {
       "datasource": "prometheus",
@@ -448,6 +451,9 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -456,8 +462,8 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "showUnfilled": true,
+        "valueMode": "color"
       },
       "pluginVersion": "10.0.13",
       "targets": [
@@ -471,7 +477,7 @@
         }
       ],
       "title": "Receiver Success",
-      "type": "gauge"
+      "type": "bargauge"
     },
     {
       "datasource": "prometheus",
@@ -1766,8 +1772,8 @@
       {
         "current": {
           "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
+          "text": "ClusterA",
+          "value": "ClusterA"
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1793,8 +1799,8 @@
       {
         "current": {
           "selected": false,
-          "text": "storage1",
-          "value": "storage1"
+          "text": "storage-0",
+          "value": "storage-0"
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1853,6 +1859,6 @@
   "timezone": "",
   "title": "Coherence Member Details Dashboard",
   "uid": "coh-member-details",
-  "version": 3,
+  "version": 2,
   "weekStart": ""
 }

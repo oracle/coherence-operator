@@ -45,7 +45,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 21,
+  "id": 1,
   "links": [
     {
       "asDropdown": true,
@@ -3633,9 +3633,8 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "isNone": true,
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -3648,64 +3647,6 @@
         "query": {
           "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": "prometheus",
-        "definition": "",
-        "hide": 2,
-        "includeAll": true,
-        "label": "Services",
-        "multi": false,
-        "name": "Services",
-        "options": [],
-        "query": {
-          "query": "label_values(coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
-          "refId": "prometheus-Services-Variable-Query"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
-        "datasource": "prometheus",
-        "definition": "",
-        "hide": 2,
-        "includeAll": true,
-        "label": "Caches",
-        "multi": true,
-        "name": "Caches",
-        "options": [],
-        "query": {
-          "query": "label_values(coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
-          "refId": "prometheus-Caches-Variable-Query"
         },
         "refresh": 1,
         "regex": "",
@@ -3792,6 +3733,6 @@
   "timezone": "",
   "title": "Coherence Dashboard Main",
   "uid": "coh-main",
-  "version": 21,
+  "version": 1,
   "weekStart": ""
 }

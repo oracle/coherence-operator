@@ -15,7 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 12,
+  "id": 23,
   "links": [
     {
       "icon": "dashboard",
@@ -86,7 +86,7 @@
             },
             "inspect": false
           },
-          "decimals": 2,
+          "decimals": 0,
           "displayName": "",
           "mappings": [],
           "thresholds": {
@@ -635,6 +635,18 @@
                 "id": "custom.align"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
           }
         ]
       },
@@ -1076,9 +1088,7 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "cache-store",
-          "value": "cache-store"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1130,9 +1140,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "DistributedCache",
-          "value": "DistributedCache"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_connection_manager_total_messages_sent{cluster=\"${ClusterName:raw}\"}, name)",
@@ -1189,6 +1197,6 @@
   "timezone": "",
   "title": "Coherence Proxy Server Detail Dashboard",
   "uid": "coh-proxy-server-detail",
-  "version": 5,
+  "version": 1,
   "weekStart": ""
 }
