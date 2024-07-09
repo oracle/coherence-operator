@@ -102,6 +102,8 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	err = crdv1.AddToScheme(mgr.Scheme)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	viper.GetViper().Set(operator.FlagJobCRD, true)
+
 	oldCRDs := make(map[string]*crdv1.CustomResourceDefinition)
 	oldCRDs["coherence.coherence.oracle.com"] = nil
 	oldCRDs["coherencejob.coherence.oracle.com"] = nil
@@ -125,6 +127,47 @@ func TestShouldUpdateV1CRDs(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(len(crdList.Items)).To(Equal(2))
+
+	for _, crd := range crdList.Items {
+		oldCRD := oldCRDs[crd.Name]
+		g.Expect(crd).NotTo(Equal(oldCRD))
+		g.Expect(crd.GetResourceVersion()).To(Equal(oldCRD.GetResourceVersion()))
+	}
+}
+
+func TestShouldNotUpdateJobCRDWhenFlagIsFalse(t *testing.T) {
+	var err error
+
+	g := NewGomegaWithT(t)
+	mgr, err := fakes.NewFakeManager()
+	g.Expect(err).NotTo(HaveOccurred())
+	err = crdv1.AddToScheme(mgr.Scheme)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	viper.GetViper().Set(operator.FlagJobCRD, false)
+
+	oldCRDs := make(map[string]*crdv1.CustomResourceDefinition)
+	oldCRDs["coherence.coherence.oracle.com"] = nil
+
+	for name := range oldCRDs {
+		crd := crdv1.CustomResourceDefinition{}
+		crd.SetName(name)
+		crd.SetResourceVersion("1")
+		oldCRDs[name] = &crd
+		_ = mgr.GetClient().Create(context.TODO(), &crd)
+	}
+
+	ctx := context.TODO()
+	log := logr.New(fakes.TestLogSink{T: t})
+
+	err = v1.EnsureV1CRDs(ctx, log, mgr.Scheme, mgr.Client)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	crdList := crdv1.CustomResourceDefinitionList{}
+	err = mgr.Client.List(ctx, &crdList)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(len(crdList.Items)).To(Equal(1))
 
 	for _, crd := range crdList.Items {
 		oldCRD := oldCRDs[crd.Name]
