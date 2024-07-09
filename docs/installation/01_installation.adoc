@@ -28,6 +28,7 @@ easily be installed into a Kubernetes cluster.
 *** <<helm-sec-context,Install the Operator with a Security Context>>
 *** <<helm-labels,Set Additional Labels>>
 *** <<helm-annotations,Set Additional Annotations>>
+*** <<helm-job,CoherenceJob CRD Support>>
 *** <<helm-uninstall,Uninstall the Coherence Operator Helm chart>>
 ** <<kubectl,Kubectl with Kustomize>>
 ** <<tanzu,VMWare Tanzu Package (kapp-controller)>>
@@ -637,6 +638,24 @@ deploymentAnnotations:
   two: value-two
 ----
 
+[#helm-job]
+=== CoherenceJob CRD Support
+
+By default, the Operator will install both CRDs, `Coherence` and `CoherenceJob`.
+If support for `CoherenceJob` is not required then it can be excluded from being installed setting the
+Operator command line parameter `--install-job-crd` to `false`.
+
+When installing with Helm, the `allowCoherenceJobs` value can be set to `false` to disable support for `CoherenceJob`
+resources (the default value is `true`).
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set allowCoherenceJobs=false \
+    coherence \
+    coherence/coherence-operator
+----
 
 [#helm-uninstall]
 === Uninstall the Coherence Operator Helm chart
