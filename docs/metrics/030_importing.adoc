@@ -82,7 +82,7 @@ NOTE: The `grafana-import.sh` script requires the https://stedolan.github.io/jq/
 The commands below will download and run the shell script to import the dashboards.
 Change the `<GRAFANA-USER>` and `<GRAFANA_PWD>` to the Grafana credentials for your environment.
 For example if using the default Prometheus Operator installation they are as specified on the
-https://prometheus-operator.dev/docs/prologue/quick-start/#access-grafana[Access Grafana section of the Quick Start] page.
+https://prometheus-operator.dev/docs/getting-started/quick-start/#access-grafana[Access Grafana section of the Quick Start] page.
 We do not document the credentials here as the default values have been known to change between Prometheus Operator and Grafana versions.
 
 [source,bash]
