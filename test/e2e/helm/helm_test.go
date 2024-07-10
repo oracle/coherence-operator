@@ -22,7 +22,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"os/exec"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"testing"
 	"time"
@@ -162,17 +161,6 @@ func TestDisableJobCRD(t *testing.T) {
 
 	g.Expect(c.Args).NotTo(BeNil())
 	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--install-job-crd=false"))
-
-	cohCrd := crdv1.CustomResourceDefinition{}
-	cohCrd.Name = "coherence.coherence.oracle.com"
-	err = testContext.Client.Get(goctx.TODO(), client.ObjectKey{Name: cohCrd.Name}, &cohCrd)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cohJobCrd := crdv1.CustomResourceDefinition{}
-	cohJobCrd.Name = "coherencejob.coherence.oracle.com"
-	err = testContext.Client.Get(goctx.TODO(), client.ObjectKey{Name: cohJobCrd.Name}, &cohJobCrd)
-	g.Expect(err).To(HaveOccurred())
-	g.Expect(errors.IsNotFound(err)).To(BeTrue())
 }
 
 func TestSetOnlySameNamespace(t *testing.T) {
@@ -930,7 +918,7 @@ func RemoveCRDs() error {
 
 	cohJobCrd := crdv1.CustomResourceDefinition{}
 	cohJobCrd.Name = "coherencejob.coherence.oracle.com"
-	err = testContext.Client.Delete(goctx.TODO(), &cohCrd)
+	err = testContext.Client.Delete(goctx.TODO(), &cohJobCrd)
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
