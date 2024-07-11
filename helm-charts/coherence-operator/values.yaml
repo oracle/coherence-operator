@@ -1,4 +1,4 @@
-# Copyright 2020, 2023, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2024, Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -205,3 +205,8 @@ nodeRoles: false
 # cluster, that may cause errors when the Operator tries to reconcile them, or worse the Operator may create
 # other invalid Kubernetes resources that fail to run.
 webhooks: true
+
+# If set to false, the Operator will not support the CoherenceJob resource type.
+# The CoherenceJob CRD will not be installed by the Operator and the Operator will
+# not listen for any CoherenceJob resource events.
+allowCoherenceJobs: true

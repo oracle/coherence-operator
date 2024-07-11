@@ -53,6 +53,7 @@ const (
 	FlagCertIssuer            = "cert-issuer"
 	FlagCoherenceImage        = "coherence-image"
 	FlagCRD                   = "install-crd"
+	FlagJobCRD                = "install-job-crd"
 	FlagDevMode               = "coherence-dev-mode"
 	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"
@@ -164,7 +165,12 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().Bool(
 		FlagCRD,
 		true,
-		"Enables automatic installation/update of Coherence CRDs",
+		"Enables automatic installation/update of all Coherence CRDs",
+	)
+	cmd.Flags().Bool(
+		FlagJobCRD,
+		true,
+		"Enables automatic installation/update of CoherenceJob CRD",
 	)
 	cmd.Flags().Bool(
 		FlagEnableWebhook,
@@ -342,6 +348,10 @@ func GetRackLabel() []string {
 
 func ShouldInstallCRDs() bool {
 	return GetViper().GetBool(FlagCRD) && !IsDryRun()
+}
+
+func ShouldInstallJobCRD() bool {
+	return GetViper().GetBool(FlagJobCRD)
 }
 
 func ShouldEnableWebhooks() bool {

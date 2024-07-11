@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper/matchers"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -139,6 +140,27 @@ func TestDisableWebhooks(t *testing.T) {
 
 	g.Expect(c.Args).NotTo(BeNil())
 	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--enable-webhook=false"))
+}
+
+func TestDisableJobCRD(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	err := RemoveCRDs()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	result, err := helmInstall("--set", "allowCoherenceJobs=false")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c := findContainer("manager", dep)
+	g.Expect(c).NotTo(BeNil())
+
+	g.Expect(c.Args).NotTo(BeNil())
+	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--install-job-crd=false"))
 }
 
 func TestSetOnlySameNamespace(t *testing.T) {
@@ -878,6 +900,25 @@ func RemoveWebHook() error {
 	}
 
 	err = client.ValidatingWebhookConfigurations().Delete(goctx.TODO(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
+	return nil
+}
+
+// Remove the CRDs that the Operator install creates.
+func RemoveCRDs() error {
+	cohCrd := crdv1.CustomResourceDefinition{}
+	cohCrd.Name = "coherence.coherence.oracle.com"
+	err := testContext.Client.Delete(goctx.TODO(), &cohCrd)
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
+	cohJobCrd := crdv1.CustomResourceDefinition{}
+	cohJobCrd.Name = "coherencejob.coherence.oracle.com"
+	err = testContext.Client.Delete(goctx.TODO(), &cohJobCrd)
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}

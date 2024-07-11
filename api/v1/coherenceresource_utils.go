@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,6 +12,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/pkg/data"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	"io"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -39,7 +40,10 @@ func EnsureV1CRDs(ctx context.Context, logger logr.Logger, scheme *runtime.Schem
 	if err != nil {
 		return err
 	}
-	return ensureV1CRDs(ctx, logger, scheme, cl, "apiextensions.k8s.io_v1_customresourcedefinition_coherencejob.coherence.oracle.com.yaml")
+	if operator.ShouldInstallJobCRD() {
+		return ensureV1CRDs(ctx, logger, scheme, cl, "apiextensions.k8s.io_v1_customresourcedefinition_coherencejob.coherence.oracle.com.yaml")
+	}
+	return nil
 }
 
 // ensureV1CRDs ensures that the specified V1 CRDs are loaded using the specified embedded CRD files

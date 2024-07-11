@@ -152,12 +152,14 @@ func execute() error {
 	}
 
 	// Set up the CoherenceJob reconciler
-	if err = (&controllers.CoherenceJobReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		return errors.Wrap(err, "unable to create CoherenceJob controller")
+	if operator.ShouldInstallJobCRD() {
+		if err = (&controllers.CoherenceJobReconciler{
+			Client: mgr.GetClient(),
+			Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
+			Scheme: mgr.GetScheme(),
+		}).SetupWithManager(mgr); err != nil {
+			return errors.Wrap(err, "unable to create CoherenceJob controller")
+		}
 	}
 
 	dryRun := operator.IsDryRun()
