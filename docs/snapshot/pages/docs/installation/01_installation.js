@@ -75,6 +75,10 @@ easily be installed into a Kubernetes cluster.</p>
 
 </li>
 <li>
+<p><router-link to="#helm-job" @click.native="this.scrollFix('#helm-job')">CoherenceJob CRD Support</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#helm-uninstall" @click.native="this.scrollFix('#helm-uninstall')">Uninstall the Coherence Operator Helm chart</router-link></p>
 
 </li>
@@ -770,6 +774,26 @@ title="add-annotations-values.yaml"
   two: value-two</markup>
 
 </div>
+</div>
+
+<h3 id="helm-job">CoherenceJob CRD Support</h3>
+<div class="section">
+<p>By default, the Operator will install both CRDs, <code>Coherence</code> and <code>CoherenceJob</code>.
+If support for <code>CoherenceJob</code> is not required then it can be excluded from being installed setting the
+Operator command line parameter <code>--install-job-crd</code> to <code>false</code>.</p>
+
+<p>When installing with Helm, the <code>allowCoherenceJobs</code> value can be set to <code>false</code> to disable support for <code>CoherenceJob</code>
+resources (the default value is <code>true</code>).</p>
+
+<markup
+lang="bash"
+
+>helm install  \
+    --namespace &lt;namespace&gt; \
+    --set allowCoherenceJobs=false \
+    coherence \
+    coherence/coherence-operator</markup>
+
 </div>
 
 <h3 id="helm-uninstall">Uninstall the Coherence Operator Helm chart</h3>
