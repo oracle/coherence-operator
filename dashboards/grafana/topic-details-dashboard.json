@@ -123,7 +123,7 @@
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"})",
+          "expr": "sum(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -183,7 +183,7 @@
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(count(\ncoherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id))",
+          "expr": "count(count(\ncoherence_paged_topic_subscriber_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id))",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -243,7 +243,7 @@
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(count(\ncoherence_paged_topic_subscriber_group_polled_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (name))",
+          "expr": "count(count(\ncoherence_paged_topic_subscriber_group_polled_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (name))",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -302,7 +302,7 @@
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"})",
+          "expr": "sum(coherence_paged_topic_subscriber_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -365,7 +365,7 @@
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(\ncoherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName\"})",
+          "expr": "sum(\ncoherence_paged_topic_subscriber_receive_errors{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -428,7 +428,7 @@
           "datasource": "prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(\ncoherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"})",
+          "expr": "sum(\ncoherence_paged_topic_subscriber_receive_errors{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"})",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -517,7 +517,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"}) - sum (coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"} offset $__interval) > 0\n",
+          "expr": "sum(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"}) - sum (coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"} offset $__interval) > 0\n",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -609,7 +609,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) - sum (coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) - sum (coherence_paged_topic_subscriber_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -986,7 +986,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_received_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member, group)",
+          "expr": "sum(coherence_paged_topic_subscriber_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member, group)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -995,7 +995,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_backlog{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member, group)",
+          "expr": "sum(coherence_paged_topic_subscriber_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member, group)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1005,7 +1005,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_receive_errors{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
+          "expr": "sum(coherence_paged_topic_subscriber_receive_errors{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1015,7 +1015,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_disconnections{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
+          "expr": "sum(coherence_paged_topic_subscriber_disconnections{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1025,7 +1025,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_sub_type_code{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
+          "expr": "sum(coherence_paged_topic_subscriber_sub_type_code{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (id, member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1316,7 +1316,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_group_polled_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (name, member, node_id) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_group_polled_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\"}) by (name, member, node_id) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1325,7 +1325,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"mean\"}) by (name, member, node_id) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"mean\"}) by (name, member, node_id) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1335,7 +1335,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"1min\"}) by (name, member, node_id) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"1min\"}) by (name, member, node_id) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1345,7 +1345,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"5min\"}) by (name, member, node_id) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"5min\"}) by (name, member, node_id) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1355,7 +1355,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"15min\"}) by (name, member, node_id) > 0",
+          "expr": "sum(coherence_paged_topic_subscriber_group_polled_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", topic=\"${TopicName}\",rate=\"15min\"}) by (name, member, node_id) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1612,7 +1612,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"}) by (node_id, member) > 0",
+          "expr": "sum(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\"}) by (node_id, member) > 0",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1621,7 +1621,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_published_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"mean\"}) by (node_id, member) > 0",
+          "expr": "sum(coherence_paged_topic_published_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"mean\"}) by (node_id, member) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1631,7 +1631,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_published_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"1min\"}) by (node_id, member) > 0",
+          "expr": "sum(coherence_paged_topic_published_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"1min\"}) by (node_id, member) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1641,7 +1641,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_published_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"5min\"}) by (node_id, member) > 0",
+          "expr": "sum(coherence_paged_topic_published_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"5min\"}) by (node_id, member) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1651,7 +1651,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_paged_topic_published_rate{cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"15min\"}) by (node_id, member) > 0",
+          "expr": "sum(coherence_paged_topic_published_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service=\"${ServiceName}\", name=\"${TopicName}\",rate=\"15min\"}) by (node_id, member) > 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1682,6 +1682,27 @@
     "list": [
       {
         "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
           "selected": false,
           "text": "cache-store",
           "value": "cache-store"
@@ -1695,7 +1716,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1714,7 +1735,7 @@
           "value": "DistributedCache"
         },
         "datasource": "prometheus",
-        "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
+        "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, coherence_service)",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
@@ -1722,7 +1743,7 @@
         "name": "ServiceName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\"}, coherence_service)",
+          "query": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, coherence_service)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -1742,7 +1763,7 @@
           "value": ""
         },
         "datasource": "prometheus",
-        "definition": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+        "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
         "hide": 0,
         "includeAll": false,
         "label": "Topic Name",
@@ -1750,7 +1771,7 @@
         "name": "TopicName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_paged_topic_published_count{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+          "query": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,

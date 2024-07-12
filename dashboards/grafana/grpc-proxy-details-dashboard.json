@@ -1028,6 +1028,27 @@
     "list": [
       {
         "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
           "selected": false,
           "text": "main-grpc",
           "value": "main-grpc"
@@ -1041,7 +1062,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1055,9 +1076,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1068,7 +1087,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -1087,7 +1106,7 @@
           "value": "storage-0"
         },
         "datasource": "prometheus",
-        "definition": "label_values(coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, member)",
+        "definition": "label_values(coherence_service_member_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, member)",
         "hide": 0,
         "includeAll": false,
         "label": "Member Name",
@@ -1095,7 +1114,7 @@
         "name": "MemberName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, member)",
+          "query": "label_values(coherence_service_member_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, member)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,

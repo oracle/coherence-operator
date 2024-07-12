@@ -324,7 +324,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(coherence_executor_state_code{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) by (machine, member, member_id, name)",
+          "expr": "avg(coherence_executor_state_code{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) by (machine, member, member_id, name)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -429,7 +429,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(coherence_executor_tasks_in_progress_count{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"})",
+          "expr": "sum(coherence_executor_tasks_in_progress_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -524,7 +524,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) - sum(coherence_executor_tasks_completed_count{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"} offset $__interval) > 0",
+          "expr": "sum(coherence_executor_tasks_completed_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) - sum(coherence_executor_tasks_completed_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -532,7 +532,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) -sum(cohence_executor_tasks_rejected_count{cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"} offset $__interval) > 0",
+          "expr": "sum(coherence_executor_tasks_rejected_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"}) -sum(coherence_executor_tasks_rejected_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$ExecutorName\"} offset $__interval) > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -554,6 +554,27 @@
     "list": [
       {
         "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
           "selected": false,
           "text": "my-cluster",
           "value": "my-cluster"
@@ -567,7 +588,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -594,7 +615,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -613,7 +634,7 @@
           "value": "coherence-concurrent-default-executor"
         },
         "datasource": "prometheus",
-        "definition": "label_values(coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}, name)",
+        "definition": "label_values(coherence_executor_state_code{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
         "hide": 0,
         "includeAll": false,
         "label": "Executor Name",
@@ -621,7 +642,7 @@
         "name": "ExecutorName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_executor_state_code{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_executor_state_code{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-ExecutorName-Variable-Query"
         },
         "refresh": 1,

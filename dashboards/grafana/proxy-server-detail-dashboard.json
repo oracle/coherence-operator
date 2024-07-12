@@ -406,7 +406,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_connection_manager_connection_count{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
+          "expr": "sum(coherence_connection_manager_connection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -414,7 +414,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(coherence_connection_manager_total_messages_received{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
+          "expr": "sum(coherence_connection_manager_total_messages_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -422,7 +422,7 @@
           "refId": "F"
         },
         {
-          "expr": "sum(coherence_connection_manager_total_messages_sent{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
+          "expr": "sum(coherence_connection_manager_total_messages_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -430,7 +430,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(coherence_connection_manager_total_bytes_received {cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
+          "expr": "sum(coherence_connection_manager_total_bytes_received {namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -438,7 +438,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_connection_manager_total_bytes_sent{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host)",
+          "expr": "sum(coherence_connection_manager_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -446,7 +446,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(coherence_connection_manager_outgoing_byte_backlog{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host)",
+          "expr": "sum(coherence_connection_manager_outgoing_byte_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -454,7 +454,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_connection_manager_unauthorized_connection_attempts{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
+          "expr": "sum(coherence_connection_manager_unauthorized_connection_attempts{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (member, host_url)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -673,7 +673,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(coherence_connection_connection_time_millis{cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (remote_address, remote_port, member, node_id)",
+          "expr": "avg(coherence_connection_connection_time_millis{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name='$ServiceName'}) by (remote_address, remote_port, member, node_id)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -776,7 +776,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "coherence_connection_manager_outgoing_byte_backlog{cluster=\"${ClusterName:raw}\", name='$ServiceName', protocol=~\"tcp\"} > 0",
+          "expr": "coherence_connection_manager_outgoing_byte_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\", name='$ServiceName', protocol=~\"tcp\"} > 0",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -870,7 +870,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "coherence_connection_manager_outgoing_message_backlog{cluster=\"${ClusterName:raw}\", name='$ServiceName'} > 0",
+          "expr": "coherence_connection_manager_outgoing_message_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\", name='$ServiceName'} > 0",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{member}}",
@@ -967,7 +967,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "coherence_connection_manager_total_bytes_sent{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\", name='$ServiceName'} - coherence_connection_manager_total_bytes_sent{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\", name='$ServiceName'} offset $__interval > 0",
+          "expr": "coherence_connection_manager_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\", name='$ServiceName'} - coherence_connection_manager_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\", name='$ServiceName'} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1065,7 +1065,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "coherence_connection_manager_total_bytes_received{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}  - coherence_connection_manager_total_bytes_received{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_total_bytes_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}  - coherence_connection_manager_total_bytes_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1088,6 +1088,27 @@
     "list": [
       {
         "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
           "selected": false
         },
         "datasource": "prometheus",
@@ -1099,7 +1120,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1126,7 +1147,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -1143,7 +1164,7 @@
           "selected": false
         },
         "datasource": "prometheus",
-        "definition": "label_values(coherence_connection_manager_total_messages_sent{cluster=\"${ClusterName:raw}\"}, name)",
+        "definition": "label_values(coherence_connection_manager_total_messages_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
@@ -1151,7 +1172,7 @@
         "name": "ServiceName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_connection_manager_total_messages_sent{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_connection_manager_total_messages_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-ServiceName-Variable-Query"
         },
         "refresh": 1,

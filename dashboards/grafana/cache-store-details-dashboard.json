@@ -137,7 +137,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_cache_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
+          "expr": "sum(coherence_cache_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -210,7 +210,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_cache_queue_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"}) ",
+          "expr": "sum(coherence_cache_queue_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"}) ",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -283,7 +283,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
+          "expr": "sum(coherence_cache_store_writes{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -356,7 +356,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "avg(coherence_cache_store_average_batch_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
+          "expr": "avg(coherence_cache_store_average_batch_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -429,7 +429,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_cache_store_failures{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
+          "expr": "sum(coherence_cache_store_failures{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',cache=\"$CacheName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -502,7 +502,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
+          "expr": "sum(coherence_cache_store_reads{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',name=\"$CacheName\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -594,7 +594,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) - \nsum(coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"} offset $__interval) > 0",
+          "expr": "sum(coherence_cache_store_writes{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) - \nsum(coherence_cache_store_writes{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -683,7 +683,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) - \nsum(coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"} offset $__interval) > 0",
+          "expr": "sum(coherence_cache_store_reads{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"}) - \nsum(coherence_cache_store_reads{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1024,7 +1024,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_queue_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_queue_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -1034,7 +1034,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_writes{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1045,7 +1045,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_average_batch_size{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_average_batch_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1056,7 +1056,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_write_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_write_millis{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1067,7 +1067,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_write_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n coherence_cache_store_writes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_write_millis{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n coherence_cache_store_writes{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1078,7 +1078,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_reads{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1089,7 +1089,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_read_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_read_millis{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1100,7 +1100,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_cache_store_read_millis{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n  coherence_cache_store_reads{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
+          "expr": "avg(coherence_cache_store_read_millis{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"} / \n  coherence_cache_store_reads{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName', name=\"$CacheName\", tier=\"back\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1131,9 +1131,28 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "cache-store",
-          "value": "cache-store"
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1144,7 +1163,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1158,9 +1177,7 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": "DistributedCache",
-          "value": "DistributedCache"
+          "selected": true
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1171,7 +1188,7 @@
         "name": "ServiceName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_service_member_count{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_service_member_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-ServiceName-Variable-Query"
         },
         "refresh": 1,
@@ -1185,9 +1202,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "test",
-          "value": "test"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1198,7 +1213,7 @@
         "name": "CacheName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cache_units_bytes{cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
+          "query": "label_values(coherence_cache_units_bytes{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
           "refId": "prometheus-CacheName-Variable-Query"
         },
         "refresh": 1,

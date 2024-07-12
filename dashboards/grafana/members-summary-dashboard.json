@@ -13,7 +13,7 @@
       {
         "datasource": "prometheus",
         "enable": true,
-        "expr": "changes(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}[1m])",
+        "expr": "changes(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}[1m])",
         "hide": false,
         "iconColor": "rgba(255, 96, 96, 1)",
         "limit": 100,
@@ -420,7 +420,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role)",
+          "expr": "sum(coherence_memory_heap_after_gc_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -428,7 +428,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(coherence_memory_heap_memory_usage_max{cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role)",
+          "expr": "sum(coherence_memory_heap_memory_usage_max{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -436,7 +436,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role) / sum(coherence_memory_heap_memory_usage_max{cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role)  ",
+          "expr": "sum(coherence_memory_heap_after_gc_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role) / sum(coherence_memory_heap_memory_usage_max{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member, nodeId, site, machine, role)  ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -582,7 +582,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(delta(coherence_gc_collection_time{cluster=\"${ClusterName:raw}\"}[$__range])) by (member))",
+          "expr": "topk($TopLimit, sum(delta(coherence_gc_collection_time{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}[$__range])) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -729,7 +729,7 @@
       "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "topk($TopLimit, sum(delta(coherence_gc_collection_count{cluster=\"${ClusterName:raw}\"}[$__range] )) by (member))",
+          "expr": "topk($TopLimit, sum(delta(coherence_gc_collection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}[$__range] )) by (member))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -834,7 +834,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "avg(coherence_os_process_cpu_load{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "avg(coherence_os_process_cpu_load{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -933,7 +933,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_os_system_cpu_load{cluster=\"${ClusterName:raw}\"}) by (machine)",
+          "expr": "avg(coherence_os_system_cpu_load{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (machine)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1028,7 +1028,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=\"${ClusterName:raw}\"}) by (member) / sum(coherence_memory_heap_memory_usage_max{cluster=\"${ClusterName:raw}\"}) by (member) * 100",
+          "expr": "sum(coherence_memory_heap_after_gc_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member) / sum(coherence_memory_heap_memory_usage_max{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1121,7 +1121,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(coherence_memory_heap_after_gc_used{cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_memory_heap_after_gc_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1216,7 +1216,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "coherence_gc_collection_count{cluster=\"${ClusterName:raw}\"} - coherence_gc_collection_count{cluster=\"${ClusterName:raw}\"} offset  $__interval > 0",
+          "expr": "coherence_gc_collection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_gc_collection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset  $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1311,7 +1311,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "coherence_gc_collection_time{cluster=\"${ClusterName:raw}\"} - coherence_gc_collection_time{cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_gc_collection_time{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_gc_collection_time{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1405,7 +1405,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "coherence_node_publisher_success_rate{cluster=\"${ClusterName:raw}\"}",
+          "expr": "coherence_node_publisher_success_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1500,7 +1500,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "coherence_node_receiver_success_rate{cluster=\"${ClusterName:raw}\"}",
+          "expr": "coherence_node_receiver_success_rate{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1523,6 +1523,27 @@
     "list": [
       {
         "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
           "selected": false,
           "text": "topics-cluster",
           "value": "topics-cluster"
@@ -1536,7 +1557,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1563,7 +1584,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -1590,7 +1611,7 @@
         "name": "Services",
         "options": [],
         "query": {
-          "query": "label_values(coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_service_request_max_duration{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-Services-Variable-Query"
         },
         "refresh": 1,
@@ -1621,7 +1642,7 @@
         "name": "Caches",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
+          "query": "label_values(coherence_cache_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name) ",
           "refId": "prometheus-Caches-Variable-Query"
         },
         "refresh": 1,

@@ -268,7 +268,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\"}) by(name, persistence_mode)",
+          "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(name, persistence_mode)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -278,7 +278,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_service_persistence_backup_space_used{cluster=\"${ClusterName:raw}\"}) by(name, persistence_mode)",
+          "expr": "sum(coherence_service_persistence_backup_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(name, persistence_mode)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -289,7 +289,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "max(coherence_service_persistence_latency_max{cluster=\"${ClusterName:raw}\"}) by(name, persistence_mode)",
+          "expr": "max(coherence_service_persistence_latency_max{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(name, persistence_mode)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -524,7 +524,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\"}) by(member)",
+          "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(member)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -533,7 +533,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_service_persistence_backup_space_used{cluster=\"${ClusterName:raw}\"}) by(member)",
+          "expr": "sum(coherence_service_persistence_backup_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -929,7 +929,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -938,7 +938,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "avg(coherence_service_persistence_active_space_total{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "avg(coherence_service_persistence_active_space_total{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -947,7 +947,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "avg(coherence_service_persistence_active_space_available{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "avg(coherence_service_persistence_active_space_available{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -956,7 +956,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "avg(coherence_service_persistence_active_space_available{cluster=\"${ClusterName:raw}\"} / coherence_service_persistence_active_space_total{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "avg(coherence_service_persistence_active_space_available{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} / coherence_service_persistence_active_space_total{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -965,7 +965,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_service_persistence_backup_space_used{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "sum(coherence_service_persistence_backup_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -975,7 +975,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "avg(coherence_service_persistence_backup_space_total{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "avg(coherence_service_persistence_backup_space_total{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -985,7 +985,7 @@
         },
         {
           "datasource": "prometheus",
-          "expr": "avg(coherence_service_persistence_backup_space_available{cluster=\"${ClusterName:raw}\"} / coherence_service_persistence_backup_space_total{cluster=\"${ClusterName:raw}\"}) by(machine)",
+          "expr": "avg(coherence_service_persistence_backup_space_available{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} / coherence_service_persistence_backup_space_total{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by(machine)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1089,7 +1089,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Active Disk Space",
@@ -1099,7 +1099,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_service_persistence_backup_space_used{cluster=\"${ClusterName:raw}\"})",
+          "expr": "sum(coherence_service_persistence_backup_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -1193,7 +1193,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_service_persistence_active_space_used{cluster=\"${ClusterName:raw}\"}) by (name)",
+          "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1286,7 +1286,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_service_persistence_backup_space_used{cluster=\"${ClusterName:raw}\"}) by (name)",
+          "expr": "sum(coherence_service_persistence_backup_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1308,6 +1308,27 @@
     "list": [
       {
         "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
           "selected": false,
           "text": "mainp",
           "value": "mainp"
@@ -1321,7 +1342,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -1348,7 +1369,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -1375,7 +1396,7 @@
         "name": "Services",
         "options": [],
         "query": {
-          "query": "label_values(coherence_service_request_max_duration{cluster=\"${ClusterName:raw}\"}, name)",
+          "query": "label_values(coherence_service_request_max_duration{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",
           "refId": "prometheus-Services-Variable-Query"
         },
         "refresh": 1,
@@ -1406,7 +1427,7 @@
         "name": "Caches",
         "options": [],
         "query": {
-          "query": "label_values(coherence_cache_size{cluster=\"${ClusterName:raw}\"}, name) ",
+          "query": "label_values(coherence_cache_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name) ",
           "refId": "prometheus-Caches-Variable-Query"
         },
         "refresh": 1,
