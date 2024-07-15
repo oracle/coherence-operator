@@ -254,7 +254,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -543,7 +543,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1134,9 +1134,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

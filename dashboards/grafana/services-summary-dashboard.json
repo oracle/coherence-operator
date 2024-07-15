@@ -185,7 +185,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -420,7 +420,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -845,7 +845,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -1020,7 +1020,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -1195,7 +1195,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -1355,7 +1355,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[2]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[2]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[2]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -1411,7 +1411,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1572,7 +1572,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[2]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[2]}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -1628,7 +1628,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1740,9 +1740,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

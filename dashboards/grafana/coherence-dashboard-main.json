@@ -1331,7 +1331,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to machines summary",
-                    "url": "/d/coh-machines-summary?var-ClusterName=$ClusterName"
+                    "url": "/d/coh-machines-summary?$__all_variables"
                   }
                 ]
               },
@@ -1462,7 +1462,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1663,7 +1663,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1865,7 +1865,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -2040,7 +2040,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -2236,7 +2236,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -2746,7 +2746,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -2875,7 +2875,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -3069,7 +3069,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -3102,7 +3102,7 @@
                   {
                     "targetBlank": false,
                     "title": "",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -3135,7 +3135,7 @@
                   {
                     "targetBlank": false,
                     "title": "",
-                    "url": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=${__data.fields[1]:raw}&var-CacheName=${__data.fields[2]}&range=$__range"
+                    "url": "/d/coh-cache-details?var-ServiceName=${__data.fields[1]:raw}&var-CacheName=${__data.fields[2]}&range=$__range&$__all_variables"
                   }
                 ]
               },
@@ -3287,7 +3287,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -3320,7 +3320,7 @@
                   {
                     "targetBlank": false,
                     "title": "",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -3353,7 +3353,7 @@
                   {
                     "targetBlank": false,
                     "title": "",
-                    "url": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=${__data.fields[1]:raw}&var-CacheName=${__data.fields[2]}"
+                    "url": "/d/coh-cache-details?var-ServiceName=${__data.fields[1]:raw}&var-CacheName=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },

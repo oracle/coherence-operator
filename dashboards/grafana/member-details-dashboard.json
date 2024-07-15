@@ -551,7 +551,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -1792,9 +1792,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "ClusterA",
-          "value": "ClusterA"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1819,9 +1817,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "storage-0",
-          "value": "storage-0"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

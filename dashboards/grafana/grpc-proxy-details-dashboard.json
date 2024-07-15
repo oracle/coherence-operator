@@ -1049,9 +1049,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "main-grpc",
-          "value": "main-grpc"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1101,9 +1099,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "storage-0",
-          "value": "storage-0"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_service_member_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, member)",

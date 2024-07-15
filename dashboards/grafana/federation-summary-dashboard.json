@@ -188,7 +188,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to federation details for destination ${__data.fields[1]}",
-                    "url": "/d/coh-federation-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName&var-Destination=${__data.fields[2]}"
+                    "url": "/d/coh-federation-details?var-ServiceName=${__data.fields[1]:raw}&var-Destination=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -496,7 +496,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to federation details for origin ${__data.fields[1]}",
-                    "url": "/d/coh-federation-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName&var-Destination=${__data.fields[2]}"
+                    "url": "/d/coh-federation-details?var-ServiceName=${__data.fields[1]:raw}&var-Destination=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -1979,9 +1979,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "ClusterA",
-          "value": "ClusterA"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -2006,9 +2004,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "14.1.1.2206.8",
-          "value": "14.1.1.2206.8"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

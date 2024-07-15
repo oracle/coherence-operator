@@ -134,7 +134,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to cache details for ${__data.fields[1]}",
-                    "url": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=${__data.fields[1]:raw}&var-CacheName=${__data.fields[2]}"
+                    "url": "/d/coh-cache-details?var-ServiceName=${__data.fields[1]:raw}&var-CacheName=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -167,7 +167,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -467,7 +467,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[2]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[2]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -523,7 +523,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to cache details for ${__data.fields[1]}",
-                    "url": "/d/coh-cache-details?var-ClusterName=$ClusterName&var-ServiceName=${__data.fields[2]:raw}&var-CacheName=${__data.fields[1]}"
+                    "url": "/d/coh-cache-details?var-ServiceName=${__data.fields[2]:raw}&var-CacheName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },

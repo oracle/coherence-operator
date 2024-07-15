@@ -1323,7 +1323,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1631,7 +1631,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1907,7 +1907,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -2496,7 +2496,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for  ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },

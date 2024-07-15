@@ -694,7 +694,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[3]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[3]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[3]}&$__all_variables"
                   }
                 ]
               },
@@ -723,7 +723,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down for subscriber details for ${__data.fields[2]}",
-                    "url": " /d/coh-subscriber-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-Subscriber=${__data.fields[2]}"
+                    "url": " /d/coh-subscriber-details?var-Subscriber=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -910,7 +910,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down for subscriber group details for ${__data.fields[1]}",
-                    "url": "/d/coh-subscriber-group-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-SubscriberGroup=${__data.fields[1]}"
+                    "url": "/d/coh-subscriber-group-details?var-SubscriberGroup=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1118,7 +1118,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1170,7 +1170,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down for subscriber group details for ${__data.fields[2]}",
-                    "url": "/d/coh-subscriber-group-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-SubscriberGroup=${__data.fields[2]}"
+                    "url": "/d/coh-subscriber-group-details?var-SubscriberGroup=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -1447,7 +1447,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1703,9 +1703,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "cache-store",
-          "value": "cache-store"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1730,9 +1728,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "DistributedCache",
-          "value": "DistributedCache"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, coherence_service)",

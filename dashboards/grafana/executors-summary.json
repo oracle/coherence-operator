@@ -152,7 +152,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to executor details for ${__data.fields[1]}",
-                    "url": "/d/coh-executor-details?var-ExecutorName=${__data.fields[1]}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-executor-details?var-ExecutorName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -563,9 +563,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

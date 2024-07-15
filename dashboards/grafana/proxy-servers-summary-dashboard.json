@@ -157,7 +157,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -186,7 +186,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to Proxy Server Details for ${__data.fields[1]}",
-                    "url": "/d/coh-proxy-server-detail?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-proxy-server-detail?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -1075,9 +1075,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "ClusterA",
-          "value": "ClusterA"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1102,9 +1100,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "14.1.1.2206.8",
-          "value": "14.1.1.2206.8"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

@@ -284,7 +284,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[0]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[0]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[0]}&$__all_variables"
                   }
                 ]
               },
@@ -710,7 +710,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down for subscriber details for ${__data.fields[7]}",
-                    "url": "/d/coh-subscriber-details?var-ClusterName=$ClusterName&var-ServiceName=$ServiceName&var-TopicName=$TopicName&var-Subscriber=${__data.fields[7]}"
+                    "url": "/d/coh-subscriber-details?var-Subscriber=${__data.fields[7]}&$__all_variables"
                   }
                 ]
               },
@@ -872,9 +872,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -899,9 +897,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "PartitionedTopic",
-          "value": "PartitionedTopic"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, coherence_service)",
@@ -926,9 +922,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-messages",
-          "value": "sms-messages"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
@@ -953,9 +947,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-processor",
-          "value": "sms-processor"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_subscriber_group_channels_polled_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, name)",

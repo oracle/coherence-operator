@@ -142,7 +142,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to machines summary",
-                    "url": "/d/coh-machines-summary?var-ClusterName=$ClusterName"
+                    "url": "/d/coh-machines-summary?$__all_variables"
                   }
                 ]
               },
@@ -175,7 +175,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[2]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[2]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -602,9 +602,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -629,9 +627,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "coherence-concurrent-default-executor",
-          "value": "coherence-concurrent-default-executor"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_executor_state_code{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, name)",

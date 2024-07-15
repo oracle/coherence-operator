@@ -356,7 +356,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -579,8 +579,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to gRPC proxy details for  ${__data.fields[1]}",
-                    "url": "/d/coh-grpc-proxy-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "title": "Drill down to gRPC proxy details for ${__data.fields[1]}",
+                    "url": "/d/coh-grpc-proxy-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -1318,9 +1318,7 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": "main-grpc",
-          "value": "main-grpc"
+          "selected": true
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1345,9 +1343,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",

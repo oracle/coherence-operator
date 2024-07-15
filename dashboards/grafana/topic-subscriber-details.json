@@ -912,9 +912,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "topics-cluster",
-          "value": "topics-cluster"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -939,9 +937,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "PartitionedTopic",
-          "value": "PartitionedTopic"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, coherence_service)",
@@ -966,9 +962,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "sms-messages",
-          "value": "sms-messages"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_published_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName'}, name)",
@@ -993,9 +987,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "26623797699",
-          "value": "26623797699"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_paged_topic_subscriber_receive_completions{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",coherence_service='$ServiceName',topic=\"$TopicName\"}, id)",

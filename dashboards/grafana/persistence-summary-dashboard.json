@@ -15,7 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 11,
+  "id": 19,
   "links": [
     {
       "icon": "dashboard",
@@ -139,7 +139,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to service details for ${__data.fields[1]}",
-                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&var-ClusterName=$ClusterName"
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
                   }
                 ]
               },
@@ -424,7 +424,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to member details for ${__data.fields[1]}",
-                    "url": "/d/coh-member-details?var-ClusterName=$ClusterName&var-MemberName=${__data.fields[1]}"
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[1]}&$__all_variables"
                   }
                 ]
               },
@@ -760,7 +760,7 @@
                   {
                     "targetBlank": false,
                     "title": "Drill down to machines summary",
-                    "url": "/d/coh-machines-summary?var-ClusterName=$ClusterName"
+                    "url": "/d/coh-machines-summary?$__all_variables"
                   }
                 ]
               },
@@ -1044,6 +1044,7 @@
             }
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1112,7 +1113,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1809F7CD0C75ACF3"
+      },
       "description": "Shows the total active space used by service.",
       "fieldConfig": {
         "defaults": {
@@ -1150,6 +1154,7 @@
             }
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1193,11 +1198,13 @@
       "targets": [
         {
           "datasource": "prometheus",
+          "editorMode": "code",
           "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{name}}",
+          "range": true,
           "refId": "B"
         }
       ],
@@ -1243,6 +1250,7 @@
             }
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1308,6 +1316,9 @@
     "list": [
       {
         "current": {
+          "selected": false,
+          "text": "None",
+          "value": ""
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_cluster_size,namespace)",
@@ -1329,9 +1340,7 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "mainp",
-          "value": "mainp"
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1357,8 +1366,6 @@
       {
         "current": {
           "selected": false,
-          "text": "15.1.1.0.0 (dev-timmiddleton)",
-          "value": "15.1.1.0.0 (dev-timmiddleton)"
         },
         "datasource": "prometheus",
         "definition": "",
@@ -1410,7 +1417,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "All"
           ],
@@ -1516,6 +1523,6 @@
   "timezone": "",
   "title": "Coherence Persistence Summary Dashboard",
   "uid": "coh-persistence-summary",
-  "version": 7,
+  "version": 2,
   "weekStart": ""
 }
