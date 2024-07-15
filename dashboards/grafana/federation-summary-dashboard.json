@@ -85,7 +85,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<center><h3>Federation Summary - $ClusterName</h3></center>",
+        "content": "<center><h3>Federation Summary</h3></center>",
         "mode": "html"
       },
       "pluginVersion": "10.0.13",

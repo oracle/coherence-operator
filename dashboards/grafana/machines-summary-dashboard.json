@@ -70,7 +70,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<center><h3>Machines Summary - Version: $CoherenceVersion</h3></center>",
+        "content": "<center><h3>Machines Summary</h3></center>",
         "mode": "html"
       },
       "pluginVersion": "10.0.13",

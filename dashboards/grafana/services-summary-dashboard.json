@@ -85,7 +85,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<center><h3>Services Summary - Version: $CoherenceVersion</h3></center>",
+        "content": "<center><h3>Services Summary</h3></center>",
         "mode": "html"
       },
       "pluginVersion": "10.0.13",

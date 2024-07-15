@@ -57,7 +57,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<center><h3>Elastic Data Summary - $ClusterName</h3></center>",
+        "content": "<center><h3>Elastic Data Summary</h3></center>",
         "mode": "html"
       },
       "pluginVersion": "10.0.13",
