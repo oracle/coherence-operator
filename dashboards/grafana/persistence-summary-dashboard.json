@@ -1198,13 +1198,11 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "editorMode": "code",
           "expr": "sum(coherence_service_persistence_active_space_used{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (name)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{name}}",
-          "range": true,
           "refId": "B"
         }
       ],
@@ -1316,6 +1314,7 @@
     "list": [
       {
         "current": {
+          "isNone": true,
           "selected": false,
           "text": "None",
           "value": ""
@@ -1523,6 +1522,6 @@
   "timezone": "",
   "title": "Coherence Persistence Summary Dashboard",
   "uid": "coh-persistence-summary",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
