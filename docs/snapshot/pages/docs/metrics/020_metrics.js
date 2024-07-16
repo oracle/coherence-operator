@@ -42,8 +42,8 @@ metadata:
   name: metrics-cluster
 spec:
   env:
-    - name: COHERENCE_METRICS_LEGACY_NAMES
-      value: false
+    - name: "COHERENCE_METRICS_LEGACY_NAMES"
+      value: "false"
   coherence:
 ...</markup>
 
