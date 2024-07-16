@@ -2595,7 +2595,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": false
         },
         "datasource": "prometheus",
         "definition": "",
