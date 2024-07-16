@@ -28,6 +28,34 @@ endpoint is available at `http://host:port/metrics`.
 See the https://{commercial-docs-base-url}/manage/using-coherence-metrics.html[Using Coherence Metrics]
 documentation for full details on the available metrics.
 
+=== Important Note Regarding Prometheus Metrics Prefix
+
+From version 3.4.0 of the Coherence Operator, the packaged Grafana dashboards no longer use the **vendor:** prefix for querying Prometheus metrics.
+This prefix was deprecated a number of releases ago and the default, of legacy metrics, in Coherence and will be removed in the most recent
+Coherence releases after this Operator release.
+
+If you are using a Coherence cluster version you are using has not yet changed this property,
+you may see no metrics in the Grafana dashboards.
+
+To change your cluster to **not** use legacy names, set the environment variable `COHERENCE_METRICS_LEGACY_NAMES` to `false` in your yaml.
+
+[source,yaml]
+.metrics-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: metrics-cluster
+spec:
+  env:
+    - name: COHERENCE_METRICS_LEGACY_NAMES
+      value: false
+  coherence:
+...
+----
+
+has not set "coherence.metrics.legacy.names=false"
+
 === Deploy Coherence with Metrics Enabled
 
 To deploy a `Coherence` resource with metrics enabled and exposed on a port, the simplest yaml

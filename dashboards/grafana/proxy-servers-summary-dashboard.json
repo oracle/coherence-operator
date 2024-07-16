@@ -15,8 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 24,
-  "iteration": 1715654583379,
+  "id": 25,
   "links": [
     {
       "icon": "dashboard",
@@ -52,16 +51,334 @@
       "id": 37,
       "links": [],
       "options": {
-        "content": "<center><h3>Proxy Servers Summary - $ClusterName</h3></center>",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<center><h3>Proxy Servers Summary</h3></center>",
         "mode": "html"
       },
-      "pluginVersion": "8.5.27",
+      "pluginVersion": "10.0.13",
       "type": "text"
     },
     {
-      "columns": [],
       "datasource": "prometheus",
-      "fontSize": "100%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Member Count"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to service details for ${__data.fields[1]}",
+                    "url": "/d/coh-service-details?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Current Connections"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Drill down to Proxy Server Details for ${__data.fields[1]}",
+                    "url": "/d/coh-proxy-server-detail?var-ServiceName=${__data.fields[1]:raw}&$__all_variables"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Bytes Received"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Bytes Sent"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #E"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Outgoing Backlog"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 1
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 100
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #F"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Messages Received"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #G"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Messages Sent"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #H"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Unauthorized Connection Attempts"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 1
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -70,196 +387,22 @@
       },
       "id": 33,
       "links": [],
-      "scroll": true,
-      "showHeader": true,
-      "sort": {
-        "col": 1,
-        "desc": true
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
-      "styles": [
-        {
-          "alias": "Time",
-          "align": "auto",
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "pattern": "Time",
-          "type": "hidden"
-        },
-        {
-          "alias": "Member Count",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #A",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Service",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "link": true,
-          "linkTooltip": "Drill down to service details for ${__cell}",
-          "linkUrl": "/d/coh-service-details?var-ServiceName=${__cell:raw}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "name",
-          "thresholds": [],
-          "type": "string",
-          "unit": "short"
-        },
-        {
-          "alias": "Total Current Connections",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "link": true,
-          "linkTooltip": "Drill down to Proxy Server Details for ${__cell_1}",
-          "linkUrl": "/d/coh-proxy-server-detail?var-ServiceName=${__cell_1}&var-ClusterName=$ClusterName",
-          "mappingType": 1,
-          "pattern": "Value #B",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        },
-        {
-          "alias": "Total Bytes Received",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #C",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Total Bytes Sent",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #D",
-          "thresholds": [],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Total Outgoing Backlog",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #E",
-          "thresholds": [
-            "1",
-            "100"
-          ],
-          "type": "number",
-          "unit": "decbytes"
-        },
-        {
-          "alias": "Total Messages Received",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #F",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Total Messages Sent",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 0,
-          "mappingType": 1,
-          "pattern": "Value #G",
-          "thresholds": [],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "Unauthorized Connection Attempts",
-          "align": "auto",
-          "colorMode": "value",
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value #H",
-          "thresholds": [
-            "1",
-            "2"
-          ],
-          "type": "number",
-          "unit": "none"
-        },
-        {
-          "alias": "",
-          "align": "auto",
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "/.*/",
-          "thresholds": [],
-          "type": "number",
-          "unit": "short"
-        }
-      ],
+      "pluginVersion": "10.0.13",
       "targets": [
         {
-          "expr": "count(vendor:coherence_connection_manager_connection_count{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "count(coherence_connection_manager_connection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -267,7 +410,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_connection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -275,7 +418,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_total_messages_received{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_total_messages_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -283,7 +426,7 @@
           "refId": "F"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_total_messages_sent{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_total_messages_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -291,7 +434,7 @@
           "refId": "G"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_total_bytes_received{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_total_bytes_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -299,7 +442,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_total_bytes_sent{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -307,7 +450,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_outgoing_byte_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -315,7 +458,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(vendor:coherence_connection_manager_unauthorized_connection_attempts{cluster=\"${ClusterName:raw}\"}) by (name) ",
+          "expr": "sum(coherence_connection_manager_unauthorized_connection_attempts{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (name) ",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
@@ -324,8 +467,15 @@
         }
       ],
       "title": "Proxy Service List - Coherence*Extend",
-      "transform": "table",
-      "type": "table-old"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "prometheus",
@@ -336,6 +486,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -394,12 +546,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -410,7 +560,8 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_total_bytes_sent{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} - vendor:coherence_connection_manager_total_bytes_sent{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} offset $__interval > 0",
+          "editorMode": "code",
+          "expr": "coherence_connection_manager_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} - coherence_connection_manager_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -431,6 +582,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -489,11 +642,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -504,7 +656,7 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "vendor:coherence_connection_manager_total_bytes_received{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} - vendor:coherence_connection_manager_total_bytes_received{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} offset $__interval > 0",
+          "expr": "coherence_connection_manager_total_bytes_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} - coherence_connection_manager_total_bytes_received{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -525,6 +677,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -583,11 +737,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -597,7 +750,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) ",
+          "expr": "sum(coherence_connection_manager_connection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) ",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -618,6 +771,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -677,11 +832,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -691,7 +845,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "sum(vendor:coherence_connection_manager_connection_count{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
+          "expr": "sum(coherence_connection_manager_connection_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}) by (name)",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -711,6 +865,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -746,8 +902,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -769,12 +924,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -784,7 +937,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_outgoing_byte_backlog{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}",
+          "expr": "coherence_connection_manager_outgoing_byte_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -805,6 +958,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -840,8 +995,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -864,11 +1018,10 @@
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -878,7 +1031,7 @@
       "pluginVersion": "8.5.27",
       "targets": [
         {
-          "expr": "vendor:coherence_connection_manager_outgoing_message_backlog{cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}",
+          "expr": "coherence_connection_manager_outgoing_message_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",protocol=~\"tcp\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -892,13 +1045,34 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 36,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [
     "dashboard"
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+        },
+        "datasource": "prometheus",
+        "definition": "label_values(coherence_cluster_size,namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "Namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(coherence_cluster_size,namespace)",
+          "refId": "prometheus-Namespace-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
       {
         "current": {
           "selected": false
@@ -912,7 +1086,7 @@
         "name": "ClusterName",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size, cluster)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\"}, cluster)",
           "refId": "prometheus-ClusterName-Variable-Query"
         },
         "refresh": 1,
@@ -937,7 +1111,7 @@
         "name": "CoherenceVersion",
         "options": [],
         "query": {
-          "query": "label_values(vendor:coherence_cluster_size{cluster=\"${ClusterName:raw}\"}, version)",
+          "query": "label_values(coherence_cluster_size{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, version)",
           "refId": "prometheus-CoherenceVersion-Variable-Query"
         },
         "refresh": 1,
@@ -952,7 +1126,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -983,6 +1157,6 @@
   "timezone": "",
   "title": "Coherence Proxy Servers Summary Dashboard",
   "uid": "coh-proxy-services-summary",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

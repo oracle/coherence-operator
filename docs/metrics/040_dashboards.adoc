@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -29,6 +29,8 @@ NOTE: Note: The Grafana dashboards require Coherence metrics, which is available
 .. <<http,HTTP Servers Summary Dashboard>>
 .. <<ed,Elastic Data Summary Dashboard>>
 .. <<executors,Executors Summary & Details Dashboards>>
+.. <<grpc,gRPC Proxy Summary & Details Dashboards>>
+.. <<topics,Topics, Subscribers and Subscriber Groups Dashboards>>
 
 [#navigation]
 == Navigation
@@ -38,11 +40,12 @@ navigation capabilities that appear at the top of most dashboards.
 
 === Variables
 
-image:../images/grafana-variables.png[Variables,width="250",float="right"]
+image:../images/grafana-variables.png[Variables,width="450",float="right"]
 
 Allows for selection of information to be displayed where there is more than one item.
 
-. Cluster Name - Allows selection of the cluster to view metrics for
+. Namespace - Allows selection of a namespace if you have multiple Coherence clusters  with the same name in multipled namespaces. Will default to `None` if you are not running in Kubernetes
+. Cluster Name - Allows selection of the specific cluster to view metrics for
 . Top N Limit - Limits the display of `Top` values for tables that support it
 . Service Name, Member Name, Cache Name - These will appear on various dashboards
 
@@ -50,7 +53,7 @@ See the https://grafana.com/docs/reference/templating/[Grafana Documentation] fo
 
 === Annotations
 
-image:../images/grafana-annotations.png[Annotations,width="250",float="right"]
+image:../images/grafana-annotations.png[Annotations,width="350",float="right"]
 
 Vertical red lines on a graph to indicate a change in a key markers such as:
 
@@ -63,8 +66,8 @@ See the https://grafana.com/docs/reference/annotations/[Grafana Documentation] f
 
 image:../images/grafana-navigation.png[Navigation,width="250",float="right"]
 
-. Select Dashboard - In the top right a drop down list of dashboards is available selection
-. Drill Through - Ability to drill through based upon service, member, node, etc.
+. Select Dashboard - In the top right a drop-down list of dashboards is available selection
+. Drill Through - Ability to drill through based upon service, member, node, etc on highlighted columns.
 
 
 [#dashboards]
@@ -85,7 +88,7 @@ Shows a high-level overview of the selected Coherence cluster including metrics 
 
 * Guardian recoveries and terminations
 
-image::../images/grafana-main.png[Dashboard Main,width="950",align="center"]
+image::../images/grafana-main.png[Dashboard Main,width="1024",align="center"]
 
 [#members]
 === 2. Members Summary & Details Dashboards
@@ -104,11 +107,11 @@ Shows an overview of all cluster members that are enabled for metrics capture in
 
 ==== Members Summary
 
-image::../images/grafana-members.png[Members,width="950",align="center"]
+image::../images/grafana-members.png[Members,width="1024",align="center"]
 
 ==== Member Details
 
-image::../images/grafana-members.png[Member Details,width="950",align="center"]
+image::../images/grafana-member.png[Member Details,width="1024",align="center"]
 
 [#services]
 === 3. Services Summary & Details Dashboards
@@ -127,11 +130,11 @@ Shows an overview of all cluster services including metrics such as:
 
 ==== Services Summary
 
-image::../images/grafana-services.png[Services,width="950",align="center"]
+image::../images/grafana-services.png[Services,width="1024",align="center"]
 
 ==== Service Details
 
-image::../images/grafana-service.png[Service Details,width="950",align="center"]
+image::../images/grafana-service.png[Service Details,width="1024",align="center"]
 
 [#caches]
 === 4. Caches Summary & Detail Dashboards
@@ -146,11 +149,11 @@ Shows an overview of all caches including metrics such as:
 
 ==== Caches Summary
 
-image::../images/grafana-caches.png[Caches,width="950",align="center"]
+image::../images/grafana-caches.png[Caches,width="1024",align="center"]
 
 ==== Cache Details
 
-image::../images/grafana-cache.png[Cache Details,width="950",align="center"]
+image::../images/grafana-cache.png[Cache Details,width="1024",align="center"]
 
 [#proxies]
 === 5. Proxy Servers Summary & Detail Dashboards
@@ -167,11 +170,11 @@ Shows and overview of Proxy servers including metrics such as:
 
 ==== Proxy Servers Summary
 
-image::../images/grafana-proxies.png[Proxy Servers,width="950",align="center"]
+image::../images/grafana-proxies.png[Proxy Servers,width="1024",align="center"]
 
 ==== Proxy Servers Detail
 
-image::../images/grafana-proxy.png[Proxy Server Details,width="950",align="center"]
+image::../images/grafana-proxy.png[Proxy Server Details,width="1024",align="center"]
 
 [#persistence]
 === 6. Persistence Summary Dashboard
@@ -184,7 +187,7 @@ Shows and overview of Persistence including metrics such as:
 
 * Active space total usage and by service
 
-image::../images/grafana-persistence.png[Persistence,width="950",align="center"]
+image::../images/grafana-persistence.png[Persistence,width="1024",align="center"]
 
 [#federation]
 === 7. Federation Summary & Details Dashboards
@@ -197,11 +200,11 @@ Shows overview of Federation including metrics such as:
 
 ==== Federation Summary
 
-image::../images/grafana-federation-summary.png[Federation Summary,width="950",align="center"]
+image::../images/grafana-federation-summary.png[Federation Summary,width="1024",align="center"]
 
 ==== Federation Details
 
-image::../images/grafana-federation-detail.png[Federation Details,width="950",align="center"]
+image::../images/grafana-federation-detail.png[Federation Details,width="1024",align="center"]
 
 
 [#machines]
@@ -213,7 +216,7 @@ Shows an overview of all machines that make up the Kubernetes cluster underlying
 
 * Load averages
 
-image::../images/grafana-machines.png[Machines,width="950",align="center"]
+image::../images/grafana-machines.png[Machines,width="1024",align="center"]
 
 [#http]
 === 9. HTTP Servers Summary Dashboard
@@ -224,7 +227,7 @@ Shows an overview of all HTTP Servers running in the cluster including metrics s
 
 * HTTP Request rates and response codes
 
-image::../images/grafana-http.png[HTTP Servers,width="950",align="center"]
+image::../images/grafana-http.png[HTTP Servers,width="1024",align="center"]
 
 [#ed]
 === 10. Elastic Data Summary Dashboard
@@ -235,7 +238,7 @@ Shows an overview of all HTTP Servers running in the cluster including metrics s
 
 * RAM and Flash compactions
 
-image::../images/grafana-elastic-data.png[Elastic Data,width="950",align="center"]
+image::../images/grafana-elastic-data.png[Elastic Data,width="1024",align="center"]
 
 [#executors]
 === 11. Executors Summary & Details Dashboards
@@ -250,8 +253,55 @@ Shows an overview of all Executors running in the cluster including metrics such
 
 ==== Executors Summary
 
-image::../images/grafana-executors-summary.png[Executors Summary,width="950",align="center"]
+image::../images/grafana-executors-summary.png[Executors Summary,width="1024",align="center"]
 
 ==== Executor Details
 
-image::../images/grafana-executor-detail.png[Executor Detail,width="950",align="center"]
+image::../images/grafana-executor-detail.png[Executor Detail,width="1024",align="center"]
+
+[#grpc]
+=== 12. gRPC Proxy Summary & Details Dashboards
+
+Shows an overview of all gRPC Proxies running in the cluster including metrics such as:
+
+* Connections
+
+* Requests and responses
+
+* Proxy list
+
+==== gRPC Proxies Summary
+
+image::../images/grafana-grpc-proxies.png[gRPC Proxies Summary,width="1024",align="center"]
+
+==== gRPC Proxies Details
+
+image::../images/grafana-proxy.png[gRPC Proxy Detail,width="1024",align="center"]
+
+[#topics]
+=== 13. Topics, Subscribers and Subscriber Groups Dashboards
+
+Shows an overview of all Topics running in the cluster including metrics such as:
+
+* Topics, Subscribers and Subscriber Groups
+
+* Published and received messages counts
+
+* Topic channel allocations
+
+==== Topics Summary
+
+image::../images/grafana-topics.png[Topics Summary,width="1024",align="center"]
+
+==== Topic Details
+
+image::../images/grafana-topic.png[Topic Detail,width="1024",align="center"]
+
+==== Topic Subscriber Group
+
+image::../images/grafana-topic-subscriber-group.png[Topic Subscriber Group Details,width="1024",align="center"]
+
+==== Topic Subscriber
+
+image::../images/grafana-topic-subscriber.png[Topic Subscriber Details,width="1024",align="center"]
+
