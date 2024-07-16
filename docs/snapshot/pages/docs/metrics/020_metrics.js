@@ -22,6 +22,35 @@ endpoint is available at <code><a id="" title="" target="_blank" href="http://ho
 documentation for full details on the available metrics.</p>
 
 
+<h3 id="_important_note_regarding_prometheus_metrics_prefix">Important Note Regarding Prometheus Metrics Prefix</h3>
+<div class="section">
+<p>From version 3.4.0 of the Coherence Operator, the packaged Grafana dashboards no longer use the <strong>vendor:</strong> prefix for querying Prometheus metrics.
+This prefix was deprecated a number of releases ago and the default, of legacy metrics, in Coherence and will be removed in the most recent
+Coherence releases after this Operator release.</p>
+
+<p>If you are using a Coherence cluster version you are using has not yet changed this property,
+you may see no metrics in the Grafana dashboards.</p>
+
+<p>To change your cluster to <strong>not</strong> use legacy names, set the environment variable <code>COHERENCE_METRICS_LEGACY_NAMES</code> to <code>false</code> in your yaml.</p>
+
+<markup
+lang="yaml"
+title="metrics-cluster.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: metrics-cluster
+spec:
+  env:
+    - name: COHERENCE_METRICS_LEGACY_NAMES
+      value: false
+  coherence:
+...</markup>
+
+<p>has not set "coherence.metrics.legacy.names=false"</p>
+
+</div>
+
 <h3 id="_deploy_coherence_with_metrics_enabled">Deploy Coherence with Metrics Enabled</h3>
 <div class="section">
 <p>To deploy a <code>Coherence</code> resource with metrics enabled and exposed on a port, the simplest yaml

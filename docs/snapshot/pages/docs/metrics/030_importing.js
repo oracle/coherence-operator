@@ -24,7 +24,8 @@ the various Coherence dashboard files.</p>
 then obtain the dashboards from the <code>dashboards/</code> directory.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">The recommended versions of Grafana to use are: <code>8.5.6</code> or <code>6.7.4</code>. It is not yet recommended to use the <code>9.x</code> versions of Grafana as there are a number of bugs that cause issues when using the dashboards.</p>
+<p class="admonition-inline">The dashboards have been built using Grafana <code>10.0.13</code> and as such this is the minimum version required for this release.
+If you have an older Grafana installation, you can use previous versions of the dashboard.s</p>
 </div>
 </div>
 

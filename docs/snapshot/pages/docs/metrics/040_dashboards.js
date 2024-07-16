@@ -79,6 +79,14 @@
 <router-link to="#executors" @click.native="this.scrollFix('#executors')">Executors Summary &amp; Details Dashboards</router-link>
 
 </li>
+<li>
+<router-link to="#grpc" @click.native="this.scrollFix('#grpc')">gRPC Proxy Summary &amp; Details Dashboards</router-link>
+
+</li>
+<li>
+<router-link to="#topics" @click.native="this.scrollFix('#topics')">Topics, Subscribers and Subscriber Groups Dashboards</router-link>
+
+</li>
 </ol>
 </li>
 </ol>
@@ -92,14 +100,18 @@ navigation capabilities that appear at the top of most dashboards.</p>
 
 <h3 id="_variables">Variables</h3>
 <div class="section">
-<p><img src="./images/grafana-variables.png" alt="Variables"width="250" />
+<p><img src="./images/grafana-variables.png" alt="Variables"width="450" />
 </p>
 
 <p>Allows for selection of information to be displayed where there is more than one item.</p>
 
 <ol style="margin-left: 15px;">
 <li>
-Cluster Name - Allows selection of the cluster to view metrics for
+Namespace - Allows selection of a namespace if you have multiple Coherence clusters  with the same name in multipled namespaces. Will default to <code>None</code> if you are not running in Kubernetes
+
+</li>
+<li>
+Cluster Name - Allows selection of the specific cluster to view metrics for
 
 </li>
 <li>
@@ -117,7 +129,7 @@ Service Name, Member Name, Cache Name - These will appear on various dashboards
 
 <h3 id="_annotations">Annotations</h3>
 <div class="section">
-<p><img src="./images/grafana-annotations.png" alt="Annotations"width="250" />
+<p><img src="./images/grafana-annotations.png" alt="Annotations"width="350" />
 </p>
 
 <p>Vertical red lines on a graph to indicate a change in a key markers such as:</p>
@@ -143,11 +155,11 @@ Show Partition Transfers - Displays when partition transfers have occurred
 
 <ol style="margin-left: 15px;">
 <li>
-Select Dashboard - In the top right a drop down list of dashboards is available selection
+Select Dashboard - In the top right a drop-down list of dashboards is available selection
 
 </li>
 <li>
-Drill Through - Ability to drill through based upon service, member, node, etc.
+Drill Through - Ability to drill through based upon service, member, node, etc on highlighted columns.
 
 </li>
 </ol>
@@ -187,7 +199,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-main.png" alt="Dashboard Main"width="950" />
+<img src="./images/grafana-main.png" alt="Dashboard Main"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -226,7 +238,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-members.png" alt="Members"width="950" />
+<img src="./images/grafana-members.png" alt="Members"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -238,7 +250,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-members.png" alt="Member Details"width="950" />
+<img src="./images/grafana-member.png" alt="Member Details"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -278,7 +290,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-services.png" alt="Services"width="950" />
+<img src="./images/grafana-services.png" alt="Services"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -290,7 +302,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-service.png" alt="Service Details"width="950" />
+<img src="./images/grafana-service.png" alt="Service Details"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -322,7 +334,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-caches.png" alt="Caches"width="950" />
+<img src="./images/grafana-caches.png" alt="Caches"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -334,7 +346,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-cache.png" alt="Cache Details"width="950" />
+<img src="./images/grafana-cache.png" alt="Cache Details"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -370,7 +382,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-proxies.png" alt="Proxy Servers"width="950" />
+<img src="./images/grafana-proxies.png" alt="Proxy Servers"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -382,7 +394,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-proxy.png" alt="Proxy Server Details"width="950" />
+<img src="./images/grafana-proxy.png" alt="Proxy Server Details"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -411,7 +423,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-persistence.png" alt="Persistence"width="950" />
+<img src="./images/grafana-persistence.png" alt="Persistence"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -438,7 +450,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-federation-summary.png" alt="Federation Summary"width="950" />
+<img src="./images/grafana-federation-summary.png" alt="Federation Summary"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -450,7 +462,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-federation-detail.png" alt="Federation Details"width="950" />
+<img src="./images/grafana-federation-detail.png" alt="Federation Details"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -475,7 +487,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-machines.png" alt="Machines"width="950" />
+<img src="./images/grafana-machines.png" alt="Machines"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -499,7 +511,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-http.png" alt="HTTP Servers"width="950" />
+<img src="./images/grafana-http.png" alt="HTTP Servers"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -523,7 +535,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-elastic-data.png" alt="Elastic Data"width="950" />
+<img src="./images/grafana-elastic-data.png" alt="Elastic Data"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -554,7 +566,7 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-executors-summary.png" alt="Executors Summary"width="950" />
+<img src="./images/grafana-executors-summary.png" alt="Executors Summary"width="1024" />
 </v-card-text>
 </v-card>
 
@@ -566,7 +578,119 @@ Drill Through - Ability to drill through based upon service, member, node, etc.
 
 <v-card>
 <v-card-text class="overflow-y-hidden" style="text-align:center">
-<img src="./images/grafana-executor-detail.png" alt="Executor Detail"width="950" />
+<img src="./images/grafana-executor-detail.png" alt="Executor Detail"width="1024" />
+</v-card-text>
+</v-card>
+
+</div>
+</div>
+
+<h3 id="grpc">12. gRPC Proxy Summary &amp; Details Dashboards</h3>
+<div class="section">
+<p>Shows an overview of all gRPC Proxies running in the cluster including metrics such as:</p>
+
+<ul class="ulist">
+<li>
+<p>Connections</p>
+
+</li>
+<li>
+<p>Requests and responses</p>
+
+</li>
+<li>
+<p>Proxy list</p>
+
+</li>
+</ul>
+
+<h4 id="_grpc_proxies_summary">gRPC Proxies Summary</h4>
+<div class="section">
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/grafana-grpc-proxies.png" alt="gRPC Proxies Summary"width="1024" />
+</v-card-text>
+</v-card>
+
+</div>
+
+<h4 id="_grpc_proxies_details">gRPC Proxies Details</h4>
+<div class="section">
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/grafana-proxy.png" alt="gRPC Proxy Detail"width="1024" />
+</v-card-text>
+</v-card>
+
+</div>
+</div>
+
+<h3 id="topics">13. Topics, Subscribers and Subscriber Groups Dashboards</h3>
+<div class="section">
+<p>Shows an overview of all Topics running in the cluster including metrics such as:</p>
+
+<ul class="ulist">
+<li>
+<p>Topics, Subscribers and Subscriber Groups</p>
+
+</li>
+<li>
+<p>Published and received messages counts</p>
+
+</li>
+<li>
+<p>Topic channel allocations</p>
+
+</li>
+</ul>
+
+<h4 id="_topics_summary">Topics Summary</h4>
+<div class="section">
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/grafana-topics.png" alt="Topics Summary"width="1024" />
+</v-card-text>
+</v-card>
+
+</div>
+
+<h4 id="_topic_details">Topic Details</h4>
+<div class="section">
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/grafana-topic.png" alt="Topic Detail"width="1024" />
+</v-card-text>
+</v-card>
+
+</div>
+
+<h4 id="_topic_subscriber_group">Topic Subscriber Group</h4>
+<div class="section">
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/grafana-topic-subscriber-group.png" alt="Topic Subscriber Group Details"width="1024" />
+</v-card-text>
+</v-card>
+
+</div>
+
+<h4 id="_topic_subscriber">Topic Subscriber</h4>
+<div class="section">
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/grafana-topic-subscriber.png" alt="Topic Subscriber Details"width="1024" />
 </v-card-text>
 </v-card>
 
