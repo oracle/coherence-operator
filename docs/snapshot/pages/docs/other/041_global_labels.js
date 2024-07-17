@@ -190,6 +190,12 @@ lang="bash"
     coherence \
     coherence/coherence-operator</markup>
 
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>When setting the Helm chart values <code>globalLabels</code> or <code>globalAnnotations</code> any labels and annotations specified will also
+be applied to all the resources installed by the Helm Chart too.</p>
+</p>
+</div>
 </div>
 </div>
 </doc-view>
