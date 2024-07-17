@@ -5,6 +5,14 @@ kind: Secret
 metadata:
   name: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
   namespace: {{ .Release.Namespace }}
+{{- if (.Values.globalLabels) }}
+  labels:
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 {{- end }}
 ---
 apiVersion: v1
@@ -20,6 +28,13 @@ metadata:
     app.kubernetes.io/component: webhook
     app.kubernetes.io/part-of: coherence-operator
     app.kubernetes.io/managed-by: helm
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 spec:
   ports:
   - name: webhook
@@ -44,6 +59,13 @@ metadata:
     app.kubernetes.io/component: rest
     app.kubernetes.io/part-of: coherence-operator
     app.kubernetes.io/managed-by: helm
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 spec:
   ports:
   - name: http-rest
@@ -69,11 +91,19 @@ metadata:
     app.kubernetes.io/part-of: coherence-operator
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/created-by: controller-manager
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
 {{- if .Values.deploymentLabels }}
 {{ toYaml .Values.deploymentLabels | indent 4 }}
 {{- end }}
-{{- if .Values.deploymentAnnotations }}
+{{- if or (.Values.deploymentAnnotations) (.Values.globalAnnotations) }}
   annotations:
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
+{{- if .Values.deploymentAnnotations }}
 {{ toYaml .Values.deploymentAnnotations | indent 4 }}
 {{- end }}
 spec:
@@ -92,11 +122,19 @@ spec:
         app.kubernetes.io/part-of: coherence-operator
         app.kubernetes.io/managed-by: helm
         app.kubernetes.io/created-by: controller-manager
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 8 }}
+{{- end }}
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 8 }}
 {{- end }}
-{{- if .Values.annotations }}
+{{- if or (.Values.annotations) (.Values.globalAnnotations) }}
       annotations:
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+{{ toYaml .Values.globalAnnotations | indent 8 }}
+{{- end }}
+{{- if .Values.annotations }}
 {{ toYaml .Values.annotations | indent 8 }}
 {{- end }}
     spec:

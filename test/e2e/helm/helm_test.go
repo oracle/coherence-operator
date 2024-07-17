@@ -583,40 +583,138 @@ func TestGlobalLabelsAndAnnotations(t *testing.T) {
 		"--set", "globalAnnotations.four=annotation-four")
 	g.Expect(err).NotTo(HaveOccurred())
 	AssertHelmInstallWithStatefulSetSubTest(t, "basic", cmd, g, AssertLabelsAndAnnotations)
+}
 
-	//result, err := helmInstall("--set", "globalLabels.one=label-one",
-	//	"--set", "globalLabels.two=label-two",
-	//	"--set", "globalAnnotations.three=annotation-three",
-	//	"--set", "globalAnnotations.four=annotation-four")
-	//
-	//g.Expect(err).NotTo(HaveOccurred())
-	//g.Expect(result).NotTo(BeNil())
-	//
-	//dep := &appsv1.Deployment{}
-	//err = result.Get("coherence-operator", dep)
-	//g.Expect(err).NotTo(HaveOccurred())
-	//
-	//t.Logf("Asserting Helm install. Deploying Coherence resource")
-	//ns := helper.GetTestNamespace()
-	//deployment, err := helper.NewSingleCoherenceFromYaml(ns, "coherence.yaml")
-	//g.Expect(err).NotTo(HaveOccurred())
-	//
-	//defer deleteCoherence(t, &deployment)
-	//
-	//err = testContext.Client.Create(goctx.TODO(), &deployment)
-	//g.Expect(err).NotTo(HaveOccurred())
-	//
-	//var sts *appsv1.StatefulSet
-	//sts, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
-	//g.Expect(err).NotTo(HaveOccurred())
-	//
-	//g.Expect(sts.Labels).NotTo(BeNil())
-	//g.Expect(sts.Labels["one"]).To(Equal("label-one"))
-	//g.Expect(sts.Labels["two"]).To(Equal("label-two"))
-	//
-	//g.Expect(sts.Annotations).NotTo(BeNil())
-	//g.Expect(sts.Annotations["three"]).To(Equal("annotation-three"))
-	//g.Expect(sts.Annotations["four"]).To(Equal("annotation-four"))
+func TestGlobalLabelsOnOperatorResources(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	result, err := helmInstall("--set", "globalLabels.one=label-one",
+		"--set", "globalLabels.two=label-two")
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels := dep.Labels
+	actual, found := labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-two"))
+
+	labels = dep.Spec.Template.Labels
+	actual, found = labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-two"))
+
+	svc := &corev1.Service{}
+	err = result.Get("coherence-operator-webhook", svc)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels = svc.Labels
+	actual, found = labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-two"))
+
+	svc = &corev1.Service{}
+	err = result.Get("coherence-operator-rest", svc)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels = svc.Labels
+	actual, found = labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-two"))
+
+	sec := &corev1.Secret{}
+	err = result.Get("coherence-webhook-server-cert", sec)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	labels = sec.Labels
+	actual, found = labels["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-one"))
+	actual, found = labels["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("label-two"))
+}
+
+func TestGlobalAnnotationsOnOperatorResources(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	result, err := helmInstall("--set", "globalAnnotations.one=annotation-one",
+		"--set", "globalAnnotations.two=annotation-two")
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).NotTo(BeNil())
+
+	dep := &appsv1.Deployment{}
+	err = result.Get("coherence-operator", dep)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations := dep.Annotations
+	actual, found := annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-two"))
+
+	annotations = dep.Spec.Template.Annotations
+	actual, found = annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-two"))
+
+	svc := &corev1.Service{}
+	err = result.Get("coherence-operator-webhook", svc)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations = svc.Annotations
+	actual, found = annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-two"))
+
+	svc = &corev1.Service{}
+	err = result.Get("coherence-operator-rest", svc)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations = svc.Annotations
+	actual, found = annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-two"))
+
+	sec := &corev1.Secret{}
+	err = result.Get("coherence-webhook-server-cert", sec)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	annotations = sec.Annotations
+	actual, found = annotations["one"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-one"))
+	actual, found = annotations["two"]
+	g.Expect(found).To(BeTrue())
+	g.Expect(actual).To(Equal("annotation-two"))
 }
 
 func AssertLabelsAndAnnotations(t *testing.T, g *GomegaWithT, _ *coh.Coherence, sts *appsv1.StatefulSet) {

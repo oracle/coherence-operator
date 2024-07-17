@@ -8,6 +8,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 ---
 {{- if .Values.clusterRoles }}
 # -------------------------------------------------------------
@@ -21,6 +28,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 rules:
   - apiGroups:
     - apiextensions.k8s.io
@@ -54,6 +68,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -78,6 +99,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 rules:
 - apiGroups:
   - ""
@@ -99,6 +127,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -124,6 +159,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 rules:
 - apiGroups:
   - ""
@@ -225,6 +267,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
 {{- if .Values.clusterRoles }}
@@ -248,6 +297,13 @@ metadata:
   name: leader-election-role
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 rules:
 - apiGroups:
   - ""
@@ -291,6 +347,13 @@ metadata:
   name: leader-election-rolebinding
   labels:
     control-plane: coherence
+{{- if (.Values.globalLabels) }}
+{{ toYaml .Values.globalLabels | indent 4 }}
+{{- end }}
+{{- if (.Values.globalAnnotations) }}
+  annotations:
+{{ toYaml .Values.globalAnnotations | indent 4 }}
+{{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

@@ -183,5 +183,10 @@ helm install  \
     coherence/coherence-operator
 ----
 
+[NOTE]
+====
+When setting the Helm chart values `globalLabels` or `globalAnnotations` any labels and annotations specified will also
+be applied to all the resources installed by the Helm Chart too.
+====
 
 
