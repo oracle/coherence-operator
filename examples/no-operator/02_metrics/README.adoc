@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -177,9 +177,9 @@ If using Prometheus externally to the Kubernetes cluster, the approach recommend
 === Install Prometheus
 
 The simplest way to install Prometheus is to follow the instructions in the Prometheus Operator
-https://prometheus-operator.dev/docs/getting-started/quick-start/[Quick Start] page.
+https://prometheus-operator.dev/docs/getting-started/installation[Quick Start] page.
 Prometheus can then be accessed as documented in the
-https://prometheus-operator.dev/docs/getting-started/quick-start/#access-prometheus[Access Prometheus section of the Quick Start] page.
+https://github.com/prometheus-operator/kube-prometheus/blob/main/docs/access-ui.md[Access Prometheus section of the Quick Start] page.
 
 As described in the Prometheus docs we can create a port-forward process to the Prometheus `Service`.
 
