@@ -192,9 +192,9 @@ If using Prometheus externally to the Kubernetes cluster, the approach recommend
 <h3 id="_install_prometheus">Install Prometheus</h3>
 <div class="section">
 <p>The simplest way to install Prometheus is to follow the instructions in the Prometheus Operator
-<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/">Quick Start</a> page.
+<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/installation">Quick Start</a> page.
 Prometheus can then be accessed as documented in the
-<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/#access-prometheus">Access Prometheus section of the Quick Start</a> page.</p>
+<a id="" title="" target="_blank" href="https://github.com/prometheus-operator/kube-prometheus/blob/main/docs/access-ui.md">Access Prometheus section of the Quick Start</a> page.</p>
 
 <p>As described in the Prometheus docs we can create a port-forward process to the Prometheus <code>Service</code>.</p>
 

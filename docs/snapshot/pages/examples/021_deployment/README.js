@@ -895,8 +895,8 @@ install any of the examples above.</p>
 
 <h4 id="_install_prometheus_operator">Install Prometheus Operator</h4>
 <div class="section">
-<p>Install the Prometheus Operator, as documented in the Prometheus Operator <a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/">Quick Start</a> page. Prometheus can then be accessed as documented in the
-<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/#access-prometheus">Access Prometheus section of the Quick Start</a> page.</p>
+<p>Install the Prometheus Operator, as documented in the Prometheus Operator <a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/installation/">Quick Start</a> page. Prometheus can then be accessed as documented in the
+<a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md">Access Prometheus section of the Quick Start</a> page.</p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
@@ -916,7 +916,7 @@ This yaml file can be installed into k8s before installing the Prometheus Operat
 <h4 id="_access_grafana">Access Grafana</h4>
 <div class="section">
 <p>The Prometheus Operator also installs Grafana. Grafana can be accessed as documented in the
-<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/#access-grafana">Access Grafana section of the Quick Start</a> page.
+<a id="" title="" target="_blank" href="https://github.com/prometheus-operator/kube-prometheus/blob/main/docs/access-ui.md">Access Grafana section of the Quick Start</a> page.
 Note that the default credentials are specified in that section of the documentation.</p>
 
 </div>
@@ -984,7 +984,7 @@ lang="bash"
 <h4 id="_delete_prometheus_operator">Delete Prometheus Operator</h4>
 <div class="section">
 <p>Uninstall the Prometheus Operator as documented in the
-<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/#remove-kube-prometheus">Remove kube-prometheus section of the Quick Start</a> page.</p>
+<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/installation/">Remove kube-prometheus section of the Quick Start</a> page.</p>
 
 </div>
 </div>

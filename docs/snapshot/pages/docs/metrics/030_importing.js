@@ -86,7 +86,7 @@ The Coherence Operator source contains a script that can be used for this purpos
 <p>The commands below will download and run the shell script to import the dashboards.
 Change the <code>&lt;GRAFANA-USER&gt;</code> and <code>&lt;GRAFANA_PWD&gt;</code> to the Grafana credentials for your environment.
 For example if using the default Prometheus Operator installation they are as specified on the
-<a id="" title="" target="_blank" href="https://prometheus-operator.dev/docs/getting-started/quick-start/#access-grafana">Access Grafana section of the Quick Start</a> page.
+<a id="" title="" target="_blank" href="https://github.com/prometheus-operator/kube-prometheus/blob/main/docs/access-ui.md">Access Grafana section of the Quick Start</a> page.
 We do not document the credentials here as the default values have been known to change between Prometheus Operator and Grafana versions.</p>
 
 <markup
