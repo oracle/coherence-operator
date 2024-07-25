@@ -1311,7 +1311,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",
@@ -1619,7 +1619,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",
@@ -1895,7 +1895,7 @@
               },
               {
                 "id": "unit",
-                "value": "none"
+                "value": "string"
               },
               {
                 "id": "decimals",
@@ -2484,7 +2484,7 @@
               },
               {
                 "id": "unit",
-                "value": "none"
+                "value": "string"
               },
               {
                 "id": "decimals",

@@ -348,7 +348,7 @@
               },
               {
                 "id": "unit",
-                "value": "none"
+                "value": "string"
               },
               {
                 "id": "links",
