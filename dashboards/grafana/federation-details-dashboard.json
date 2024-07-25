@@ -2372,7 +2372,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",

@@ -159,11 +159,11 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Member Name"
+                "value": "Member"
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",

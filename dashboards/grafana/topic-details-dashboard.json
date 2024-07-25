@@ -682,7 +682,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",
@@ -693,8 +693,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down to member details for ${__data.fields[3]}",
-                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[3]}&$__all_variables"
+                    "title": "Drill down to member details for ${__data.fields[2]}",
+                    "url": "/d/coh-member-details?var-MemberName=${__data.fields[2]}&$__all_variables"
                   }
                 ]
               },
@@ -1106,7 +1106,7 @@
               },
               {
                 "id": "unit",
-                "value": "none"
+                "value": "string"
               },
               {
                 "id": "decimals",
@@ -1435,7 +1435,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "string"
               },
               {
                 "id": "decimals",
