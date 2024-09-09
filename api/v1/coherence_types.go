@@ -589,6 +589,16 @@ type CoherenceWKASpec struct {
 	// +listType=atomic
 	// +optional
 	Addresses []string `json:"addresses,omitempty"`
+
+	// Labels is a map of optional additional labels to apply to the WKA Service.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+	// +optional
+	Labels map[string]string `json:"labels,omitempty" protobuf:"bytes,11,rep,name=labels"`
+
+	// Annotations is a map of optional additional labels to apply to the WKA Service.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty" protobuf:"bytes,12,rep,name=annotations"`
 }
 
 // ----- CoherenceTracingSpec struct ----------------------------------------

@@ -64,6 +64,7 @@ const (
 	FlagMetricsAddress        = "metrics-addr"
 	FlagMutatingWebhookName   = "mutating-webhook-name"
 	FlagOperatorNamespace     = "operator-namespace"
+	FlagNodeLookupEnabled     = "node-lookup-enabled"
 	FlagRackLabel             = "rack-label"
 	FlagRestHost              = "rest-host"
 	FlagRestPort              = "rest-port"
@@ -181,6 +182,11 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		FlagMutatingWebhookName,
 		DefaultMutatingWebhookName,
 		"Name of the Kubernetes ValidatingWebhookConfiguration resource. Only used when enable-webhook is true.",
+	)
+	cmd.Flags().Bool(
+		FlagNodeLookupEnabled,
+		true,
+		"The Operator is allowed to lookup information about kubernetes nodes",
 	)
 	cmd.Flags().String(
 		FlagOperatorNamespace,
@@ -380,6 +386,10 @@ func GetWebhookCertDir() string {
 
 func GetCACertRotateBefore() time.Duration {
 	return GetViper().GetDuration(FlagCACertRotateBefore)
+}
+
+func IsNodeLookupEnabled() bool {
+	return GetViper().GetBool(FlagNodeLookupEnabled)
 }
 
 func GetWebhookServiceDNSNames() []string {
