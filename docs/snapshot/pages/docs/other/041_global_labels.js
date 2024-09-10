@@ -21,7 +21,7 @@ Operator, including all Coherence clusters and related resources</p>
 
 <h2 id="_specify_global_labels_for_a_coherence_resource">Specify Global Labels for a Coherence Resource</h2>
 <div class="section">
-<p>The <code>Coherence</code> CRD contains a <code>global</code> field that allows global labels and annotations to be specified.</p>
+<p>The <code>Coherence</code> CRD contains a <code>global</code> field that allows global labels to be specified.</p>
 
 <markup
 lang="yaml"
@@ -69,7 +69,57 @@ labels.</p>
 
 </div>
 
-<h2 id="_specify_global_labels_when_installing_the_operator">Specify Global Labels when Installing the Operator</h2>
+<h2 id="_specify_global_annotations_for_a_coherence_resource">Specify Global Annotations for a Coherence Resource</h2>
+<div class="section">
+<p>The <code>Coherence</code> CRD contains a <code>global</code> field that allows global annotations to be specified.</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  global:
+    annotations:
+      one: "annotation-one"
+      two: "annotation-two"</markup>
+
+<p>If the yaml above is applied to Kubernetes, then every resource the Operator creates for the <code>storage</code> Coherence
+deployment, it will add the two annotations, <code>one=annotation-one</code> and <code>two=annotation-two</code>. This includes the <code>StatefulSet</code>,
+the <code>Pods</code>, any <code>Service</code> such as the stateful set service, the WKA service, etc.</p>
+
+<p>If any of the annotations in the <code>global</code> section are also in the Pod annotations section or for the Services for exposed ports,
+those annotations will take precedence.</p>
+
+<p>For example</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  annotations:
+    one: "pod-annotation-one"
+  global:
+    annotations:
+      one: "annotation-one"
+      two: "annotation-one"</markup>
+
+<p>In the yaml above, the global annotation <code>one=annotation-one</code> and <code>two=labl-two</code> will be applied to every resource created for
+the <code>Coherence</code> deployment except for the Pods. The Operator uses the <code>spec.annotations</code> field to define Pods specific annotations,
+so in this case the Pod annotations will be <code>one=pod-annotation-one</code> from the <code>spec.annotations</code> field and <code>two=labl-two</code> from the global
+annotations.</p>
+
+</div>
+
+<h2 id="_specify_global_labels_and_annotations_when_installing_the_operator">Specify Global Labels and Annotations when Installing the Operator</h2>
 <div class="section">
 <p>The Operator <code>runner</code> binary has various command line flags that can be specified on its command line.
 Two of these flags when starting the Operator are:</p>

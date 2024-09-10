@@ -267,7 +267,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>spec</code></td>
 <td class="">Spec will be used to create a Job, the name is the Coherence deployment name + "-" + the action name The Job will be fire and forget, we do not monitor it in the Operator. We set its owner to be the Coherence resource, so it gets deleted when the Coherence resource is deleted.</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#jobspec-v1-batch">batchv1.JobSpec</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#jobspec-v1-batch">batchv1.JobSpec</a></code></td>
 <td class="">true</td>
 </tr>
 <tr>
@@ -386,7 +386,7 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>env</code></td>
 <td class="">Env is additional environment variable mappings that will be passed to the Coherence container in the Pod. To specify extra variables add them as name value pairs the same as they would be added to a Pod containers spec.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#envvar-v1-core">corev1.EnvVar</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#envvar-v1-core">corev1.EnvVar</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -410,13 +410,13 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <tr>
 <td class=""><code>initContainers</code></td>
 <td class="">List of additional initialization containers to add to the deployment&#8217;s Pod. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">https://kubernetes.io/docs/concepts/workloads/pods/init-containers/</a></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#container-v1-core">corev1.Container</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#container-v1-core">corev1.Container</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>sideCars</code></td>
 <td class="">List of additional side-car containers to add to the deployment&#8217;s Pod.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#container-v1-core">corev1.Container</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#container-v1-core">corev1.Container</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -438,14 +438,14 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <td class="">Volumes defines extra volume mappings that will be added to the Coherence Pod.<br>
   The content of this yaml should match the normal k8s volumes section of a Pod definition +<br>
   as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/volumes/">https://kubernetes.io/docs/concepts/storage/volumes/</a><br></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core">corev1.Volume</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core">corev1.Volume</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>volumeMounts</code></td>
 <td class="">VolumeMounts defines extra volume mounts to map to the additional volumes or PVCs declared above<br>
   in store.volumes and store.volumeClaimTemplates<br></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core">corev1.VolumeMount</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volumemount-v1-core">corev1.VolumeMount</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -475,7 +475,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>readinessGates</code></td>
 <td class="">ReadinessGates defines a list of additional conditions that the kubelet evaluates for Pod readiness. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-readiness-gate</a></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#podreadinessgate-v1-core">corev1.PodReadinessGate</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#podreadinessgate-v1-core">corev1.PodReadinessGate</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -483,14 +483,14 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <td class="">Resources is the optional resource requests and limits for the containers<br>
  ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
 The Coherence operator does not apply any default resources.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>affinity</code></td>
 <td class="">Affinity controls Pod scheduling preferences.<br>
   ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity">https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity</a><br></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core">corev1.Affinity</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core">corev1.Affinity</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -512,19 +512,19 @@ For example:<br>
     effect: "NoSchedule" +<br>
 <br>
   ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/">https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/</a><br></td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core">corev1.Toleration</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#toleration-v1-core">corev1.Toleration</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>securityContext</code></td>
 <td class="">SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#podsecuritycontext-v1-core">corev1.PodSecurityContext</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#podsecuritycontext-v1-core">corev1.PodSecurityContext</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>containerSecurityContext</code></td>
 <td class="">ContainerSecurityContext is the SecurityContext that will be added to the Coherence container in each Pod in this deployment. See: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#securitycontext-v1-core">corev1.SecurityContext</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#securitycontext-v1-core">corev1.SecurityContext</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -614,7 +614,7 @@ For example:<br>
 <tr>
 <td class=""><code>topologySpreadConstraints</code></td>
 <td class="">TopologySpreadConstraints describes how a group of pods ought to spread across topology domains. Scheduler will schedule pods in a way which abides by the constraints. All topologySpreadConstraints are ANDed.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#topologyspreadconstraint-v1-core">corev1.TopologySpreadConstraint</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#topologyspreadconstraint-v1-core">corev1.TopologySpreadConstraint</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -954,6 +954,18 @@ NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>labels</code></td>
+<td class="">Labels is a map of optional additional labels to apply to the WKA Service. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>annotations</code></td>
+<td class="">Annotations is a map of optional additional labels to apply to the WKA Service. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1029,7 +1041,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>items</code></td>
 <td class="">If unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the ConfigMap, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1188,7 +1200,7 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>diagnosticsVolume</code></td>
 <td class="">DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1667,7 +1679,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>hostAliases</code></td>
 <td class="">HostAliases is an optional list of hosts and IPs that will be injected into the pod&#8217;s hosts file if specified. This is only valid for non-hostNetwork pods.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#hostalias-v1-core">corev1.HostAlias</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#hostalias-v1-core">corev1.HostAlias</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1732,13 +1744,13 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>persistentVolumeClaim</code></td>
 <td class="">PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>volume</code></td>
 <td class="">Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1779,13 +1791,13 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>persistentVolumeClaim</code></td>
 <td class="">PersistentVolumeClaim allows the configuration of a normal k8s persistent volume claim for persistence data.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>volume</code></td>
 <td class="">Volume allows the configuration of a normal k8s volume mapping for persistence data instead of a persistent volume claim. If a value is defined for store.persistence.volume then no PVC will be created and persistence data will instead be written to this volume. It is up to the deployer to understand the consequences of this and how the guarantees given when using PVCs differ to the storage guarantees for the particular volume type configured here.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1826,7 +1838,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>spec</code></td>
 <td class="">Spec defines the desired characteristics of a volume requested by a pod author. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims">https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims</a></td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#persistentvolumeclaimspec-v1-core">corev1.PersistentVolumeClaimSpec</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -1920,7 +1932,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>options</code></td>
 <td class="">A list of DNS resolver options. This will be merged with the base options generated from DNSPolicy. Duplicated entries will be removed. Resolution options given in Options will override those that appear in the base DNSPolicy.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#poddnsconfigoption-v1-core">corev1.PodDNSConfigOption</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#poddnsconfigoption-v1-core">corev1.PodDNSConfigOption</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2037,19 +2049,19 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>exec</code></td>
 <td class="">One and only one of the following should be specified. Exec specifies the action to take.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#execaction-v1-core">corev1.ExecAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#execaction-v1-core">corev1.ExecAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>httpGet</code></td>
 <td class="">HTTPGet specifies the http request to perform.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>tcpSocket</code></td>
 <td class="">TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2084,19 +2096,19 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <tr>
 <td class=""><code>exec</code></td>
 <td class="">One and only one of the following should be specified. Exec specifies the action to take.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#execaction-v1-core">corev1.ExecAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#execaction-v1-core">corev1.ExecAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>httpGet</code></td>
 <td class="">HTTPGet specifies the http request to perform.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#httpgetaction-v1-core">corev1.HTTPGetAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>tcpSocket</code></td>
 <td class="">TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#tcpsocketaction-v1-core">corev1.TCPSocketAction</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2461,7 +2473,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>items</code></td>
 <td class="">If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the Secret, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#keytopath-v1-core">corev1.KeyToPath</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2586,7 +2598,7 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 <tr>
 <td class=""><code>bearerTokenSecret</code></td>
 <td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2761,7 +2773,7 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 <tr>
 <td class=""><code>sessionAffinityConfig</code></td>
 <td class="">sessionAffinityConfig contains the configurations of session affinity.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#sessionaffinityconfig-v1-core">corev1.SessionAffinityConfig</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#sessionaffinityconfig-v1-core">corev1.SessionAffinityConfig</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2916,7 +2928,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <tr>
 <td class=""><code>metadata</code></td>
 <td class="">&#160;</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2963,7 +2975,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <tr>
 <td class=""><code>metadata</code></td>
 <td class="">&#160;</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3205,7 +3217,7 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <tr>
 <td class=""><code>envFrom</code></td>
 <td class="">List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3219,7 +3231,7 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <td class="">InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod.<br>
  ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
 The Coherence operator does not apply any default resources.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>

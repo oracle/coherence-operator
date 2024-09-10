@@ -127,6 +127,46 @@ section on <router-link to="/docs/ordering/010_overview">deployment start-up ord
 </div>
 </div>
 
+<h2 id="_wka_service_labels_and_annotations">WKA Service Labels and Annotations</h2>
+<div class="section">
+<p>The Coherence Operator creates the Kubernetes Service to be used for WKA and correctly configures its ports and selectors.
+To add additional labels or annotations to this service, they can be specified in the <code>spec.coherence.wka.labels</code> and
+<code>spec.coherence.wka.annotations</code> fields in the yaml.</p>
+
+<p>For example, to add the label <code>one: "value-one"</code> to the <code>spec.coherence.wka.labels</code> field can be set as shown below:</p>
+
+<markup
+lang="yaml"
+title="test-cluster.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  cluster: `my-cluster`
+  coherence:
+    wka:
+      labels:
+        one: "value-one"</markup>
+
+<p>For example, to add the annotation <code>one: "value-one"</code> to the <code>spec.coherence.wka.annotations</code> field can be set as shown below:</p>
+
+<markup
+lang="yaml"
+title="test-cluster.yaml"
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  cluster: `my-cluster`
+  coherence:
+    wka:
+      annotations:
+        one: "value-one"</markup>
+
+</div>
+
 <h2 id="_multi_namespace_clusters">Multi-Namespace Clusters</h2>
 <div class="section">
 <p>It is possible to configure a Coherence cluster made up of multiple <code>Coherence</code> deployments that are deployed into
