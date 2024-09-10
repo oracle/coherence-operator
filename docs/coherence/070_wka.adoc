@@ -133,6 +133,46 @@ would time-out causing K8s to restart them but this would not be a desirable way
 The start-up order can be controlled by configuring the deployment's `startQuorum` list, as described in the documentation
 section on <<docs/ordering/010_overview.adoc,deployment start-up ordering>>.
 
+== WKA Service Labels and Annotations
+
+The Coherence Operator creates the Kubernetes Service to be used for WKA and correctly configures its ports and selectors.
+To add additional labels or annotations to this service, they can be specified in the `spec.coherence.wka.labels` and
+`spec.coherence.wka.annotations` fields in the yaml.
+
+For example, to add the label `one: "value-one"` to the `spec.coherence.wka.labels` field can be set as shown below:
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  cluster: `my-cluster`
+  coherence:
+    wka:
+      labels:
+        one: "value-one"
+----
+
+For example, to add the annotation `one: "value-one"` to the `spec.coherence.wka.annotations` field can be set as shown below:
+
+[source,yaml]
+.test-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test-cluster
+spec:
+  cluster: `my-cluster`
+  coherence:
+    wka:
+      annotations:
+        one: "value-one"
+----
+
 
 == Multi-Namespace Clusters
 

@@ -275,6 +275,8 @@ CoherenceWKASpec configures Coherence well-known-addressing to use an existing C
 m| deployment | The name of the existing Coherence deployment to use for WKA. m| string | true
 m| namespace | The optional namespace of the existing Coherence deployment to use for WKA if different from this deployment's namespace. m| string | false
 m| addresses | A list of addresses to be used for WKA. If this field is set, the WKA property for the Coherence cluster will be set using this value and the other WKA fields will be ignored. m| []string | false
+m| labels | Labels is a map of optional additional labels to apply to the WKA Service. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
+m| annotations | Annotations is a map of optional additional labels to apply to the WKA Service. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ m| map[string]string | false
 |===
 
 <<Table of Contents,Back to TOC>>

@@ -32,7 +32,7 @@ COMPATIBLE_SELECTOR ?= control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.29
+KUBERNETES_DOC_VERSION=v1.30
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
@@ -1569,7 +1569,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e"
+KIND_IMAGE     ?= "kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1829,7 +1829,7 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 # ======================================================================================================================
 ##@ Miscellaneous
 
-TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.51.2
+TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.54.1
 .PHONY: trivy-scan
 trivy-scan: $(BUILD_TARGETS)/build-operator ## Scan the Operator image using Trivy
 	docker pull $(TRIVY_IMAGE)
@@ -1848,7 +1848,7 @@ controller-gen: $(TOOLS_BIN)/controller-gen ## Download controller-gen locally i
 
 $(TOOLS_BIN)/controller-gen:
 	@echo "Downloading controller-gen"
-	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
+	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.16.2
 	ls -al $(TOOLS_BIN)
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -213,6 +213,7 @@ func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWr
 	var value string
 	labelUsed := "<None>"
 	var prefixUsed = "<None>"
+	var err error
 
 	path := r.URL.Path
 	// strip off any trailing slash
@@ -223,41 +224,46 @@ func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWr
 	pos := strings.LastIndex(path, "/")
 	name := r.URL.Path[1+pos:]
 
-	node, err := s.client.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
+	if operator.IsNodeLookupEnabled() {
+		node, err := s.client.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
 
-	if err == nil {
-		var ok bool
+		if err == nil {
+			var ok bool
 
-		queryLabel := r.URL.Query().Get("nodeLabel")
-		if queryLabel == "" {
-			prefixValue := ""
-			for _, label := range prefixLabels {
-				if prefix, ok := node.Labels[label]; ok && prefix != "" {
-					labelUsed = label
-					prefixValue = prefix + "-"
-					break
+			queryLabel := r.URL.Query().Get("nodeLabel")
+			if queryLabel == "" {
+				prefixValue := ""
+				for _, label := range prefixLabels {
+					if prefix, ok := node.Labels[label]; ok && prefix != "" {
+						labelUsed = label
+						prefixValue = prefix + "-"
+						break
+					}
 				}
-			}
 
-			for _, label := range labels {
-				if value, ok = node.Labels[label]; ok && value != "" {
-					labelUsed = label
-					value = prefixValue + value
-					break
+				for _, label := range labels {
+					if value, ok = node.Labels[label]; ok && value != "" {
+						labelUsed = label
+						value = prefixValue + value
+						break
+					}
 				}
+			} else {
+				value = node.Labels[queryLabel]
+				labelUsed = queryLabel
 			}
 		} else {
-			value = node.Labels[queryLabel]
-			labelUsed = queryLabel
+			if apierrors.IsNotFound(err) {
+				log.Info("GET query for node labels - NotFound", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
+			} else {
+				log.Error(err, "GET query for node labels - Error", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
+			}
+			value = ""
+			labelUsed = ""
 		}
 	} else {
-		if apierrors.IsNotFound(err) {
-			log.Info("GET query for node labels - NotFound", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
-		} else {
-			log.Error(err, "GET query for node labels - Error", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
-		}
+		log.Info("Node labels lookup disabled", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
 		value = ""
-		labelUsed = ""
 	}
 
 	w.WriteHeader(http.StatusOK)

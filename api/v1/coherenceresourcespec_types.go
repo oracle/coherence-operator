@@ -523,6 +523,20 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 	}
 	ann["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
 
+	if in != nil {
+		cohSpec := in.Coherence
+		if cohSpec != nil {
+			if cohSpec.WKA != nil {
+				for k, v := range cohSpec.WKA.Labels {
+					labels[k] = v
+				}
+				for k, v := range cohSpec.WKA.Annotations {
+					ann[k] = v
+				}
+			}
+		}
+	}
+
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   deployment.GetNamespace(),

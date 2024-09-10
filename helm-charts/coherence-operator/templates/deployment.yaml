@@ -148,6 +148,9 @@ spec:
         args:
         - operator
         - --enable-leader-election
+{{- if and (eq .Values.clusterRoles false) (eq .Values.nodeRoles false) }}
+        - --node-lookup-enabled=false
+{{- end }}
 {{- if (eq .Values.clusterRoles false) }}
         - --enable-webhook=false
         - --install-crd=false
@@ -155,13 +158,13 @@ spec:
 {{- if (eq .Values.webhooks false) }}
         - --enable-webhook=false
 {{- end }}
+{{- end }}
 {{- if (eq .Values.allowCoherenceJobs false) }}
         - --install-job-crd=false
 {{- end }}
 {{- if (.Values.globalLabels) }}
 {{- range $k, $v := .Values.globalLabels }}
         - --global-label={{ $k }}={{ $v }}
-{{- end }}
 {{- end }}
 {{- if (.Values.globalAnnotations) }}
 {{- range $k, $v := .Values.globalAnnotations }}
