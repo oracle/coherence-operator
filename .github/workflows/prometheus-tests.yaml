@@ -121,7 +121,8 @@ jobs:
         make e2e-prometheus-test
 
     - uses: actions/upload-artifact@v4
-      if: failure()
+      if: ${{ failure() || cancelled() }}
       with:
         name: test-output
         path: build/_output/test-logs
+        if-no-files-found: ignore

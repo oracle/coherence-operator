@@ -141,7 +141,8 @@ jobs:
         ./hack/k8s-certification.sh
 
     - uses: actions/upload-artifact@v4
-      if: failure()
+      if: ${{ failure() || cancelled() }}
       with:
         name: test-output-${{ matrix.matrixName }}
         path: build/_output/test-logs
+        if-no-files-found: ignore

@@ -23,7 +23,6 @@ import (
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/ptr"
 	"net/http"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -162,27 +161,17 @@ func (in *TestContext) Start() error {
 	return err
 }
 
-// NewContext creates a new TestContext.
-func NewContext(startController bool, watchNamespaces ...string) (TestContext, error) {
-	var err error
-	var tc TestContext
-
-	testEnv := &envtest.Environment{
-		// We need a real cluster for these tests
-		UseExistingCluster:       ptr.To(true),
-		AttachControlPlaneOutput: true,
-		CRDs:                     []*v1.CustomResourceDefinition{},
+// NewStartedContext creates a new TestContext starts it.
+func NewStartedContext(startController bool, watchNamespaces ...string) (TestContext, error) {
+	ctx, err := NewContext(startController, watchNamespaces...)
+	if err == nil {
+		err = ctx.Start()
 	}
-
-	tc, err = NewContextWithTestEnv(testEnv, startController, watchNamespaces...)
-	if err != nil {
-		return TestContext{}, err
-	}
-	return tc, err
+	return ctx, err
 }
 
-// NewContextWithTestEnv creates a new TestContext.
-func NewContextWithTestEnv(testEnv *envtest.Environment, startController bool, watchNamespaces ...string) (TestContext, error) {
+// NewContext creates a new TestContext.
+func NewContext(startController bool, watchNamespaces ...string) (TestContext, error) {
 	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
 	logf.SetLogger(testLogger)
 
@@ -200,17 +189,28 @@ func NewContextWithTestEnv(testEnv *envtest.Environment, startController bool, w
 		return TestContext{}, err
 	}
 
+	// We need a real cluster for these tests
+	useCluster := true
+
 	testLogger.WithName("test").Info("bootstrapping test environment")
+	testEnv := &envtest.Environment{
+		UseExistingCluster:       &useCluster,
+		AttachControlPlaneOutput: true,
+		CRDs:                     []*v1.CustomResourceDefinition{},
+	}
 
 	var err error
-
-	k8sCfg := ctrl.GetConfigOrDie()
 
 	err = corev1.AddToScheme(scheme.Scheme)
 	if err != nil {
 		return TestContext{}, err
 	}
 	err = coh.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return TestContext{}, err
+	}
+
+	k8sCfg, err := testEnv.Start()
 	if err != nil {
 		return TestContext{}, err
 	}
@@ -292,6 +292,7 @@ func NewContextWithTestEnv(testEnv *envtest.Environment, startController bool, w
 	}
 
 	ep := make(map[string]func(w http.ResponseWriter, r *http.Request))
+
 	return TestContext{
 		Config:        k8sCfg,
 		Client:        k8sClient,

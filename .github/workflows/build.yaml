@@ -151,6 +151,7 @@ jobs:
       with:
         name: coherence-operator-manifests.tar.gz
         path: build/_output/coherence-operator-manifests.tar.gz
+        if-no-files-found: ignore
 
     - name: Upload Yaml
       uses: actions/upload-artifact@v4
@@ -158,6 +159,7 @@ jobs:
       with:
         name: coherence-operator.yaml
         path: build/_output/coherence-operator.yaml
+        if-no-files-found: ignore
 
     - name: Upload CRD
       uses: actions/upload-artifact@v4
@@ -165,12 +167,14 @@ jobs:
       with:
         name: coherence.oracle.com_coherence.yaml
         path: build/_output/manifests/crd/coherence.oracle.com_coherence.yaml
+        if-no-files-found: ignore
 
     - uses: actions/upload-artifact@v4
-      if: failure()
+      if: ${{ failure() || cancelled() }}
       with:
         name: test-output
         path: build/_output/test-logs
+        if-no-files-found: ignore
 
     - name: Deploy Snapshots & Docs
       if: ${{ github.ref == 'refs/heads/main' && success() }}

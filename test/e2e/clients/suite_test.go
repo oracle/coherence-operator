@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 
 	helper.EnsureTestEnvVars()
 
-	if testContext, err = helper.NewContext(true); err != nil {
+	if testContext, err = helper.NewStartedContext(true); err != nil {
 		fmt.Printf("Error: %+v", err)
 		os.Exit(1)
 	}

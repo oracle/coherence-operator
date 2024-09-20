@@ -139,7 +139,8 @@ jobs:
         ISTIO_VERSION=${{ matrix.istioVersion }} make uninstall-istio
 
     - uses: actions/upload-artifact@v4
-      if: failure()
+      if: ${{ failure() || cancelled() }}
       with:
         name: test-output-${{ matrix.istioVersion }}
         path: build/_output/test-logs
+        if-no-files-found: ignore
