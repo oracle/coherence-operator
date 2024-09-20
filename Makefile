@@ -1484,12 +1484,12 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 
-$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize
+$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)/crd
-	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
+	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/temp.yaml
 	mkdir -p $(BUILD_MANIFESTS)/crd-small
-	$(KUSTOMIZE) build config/crd-small > $(BUILD_MANIFESTS)/crd-small/coherence.oracle.com_coherence.yaml
+	$(KUSTOMIZE) build config/crd-small > $(BUILD_MANIFESTS)/crd-small/temp.yaml
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
@@ -1498,6 +1498,10 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
+	cd $(BUILD_MANIFESTS)/crd && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
+	rm $(BUILD_MANIFESTS)/crd/temp.yaml
+	cd $(BUILD_MANIFESTS)/crd-small && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
+	rm $(BUILD_MANIFESTS)/crd-small/temp.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1741,11 +1745,15 @@ k3d-load-coherence: $(TOOLS_BIN)/k3d  ## Load the Coherence images into the k3d 
 .PHONY: k3d-load-all
 k3d-load-all: $(TOOLS_BIN)/k3d k3d-load-operator k3d-load-coherence ## Load all the test images into the k3d cluster
 
-
+.PHONY: k3d-get
 k3d-get: $(TOOLS_BIN)/k3d ## Install k3d
 
+K3D_PATH = ${PATH}
 $(TOOLS_BIN)/k3d:
-	export K3D_INSTALL_DIR=$(TOOLS_BIN) && export USE_SUDO=false && curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+	export K3D_INSTALL_DIR=$(TOOLS_BIN) \
+		&& export USE_SUDO=false \
+		&& export PATH="$(TOOLS_BIN):$(K3D_PATH)" \
+		&& curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
 # ======================================================================================================================
 # Targets related to running Minikube
@@ -1800,6 +1808,29 @@ else
 	install minikube-linux-amd64 $(TOOLS_BIN)/minikube
 	rm minikube-linux-amd64
 endif
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Install yq
+# ----------------------------------------------------------------------------------------------------------------------
+YQ         = $(TOOLS_BIN)/yq
+YQ_VERSION = v4.44.3
+
+.PHONY: yq-install
+yq-install: $(TOOLS_BIN)/yq  ## Install yq (defaults to the latest version, can be changed by setting YQ_VERSION)
+	$(YQ) version
+
+$(TOOLS_BIN)/yq:
+	mkdir -p $(TOOLS_BIN) || true
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_amd64 -o $(TOOLS_BIN)/yq
+else
+	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_arm64 -o $(TOOLS_BIN)/yq
+endif
+else
+	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -o $(TOOLS_BIN)/yq
+endif
+	chmod +x $(TOOLS_BIN)/yq
 
 # ======================================================================================================================
 # Kubernetes Cert Manager targets

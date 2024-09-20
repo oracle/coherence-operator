@@ -92,13 +92,6 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Cache Tools
-      uses: actions/cache@v4
-      with:
-        path: build/tools
-        key: ${{ runner.os }}-build-tools-${{ hashFiles('**/Makefile') }}
-        restore-keys: ${{ runner.os }}-build-tools
-
     - name: Edit DNS Resolve
       shell: bash
       run: |
