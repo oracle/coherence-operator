@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,6 +9,7 @@ package reconciler
 import (
 	"context"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -19,16 +20,16 @@ import (
 // If the reconcile.Reconciler API was to change then we'd get a compile error here.
 var _ reconcile.Reconciler = &SimpleReconciler{}
 
-func NewConfigMapReconciler(mgr manager.Manager) SecondaryResourceReconciler {
-	return NewSimpleReconciler(mgr, "controllers.ConfigMap", coh.ResourceTypeConfigMap, &corev1.ConfigMap{})
+func NewConfigMapReconciler(mgr manager.Manager, cs clients.ClientSet) SecondaryResourceReconciler {
+	return NewSimpleReconciler(mgr, cs, "controllers.ConfigMap", coh.ResourceTypeConfigMap, &corev1.ConfigMap{})
 }
 
-func NewServiceReconciler(mgr manager.Manager) SecondaryResourceReconciler {
-	return NewSimpleReconciler(mgr, "controllers.Service", coh.ResourceTypeService, &corev1.Service{})
+func NewServiceReconciler(mgr manager.Manager, cs clients.ClientSet) SecondaryResourceReconciler {
+	return NewSimpleReconciler(mgr, cs, "controllers.Service", coh.ResourceTypeService, &corev1.Service{})
 }
 
 // NewSimpleReconciler returns a new SimpleReconciler.
-func NewSimpleReconciler(mgr manager.Manager, name string, kind coh.ResourceType, template client.Object) SecondaryResourceReconciler {
+func NewSimpleReconciler(mgr manager.Manager, cs clients.ClientSet, name string, kind coh.ResourceType, template client.Object) SecondaryResourceReconciler {
 	r := &SimpleReconciler{
 		ReconcileSecondaryResource: ReconcileSecondaryResource{
 			Kind:     kind,
@@ -36,7 +37,7 @@ func NewSimpleReconciler(mgr manager.Manager, name string, kind coh.ResourceType
 		},
 	}
 
-	r.SetCommonReconciler(name, mgr)
+	r.SetCommonReconciler(name, mgr, cs)
 	return r
 }
 

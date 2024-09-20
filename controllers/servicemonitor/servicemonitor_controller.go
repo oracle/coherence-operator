@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	monitoring "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -33,7 +34,7 @@ const (
 var _ reconcile.Reconciler = &ReconcileServiceMonitor{}
 
 // NewServiceMonitorReconciler returns a new ServiceMonitor reconciler.
-func NewServiceMonitorReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconciler {
+func NewServiceMonitorReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.SecondaryResourceReconciler {
 	r := &ReconcileServiceMonitor{
 		ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
 			Kind:      coh.ResourceTypeServiceMonitor,
@@ -43,7 +44,7 @@ func NewServiceMonitorReconciler(mgr manager.Manager) reconciler.SecondaryResour
 		monClient: client.NewForConfigOrDie(mgr.GetConfig()),
 	}
 
-	r.SetCommonReconciler(controllerName, mgr)
+	r.SetCommonReconciler(controllerName, mgr, cs)
 	return r
 }
 
@@ -81,7 +82,6 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 // ReconcileAllResourceOfKind reconciles the state of the desired ServiceMonitors for the reconciler
 func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, d coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
-	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
 	var err error
 
@@ -104,7 +104,7 @@ func (in *ReconcileServiceMonitor) ReconcileAllResourceOfKind(ctx context.Contex
 
 func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, namespace, name string, owner coh.CoherenceResource, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
-	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
+	logger.Info(fmt.Sprintf("Reconciling %v", in.Kind))
 
 	// See whether it is even possible to handle Prometheus ServiceMonitor resources
 	if !in.hasServiceMonitor() {
@@ -162,7 +162,7 @@ func (in *ReconcileServiceMonitor) ReconcileSingleResource(ctx context.Context, 
 		err = in.UpdateServiceMonitor(ctx, namespace, name, sm, storage, logger)
 	}
 
-	logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
+	logger.Info(fmt.Sprintf("Finished reconciling %v", in.Kind))
 	return err
 }
 

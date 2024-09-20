@@ -1069,6 +1069,48 @@ func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment Coherenc
 	return c
 }
 
+// EnsureTopologySpreadConstraints creates the Pod TopologySpreadConstraint array, either from that configured
+// for the cluster or the default constraints.
+func (in *CoherenceResourceSpec) EnsureTopologySpreadConstraints(deployment CoherenceResource) []corev1.TopologySpreadConstraint {
+	if in == nil || in.TopologySpreadConstraints == nil || len(in.TopologySpreadConstraints) == 0 {
+		return in.CreateDefaultTopologySpreadConstraints(deployment)
+	}
+	return in.TopologySpreadConstraints
+}
+
+// CreateDefaultTopologySpreadConstraints creates the default Pod TopologySpreadConstraint array to use in a deployment's StatefulSet.
+func (in *CoherenceResourceSpec) CreateDefaultTopologySpreadConstraints(deployment CoherenceResource) []corev1.TopologySpreadConstraint {
+	selector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      LabelCoherenceCluster,
+				Operator: metav1.LabelSelectorOpIn,
+				Values:   []string{deployment.GetCoherenceClusterName()},
+			},
+			{
+				Key:      LabelCoherenceDeployment,
+				Operator: metav1.LabelSelectorOpIn,
+				Values:   []string{deployment.GetName()},
+			},
+		},
+	}
+
+	return []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       AffinityTopologyKey,
+			WhenUnsatisfiable: corev1.ScheduleAnyway,
+			LabelSelector:     &selector,
+		},
+		{
+			MaxSkew:           1,
+			TopologyKey:       operator.LabelHostName,
+			WhenUnsatisfiable: corev1.ScheduleAnyway,
+			LabelSelector:     &selector,
+		},
+	}
+}
+
 // EnsurePodAffinity creates the Pod Affinity either from that configured for the cluster or the default affinity.
 func (in *CoherenceResourceSpec) EnsurePodAffinity(deployment CoherenceResource) *corev1.Affinity {
 	if in != nil && in.Affinity != nil {

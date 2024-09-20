@@ -81,7 +81,7 @@ func execute() error {
 	cfg := ctrl.GetConfigOrDie()
 	cs, err := clients.NewForConfig(cfg)
 	if err != nil {
-		return errors.Wrap(err, "unable to create clientset")
+		return errors.Wrap(err, "unable to create client set")
 	}
 
 	// create the client here as we use it to install CRDs then inject it into the Manager
@@ -144,20 +144,22 @@ func execute() error {
 
 	// Set up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+		Client:    mgr.GetClient(),
+		ClientSet: cs,
+		Log:       ctrl.Log.WithName("controllers").WithName("Coherence"),
+		Scheme:    mgr.GetScheme(),
+	}).SetupWithManager(mgr, cs); err != nil {
 		return errors.Wrap(err, "unable to create Coherence controller")
 	}
 
 	// Set up the CoherenceJob reconciler
 	if operator.ShouldInstallJobCRD() {
 		if err = (&controllers.CoherenceJobReconciler{
-			Client: mgr.GetClient(),
-			Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
-			Scheme: mgr.GetScheme(),
-		}).SetupWithManager(mgr); err != nil {
+			Client:    mgr.GetClient(),
+			ClientSet: cs,
+			Log:       ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
+			Scheme:    mgr.GetScheme(),
+		}).SetupWithManager(mgr, cs); err != nil {
 			return errors.Wrap(err, "unable to create CoherenceJob controller")
 		}
 	}
@@ -174,7 +176,7 @@ func execute() error {
 			cr = &webhook.CertReconciler{
 				Clientset: cs,
 			}
-			if err := cr.SetupWithManager(handler, mgr); err != nil {
+			if err := cr.SetupWithManager(handler, mgr, cs); err != nil {
 				return errors.Wrap(err, " unable to create webhook certificate controller")
 			}
 
@@ -187,7 +189,7 @@ func execute() error {
 		}
 
 		// Create the REST server
-		restServer := rest.NewServer(cs)
+		restServer := rest.NewServer(cs.KubeClient)
 		if err := restServer.SetupWithManager(mgr); err != nil {
 			return errors.Wrap(err, " unable to start REST server")
 		}

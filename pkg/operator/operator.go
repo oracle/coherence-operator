@@ -90,6 +90,11 @@ const (
 
 	// LabelHostName is the Node label for the Node's hostname.
 	LabelHostName = "kubernetes.io/hostname"
+
+	// LabelTestHostName is a label applied to Pods to set a testing host name
+	LabelTestHostName = "coherence.oracle.com/test_hostname"
+	// LabelTestHealthPort is a label applied to Pods to set a testing health check port
+	LabelTestHealthPort = "coherence.oracle.com/test_health_port"
 )
 
 var setupLog = ctrl.Log.WithName("setup")

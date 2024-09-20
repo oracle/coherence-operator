@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,7 +12,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 type ClientSet struct {
@@ -20,14 +19,6 @@ type ClientSet struct {
 	ExtClient       apiextensions.Interface
 	DynamicClient   dynamic.Interface
 	DiscoveryClient *discovery.DiscoveryClient
-}
-
-func New() (ClientSet, error) {
-	cfg, err := ctrl.GetConfig()
-	if err != nil {
-		return ClientSet{}, err
-	}
-	return NewForConfig(cfg)
 }
 
 func NewForConfig(cfg *rest.Config) (ClientSet, error) {

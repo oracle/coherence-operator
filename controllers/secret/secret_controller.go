@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	"context"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -25,7 +26,7 @@ const (
 var _ reconcile.Reconciler = &ReconcileSecret{}
 
 // NewSecretReconciler returns a new Secret reconciler.
-func NewSecretReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconciler {
+func NewSecretReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.SecondaryResourceReconciler {
 	r := &ReconcileSecret{
 		SimpleReconciler: reconciler.SimpleReconciler{
 			ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
@@ -36,7 +37,7 @@ func NewSecretReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconc
 		},
 	}
 
-	r.SetCommonReconciler(controllerName, mgr)
+	r.SetCommonReconciler(controllerName, mgr, cs)
 	return r
 }
 

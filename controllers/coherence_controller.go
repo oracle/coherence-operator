@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/secret"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/rest"
@@ -54,6 +55,7 @@ const (
 type CoherenceReconciler struct {
 	client.Client
 	reconciler.CommonReconciler
+	ClientSet   clients.ClientSet
 	Log         logr.Logger
 	Scheme      *runtime.Scheme
 	reconcilers []reconciler.SecondaryResourceReconciler
@@ -267,7 +269,6 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// process the secondary resources in the order they should be created
 	var failures []Failure
 	for _, rec := range in.reconcilers {
-		log.Info("Reconciling Coherence resource secondary resources", "controller", rec.GetControllerName())
 		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
 			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
@@ -302,22 +303,22 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	return result, nil
 }
 
-func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.ClientSet) error {
 	SetupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
 	// StatefulSet that uses it.
 	reconcilers := []reconciler.SecondaryResourceReconciler{
-		reconciler.NewConfigMapReconciler(mgr),
-		secret.NewSecretReconciler(mgr),
-		reconciler.NewServiceReconciler(mgr),
-		servicemonitor.NewServiceMonitorReconciler(mgr),
-		statefulset.NewStatefulSetReconciler(mgr),
+		reconciler.NewConfigMapReconciler(mgr, cs),
+		secret.NewSecretReconciler(mgr, cs),
+		reconciler.NewServiceReconciler(mgr, cs),
+		servicemonitor.NewServiceMonitorReconciler(mgr, cs),
+		statefulset.NewStatefulSetReconciler(mgr, cs),
 	}
 
 	in.reconcilers = reconcilers
-	in.SetCommonReconciler(controllerName, mgr)
+	in.SetCommonReconciler(controllerName, mgr, cs)
 	in.SetPatchType(types.MergePatchType)
 
 	template := &coh.Coherence{}

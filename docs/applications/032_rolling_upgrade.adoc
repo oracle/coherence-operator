@@ -1,0 +1,92 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2024, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Rolling Upgrades of Coherence Applications
+
+== Rolling Upgrades of Coherence Applications
+
+The Coherence Operator supports safe rolling upgrades of Coherence clusters.
+
+== Default Behaviour
+
+The Coherence Operator uses a StatefulSet to manage the application Pods.
+The StatefulSet is configured to perform its default rolling upgrade behaviour.
+This means that when a Coherence resource is updated the StatefulSet will control the rolling upgrade.
+First a Pod is killed and rescheduled with the updated specification.
+When this Pod is "ready" the next Pod is killed and rescheduled, and so on until all the Pods are updated.
+Because the default readiness probe configured by the Operator will wait for Coherence members to be "safe"
+(i.e. no endangered partitions) and redistribution to be complete when the new Pod is ready, it is safe
+to kill the next Pod.
+
+== Custom Rolling Upgrades
+
+The Coherence resource yaml has a field named `RollingUpdateStrategy` which can be used to override the default
+rolling upgrade strategy. The field can be set to one of the following values:
+
+
+|===
+|RollingUpdateStrategy |Description
+
+|`Pod`
+|This is the same as the default behaviour, one Pod at a time is upgraded.
+
+|`Node`
+|This strategy will upgrade all Pods on a Node at the same time.
+
+|`NodeLabel `
+|This strategy will upgrade all Pods on all Nodes that have a matching value for a give Node label.
+
+
+|`Manual`
+|This strategy is the same as the `Manual` rolling upgrade configuration for a StatefulSet.
+|===
+
+=== Upgrade By Node
+
+By default, the Operator configures Coherence to be at least "machine safe",
+using the Node as the machine identifier. This means that it should be safe to
+lose all Pods on a Node. By upgrading multiple Pods at the same time the overall time to perform a
+rolling upgrade is less than using the default one Pod at a time behaviour.
+
+[NOTE]
+====
+When using the `Node` strategy where multiple Pods will be killed, the remaining cluster must have enough
+capacity to recover the data and backups from the Pods that are killed.
+
+For example, if a cluster of 18 Pods is distributed over three Nodes, each Node will be running six Pods.
+When upgrading by Node, six Pods will be killed at the same time, so there must be enough capacity in the
+remaining 12 Pods to hold all the data that was in the original 18 Pods.
+====
+
+The `Node` strategy is configured by setting the `rollingUpdateStrategy` field to `Node` as shown below:
+
+[source,yaml]
+.cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  rollingUpdateStrategy: Node
+  image: my-app:1.0.0
+----
+
+=== Upgrade By Node Label
+
+In many production Kubernetes clusters, there is a concept of zones and fault domains, with each Node belonging to
+one of these zones and domains. Typically, Nodes are labelled to indicate which zone and domain they are in.
+For example the `topology.kubernetes.io/zone` is a standard label for the zone name.
+
+These labels are used by the Coherence Operator to configure the site and rack names for a Coherence cluster.
+(see the documentation on <<docs/coherence/021_member_identity.adoc,Configuring Site and Rack>>).
+In a properly configured cluster that is site or rack safe, it is possible to upgrade all Pods in a site or rack
+at the same time.
+
+This is a more extreme version of the `Node` strategy.
+

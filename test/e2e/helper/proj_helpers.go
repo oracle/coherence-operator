@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -81,6 +81,8 @@ const (
 func EnsureTestEnvVars() {
 	ensureEnvVar("TEST_IMAGE_PULL_POLICY", "IfNotPresent")
 	ensureEnvVar("TEST_SKIP_SITE", "false")
+
+	ensureEnvVar("K3D_OPERATOR_IMAGE", "k3d-myregistry.localhost:12345/oracle/coherence-operator:1.0.0")
 
 	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-test-compatibility:1.0.0")
 	ensureEnvVar("TEST_APPLICATION_IMAGE_CLIENT", "ghcr.io/oracle/operator-test-client:1.0.0")
@@ -274,6 +276,33 @@ func FindTestLogsDir() (string, error) {
 	}
 
 	return pd + string(os.PathSeparator) + testLogs, nil
+}
+
+// FindToolsDir returns the build tools directory.
+func FindToolsDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(pd, "build", "tools"), nil
+}
+
+// FindK8sApiToolsDir returns the k8s API build tools directory.
+func FindK8sApiToolsDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(pd, "build", "tools", "bin", "k8s", fmt.Sprintf("1.31.0-%s-%s", runtime.GOOS, runtime.GOARCH)), nil
+}
+
+// FindRuntimeCrdDir returns the CRD directory under the runtime assets.
+func FindRuntimeCrdDir() (string, error) {
+	pd, err := FindProjectRootDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(pd, "pkg", "data", "assets"), nil
 }
 
 // FindTestCertsDir returns the test cert directory.

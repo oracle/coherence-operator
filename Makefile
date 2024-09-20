@@ -99,7 +99,9 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_IMAGE_REGISTRY ?= ghcr.io/oracle
+BASE_IMAGE_REGISTRY     ?= ghcr.io
+BASE_IMAGE_REPO         ?= oracle
+OPERATOR_IMAGE_REGISTRY ?= $(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_REPO)
 RELEASE_IMAGE_PREFIX    ?= $(OPERATOR_IMAGE_REGISTRY)/
 OPERATOR_IMAGE_NAME     := coherence-operator
 OPERATOR_BASE_IMAGE     ?= scratch
@@ -892,6 +894,28 @@ test-mvn: $(BUILD_OUTPUT)/certs $(BUILD_TARGETS)/java  ## Run the Java artefact 
 .PHONY: test-all
 test-all: test-mvn test-operator  ## Run all unit tests
 
+ENVTEST_K8S_VERSION =  1.31.0
+ENVTEST_VERSION     ?= release-0.19
+
+.PHONY: envtest
+envtest: $(TOOLS_BIN)/setup-envtest ## Download setup-envtest locally if necessary.
+
+envtest-delete:
+	$(TOOLS_BIN)/setup-envtest --bin-dir $(TOOLS_BIN) cleanup latest-on-disk
+	rm -rf $(TOOLS_BIN)/k8s || true
+
+$(TOOLS_BIN)/setup-envtest:
+	test -s $(TOOLS_BIN)/setup-envtest || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@$(ENVTEST_VERSION)
+	ls -al $(TOOLS_BIN)
+
+k8stools: $(TOOLS_BIN)/k8s
+
+$(TOOLS_BIN)/k8s: $(TOOLS_BIN)/setup-envtest
+	mkdir -p $(TOOLS_BIN)/k8s || true
+	$(TOOLS_BIN)/setup-envtest --bin-dir $(TOOLS_BIN) use $(ENVTEST_K8S_VERSION)
+
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require a k8s cluster using
 # a LOCAL operator instance (i.e. the operator is not deployed to k8s).
@@ -968,6 +992,39 @@ run-e2e-test: gotestsum  ## Run the Operator 'remote' end-to-end functional test
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Executes the Go end-to-end tests that require a K3d cluster using
+# a LOCAL operator instance (i.e. the operator is not deployed to k8s).
+# These tests will use whichever K3d cluster the local environment
+# is pointing to.
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: e2e-k3d-test
+e2e-k3d-test: export CGO_ENABLED = 0
+e2e-k3d-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
+e2e-k3d-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
+e2e-k3d-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
+e2e-k3d-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+e2e-k3d-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
+e2e-k3d-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
+e2e-k3d-test: export COH_SKIP_SITE := true
+e2e-k3d-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
+e2e-k3d-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
+e2e-k3d-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+e2e-k3d-test: export TEST_ASSET_KUBECTL := $(TEST_ASSET_KUBECTL)
+e2e-k3d-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
+e2e-k3d-test: export VERSION := $(VERSION)
+e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
+e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+e2e-k3d-test: reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
+	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the end-to-end Coherence client tests.
@@ -1334,8 +1391,7 @@ endif
 
 .PHONY: just-deploy
 just-deploy: ## Deploy the Coherence Operator without rebuilding anything
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(call do_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
@@ -1398,6 +1454,12 @@ define prepare_deploy
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit set image controller=$(1)
 	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
 endef
+
+define do_deploy
+	$(call prepare_deploy,$(1),$(2))
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+endef
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
@@ -1641,6 +1703,49 @@ kind-load-operator:   ## Load the Operator images into the KinD cluster
 .PHONY: kind-load-compatibility
 kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_COMPATIBILITY_IMAGE) || true
+
+# ======================================================================================================================
+# Targets related to running k3d clusters
+# ======================================================================================================================
+##@ K3d
+
+K3D_CLUSTER           ?= operator
+K3D_REGISTRY          ?= myregistry
+K3D_REGISTRY_PORT     ?= 12345
+K3D_INTERNAL_REGISTRY := k3d-$(K3D_REGISTRY).localhost:$(K3D_REGISTRY_PORT)
+
+.PHONY: k3d
+k3d: $(TOOLS_BIN)/k3d k3d-create k3d-load-operator create-namespace  ## Run a default k3d cluster
+
+.PHONY: k3d-create
+k3d-create: $(TOOLS_BIN)/k3d ## Create the k3d cluster
+	$(TOOLS_BIN)/k3d registry create myregistry.localhost --port 12345
+	$(TOOLS_BIN)/k3d cluster create $(K3D_CLUSTER) --agents 5 \
+		--registry-use $(K3D_INTERNAL_REGISTRY) --no-lb \
+		--runtime-ulimit "nofile=64000:64000" --runtime-ulimit "nproc=64000:64000" \
+		--api-port 127.0.0.1:6550
+
+.PHONY: k3d-stop
+k3d-stop: $(TOOLS_BIN)/k3d  ## Stop a default k3d cluster
+	$(TOOLS_BIN)/k3d cluster delete $(K3D_CLUSTER)
+	$(TOOLS_BIN)/k3d registry delete myregistry.localhost
+
+.PHONY: k3d-load-operator
+k3d-load-operator: $(TOOLS_BIN)/k3d  ## Load the Operator images into the k3d cluster
+	k3d image import $(OPERATOR_IMAGE) -c $(K3D_CLUSTER)
+
+.PHONY: k3d-load-coherence
+k3d-load-coherence: $(TOOLS_BIN)/k3d  ## Load the Coherence images into the k3d cluster
+	k3d image import $(COHERENCE_IMAGE) -c $(K3D_CLUSTER)
+
+.PHONY: k3d-load-all
+k3d-load-all: $(TOOLS_BIN)/k3d k3d-load-operator k3d-load-coherence ## Load all the test images into the k3d cluster
+
+
+k3d-get: $(TOOLS_BIN)/k3d ## Install k3d
+
+$(TOOLS_BIN)/k3d:
+	export K3D_INSTALL_DIR=$(TOOLS_BIN) && export USE_SUDO=false && curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
 # ======================================================================================================================
 # Targets related to running Minikube

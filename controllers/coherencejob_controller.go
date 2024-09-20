@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/controllers/secret"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
@@ -36,6 +37,7 @@ import (
 type CoherenceJobReconciler struct {
 	client.Client
 	reconciler.CommonReconciler
+	ClientSet   clients.ClientSet
 	Log         logr.Logger
 	Scheme      *runtime.Scheme
 	reconcilers []reconciler.SecondaryResourceReconciler
@@ -233,22 +235,22 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	return result, nil
 }
 
-func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.ClientSet) error {
 	SetupMonitoringResources(mgr)
 
 	// Create the sub-resource reconcilers IN THE ORDER THAT RESOURCES MUST BE CREATED.
 	// This is important to ensure, for example, that a ConfigMap is created before the
 	// StatefulSet that uses it.
 	reconcilers := []reconciler.SecondaryResourceReconciler{
-		reconciler.NewConfigMapReconciler(mgr),
-		secret.NewSecretReconciler(mgr),
-		reconciler.NewServiceReconciler(mgr),
-		servicemonitor.NewServiceMonitorReconciler(mgr),
-		job.NewJobReconciler(mgr),
+		reconciler.NewConfigMapReconciler(mgr, cs),
+		secret.NewSecretReconciler(mgr, cs),
+		reconciler.NewServiceReconciler(mgr, cs),
+		servicemonitor.NewServiceMonitorReconciler(mgr, cs),
+		job.NewJobReconciler(mgr, cs),
 	}
 
 	in.reconcilers = reconcilers
-	in.SetCommonReconciler(jobControllerName, mgr)
+	in.SetCommonReconciler(jobControllerName, mgr, cs)
 	in.SetPatchType(types.MergePatchType)
 
 	template := &coh.CoherenceJob{}

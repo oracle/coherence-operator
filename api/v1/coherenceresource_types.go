@@ -510,7 +510,43 @@ type CoherenceStatefulSetResourceSpec struct {
 	// The Coherence operator does not apply any default resources.
 	// +optional
 	InitResources *corev1.ResourceRequirements `json:"initResources,omitempty"`
+	// The rolling upgrade strategy to use.
+	// If present, the value must be one of "UpgradeByPod", "UpgradeByNode" of "OnDelete".
+	// If not set, the default is "UpgradeByPod"
+	// UpgradeByPod will perform a rolling upgrade one Pod at a time.
+	// UpgradeByNode will update all Pods on a Node at the same time.
+	// OnDelete will not automatically apply any updates, Pods must be manually
+	// deleted for updates to be applied to the restarted Pod.
+	// +optional
+	RollingUpdateStrategy *RollingUpdateStrategyType `json:"rollingUpdateStrategy,omitempty"`
+	// The name of the Node label to use to group Pods during a rolling upgrade.
+	// This field ony applies if RollingUpdateStrategy is set to NodeLabel.
+	// If RollingUpdateStrategy is set to NodeLabel and this field is omitted then the
+	// rolling upgrade will be by Node. It is the users responsibility to ensure that
+	// Nodes actually have the label used for this field. The label should be
+	// one of the node labels used to set the Coherence site or rack value.
+	// +optional
+	RollingUpdateLabel *string `json:"rollingUpdateLabel,omitempty"`
 }
+
+// RollingUpdateStrategyType is a string enumeration type that enumerates
+// all possible rolling update strategies.
+// +enum
+type RollingUpdateStrategyType string
+
+const (
+	// UpgradeByPod indicates that updates will be applied to all Pods in the StatefulSet
+	// with respect to the StatefulSet ordering constraints one Pod at a time.
+	// This is the default behaviour for a StatefulSet rolling upgrade.
+	UpgradeByPod RollingUpdateStrategyType = "Pod"
+	// UpgradeByNode indicates that updates will be applied to all Pods on a Node at the same time.
+	UpgradeByNode RollingUpdateStrategyType = "Node"
+	// UpgradeByNodeLabel indicates that updates will be applied to all Pods on a Node with the same label value at the same time.
+	UpgradeByNodeLabel RollingUpdateStrategyType = "NodeLabel"
+	// UpgradeManual is equivalent to using "OnDelete" as a StatefulSet upgrade strategy.
+	// Updates are applied to Pods by the StatefulSet controller after they are manually killed.
+	UpgradeManual RollingUpdateStrategyType = "Manual"
+)
 
 // CreateStatefulSetResource creates the deployment's StatefulSet resource.
 func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSetResource(deployment *Coherence) Resource {
@@ -537,13 +573,33 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 	replicas := in.GetReplicas()
 	podTemplate := in.CreatePodTemplateSpec(deployment)
 
+	// Work out the StatefulSet rolling upgrade strategy based on the
+	// value of the Coherence spec RollingUpdateStrategy field
+	var strategy appsv1.StatefulSetUpdateStrategyType
+	if in.RollingUpdateStrategy == nil {
+		// Nothing set, so default to a normal StatefulSet rolling upgrade one Pod at a time
+		strategy = appsv1.RollingUpdateStatefulSetStrategyType
+	} else {
+		// A strategy has been set in the Coherence spec
+		rollStrategy := *in.RollingUpdateStrategy
+		if rollStrategy == UpgradeByPod {
+			// UpgradeByPod is the same as the default StatefulSet strategy
+			strategy = appsv1.RollingUpdateStatefulSetStrategyType
+		} else {
+			// One of our custom strategies has been chosen, so we set the
+			// StatefulSet strategy to OnDelete as the Operator will control
+			// the rolling update
+			strategy = appsv1.OnDeleteStatefulSetStrategyType
+		}
+	}
+
 	// Add the component label
 	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
 	sts.Spec = appsv1.StatefulSetSpec{
 		Replicas:            &replicas,
 		PodManagementPolicy: appsv1.ParallelPodManagement,
 		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
-			Type: appsv1.RollingUpdateStatefulSetStrategyType,
+			Type: strategy,
 		},
 		RevisionHistoryLimit: ptr.To(int32(5)),
 		ServiceName:          deployment.GetHeadlessServiceName(),

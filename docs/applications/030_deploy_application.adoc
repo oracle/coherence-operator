@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -8,7 +8,7 @@
 
 = Deploy Coherence Applications
 
-== Deploy Coherence Application Images
+== Deploy Coherence Applications
 
 Once a custom application image has been built (as described in <<docs/applications/020_build_application.adoc,Build Custom Application Images>>)
 a `Coherence` resource can be configured to use that image.

@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -39,7 +40,7 @@ const (
 var _ reconcile.Reconciler = &ReconcileJob{}
 
 // NewJobReconciler returns a new Job reconciler.
-func NewJobReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconciler {
+func NewJobReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.SecondaryResourceReconciler {
 
 	r := &ReconcileJob{
 		ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
@@ -48,7 +49,7 @@ func NewJobReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconcile
 		},
 	}
 
-	r.SetCommonReconciler(controllerName, mgr)
+	r.SetCommonReconciler(controllerName, mgr, cs)
 	return r
 }
 
