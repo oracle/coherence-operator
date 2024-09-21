@@ -1736,11 +1736,11 @@ k3d-stop: $(TOOLS_BIN)/k3d  ## Stop a default k3d cluster
 
 .PHONY: k3d-load-operator
 k3d-load-operator: $(TOOLS_BIN)/k3d  ## Load the Operator images into the k3d cluster
-	k3d image import $(OPERATOR_IMAGE) -c $(K3D_CLUSTER)
+	$(TOOLS_BIN)/k3d image import $(OPERATOR_IMAGE) -c $(K3D_CLUSTER)
 
 .PHONY: k3d-load-coherence
 k3d-load-coherence: $(TOOLS_BIN)/k3d  ## Load the Coherence images into the k3d cluster
-	k3d image import $(COHERENCE_IMAGE) -c $(K3D_CLUSTER)
+	$(TOOLS_BIN)/k3d image import $(COHERENCE_IMAGE) -c $(K3D_CLUSTER)
 
 .PHONY: k3d-load-all
 k3d-load-all: $(TOOLS_BIN)/k3d k3d-load-operator k3d-load-coherence ## Load all the test images into the k3d cluster
