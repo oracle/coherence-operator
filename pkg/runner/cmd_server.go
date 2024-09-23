@@ -48,7 +48,7 @@ func server(details *RunDetails, _ *cobra.Command) {
 	fi, err := os.Stat(jibMainClassFileName)
 	mainCls := ""
 	if err == nil && (fi.Size() != 0) {
-		mainCls = readFirstLineFromFile(jibMainClassFileName, fi)
+		mainCls, _ = readFirstLineFromFile(fi.Name())
 	}
 	if !found && (len(mainCls) != 0) {
 		mc = mainCls

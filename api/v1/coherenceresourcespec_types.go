@@ -793,7 +793,6 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 		Name:    ContainerNameCoherence,
 		Image:   cohImage,
 		Command: cmd,
-		Env:     in.Env,
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          PortNameCoherence,
@@ -826,7 +825,8 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 		c.ImagePullPolicy = *in.ImagePullPolicy
 	}
 
-	c.Env = append(c.Env, in.CreateDefaultEnv(deployment)...)
+	c.Env = in.CreateDefaultEnv(deployment)
+	c.Env = append(c.Env, in.Env...)
 
 	forceExit := deployment.IsForceExit()
 	if forceExit {

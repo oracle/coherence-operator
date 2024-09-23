@@ -9,6 +9,7 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
@@ -465,6 +466,206 @@ func TestCoherenceDefaultIpMonitor(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceSiteEAndRackEnvVarSet(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCoherenceSite,
+						Value: "test-site",
+					},
+					{
+						Name:  coh.EnvVarCoherenceRack,
+						Value: "test-rack",
+					},
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeploymentWithSkipSite(d, false)
+
+	expectedCommand := GetJavaCommand()
+	// site and rack system properties should not be set
+	expectedArgs := RemoveArg(GetMinimalExpectedArgs(), "-Dcoherence.site")
+	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.rack")
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceSiteAndRackEnvVarSetFromOtherEnvVar(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCoherenceSite,
+						Value: "${TEST_SITE_VAR}",
+					},
+					{
+						Name:  "TEST_SITE_VAR",
+						Value: "test-site",
+					},
+					{
+						Name:  coh.EnvVarCoherenceRack,
+						Value: "${TEST_RACK_VAR}",
+					},
+					{
+						Name:  "TEST_RACK_VAR",
+						Value: "test-rack",
+					},
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeploymentWithSkipSite(d, false)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.site=test-site")
+	expectedArgs = append(expectedArgs, "-Dcoherence.rack=test-rack")
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceSiteAndRackEnvVarSetFromOtherEnvVarWhenRackIsMissing(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCoherenceSite,
+						Value: "${TEST_SITE_VAR}",
+					},
+					{
+						Name:  "TEST_SITE_VAR",
+						Value: "test-site",
+					},
+					{
+						Name:  coh.EnvVarCoherenceRack,
+						Value: "${TEST_RACK_VAR}",
+					},
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeploymentWithSkipSite(d, false)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.site=test-site")
+	// rack should be set to site
+	expectedArgs = append(expectedArgs, "-Dcoherence.rack=test-site")
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceSiteFromFile(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCohSite,
+						Value: "test-site.txt",
+					},
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeploymentWithSkipSite(d, false)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.site=site-from-file")
+	expectedArgs = append(expectedArgs, "-Dcoherence.rack=site-from-file")
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestCoherenceSiteAndRackFromFile(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCohSite,
+						Value: "test-site.txt",
+					},
+					{
+						Name:  coh.EnvVarCohRack,
+						Value: "test-rack.txt",
+					},
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeploymentWithSkipSite(d, false)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.site=site-from-file")
+	expectedArgs = append(expectedArgs, "-Dcoherence.rack=rack-from-file")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
