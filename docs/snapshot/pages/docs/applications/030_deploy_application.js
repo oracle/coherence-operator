@@ -1,6 +1,6 @@
 <doc-view>
 
-<h2 id="_deploy_coherence_application_images">Deploy Coherence Application Images</h2>
+<h2 id="_deploy_coherence_applications">Deploy Coherence Applications</h2>
 <div class="section">
 <p>Once a custom application image has been built (as described in <router-link to="/docs/applications/020_build_application">Build Custom Application Images</router-link>)
 a <code>Coherence</code> resource can be configured to use that image.</p>

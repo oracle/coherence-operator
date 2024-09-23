@@ -234,6 +234,19 @@ function createRoutes(){
             component: loadPage('docs-applications-030_deploy_application', '/docs/applications/030_deploy_application', {})
         },
         {
+            path: '/docs/applications/032_rolling_upgrade',
+            meta: {
+                h1: 'Rolling Upgrades of Coherence Applications',
+                title: 'Rolling Upgrades of Coherence Applications',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-applications-032_rolling_upgrade', '/docs/applications/032_rolling_upgrade', {})
+        },
+        {
             path: '/docs/applications/040_application_main',
             meta: {
                 h1: 'Set the Application Main',
@@ -1294,6 +1307,7 @@ function createNav(){
                 { href: '/docs/applications/010_overview', title: 'Overview' },
                 { href: '/docs/applications/020_build_application', title: 'Build Application Images' },
                 { href: '/docs/applications/030_deploy_application', title: 'Deploy Coherence Applications' },
+                { href: '/docs/applications/032_rolling_upgrade', title: 'Rolling Upgrades of Coherence Applications' },
                 { href: '/docs/applications/040_application_main', title: 'Set the Application Main' },
                 { href: '/docs/applications/050_application_args', title: 'Set Application Arguments' },
                 { href: '/docs/applications/060_application_working_dir', title: 'Set the Working Directory' },

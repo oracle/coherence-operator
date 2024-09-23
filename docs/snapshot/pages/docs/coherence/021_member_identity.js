@@ -44,8 +44,33 @@ Ideally this would be on a member with a different site; failing that, a differe
 <div class="section">
 <p>You should not usually need to change the default values applied for the <code>member</code> and <code>machine</code> names, but you may need
 to change the values used for the site, or rack. The labels used for the <code>site</code> and <code>rack</code> are standard k8s labels but
-the k8s cluster being used may not have these labels set</p>
+the k8s cluster being used may not have these labels set.</p>
 
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>If the Coherence site is specified but no value is set for rack, the Operator will configure the
+rack value to be the same as the site. Coherence will not set the site if any of the identity values
+below it are missing (i.e. rack, machine, member).</p>
+</p>
+</div>
+<div class="admonition important">
+<p class="admonition-textlabel">Important</p>
+<p ><p><strong>Maintaining Site and Rack Safety</strong></p>
+
+<p>The details below show alternate approaches to set the Coherence site and rack identity.
+If site and rack are set to a fixed value for the deployment, then all Coherence members in that
+deployment will have the same value. This means it would be impossible for Coherence to become
+site or rack safe.</p>
+
+<p>A work-around for this would be to use multiple Coherence deployments configured with the same cluster name
+and each having different site and rack values.
+For examples, if a Kubernetes cluster has two fault domains, two separate Coherence resources could
+be created with different site and rack values. Each Coherence resource would then have different
+Pod scheduling rules, so that each Coherence deployment is targeted at only one fault domain.
+All the Pods in the two Coherence deployments would form a single Cluster, and because there will be Pods with
+different site and rack values, Coherence will be able to reach site safety.</p>
+</p>
+</div>
 
 <h3 id="_apply_node_labels">Apply Node Labels</h3>
 <div class="section">
@@ -57,6 +82,50 @@ the k8s cluster being used may not have these labels set</p>
 lang="bash"
 
 >kubectl label node docker-desktop topology.kubernetes.io/zone=twighlight-zone</markup>
+
+</div>
+
+<h3 id="_specify_site_and_rack_using_environment_variables">Specify Site and Rack using Environment Variables</h3>
+<div class="section">
+<p>The site and rack values can be set by setting the <code>COHERENCE_SITE</code> and <code>COHERENCE_RACK</code> environment variables.</p>
+
+<p>If these values are set then the Operator will not set the <code>coherence.site</code> or <code>coherence.rack</code> system properties
+as Coherence will read the environment variable values.</p>
+
+<p>For example, the yaml below will set the sit to <code>test-site</code> and the rack to <code>test-rack</code>:</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: my-cluster
+spec:
+  env:
+    - name: COHERENCE_SITE
+      value: test-site
+    - name: COHERENCE_RACK
+      value: test-rack</markup>
+
+<p>Site and rack environment variables will be expanded if they reference other variables.</p>
+
+<p>For example, the yaml below will set the site to the value of the <code>MY_SITE</code> environment variables,
+and rack to the value of the <code>MY_RACK</code> environment variable.</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: my-cluster
+spec:
+  env:
+    - name: COHERENCE_SITE
+      value: "${MY_SITE}"
+    - name: COHERENCE_RACK
+      value: "${MY_RACK}"</markup>
 
 </div>
 

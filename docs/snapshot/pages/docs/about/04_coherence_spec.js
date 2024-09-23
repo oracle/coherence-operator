@@ -3234,6 +3234,18 @@ The Coherence operator does not apply any default resources.</td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>rollingUpdateStrategy</code></td>
+<td class="">The rolling upgrade strategy to use. If present, the value must be one of "UpgradeByPod", "UpgradeByNode" of "OnDelete". If not set, the default is "UpgradeByPod" UpgradeByPod will perform a rolling upgrade one Pod at a time. UpgradeByNode will update all Pods on a Node at the same time. OnDelete will not automatically apply any updates, Pods must be manually deleted for updates to be applied to the restarted Pod.</td>
+<td class=""><code>&#42;RollingUpdateStrategyType</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>rollingUpdateLabel</code></td>
+<td class="">The name of the Node label to use to group Pods during a rolling upgrade. This field ony applies if RollingUpdateStrategy is set to NodeLabel. If RollingUpdateStrategy is set to NodeLabel and this field is omitted then the rolling upgrade will be by Node. It is the users responsibility to ensure that Nodes actually have the label used for this field. The label should be one of the node labels used to set the Coherence site or rack value.</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>
