@@ -605,40 +605,6 @@ func TestCoherenceSiteAndRackEnvVarSetFromOtherEnvVarWhenRackIsMissing(t *testin
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
-func TestCoherenceSiteFromFile(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Env: []corev1.EnvVar{
-					{
-						Name:  coh.EnvVarCohSite,
-						Value: "test-site.txt",
-					},
-				},
-			},
-		},
-	}
-
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeploymentWithSkipSite(d, false)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.site=site-from-file")
-	expectedArgs = append(expectedArgs, "-Dcoherence.rack=site-from-file")
-
-	e, err := ExecuteWithArgsAndNewViper(env, args)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(e).NotTo(BeNil())
-	g.Expect(e.OsCmd).NotTo(BeNil())
-
-	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
-}
-
 func TestCoherenceSiteAndRackFromFile(t *testing.T) {
 	g := NewGomegaWithT(t)
 

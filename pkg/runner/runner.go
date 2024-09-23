@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"strconv"
 	"strings"
@@ -320,9 +321,10 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	// are running a Spring Boot application.
 	if !details.isBuildPacks() && details.AppType != AppTypeSpring && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-		fi, e := os.Stat(appDir + "/jib-classpath-file")
+		cpFile := filepath.Join(appDir, "jib-classpath-file")
+		fi, e := os.Stat(cpFile)
 		if e == nil && (fi.Size() != 0) {
-			clsPath, _ := readFirstLineFromFile(fi.Name())
+			clsPath, _ := readFirstLineFromFile(cpFile)
 			if len(clsPath) != 0 {
 				details.addClasspath(clsPath)
 			}
@@ -631,7 +633,7 @@ func readFirstLineFromFile(path string) (string, error) {
 	if st.IsDir() {
 		return "", fmt.Errorf("%s is a directory", path)
 	}
-	file, err := os.Open(st.Name())
+	file, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
