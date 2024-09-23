@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -49,7 +50,7 @@ var _ reconcile.Reconciler = &ReconcileStatefulSet{}
 var log = logf.Log.WithName(controllerName)
 
 // NewStatefulSetReconciler returns a new StatefulSet reconciler.
-func NewStatefulSetReconciler(mgr manager.Manager) reconciler.SecondaryResourceReconciler {
+func NewStatefulSetReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.SecondaryResourceReconciler {
 	// Parse the StatusHA retry time from the
 	retry := time.Minute
 	s := os.Getenv(statusHaRetryEnv)
@@ -70,7 +71,7 @@ func NewStatefulSetReconciler(mgr manager.Manager) reconciler.SecondaryResourceR
 		statusHARetry: retry,
 	}
 
-	r.SetCommonReconciler(controllerName, mgr)
+	r.SetCommonReconciler(controllerName, mgr, cs)
 	return r
 }
 
@@ -84,9 +85,6 @@ func (in *ReconcileStatefulSet) GetReconciler() reconcile.Reconciler { return in
 // Reconcile reads that state of the Services for a deployment and makes changes based on the
 // state read and the desired state based on the parent Coherence resource.
 func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", "StatefulSet")
-	logger.Info("Starting reconcile")
-
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
@@ -101,7 +99,6 @@ func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile
 	}
 
 	result, err := in.ReconcileAllResourceOfKind(ctx, request, nil, storage)
-	logger.Info("Completed reconcile")
 	return result, err
 }
 
@@ -212,7 +209,7 @@ func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.Sta
 
 		for _, action := range spec.Actions {
 			if action.Probe != nil {
-				if ok := coherenceProbe.ExecuteProbe(ctx, deployment, sts, action.Probe); !ok {
+				if ok := coherenceProbe.ExecuteProbe(ctx, sts, action.Probe); !ok {
 					log.Info("Action probe execution failed.", "probe", action.Probe)
 				}
 			}
@@ -349,7 +346,29 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
 	if hashMatches {
-		return reconcile.Result{}, nil
+		// Nothing to patch, see if we need to do a rolling upgrade of Pods
+		// If the Operator is controlling the upgrade
+		p := probe.CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
+		strategy := GetUpgradeStrategy(deployment, p)
+		if strategy.IsOperatorManaged() {
+			// The Operator is managing the rolling upgrade
+			if current.Spec.Replicas == nil {
+				if current.Status.ReadyReplicas != 1 || current.Status.CurrentReplicas != 1 {
+					return reconcile.Result{}, nil
+				}
+			} else {
+				replicas := *current.Spec.Replicas
+				if (current.Status.CurrentReplicas+current.Status.UpdatedReplicas) != replicas || current.Status.ReadyReplicas != replicas {
+					return reconcile.Result{}, nil
+				}
+			}
+
+			if current.Status.CurrentRevision == current.Status.UpdateRevision {
+				return reconcile.Result{}, nil
+			}
+
+			return strategy.RollingUpgrade(ctx, current, in.GetClientSet().KubeClient)
+		}
 	}
 
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())

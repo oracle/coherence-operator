@@ -10,38 +10,22 @@ package helper
 import (
 	goctx "context"
 	"encoding/json"
-	"flag"
 	"fmt"
-	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/controllers"
-	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
-	oprest "github.com/oracle/coherence-operator/pkg/rest"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	"os"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strings"
 	"testing"
 
@@ -60,254 +44,6 @@ var (
 	RetryInterval = time.Second * 5
 	Timeout       = time.Minute * 3
 )
-
-// TestContext is a context for end-to-end tests
-type TestContext struct {
-	Config     *rest.Config
-	Client     client.Client
-	KubeClient kubernetes.Interface
-	Manager    ctrl.Manager
-	Logger     logr.Logger
-	Context    context.Context
-	testEnv    *envtest.Environment
-	stop       chan struct{}
-	namespaces []string
-}
-
-func (in TestContext) Logf(format string, a ...interface{}) {
-	in.Logger.Info(fmt.Sprintf(format, a...))
-}
-
-func (in TestContext) CleanupAfterTest(t *testing.T) {
-	t.Cleanup(func() {
-		if t.Failed() {
-			// dump the logs if the test failed
-			DumpOperatorLogs(t, in)
-		}
-		in.Cleanup()
-	})
-}
-
-func (in TestContext) Cleanup() {
-	in.Logger.Info("tearing down the test environment")
-	ns := GetTestNamespace()
-	in.CleanupNamespace(ns)
-	clusterNS := GetTestClusterNamespace()
-	if clusterNS != ns {
-		in.CleanupNamespace(clusterNS)
-	}
-	clientNS := GetTestClientNamespace()
-	in.CleanupNamespace(clientNS)
-	for i := range in.namespaces {
-		_ = in.cleanAndDeleteNamespace(in.namespaces[i])
-	}
-	in.namespaces = nil
-}
-
-func (in TestContext) CleanupNamespace(ns string) {
-	in.Logger.Info("tearing down the test environment - namespace: " + ns)
-	if err := WaitForCoherenceCleanup(in, ns); err != nil {
-		in.Logf("error waiting for cleanup to complete: %+v", err)
-	}
-	DeletePersistentVolumes(in, ns)
-}
-
-func (in TestContext) CreateNamespace(ns string) error {
-	n := corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ns,
-			Namespace: ns,
-		},
-		Spec: corev1.NamespaceSpec{},
-	}
-	_, err := in.KubeClient.CoreV1().Namespaces().Create(in.Context, &n, metav1.CreateOptions{})
-	if err != nil {
-		in.namespaces = append(in.namespaces, ns)
-	}
-	return err
-}
-
-func (in TestContext) DeleteNamespace(ns string) error {
-	for i := range in.namespaces {
-		if in.namespaces[i] == ns {
-			err := in.cleanAndDeleteNamespace(ns)
-			last := len(in.namespaces) - 1
-			in.namespaces[i] = in.namespaces[last] // Copy last element to index i.
-			in.namespaces[last-1] = ""             // Erase last element (write zero value).
-			in.namespaces = in.namespaces[:last]   // Truncate slice.
-			return err
-		}
-	}
-	return nil
-}
-
-func (in TestContext) cleanAndDeleteNamespace(ns string) error {
-	in.CleanupNamespace(ns)
-	return in.KubeClient.CoreV1().Namespaces().Delete(in.Context, ns, metav1.DeleteOptions{})
-}
-
-func (in TestContext) Close() {
-	in.Cleanup()
-	if in.stop != nil {
-		close(in.stop)
-	}
-	if err := in.testEnv.Stop(); err != nil {
-		in.Logf("error stopping test environment: %+v", err)
-	}
-}
-
-// NewContext creates a new TestContext.
-func NewContext(startController bool, watchNamespaces ...string) (TestContext, error) {
-	testLogger := zap.New(zap.UseDevMode(true), zap.WriteTo(os.Stdout))
-	logf.SetLogger(testLogger)
-
-	// create a dummy command
-	Cmd := &cobra.Command{
-		Use:   "manager",
-		Short: "Start the operator manager",
-	}
-
-	// configure viper for the flags and env-vars
-	operator.SetupFlags(Cmd, viper.GetViper())
-	flagSet := pflag.NewFlagSet("operator", pflag.ContinueOnError)
-	flagSet.AddGoFlagSet(flag.CommandLine)
-	if err := viper.BindPFlags(flagSet); err != nil {
-		return TestContext{}, err
-	}
-
-	// We need a real cluster for these tests
-	useCluster := true
-
-	testLogger.WithName("test").Info("bootstrapping test environment")
-	testEnv := &envtest.Environment{
-		UseExistingCluster:       &useCluster,
-		AttachControlPlaneOutput: true,
-		CRDs:                     []*v1.CustomResourceDefinition{},
-	}
-
-	var err error
-	k8sCfg, err := testEnv.Start()
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	err = corev1.AddToScheme(scheme.Scheme)
-	if err != nil {
-		return TestContext{}, err
-	}
-	err = coh.AddToScheme(scheme.Scheme)
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	cl, err := client.New(k8sCfg, client.Options{Scheme: scheme.Scheme})
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	options := ctrl.Options{
-		Scheme: scheme.Scheme,
-	}
-
-	if len(watchNamespaces) == 1 {
-		// Watch a single namespace
-		options.NewCache = func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
-			opts.DefaultNamespaces = map[string]cache.Config{
-				watchNamespaces[0]: {},
-			}
-			return cache.New(config, opts)
-		}
-	} else if len(watchNamespaces) > 1 {
-		// Watch a multiple namespaces
-		options.NewCache = func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
-			nsMap := make(map[string]cache.Config)
-			for _, ns := range watchNamespaces {
-				nsMap[ns] = cache.Config{}
-			}
-			opts.DefaultNamespaces = nsMap
-			return cache.New(config, opts)
-		}
-	}
-
-	k8sManager, err := ctrl.NewManager(k8sCfg, options)
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	k8sClient := k8sManager.GetClient()
-
-	cs, err := clients.NewForConfig(k8sCfg)
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	v, err := operator.DetectKubernetesVersion(cs)
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	ctx := context.Background()
-
-	var stop chan struct{}
-
-	// Create the REST server
-	restServer := oprest.NewServer(cs)
-	if err := restServer.SetupWithManager(k8sManager); err != nil {
-		return TestContext{}, err
-	}
-
-	if startController {
-		// Ensure CRDs exist
-		err = coh.EnsureCRDs(ctx, v, scheme.Scheme, cl)
-		if err != nil {
-			return TestContext{}, err
-		}
-
-		// Create the Coherence controller
-		err = (&controllers.CoherenceReconciler{
-			Client: k8sManager.GetClient(),
-			Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
-		}).SetupWithManager(k8sManager)
-		if err != nil {
-			return TestContext{}, err
-		}
-
-		// Create the CoherenceJob controller
-		err = (&controllers.CoherenceJobReconciler{
-			Client: k8sManager.GetClient(),
-			Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
-		}).SetupWithManager(k8sManager)
-		if err != nil {
-			return TestContext{}, err
-		}
-	}
-
-	// Start the manager, which will start the controller and REST server
-	stop = make(chan struct{})
-	go func() {
-		err = k8sManager.Start(ctx)
-	}()
-
-	k8sManager.GetCache().WaitForCacheSync(ctx)
-	<-restServer.Running()
-
-	time.Sleep(5 * time.Second)
-
-	if err != nil {
-		return TestContext{}, err
-	}
-
-	return TestContext{
-		Config:     k8sCfg,
-		Client:     k8sClient,
-		KubeClient: cs.KubeClient,
-		Manager:    k8sManager,
-		Logger:     testLogger.WithName("test"),
-		Context:    ctx,
-		testEnv:    testEnv,
-		stop:       stop,
-	}, nil
-}
 
 // WaitForStatefulSetForDeployment waits for a StatefulSet to be created for the specified deployment.
 func WaitForStatefulSetForDeployment(ctx TestContext, namespace string, deployment *coh.Coherence, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
@@ -373,6 +109,45 @@ func WaitForStatefulSet(ctx TestContext, namespace, stsName string, replicas int
 		d, _ := json.MarshalIndent(sts, "", "    ")
 		ctx.Logf("Error waiting for StatefulSet %s", string(d))
 	}
+	return sts, err
+}
+
+// WaitForStatefulSetPodCondition waits for all Pods in a StatefulSet to have the specified condition.
+func WaitForStatefulSetPodCondition(ctx TestContext, namespace, stsName string, replicas int32, c corev1.PodConditionType, retryInterval, timeout time.Duration) (*appsv1.StatefulSet, error) {
+	sts, err := WaitForStatefulSet(ctx, namespace, stsName, replicas, retryInterval, timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	err = wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
+		pods, err := ListPodsForStatefulSet(ctx, sts)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				ctx.Logf("Waiting for Pods in StatefulSet %s to reach condition %s - NotFound", stsName, c)
+				return false, nil
+			}
+			ctx.Logf("Waiting for Pods in StatefulSet %s to reach condition %s - %s", stsName, c, err.Error())
+			return false, err
+		}
+
+		ready := true
+		count := 0
+		for _, pod := range pods.Items {
+			for _, cond := range pod.Status.Conditions {
+				if cond.Type == c {
+					if cond.Status == corev1.ConditionTrue {
+						count++
+					} else {
+						ready = false
+					}
+				}
+			}
+		}
+
+		ctx.Logf("Waiting for Pods in StatefulSet %s to reach condition %s = (%d/%d)", stsName, c, count, len(pods.Items))
+		return ready, nil
+	})
+
 	return sts, err
 }
 
@@ -880,6 +655,35 @@ func ListPodsWithLabelAndFieldSelector(ctx TestContext, namespace, labelSelector
 	}
 
 	return list.Items, nil
+}
+
+func ListPodsForStatefulSet(ctx TestContext, sts *appsv1.StatefulSet) (corev1.PodList, error) {
+	pods := corev1.PodList{}
+	var replicas int
+	if sts.Spec.Replicas == nil {
+		replicas = 1
+	} else {
+		replicas = int(*sts.Spec.Replicas)
+	}
+
+	name := types.NamespacedName{Namespace: sts.Namespace}
+	for i := 0; i < replicas; i++ {
+		name.Name = fmt.Sprintf("%s-%d", sts.Name, i)
+		pod := corev1.Pod{}
+		err := ctx.Client.Get(ctx.Context, name, &pod)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				t := metav1.Now()
+				pod.Namespace = name.Namespace
+				pod.Name = name.Name
+				pod.DeletionTimestamp = &t
+			} else {
+				return pods, err
+			}
+		}
+		pods.Items = append(pods.Items, pod)
+	}
+	return pods, nil
 }
 
 // WaitForPodReady waits for a Pods to be ready.
@@ -2179,4 +1983,11 @@ func DeletePersistentVolumes(ctx TestContext, namespace string) {
 			ctx.Logf("Failed to delete PV %s %v", pv, err)
 		}
 	}
+}
+
+func AddLoopbackTestHostnameLabel(c *coh.Coherence) {
+	if c.Spec.Labels == nil {
+		c.Spec.Labels = map[string]string{}
+	}
+	c.Spec.Labels[operator.LabelTestHostName] = "127.0.0.1"
 }

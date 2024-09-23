@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -54,8 +54,15 @@ func (in *CoherenceProbe) SetGetPodHostName(fn func(pod corev1.Pod) string) {
 }
 
 func (in *CoherenceProbe) GetPodHostName(pod corev1.Pod) string {
+	hostName, found := pod.Labels[operator.LabelTestHostName]
+	if found {
+		return hostName
+	}
 	if in.getPodHostName == nil {
-		return pod.Spec.Hostname + "." + pod.Spec.Subdomain + "." + pod.GetNamespace() + ".svc"
+		if pod.Status.PodIP == "" {
+			return pod.Spec.Hostname + "." + pod.Spec.Subdomain + "." + pod.GetNamespace() + ".svc"
+		}
+		return pod.Status.PodIP
 	}
 	return in.getPodHostName(pod)
 }
@@ -85,7 +92,7 @@ func (in *CoherenceProbe) IsStatusHA(ctx context.Context, deployment coh.Coheren
 	spec, found := deployment.GetStatefulSetSpec()
 	if found {
 		p := spec.GetScalingProbe()
-		return in.ExecuteProbe(ctx, deployment, sts, p)
+		return in.ExecuteProbe(ctx, sts, p)
 	}
 	return true
 }
@@ -138,36 +145,43 @@ func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment coh.Co
 	}
 
 	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", ns, "Name", name)
-	if in.ExecuteProbe(ctx, deployment, sts, stsSpec.GetSuspendProbe()) {
+	if in.ExecuteProbe(ctx, sts, stsSpec.GetSuspendProbe()) {
 		return ServiceSuspendSuccessful
 	}
 	return ServiceSuspendFailed
 }
 
-func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment coh.CoherenceResource, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
-	logger := log.WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
-	list := corev1.PodList{}
-
+func (in *CoherenceProbe) GetPodsForStatefulSet(ctx context.Context, sts *appsv1.StatefulSet) (corev1.PodList, error) {
+	pods := corev1.PodList{}
 	labels := client.MatchingLabels{}
 	for k, v := range sts.Spec.Selector.MatchLabels {
 		labels[k] = v
 	}
+	err := in.Client.List(ctx, &pods, client.InNamespace(sts.GetNamespace()), labels)
+	return pods, err
+}
 
-	err := in.Client.List(ctx, &list, client.InNamespace(deployment.GetNamespace()), labels)
+func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
+	pods, err := in.GetPodsForStatefulSet(ctx, sts)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
 		return false
 	}
+	return in.ExecuteProbeForSubSetOfPods(ctx, sts, probe, pods, pods)
+}
+
+func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *appsv1.StatefulSet, probe *coh.Probe, stsPods, pods corev1.PodList) bool {
+	logger := log.WithValues("Namespace", sts.GetNamespace(), "Name", sts.GetName())
 
 	// All Pods must be in the Running Phase
-	for _, pod := range list.Items {
+	for _, pod := range stsPods.Items {
 		if ready, phase := in.IsPodReady(pod); !ready {
 			logger.Info(fmt.Sprintf("Cannot execute probe, one or more Pods is not in a ready state - %s (%v) ", pod.Name, phase))
 			return false
 		}
 	}
 
-	count := int32(len(list.Items))
+	count := int32(len(stsPods.Items))
 	switch {
 	case count == 0:
 		logger.Info("Cannot find any Pods for StatefulSet " + sts.Name)
@@ -180,7 +194,7 @@ func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, deployment coh.Coher
 		return false
 	}
 
-	for _, pod := range list.Items {
+	for _, pod := range pods.Items {
 		if pod.Status.Phase == "Running" {
 			if log.Enabled() {
 				log.Info("Using pod " + pod.Name + " to execute probe")
@@ -349,6 +363,13 @@ func (in *CoherenceProbe) findPort(pod corev1.Pod, port intstr.IntOrString) (int
 }
 
 func (in *CoherenceProbe) findPortInPod(pod corev1.Pod, name string) (int, error) {
+	if name == coh.PortNameHealth {
+		p, found := pod.Labels[operator.LabelTestHealthPort]
+		if found {
+			return strconv.Atoi(p)
+		}
+	}
+
 	for _, container := range pod.Spec.Containers {
 		if container.Name == coh.ContainerNameCoherence {
 			return in.findPortInContainer(pod, container, name)

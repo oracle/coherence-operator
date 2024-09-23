@@ -87,9 +87,16 @@ const (
 
 	// LabelOciNodeFaultDomain is the OCI Node label for the fault domain.
 	LabelOciNodeFaultDomain = "oci.oraclecloud.com/fault-domain"
+	// LabelTopologySubZone is the k8s topology label for sub-zone.
+	LabelTopologySubZone = "topology.kubernetes.io/subzone"
 
 	// LabelHostName is the Node label for the Node's hostname.
 	LabelHostName = "kubernetes.io/hostname"
+
+	// LabelTestHostName is a label applied to Pods to set a testing host name
+	LabelTestHostName = "coherence.oracle.com/test_hostname"
+	// LabelTestHealthPort is a label applied to Pods to set a testing health check port
+	LabelTestHealthPort = "coherence.oracle.com/test_health_port"
 )
 
 var setupLog = ctrl.Log.WithName("setup")
@@ -99,7 +106,7 @@ var currentViper *viper.Viper
 var (
 	operatorVersion   = "999.0.0"
 	DefaultSiteLabels = []string{corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
-	DefaultRackLabels = []string{LabelOciNodeFaultDomain, corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
+	DefaultRackLabels = []string{LabelTopologySubZone, LabelOciNodeFaultDomain, corev1.LabelTopologyZone, corev1.LabelFailureDomainBetaZone}
 )
 
 func SetupOperatorManagerFlags(cmd *cobra.Command, v *viper.Viper) {

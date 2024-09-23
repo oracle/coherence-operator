@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -44,11 +45,11 @@ func server(details *RunDetails, _ *cobra.Command) {
 	// otherwise run Coherence DefaultMain.
 	mc, found := details.lookupEnv(v1.EnvVarAppMainClass)
 	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-	jibMainClassFileName := appDir + "/jib-main-class-file"
+	jibMainClassFileName := filepath.Join(appDir, "jib-main-class-file")
 	fi, err := os.Stat(jibMainClassFileName)
 	mainCls := ""
 	if err == nil && (fi.Size() != 0) {
-		mainCls = readFirstLineFromFile(jibMainClassFileName, fi)
+		mainCls, _ = readFirstLineFromFile(jibMainClassFileName)
 	}
 	if !found && (len(mainCls) != 0) {
 		mc = mainCls

@@ -93,6 +93,11 @@ securityContext:
 # ---------------------------------------------------------------------------
 # Pod scheduling values
 
+# topologySpreadConstraints controls how Pods are spread across the cluster.
+# If not specified the default is to spread Pods over nodes using the topology.kubernetes.io/zone label.
+#   ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+topologySpreadConstraints:
+
 # affinity controls Pod scheduling preferences.
 #   ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 affinity:

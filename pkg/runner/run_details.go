@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -17,7 +17,8 @@ import (
 )
 
 func NewRunDetails(v *viper.Viper) *RunDetails {
-	skipSite := v.GetString(v1.EnvVarCohSkipSite)
+	skipSiteVar := v.GetString(v1.EnvVarCohSkipSite)
+	skipSite := strings.ToLower(skipSiteVar) != "true"
 
 	details := &RunDetails{
 		env:           v,
@@ -27,7 +28,7 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 		AppType:       strings.ToLower(v.GetString(v1.EnvVarAppType)),
 		Dir:           v.GetString(v1.EnvVarCohAppDir),
 		MainClass:     DefaultMain,
-		GetSite:       strings.ToLower(skipSite) != "true",
+		GetSite:       skipSite,
 	}
 
 	// add any Classpath items

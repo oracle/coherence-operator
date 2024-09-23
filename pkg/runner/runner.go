@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"strconv"
 	"strings"
@@ -320,9 +321,10 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	// are running a Spring Boot application.
 	if !details.isBuildPacks() && details.AppType != AppTypeSpring && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-		fi, e := os.Stat(appDir + "/jib-classpath-file")
+		cpFile := filepath.Join(appDir, "jib-classpath-file")
+		fi, e := os.Stat(cpFile)
 		if e == nil && (fi.Size() != 0) {
-			clsPath := readFirstLineFromFile(appDir+"/jib-classpath-file", fi)
+			clsPath, _ := readFirstLineFromFile(cpFile)
 			if len(clsPath) != 0 {
 				details.addClasspath(clsPath)
 			}
@@ -495,26 +497,26 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 			}
 		}
 
-		max := details.Getenv(v1.EnvVarJvmMaxRAMPercentage)
-		if max != "" {
-			q, err := resource.ParseQuantity(max)
+		maxRam := details.Getenv(v1.EnvVarJvmMaxRAMPercentage)
+		if maxRam != "" {
+			q, err := resource.ParseQuantity(maxRam)
 			if err == nil {
 				d := q.AsDec()
 				details.addArg("-XX:MaxRAMPercentage=" + d.String())
 			} else {
-				log.Info("ERROR: MaxRAMPercentage is not a valid resource.Quantity", "Value", max, "Error", err.Error())
+				log.Info("ERROR: MaxRAMPercentage is not a valid resource.Quantity", "Value", maxRam, "Error", err.Error())
 				os.Exit(1)
 			}
 		}
 
-		min := details.Getenv(v1.EnvVarJvmMinRAMPercentage)
-		if min != "" {
-			q, err := resource.ParseQuantity(min)
+		minRam := details.Getenv(v1.EnvVarJvmMinRAMPercentage)
+		if minRam != "" {
+			q, err := resource.ParseQuantity(minRam)
 			if err == nil {
 				d := q.AsDec()
 				details.addArg("-XX:MinRAMPercentage=" + d.String())
 			} else {
-				log.Info("ERROR: MinRAMPercentage is not a valid resource.Quantity", "Value", min, "Error", err.Error())
+				log.Info("ERROR: MinRAMPercentage is not a valid resource.Quantity", "Value", minRam, "Error", err.Error())
 				os.Exit(1)
 			}
 		}
@@ -623,22 +625,23 @@ func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	return _createJavaCommand(javaCmd, details, args)
 }
 
-func readFirstLineFromFile(fqfn string, fi os.FileInfo) string {
-	log.Info(fmt.Sprintf("%s size=%d", fi.Name(), fi.Size()))
-	file, _ := os.Open(fqfn)
+func readFirstLineFromFile(path string) (string, error) {
+	file, err := os.Open(maybeStripFileScheme(path))
+	if err != nil {
+		return "", err
+	}
+	defer closeFile(file, log)
+
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 	var text []string
 	for scanner.Scan() {
 		text = append(text, scanner.Text())
 	}
-	closeFile(file, log)
-
 	if len(text) == 0 {
-		return ""
+		return "", nil
 	}
-	log.Info(fmt.Sprintf("First Line of the %s:\n%s\n", fi.Name(), text[0]))
-	return text[0]
+	return text[0], nil
 }
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
@@ -743,64 +746,102 @@ func createGraalCommand(details *RunDetails) (*exec.Cmd, error) {
 
 // Set the Coherence site and rack values
 func configureSiteAndRack(details *RunDetails) {
-	log.Info("Configuring Coherence site and rack")
+	var err error
 	if !details.GetSite {
 		return
 	}
 
-	var site string
+	log.Info("Configuring Coherence site and rack")
 
-	siteLocation := details.ExpandEnv(details.Getenv(v1.EnvVarCohSite))
-	log.Info("Configuring Coherence site", "url", siteLocation)
-	if siteLocation != "" {
-		switch {
-		case strings.ToLower(siteLocation) == "http://":
-			site = ""
-		case strings.HasPrefix(siteLocation, "http://"):
-			// do http get
-			site = httpGetWithBackoff(siteLocation, details)
-		default:
-			st, err := os.Stat(siteLocation)
-			if err == nil && !st.IsDir() {
-				d, err := os.ReadFile(siteLocation)
+	site := details.Getenv(v1.EnvVarCoherenceSite)
+	if site == "" {
+		siteLocation := details.ExpandEnv(details.Getenv(v1.EnvVarCohSite))
+		log.Info("Configuring Coherence site", "url", siteLocation)
+		if siteLocation != "" {
+			switch {
+			case strings.ToLower(siteLocation) == "http://":
+				site = ""
+			case strings.HasPrefix(siteLocation, "http://"):
+				// do http get
+				site = httpGetWithBackoff(siteLocation, details)
+			case strings.HasPrefix(siteLocation, "https://"):
+				// https not supported
+				log.Info("Cannot read site URI, https is not supported", "URI", siteLocation)
+			default:
+				site, err = readFirstLineFromFile(siteLocation)
 				if err != nil {
-					site = string(d)
+					log.Error(err, "error reading site info", "Location", siteLocation)
 				}
 			}
 		}
-	}
 
-	if site != "" {
-		details.addArg("-Dcoherence.site=" + site)
-	}
-
-	var rack string
-
-	rackLocation := details.ExpandEnv(details.Getenv(v1.EnvVarCohRack))
-	log.Info("Configuring Coherence rack", "url", rackLocation)
-	if rackLocation != "" {
-		switch {
-		case strings.ToLower(rackLocation) == "http://":
-			rack = ""
-		case strings.HasPrefix(rackLocation, "http://"):
-			// do http get
-			rack = httpGetWithBackoff(rackLocation, details)
-		default:
-			st, err := os.Stat(rackLocation)
-			if err == nil && !st.IsDir() {
-				d, err := os.ReadFile(rackLocation)
-				if err != nil {
-					rack = string(d)
-				}
+		if site != "" {
+			details.addArg("-Dcoherence.site=" + site)
+		}
+	} else {
+		expanded := details.ExpandEnv(site)
+		if expanded != site {
+			log.Info("Coherence site property set from expanded "+v1.EnvVarCoherenceSite+" environment variable", v1.EnvVarCoherenceSite, site, "Site", expanded)
+			site = expanded
+			if strings.TrimSpace(site) != "" {
+				details.addArg("-Dcoherence.site=" + site)
 			}
+		} else {
+			log.Info("Coherence site property not set as "+v1.EnvVarCoherenceSite+" environment variable is set", "Site", site)
 		}
 	}
 
-	if rack != "" {
-		details.addArg("-Dcoherence.rack=" + rack)
-	} else if site != "" {
-		details.addArg("-Dcoherence.rack=" + site)
+	rack := details.Getenv(v1.EnvVarCoherenceRack)
+	if rack == "" {
+		rackLocation := details.ExpandEnv(details.Getenv(v1.EnvVarCohRack))
+		log.Info("Configuring Coherence rack", "url", rackLocation)
+		if rackLocation != "" {
+			switch {
+			case strings.ToLower(rackLocation) == "http://":
+				rack = ""
+			case strings.HasPrefix(rackLocation, "http://"):
+				// do http get
+				rack = httpGetWithBackoff(rackLocation, details)
+			case strings.HasPrefix(rackLocation, "https://"):
+				// https not supported
+				log.Info("Cannot read rack URI, https is not supported", "URI", rackLocation)
+			default:
+				rack, err = readFirstLineFromFile(rackLocation)
+				if err != nil {
+					log.Error(err, "error reading site info", "Location", rackLocation)
+				}
+			}
+		}
+
+		if rack != "" {
+			details.addArg("-Dcoherence.rack=" + rack)
+		} else if site != "" {
+			details.addArg("-Dcoherence.rack=" + site)
+		}
+	} else {
+		expanded := details.ExpandEnv(rack)
+		if expanded != rack {
+			log.Info("Coherence site property set from expanded "+v1.EnvVarCoherenceRack+" environment variable", v1.EnvVarCoherenceRack, rack, "Rack", expanded)
+			rack = expanded
+			if len(rack) == 0 {
+				// if the expanded COHERENCE_RACK value is blank then set rack to site as
+				// the rack cannot be blank if site is set
+				rack = site
+			}
+			if strings.TrimSpace(rack) != "" {
+				details.addArg("-Dcoherence.rack=" + rack)
+			}
+		} else {
+			log.Info("Coherence rack property not set as "+v1.EnvVarCoherenceRack+" environment variable is set", "Rack", rack)
+		}
 	}
+}
+
+func maybeStripFileScheme(uri string) string {
+	if strings.HasPrefix(uri, "file://") {
+		return strings.TrimPrefix(uri, "file://")
+	}
+	return uri
 }
 
 // httpGetWithBackoff does a http get for the specified url with retry back-off for errors.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -193,7 +193,9 @@ const (
 	EnvVarCohPodUID                   = "COH_POD_UID"
 	EnvVarCohSkipSite                 = "COH_SKIP_SITE"
 	EnvVarCohSite                     = "COH_SITE_INFO_LOCATION"
+	EnvVarCoherenceSite               = "COHERENCE_SITE"
 	EnvVarCohRack                     = "COH_RACK_INFO_LOCATION"
+	EnvVarCoherenceRack               = "COHERENCE_RACK"
 	EnvVarCohRole                     = "COH_ROLE"
 	EnvVarCohUtilDir                  = "COH_UTIL_DIR"
 	EnvVarCohUtilLibDir               = "COH_UTIL_LIB_DIR"

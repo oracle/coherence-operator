@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -62,6 +63,7 @@ type BaseReconciler interface {
 	GetControllerName() string
 	GetManager() manager.Manager
 	GetClient() client.Client
+	GetClientSet() clients.ClientSet
 	GetEventRecorder() record.EventRecorder
 	GetLog() logr.Logger
 	GetReconciler() reconcile.Reconciler
@@ -72,6 +74,7 @@ type BaseReconciler interface {
 type CommonReconciler struct {
 	name      string
 	mgr       manager.Manager
+	clientSet clients.ClientSet
 	locks     map[types.NamespacedName]bool
 	mutex     *sync.Mutex
 	logger    logr.Logger
@@ -81,6 +84,7 @@ type CommonReconciler struct {
 func (in *CommonReconciler) GetControllerName() string       { return in.name }
 func (in *CommonReconciler) GetManager() manager.Manager     { return in.mgr }
 func (in *CommonReconciler) GetClient() client.Client        { return in.mgr.GetClient() }
+func (in *CommonReconciler) GetClientSet() clients.ClientSet { return in.clientSet }
 func (in *CommonReconciler) GetMutex() *sync.Mutex           { return in.mutex }
 func (in *CommonReconciler) GetPatchType() types.PatchType   { return in.patchType }
 func (in *CommonReconciler) SetPatchType(pt types.PatchType) { in.patchType = pt }
@@ -91,9 +95,10 @@ func (in *CommonReconciler) GetLog() logr.Logger {
 	return in.logger
 }
 
-func (in *CommonReconciler) SetCommonReconciler(name string, mgr manager.Manager) {
+func (in *CommonReconciler) SetCommonReconciler(name string, mgr manager.Manager, cs clients.ClientSet) {
 	in.name = name
 	in.mgr = mgr
+	in.clientSet = cs
 	in.mutex = commonMutex
 	in.logger = logf.Log.WithName(name)
 	in.patchType = types.StrategicMergePatchType
@@ -745,7 +750,6 @@ func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.S
 // ReconcileAllResourceOfKind reconciles the state of all the desired resources of the specified Kind for the reconciler
 func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
-	logger.Info(fmt.Sprintf("Reconciling all %v", in.Kind))
 
 	var err error
 	resources := storage.GetLatest().GetResourcesOfKind(in.Kind)
@@ -762,7 +766,6 @@ func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Con
 			}
 		}
 	}
-	logger.Info(fmt.Sprintf("Finished reconciling all %v", in.Kind))
 	return reconcile.Result{}, nil
 }
 
@@ -776,7 +779,7 @@ func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage u
 // ReconcileSingleResource reconciles a specific resource.
 func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Context, namespace, name string, owner coh.CoherenceResource, storage utils.Storage, logger logr.Logger) error {
 	logger = logger.WithValues("Resource", name)
-	logger.Info(fmt.Sprintf("Reconciling single %v", in.Kind))
+	logger.Info(fmt.Sprintf("Reconciling %v", in.Kind))
 
 	// Fetch the resource's current state
 	resource, exists, err := in.FindResource(ctx, namespace, name)
@@ -801,7 +804,7 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 
 	if owner != nil && in.Kind.Name() == coh.ResourceTypeSecret.Name() && name == owner.GetName() {
 		// this a reconcile event for the storage secret, we can ignore it
-		logger.Info(fmt.Sprintf("Finished reconciling single %v", in.Kind))
+		logger.Info(fmt.Sprintf("Finished reconciling %v", in.Kind))
 		return nil
 	}
 

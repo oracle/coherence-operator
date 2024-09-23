@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,14 +11,13 @@ import (
 	"context"
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/clients"
 	onet "github.com/oracle/coherence-operator/pkg/net"
+	"github.com/oracle/coherence-operator/pkg/nodes"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	k8s "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 	"net"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -71,12 +70,19 @@ func GetServerHostAndPort() string {
 }
 
 // NewServer will create a new REST server
-func NewServer(c clients.ClientSet) Server {
+func NewServer(c kubernetes.Interface) Server {
+	endpoints := make(map[string]func(w http.ResponseWriter, r *http.Request))
+	return NewServerWithEndpoints(c, endpoints)
+}
+
+// NewServerWithEndpoints will create a new REST server with additional endpoints
+func NewServerWithEndpoints(c kubernetes.Interface, endpoints map[string]func(w http.ResponseWriter, r *http.Request)) Server {
 	running := make(chan struct{})
 	if svr == nil {
 		svr = &server{
-			client:  c.KubeClient,
-			running: running,
+			running:   running,
+			endpoints: endpoints,
+			client:    c,
 		}
 	}
 	return svr
@@ -84,11 +90,12 @@ func NewServer(c clients.ClientSet) Server {
 
 type server struct {
 	listener   net.Listener
-	client     k8s.Interface
+	client     kubernetes.Interface
 	mgr        ctrl.Manager
 	ctx        context.Context
 	running    chan struct{}
 	httpServer *http.Server
+	endpoints  map[string]func(w http.ResponseWriter, r *http.Request)
 }
 
 // blank assignment to verify that CoherenceReconciler implements manager.LeaderElectionRunnable
@@ -100,28 +107,31 @@ var _ manager.LeaderElectionRunnable = &server{}
 var _ manager.Runnable = &server{}
 
 // SetupWithManager configures this server from the specified Manager.
-func (s server) SetupWithManager(mgr ctrl.Manager) error {
+func (s *server) SetupWithManager(mgr ctrl.Manager) error {
 	s.mgr = mgr
 	return mgr.Add(s)
 }
 
-func (s server) Running() <-chan struct{} {
+func (s *server) Running() <-chan struct{} {
 	return s.running
 }
 
-func (s server) NeedLeaderElection() bool {
+func (s *server) NeedLeaderElection() bool {
 	// The REST server does not require leadership
 	return false
 }
 
 // Start starts this REST server
-func (s server) Start(context.Context) error {
+func (s *server) Start(context.Context) error {
 	if s.listener != nil {
 		log.Info("The REST server is already started", "listenAddress", s.listener.Addr().String())
 		return nil
 	}
 
 	mux := http.NewServeMux()
+	for path, endpoint := range s.endpoints {
+		mux.Handle(path, handler{fn: endpoint})
+	}
 	mux.Handle("/site/", handler{fn: s.getSiteLabelForNode})
 	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
 	mux.Handle("/status/", handler{fn: s.getCoherenceStatus})
@@ -143,23 +153,23 @@ func (s server) Start(context.Context) error {
 	return nil
 }
 
-func (s server) GetAddress() net.Addr {
+func (s *server) GetAddress() net.Addr {
 	return s.listener.Addr()
 }
 
-func (s server) GetPort() int32 {
+func (s *server) GetPort() int32 {
 	t, _ := net.ResolveTCPAddr(s.listener.Addr().Network(), s.listener.Addr().String())
 	return int32(t.Port)
 }
 
-func (s server) Close() error {
+func (s *server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	s.httpServer.SetKeepAlivesEnabled(false)
 	return s.httpServer.Shutdown(ctx)
 }
 
-func (s server) GetHostAndPort() string {
+func (s *server) GetHostAndPort() string {
 	var service string
 	var port int32
 
@@ -198,18 +208,18 @@ func (s server) GetHostAndPort() string {
 }
 
 // getSiteLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence site value.
-func (s server) getSiteLabelForNode(w http.ResponseWriter, r *http.Request) {
+func (s *server) getSiteLabelForNode(w http.ResponseWriter, r *http.Request) {
 	var prefix []string
 	s.getLabelForNode(operator.GetSiteLabel(), prefix, w, r)
 }
 
 // getRackLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
-func (s server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
+func (s *server) getRackLabelForNode(w http.ResponseWriter, r *http.Request) {
 	s.getLabelForNode(operator.GetRackLabel(), operator.GetSiteLabel(), w, r)
 }
 
 // getLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence rack value.
-func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWriter, r *http.Request) {
+func (s *server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWriter, r *http.Request) {
 	var value string
 	labelUsed := "<None>"
 	var prefixUsed = "<None>"
@@ -224,53 +234,29 @@ func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWr
 	pos := strings.LastIndex(path, "/")
 	name := r.URL.Path[1+pos:]
 
+	logWithAddress := log.WithValues("remoteAddress", r.RemoteAddr)
+
 	if operator.IsNodeLookupEnabled() {
-		node, err := s.client.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
-
-		if err == nil {
-			var ok bool
-
-			queryLabel := r.URL.Query().Get("nodeLabel")
-			if queryLabel == "" {
-				prefixValue := ""
-				for _, label := range prefixLabels {
-					if prefix, ok := node.Labels[label]; ok && prefix != "" {
-						labelUsed = label
-						prefixValue = prefix + "-"
-						break
-					}
-				}
-
-				for _, label := range labels {
-					if value, ok = node.Labels[label]; ok && value != "" {
-						labelUsed = label
-						value = prefixValue + value
-						break
-					}
-				}
-			} else {
-				value = node.Labels[queryLabel]
-				labelUsed = queryLabel
-			}
-		} else {
-			if apierrors.IsNotFound(err) {
-				log.Info("GET query for node labels - NotFound", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
-			} else {
-				log.Error(err, "GET query for node labels - Error", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
-			}
+		queryLabel := r.URL.Query().Get("nodeLabel")
+		if queryLabel != "" {
+			labels = []string{queryLabel}
+			prefixLabels = []string{}
+		}
+		value, labelUsed, err = nodes.GetLabelForNode(context.TODO(), s.client, name, labels, prefixLabels, logWithAddress)
+		if err != nil {
+			logWithAddress.Error(err, "Error obtaining node label", "node", name)
 			value = ""
-			labelUsed = ""
 		}
 	} else {
-		log.Info("Node labels lookup disabled", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
+		logWithAddress.Info("Node labels lookup disabled", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value)
 		value = ""
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = fmt.Fprint(w, value); err != nil {
-		log.Error(err, "Error writing value response for node "+name)
+		logWithAddress.Error(err, "Error writing value response for node "+name)
 	} else {
-		log.Info("GET query for node labels", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value, "remoteAddress", r.RemoteAddr)
+		logWithAddress.Info("GET query for node labels", "node", name, "label", labelUsed, "prefix", prefixUsed, "value", value)
 	}
 }
 
@@ -280,7 +266,7 @@ func (s server) getLabelForNode(labels, prefixLabels []string, w http.ResponseWr
 // in namespace "foo".
 // By default, the request checks that the deployment has a status of Ready.
 // It is possible to pass in a different status using the ?phase=<expected-phase> query parameter.
-func (s server) getCoherenceStatus(w http.ResponseWriter, r *http.Request) {
+func (s *server) getCoherenceStatus(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	// strip off any trailing slash
 	if last := len(path) - 1; last >= 0 && path[last] == '/' {

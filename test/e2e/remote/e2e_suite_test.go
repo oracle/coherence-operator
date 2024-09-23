@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 	helper.EnsureTestEnvVars()
 
 	// Create a new TestContext - DO NOT start any controllers.
-	if testContext, err = helper.NewContext(false); err != nil {
+	if testContext, err = helper.NewStartedContext(false); err != nil {
 		fmt.Printf("Error: %+v", err)
 		os.Exit(1)
 	}

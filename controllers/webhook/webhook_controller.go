@@ -43,8 +43,8 @@ type CertReconciler struct {
 	hookInstaller *HookInstaller
 }
 
-func (r *CertReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager) error {
-	r.SetCommonReconciler(controllerName, mgr)
+func (r *CertReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager, cs clients.ClientSet) error {
+	r.SetCommonReconciler(controllerName, mgr, cs)
 	r.rotateBefore = operator.GetCACertRotateBefore()
 
 	// determine how webhook certs will be managed

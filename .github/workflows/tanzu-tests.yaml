@@ -92,13 +92,6 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Cache Tools
-      uses: actions/cache@v4
-      with:
-        path: build/tools
-        key: ${{ runner.os }}-build-tools-${{ hashFiles('**/Makefile') }}
-        restore-keys: ${{ runner.os }}-build-tools
-
     - name: Edit DNS Resolve
       shell: bash
       run: |
@@ -140,13 +133,15 @@ jobs:
         make run-certification OPERATOR_NAMESPACE=coherence
 
     - uses: actions/upload-artifact@v4
-      if: failure()
+      if: ${{ failure() || cancelled() }}
       with:
         name: tanzu-artifacts
         path: build/_output/tanzu
+        if-no-files-found: ignore
 
     - uses: actions/upload-artifact@v4
-      if: failure()
+      if: ${{ failure() || cancelled() }}
       with:
         name: test-output
         path: build/_output/test-logs
+        if-no-files-found: ignore

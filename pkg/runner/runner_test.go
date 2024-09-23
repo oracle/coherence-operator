@@ -88,6 +88,16 @@ func ReplaceArg(args []string, toReplace, replaceWith string) []string {
 	return args
 }
 
+func RemoveArg(args []string, toRemove string) []string {
+	result := make([]string, 0, len(args))
+	for _, a := range args {
+		if a != toRemove {
+			result = append(result, a)
+		}
+	}
+	return result
+}
+
 func GetJavaArg() string {
 	var javaCmd = "java"
 	javaHome, found := os.LookupEnv("JAVA_HOME")
@@ -185,9 +195,13 @@ func GetJavaCommand() string {
 }
 
 func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
+	return EnvVarsFromDeploymentWithSkipSite(d, true)
+}
+
+func EnvVarsFromDeploymentWithSkipSite(d *coh.Coherence, skipSite bool) map[string]string {
 	envVars := make(map[string]string)
 	envVars[coh.EnvVarCohAppDir] = TestAppDir
-	envVars[coh.EnvVarCohSkipSite] = "true"
+	envVars[coh.EnvVarCohSkipSite] = fmt.Sprintf("%t", skipSite)
 
 	if d.Spec.JVM == nil {
 		d.Spec.JVM = &coh.JVMSpec{}
