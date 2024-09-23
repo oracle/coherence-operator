@@ -626,24 +626,22 @@ func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 }
 
 func readFirstLineFromFile(path string) (string, error) {
-	st, err := os.Stat(maybeStripFileScheme(path))
-	if err != nil {
-		return "", err
-	}
-	if st.IsDir() {
-		return "", fmt.Errorf("%s is a directory", path)
-	}
-	file, err := os.Open(path)
+	file, err := os.Open(maybeStripFileScheme(path))
 	if err != nil {
 		return "", err
 	}
 	defer closeFile(file, log)
-	rd := bufio.NewReader(file)
-	data, _, err := rd.ReadLine()
-	if err != nil {
-		return "", err
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var text []string
+	for scanner.Scan() {
+		text = append(text, scanner.Text())
 	}
-	return string(data), nil
+	if len(text) == 0 {
+		return "", nil
+	}
+	return text[0], nil
 }
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
