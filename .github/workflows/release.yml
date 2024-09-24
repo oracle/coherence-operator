@@ -118,7 +118,7 @@ jobs:
         asset_content_type: text/plain
 
     - name: Upload Release Job CRD
-      id: upload-release-crd
+      id: upload-release-job-crd
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -129,7 +129,7 @@ jobs:
         asset_content_type: text/plain
 
     - name: Upload Release Small Job CRD
-      id: upload-release-small-crd
+      id: upload-release-job-small-crd
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
