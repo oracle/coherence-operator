@@ -15,17 +15,17 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.4.0
+VERSION ?= 3.4.1
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.3.5
+PREV_VERSION ?= 3.4.0
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.3.5
+COMPATIBLE_VERSION  ?= 3.4.0
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
@@ -39,7 +39,7 @@ KUBERNETES_DOC_VERSION=v1.30
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 22.06.8
+COHERENCE_VERSION_LTS ?= 22.06.9
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
@@ -1500,8 +1500,12 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 	cd $(BUILD_MANIFESTS)/crd && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
 	rm $(BUILD_MANIFESTS)/crd/temp.yaml
+	mv $(BUILD_MANIFESTS)/crd/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
+	mv $(BUILD_MANIFESTS)/crd/coherencejob.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd/coherencejob.oracle.com_coherence.yaml
 	cd $(BUILD_MANIFESTS)/crd-small && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
 	rm $(BUILD_MANIFESTS)/crd-small/temp.yaml
+	mv $(BUILD_MANIFESTS)/crd-small/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd-small/coherence.oracle.com_coherence.yaml
+	mv $(BUILD_MANIFESTS)/crd-small/coherencejob.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd-small/coherencejob.oracle.com_coherence.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
