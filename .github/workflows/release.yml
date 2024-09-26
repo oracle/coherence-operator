@@ -125,7 +125,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: /tmp/coherence-operator/_output/manifests/crd/coherencejob.oracle.com_coherence.yaml
-        asset_name: coherence.oracle.com_coherence.yaml
+        asset_name: coherencejob.oracle.com_coherence.yaml
         asset_content_type: text/plain
 
     - name: Upload Release Small Job CRD
@@ -136,7 +136,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: /tmp/coherence-operator/_output/manifests/crd-small/coherencejob.oracle.com_coherence.yaml
-        asset_name: coherence.oracle.com_coherence_small.yaml
+        asset_name: coherencejob.oracle.com_coherence_small.yaml
         asset_content_type: text/plain
 
     - name: Upload Release Dashboards
