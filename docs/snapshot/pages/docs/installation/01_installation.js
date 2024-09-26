@@ -8,7 +8,7 @@
 <v-card-text>
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
-<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>ghcr.io/oracle/coherence-operator:3.4.0</code> that can
+<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>ghcr.io/oracle/coherence-operator:3.4.1</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -192,7 +192,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator:3.4.0</code> - The Operator image.</p>
+<p><code>ghcr.io/oracle/coherence-operator:3.4.1</code> - The Operator image.</p>
 
 </li>
 </ul>
@@ -200,7 +200,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-ce:22.06.8</code> - The default Coherence image.</p>
+<p><code>ghcr.io/oracle/coherence-ce:22.06.9</code> - The default Coherence image.</p>
 
 </li>
 </ul>
@@ -259,7 +259,7 @@ Operators trying to remove finalizers and delete a Coherence cluster.</p>
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.0/coherence-operator.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.1/coherence-operator.yaml</markup>
 
 <p>This will create a namespace called <code>coherence</code> and install the Operator into it along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources. The <code>coherence</code> namespace can be changed by downloading and editing the yaml file.</p>
 
@@ -349,15 +349,15 @@ lang="bash"
 
 <h3 id="helm-operator-image">Set the Operator Image</h3>
 <div class="section">
-<p>The Helm chart uses a default Operator image from <code>ghcr.io/oracle/coherence-operator:3.4.0</code>.
+<p>The Helm chart uses a default Operator image from <code>ghcr.io/oracle/coherence-operator:3.4.1</code>.
 If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
 Either set the individual <code>image.registry</code>, <code>image.name</code> and <code>image.tag</code> values, or set the whole image name by setting the <code>image</code> value.</p>
 
 <p>For example, if the Operator image has been deployed into a private registry named <code>foo.com</code> but
-with the same image name <code>coherence-operator</code> and tag <code>3.4.0</code> as the default image,
+with the same image name <code>coherence-operator</code> and tag <code>3.4.1</code> as the default image,
 then just the <code>image.registry</code> needs to be specified.</p>
 
-<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.4.0</code>.</p>
+<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.4.1</code>.</p>
 
 <markup
 lang="bash"
@@ -965,11 +965,11 @@ using a standalone Carvel <a id="" title="" target="_blank" href="https://carvel
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-package:3.4.0</code> - the Coherence Operator package</p>
+<p><code>ghcr.io/oracle/coherence-operator-package:3.4.1</code> - the Coherence Operator package</p>
 
 </li>
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-repo:3.4.0</code> - the Coherence Operator repository</p>
+<p><code>ghcr.io/oracle/coherence-operator-repo:3.4.1</code> - the Coherence Operator repository</p>
 
 </li>
 </ul>

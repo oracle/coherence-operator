@@ -155,7 +155,7 @@ one global annotation <code>foo=bar</code>.</p>
 by manually editing the yaml file before installing.</p>
 
 <p>Download the yaml manifest file from the GitHub repo
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.4.0/coherence-operator.yaml">https://github.com/oracle/coherence-operator/releases/download/v3.4.0/coherence-operator.yaml</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.4.1/coherence-operator.yaml">https://github.com/oracle/coherence-operator/releases/download/v3.4.1/coherence-operator.yaml</a></p>
 
 <p>Find the section of the yaml file the defines the Operator container args, the default looks like this</p>
 

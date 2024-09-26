@@ -24,7 +24,7 @@ documentation for full details on the available metrics.</p>
 
 <h3 id="_important_note_regarding_prometheus_metrics_prefix">Important Note Regarding Prometheus Metrics Prefix</h3>
 <div class="section">
-<p>From version 3.4.0 of the Coherence Operator, the packaged Grafana dashboards no longer use the <strong>vendor:</strong> prefix for querying Prometheus metrics.
+<p>From version 3.4.1 of the Coherence Operator, the packaged Grafana dashboards no longer use the <strong>vendor:</strong> prefix for querying Prometheus metrics.
 This prefix was deprecated a number of releases ago and the default, of legacy metrics, in Coherence and will be removed in the most recent
 Coherence releases after this Operator release.</p>
 

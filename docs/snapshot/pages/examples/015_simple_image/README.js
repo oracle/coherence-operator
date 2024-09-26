@@ -94,7 +94,7 @@ title="pom.xml"
             &lt;plugin&gt;
                 &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
                 &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
-                &lt;version&gt;3.4.0&lt;/version&gt;
+                &lt;version&gt;3.4.1&lt;/version&gt;
             &lt;/plugin&gt;
         &lt;/plugins&gt;
     &lt;/build&gt;</markup>
