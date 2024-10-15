@@ -331,6 +331,14 @@ func (in *CoherenceResourceSpec) SetReplicas(replicas int32) {
 	}
 }
 
+// GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.
+func (in *CoherenceResourceSpec) GetWkaIPFamily() corev1.IPFamily {
+	if in == nil || in.Coherence == nil {
+		return corev1.IPFamilyUnknown
+	}
+	return in.Coherence.GetWkaIPFamily()
+}
+
 // GetRestartPolicy returns the name of the application image to use
 func (in *CoherenceResourceSpec) GetRestartPolicy() *corev1.RestartPolicy {
 	if in == nil {
@@ -553,6 +561,12 @@ func (in *CoherenceResourceSpec) CreateWKAService(deployment CoherenceResource) 
 		},
 	}
 
+	ip := deployment.GetWkaIPFamily()
+	if ip != corev1.IPFamilyUnknown {
+		svc.Spec.IPFamilyPolicy = ptr.To(corev1.IPFamilyPolicySingleStack)
+		svc.Spec.IPFamilies = []corev1.IPFamily{ip}
+	}
+
 	return Resource{
 		Kind: ResourceTypeService,
 		Name: svc.GetName(),
@@ -590,6 +604,15 @@ func (in *CoherenceResourceSpec) CreateHeadlessService(deployment CoherenceResou
 			Selector:                 selector,
 			Ports:                    ports,
 		},
+	}
+
+	ipFamilies := deployment.GetHeadlessServiceIPFamily()
+	if len(ipFamilies) == 1 {
+		svc.Spec.IPFamilyPolicy = ptr.To(corev1.IPFamilyPolicySingleStack)
+		svc.Spec.IPFamilies = ipFamilies
+	} else if len(ipFamilies) > 1 {
+		svc.Spec.IPFamilyPolicy = ptr.To(corev1.IPFamilyPolicyPreferDualStack)
+		svc.Spec.IPFamilies = ipFamilies
 	}
 
 	return Resource{

@@ -562,12 +562,20 @@ func (in *CoherenceSpec) GetManagementPort() int32 {
 	}
 }
 
-// GetPersistenceSpec returns the Coherence persistence spcification.
+// GetPersistenceSpec returns the Coherence persistence specification.
 func (in *CoherenceSpec) GetPersistenceSpec() *PersistenceSpec {
 	if in == nil {
 		return nil
 	}
 	return in.Persistence
+}
+
+// GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.
+func (in *CoherenceSpec) GetWkaIPFamily() corev1.IPFamily {
+	if in == nil || in.WKA == nil || in.WKA.IPFamily == nil {
+		return corev1.IPFamilyUnknown
+	}
+	return *in.WKA.IPFamily
 }
 
 // ----- CoherenceWKASpec struct --------------------------------------------
@@ -599,6 +607,11 @@ type CoherenceWKASpec struct {
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty" protobuf:"bytes,12,rep,name=annotations"`
+
+	// IPFamily is the IP family to use for the WKA service (and also the StatefulSet headless service).
+	// Valid values are "IPv4" or "IPv6".
+	// +optional
+	IPFamily *corev1.IPFamily `json:"ipFamily,omitempty"`
 }
 
 // ----- CoherenceTracingSpec struct ----------------------------------------

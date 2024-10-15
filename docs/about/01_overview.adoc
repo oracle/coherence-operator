@@ -90,12 +90,22 @@ Configuring Coherence behaviour.
 --
 Configure the behaviour of the JVM.
 --
+====
 
+[PILLARS]
+====
 [CARD]
 .Expose Ports & Services
 [icon=control_camera,link=docs/ports/010_overview.adoc]
 --
 Configure services to expose ports provided by the application.
+--
+
+[CARD]
+.Networking
+[icon=share,link=docs/networking/010_overview.adoc]
+--
+Configure networking settings.
 --
 
 ====

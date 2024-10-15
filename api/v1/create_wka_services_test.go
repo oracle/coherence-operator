@@ -317,6 +317,59 @@ func TestCreateWKAServiceForDeploymentWithAdditionalAnnotations(t *testing.T) {
 	assertWKAService(t, deployment, expected)
 }
 
+func TestCreateWKAServiceWithIPFamily(t *testing.T) {
+	// Create the test deployment
+	deployment := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-ns",
+			Name:      "test",
+		},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					WKA: &coh.CoherenceWKASpec{
+						IPFamily: ptr.To(corev1.IPv4Protocol),
+					},
+				},
+			},
+		},
+	}
+
+	// create the expected WKA service
+	labels := deployment.CreateCommonLabels()
+	labels[coh.LabelCoherenceCluster] = "test"
+	labels[coh.LabelComponent] = coh.LabelComponentWKA
+
+	// The selector for the service (match all Pods with the same cluster label)
+	selector := make(map[string]string)
+	selector[coh.LabelCoherenceCluster] = "test"
+	selector[coh.LabelComponent] = coh.LabelComponentCoherencePod
+	selector[coh.LabelCoherenceWKAMember] = "true"
+
+	expected := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-ns",
+			Name:      "test-wka",
+			Labels:    labels,
+			Annotations: map[string]string{
+				"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: corev1.ClusterIPNone,
+			// Pods must be part of the WKA service even if not ready
+			PublishNotReadyAddresses: true,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
+			IPFamilyPolicy:           ptr.To(corev1.IPFamilyPolicySingleStack),
+			IPFamilies:               []corev1.IPFamily{corev1.IPv4Protocol},
+		},
+	}
+
+	// assert that the Services are as expected
+	assertWKAService(t, deployment, expected)
+}
+
 func assertWKAService(t *testing.T, deployment *coh.Coherence, expected *corev1.Service) {
 	g := NewGomegaWithT(t)
 

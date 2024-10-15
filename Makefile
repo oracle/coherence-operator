@@ -1650,6 +1650,11 @@ kind:   ## Run a default KinD cluster
 	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config.yaml --image $(KIND_IMAGE)
 	$(SCRIPTS_DIR)/kind-label-node.sh
 
+.PHONY: kind-dual
+kind-dual:   ## Run a KinD cluster configured for a dual stack IPv4 and IPv6 network
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-dual.yaml --image $(KIND_IMAGE)
+	$(SCRIPTS_DIR)/kind-label-node.sh
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------

@@ -12,10 +12,11 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
-func TestCreateWKAServiceForMinimalJonDeployment(t *testing.T) {
+func TestCreateWKAServiceForMinimalJsonDeployment(t *testing.T) {
 	// Create the test deployment
 	deployment := &coh.CoherenceJob{
 		ObjectMeta: metav1.ObjectMeta{
@@ -308,6 +309,60 @@ func TestCreateWKAServiceForJobWithAdditionalAnnotations(t *testing.T) {
 			PublishNotReadyAddresses: true,
 			Ports:                    getDefaultServicePorts(),
 			Selector:                 selector,
+		},
+	}
+
+	// assert that the Services are as expected
+	assertWKAServiceForJob(t, deployment, expected)
+}
+
+func TestCreateJobWKAServiceWithIPFamily(t *testing.T) {
+	// Create the test deployment
+	deployment := &coh.CoherenceJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-ns",
+			Name:      "test",
+		},
+		Spec: coh.CoherenceJobResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Coherence: &coh.CoherenceSpec{
+					WKA: &coh.CoherenceWKASpec{
+						IPFamily: ptr.To(corev1.IPv4Protocol),
+					},
+				},
+			},
+			Cluster: "test-cluster",
+		},
+	}
+
+	// create the expected WKA service
+	labels := deployment.CreateCommonLabels()
+	labels[coh.LabelCoherenceCluster] = "test-cluster"
+	labels[coh.LabelComponent] = coh.LabelComponentWKA
+
+	// The selector for the service (match all Pods with the same cluster label)
+	selector := make(map[string]string)
+	selector[coh.LabelCoherenceCluster] = "test-cluster"
+	selector[coh.LabelComponent] = coh.LabelComponentCoherencePod
+	selector[coh.LabelCoherenceWKAMember] = "true"
+
+	expected := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-ns",
+			Name:      "test-wka",
+			Labels:    labels,
+			Annotations: map[string]string{
+				"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: corev1.ClusterIPNone,
+			// Pods must be part of the WKA service even if not ready
+			PublishNotReadyAddresses: true,
+			Ports:                    getDefaultServicePorts(),
+			Selector:                 selector,
+			IPFamilyPolicy:           ptr.To(corev1.IPFamilyPolicySingleStack),
+			IPFamilies:               []corev1.IPFamily{corev1.IPv4Protocol},
 		},
 	}
 
