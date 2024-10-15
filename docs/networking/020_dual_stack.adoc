@@ -154,3 +154,49 @@ spec:
     wka:
       ipFamily: IPv6
 ----
+
+=== Dual Stack Kubernetes Clusters Without Using the Operator
+
+If not using the Coherence Operator to manage clusters the same techniques described above can be used to
+manually configure Coherence to work correctly.
+
+The simplest option is to ensure that the headless service used for well known addressing is configured to be single stack.
+For example, the yaml below configures the service `storage-sts` to be a single stack IPv6 service.
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-sts
+spec:
+  clusterIP: None
+  clusterIPs:
+  - None
+  ipFamilies:
+  - IPv6
+  ipFamilyPolicy: SingleStack
+----
+
+If for some reason it is not possible to ise a dedicated single stack service for WKA, then the `COHERENCE_LOCALHOST`
+environment variable can be set in the Pod to be the Pod IP address.
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: storage
+spec:
+  template:
+    spec:
+      containers:
+        - name: coherence
+          env:
+            - name: COHERENCE_LOCALHOST
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+----
+
