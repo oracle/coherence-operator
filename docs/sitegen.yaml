@@ -94,6 +94,14 @@ backend:
               items:
                 - includes:
                     - "docs/ports/*.adoc"
+            - title: "Networking"
+              pathprefix: "/networking"
+              glyph:
+                type: "icon"
+                value: "share"
+              items:
+                - includes:
+                    - "docs/networking/*.adoc"
             - title: "Scaling Up & Down"
               pathprefix: "/scaling"
               glyph:

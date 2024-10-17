@@ -334,6 +334,19 @@ func (in *CoherenceJob) IsBeforeVersion(version string) bool {
 	return true
 }
 
+// GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.
+func (in *CoherenceJob) GetWkaIPFamily() corev1.IPFamily {
+	if in == nil {
+		return corev1.IPFamilyUnknown
+	}
+	return in.Spec.GetWkaIPFamily()
+}
+
+// GetHeadlessServiceIPFamily always returns an empty array as this is not applicable to Jobs.
+func (in *CoherenceJob) GetHeadlessServiceIPFamily() []corev1.IPFamily {
+	return nil
+}
+
 // ----- CoherenceJobList type ----------------------------------------------
 
 // CoherenceJobResourceSpec defines the specification of a CoherenceJob resource.
@@ -485,6 +498,14 @@ func (in *CoherenceJobResourceSpec) GetReplicas() int32 {
 		return DefaultJobReplicas
 	}
 	return *in.CoherenceResourceSpec.Replicas
+}
+
+// GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.
+func (in *CoherenceJobResourceSpec) GetWkaIPFamily() corev1.IPFamily {
+	if in == nil || in.Coherence == nil {
+		return corev1.IPFamilyUnknown
+	}
+	return in.Coherence.GetWkaIPFamily()
 }
 
 // UpdateJob updates a JobSpec from the fields in this spec
