@@ -405,7 +405,7 @@ func TestCoherenceEnableIpMonitor(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.ipmonitor.pingtimeout")
+	expectedArgs := GetMinimalExpectedArgs()
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -436,6 +436,7 @@ func TestCoherenceDisableIpMonitor(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedArgs()
+	expectedArgs = append(expectedArgs, "-Dcoherence.ipmonitor.pingtimeout=0")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
