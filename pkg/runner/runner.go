@@ -362,7 +362,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 	// Disable IPMonitor
 	ipMon := details.Getenv(v1.EnvVarEnableIPMonitor)
-	if ipMon != "TRUE" {
+	if strings.ToUpper(ipMon) == "FALSE" {
 		details.addArg("-Dcoherence.ipmonitor.pingtimeout=0")
 	}
 

@@ -11,13 +11,13 @@
 == Dual Stack Networking
 
 This section describes using Coherence and the Operator with a dual stack Kubernetes cluster,
-where Pods and Services can have both IPv4 and IPv4 interfaces.
+where Pods and Services can have both IPv4 and IPv6 interfaces.
 
 [NOTE]
 ====
 This section only really applies to making Coherence bind to the correct local IP address for inter-cluster communication.
 Normally for other Coherence endpoints, such as Extend, gRPC, management, metrics, etc. Coherence will bind to all
-local addresses ubless specifically configured otherwise.
+local addresses unless specifically configured otherwise.
 This means that in and environment such as dual-stack Kubernetes where a Pod has both an IPv4 and IPv6
 address, those Coherence endpoints will be reachable using either the IPv4 or IPv6 address of the Pod.
 ====

@@ -356,8 +356,8 @@ type CoherenceSpec struct {
 	// that the latest coherence.jar is being used.
 	// +optional
 	SkipVersionCheck *bool `json:"skipVersionCheck,omitempty"`
-	// Enables the Coherence IP Monitor feature.
-	// The Operator disables the IP Monitor by default.
+	// Enables or disables the Coherence IP Monitor feature.
+	// The IP Monitor is enabled by default.
 	EnableIPMonitor *bool `json:"enableIpMonitor,omitempty"`
 	// LocalPort sets the Coherence unicast port.
 	// When manually configuring unicast ports, a single port is specified and the second port is automatically selected.
@@ -506,8 +506,9 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAllowEndangered, Value: strings.Join(in.AllowEndangeredForStatusHA, ",")})
 	}
 
-	if in.EnableIPMonitor != nil && *in.EnableIPMonitor {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: "TRUE"})
+	if in.EnableIPMonitor != nil {
+		ip := strings.ToUpper(fmt.Sprintf("%v", *in.EnableIPMonitor))
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: ip})
 	}
 
 	in.Management.AddSSLVolumesForPod(podTemplate, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
