@@ -310,6 +310,7 @@ func TestCreateJobWithCoherenceSpecWithIpMonitorDisabled(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
+	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarEnableIPMonitor, Value: "FALSE"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
