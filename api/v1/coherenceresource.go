@@ -21,8 +21,12 @@ type CoherenceResource interface {
 	GetCoherenceClusterName() string
 	// GetWkaServiceName returns the name of the headless Service used for Coherence WKA.
 	GetWkaServiceName() string
+	// GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.
+	GetWkaIPFamily() corev1.IPFamily
 	// GetHeadlessServiceName returns the name of the headless Service used for the StatefulSet.
 	GetHeadlessServiceName() string
+	// GetHeadlessServiceIPFamily always returns an empty array as this is not applicable to Jobs.
+	GetHeadlessServiceIPFamily() []corev1.IPFamily
 	// GetReplicas returns the number of replicas required for a deployment.
 	// The Replicas field is a pointer and may be nil so this method will
 	// return either the actual Replicas value or the default (DefaultReplicas const)

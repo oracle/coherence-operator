@@ -150,12 +150,25 @@ func (in *Coherence) GetWkaServiceName() string {
 	return in.Name + WKAServiceNameSuffix
 }
 
+// GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.
+func (in *Coherence) GetWkaIPFamily() corev1.IPFamily {
+	return in.Spec.GetWkaIPFamily()
+}
+
 // GetHeadlessServiceName returns the name of the headless Service used for the StatefulSet.
 func (in *Coherence) GetHeadlessServiceName() string {
 	if in == nil {
 		return ""
 	}
 	return in.Name + HeadlessServiceNameSuffix
+}
+
+// GetHeadlessServiceIPFamily returns the IP Family of the headless Service used for the StatefulSet.
+func (in *Coherence) GetHeadlessServiceIPFamily() []corev1.IPFamily {
+	if in == nil {
+		return nil
+	}
+	return in.Spec.HeadlessServiceIpFamilies
 }
 
 // GetReplicas returns the number of replicas required for a deployment.
@@ -527,6 +540,10 @@ type CoherenceStatefulSetResourceSpec struct {
 	// one of the node labels used to set the Coherence site or rack value.
 	// +optional
 	RollingUpdateLabel *string `json:"rollingUpdateLabel,omitempty"`
+	// HeadlessServiceIpFamilies is the optional array of IP families that can be configured for
+	// the headless service used for the StatefulSet.
+	// +optional
+	HeadlessServiceIpFamilies []corev1.IPFamily `json:"headlessServiceIpFamilies,omitempty"`
 }
 
 // RollingUpdateStrategyType is a string enumeration type that enumerates

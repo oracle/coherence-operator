@@ -70,6 +70,9 @@ The Coherence CRD is designed to make the more commonly used configuration param
 to configure. The Coherence CRD is simple to use, in fact none of its fields are mandatory, so an application can be
 deployed with nothing more than a name, and a container image.
 
+=== Dual-Stack Kubernetes Clusters
+The Operator supports running Coherence on dual-stack IPv4 and IPv6 Kubernetes clusters.
+
 === Consistency
 By using the Operator to manage Coherence clusters all clusters are configured and managed the same way making it easier
 for DevOps to manage multiple clusters and applications.

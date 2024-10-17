@@ -23,6 +23,8 @@ This page will be updated and maintained over time to include common issues we s
 
 * <<#ready,Why are the Coherence Pods not reaching ready>>
 
+* <<#messed,I messed up a Coherence deployment and now cannot apply a fixed yaml>>
+
 * <<#stuck-pending,My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down>>
 
 * <<#stuck-delete,My Coherence cluster is stuck with all pending/crashing Pods, I cannot delete the deployment>>
@@ -114,6 +116,31 @@ If your application uses a custom main class and is not properly bootstrapping C
 When running in clusters with the Operator using custom main classes it is advisable to properly bootstrap Coherence
 from within your `main` method. This can be done using the new Coherence bootstrap API available from CE release 20.12
 or by calling `com.tangosol.net.DefaultCacheServer.startServerDaemon().waitForServiceStart();`
+
+[#messed]
+=== I messed up a Coherence deployment and now cannot apply a fixed yaml
+If you deploy a Coherence resource or perform a rolling upgrade of a Coherence resource, and there is an error
+somewhere that causes the Pods to fail to become ready, the Operator will refuse to allow any updates to be
+applied to that resource. This means it is impossible to re-apply the old working yaml and roll back an update.
+By default, the Operator will not apply an update to a Coherence cluster if any of the Pods is not ready or the
+cluster's Status HA value is endangered. This is to stop updates happening when Coherence is recovering from the loss
+of a Pod or still starting up.
+
+This can be very annoying as the cluster is broken and needs to be fixed.
+The way to force the Operator to apply the update is to set the `haBeforeUpdate` field in the yaml to `false`.
+This causes the Operator to skip the status checks for the cluster and apply the update.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  haBeforeUpdate: false
+----
+
+
 
 [#stuck-pending]
 === My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down
