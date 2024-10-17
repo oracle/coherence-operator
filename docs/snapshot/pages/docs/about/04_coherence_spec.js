@@ -966,6 +966,12 @@ NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>ipFamily</code></td>
+<td class="">IPFamily is the IP family to use for the WKA service (and also the StatefulSet headless service). Valid values are "IPv4" or "IPv6".</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamily">https://pkg.go.dev/k8s.io/api/core/v1#IPFamily</a></code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -3244,6 +3250,12 @@ The Coherence operator does not apply any default resources.</td>
 <td class=""><code>rollingUpdateLabel</code></td>
 <td class="">The name of the Node label to use to group Pods during a rolling upgrade. This field ony applies if RollingUpdateStrategy is set to NodeLabel. If RollingUpdateStrategy is set to NodeLabel and this field is omitted then the rolling upgrade will be by Node. It is the users responsibility to ensure that Nodes actually have the label used for this field. The label should be one of the node labels used to set the Coherence site or rack value.</td>
 <td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>headlessServiceIpFamilies</code></td>
+<td class="">HeadlessServiceIpFamilies is the optional array of IP families that can be configured for the headless service used for the StatefulSet.</td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamily">https://pkg.go.dev/k8s.io/api/core/v1#IPFamily</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>

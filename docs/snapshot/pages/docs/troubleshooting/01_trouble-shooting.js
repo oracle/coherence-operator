@@ -27,6 +27,10 @@ This page will be updated and maintained over time to include common issues we s
 
 </li>
 <li>
+<p><router-link to="#messed" @click.native="this.scrollFix('#messed')">I messed up a Coherence deployment and now cannot apply a fixed yaml</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#stuck-pending" @click.native="this.scrollFix('#stuck-pending')">My Coherence cluster is stuck with some running Pods and some pending Pods, I want to scale down</router-link></p>
 
 </li>
@@ -133,6 +137,31 @@ If your application uses a custom main class and is not properly bootstrapping C
 <p>When running in clusters with the Operator using custom main classes it is advisable to properly bootstrap Coherence
 from within your <code>main</code> method. This can be done using the new Coherence bootstrap API available from CE release 20.12
 or by calling <code>com.tangosol.net.DefaultCacheServer.startServerDaemon().waitForServiceStart();</code></p>
+
+</div>
+
+<h3 id="messed">I messed up a Coherence deployment and now cannot apply a fixed yaml</h3>
+<div class="section">
+<p>If you deploy a Coherence resource or perform a rolling upgrade of a Coherence resource, and there is an error
+somewhere that causes the Pods to fail to become ready, the Operator will refuse to allow any updates to be
+applied to that resource. This means it is impossible to re-apply the old working yaml and roll back an update.
+By default, the Operator will not apply an update to a Coherence cluster if any of the Pods is not ready or the
+cluster&#8217;s Status HA value is endangered. This is to stop updates happening when Coherence is recovering from the loss
+of a Pod or still starting up.</p>
+
+<p>This can be very annoying as the cluster is broken and needs to be fixed.
+The way to force the Operator to apply the update is to set the <code>haBeforeUpdate</code> field in the yaml to <code>false</code>.
+This causes the Operator to skip the status checks for the cluster and apply the update.</p>
+
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  haBeforeUpdate: false</markup>
 
 </div>
 

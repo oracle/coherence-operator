@@ -572,6 +572,32 @@ function createRoutes(){
             component: loadPage('docs-ports-040_servicemonitors', '/docs/ports/040_servicemonitors', {})
         },
         {
+            path: '/docs/networking/010_overview',
+            meta: {
+                h1: 'Overview',
+                title: 'Overview',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-networking-010_overview', '/docs/networking/010_overview', {})
+        },
+        {
+            path: '/docs/networking/020_dual_stack',
+            meta: {
+                h1: 'Dual Stack Networking',
+                title: 'Dual Stack Networking',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-networking-020_dual_stack', '/docs/networking/020_dual_stack', {})
+        },
+        {
             path: '/docs/scaling/010_overview',
             meta: {
                 h1: 'Scale Coherence Deployments',
@@ -1209,19 +1235,6 @@ function createRoutes(){
             component: loadPage('docs-troubleshooting-02_heap_dump', '/docs/troubleshooting/02_heap_dump', {})
         },
         {
-            path: '/docs/webhooks/01_introduction',
-            meta: {
-                h1: 'Operator K8s Webhooks',
-                title: 'Operator K8s Webhooks',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: false
-            },
-            component: loadPage('docs-webhooks-01_introduction', '/docs/webhooks/01_introduction', {})
-        },
-        {
             path: '/docs/performance/010_performance',
             meta: {
                 h1: 'Performance Testing',
@@ -1233,6 +1246,19 @@ function createRoutes(){
                 hasNav: false
             },
             component: loadPage('docs-performance-010_performance', '/docs/performance/010_performance', {})
+        },
+        {
+            path: '/docs/webhooks/01_introduction',
+            meta: {
+                h1: 'Operator K8s Webhooks',
+                title: 'Operator K8s Webhooks',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('docs-webhooks-01_introduction', '/docs/webhooks/01_introduction', {})
         },
         {
             path: '/examples/README',
@@ -1354,6 +1380,15 @@ function createNav(){
                 { href: '/docs/ports/020_container_ports', title: 'Additional Container Ports' },
                 { href: '/docs/ports/030_services', title: 'Configure Services for Ports' },
                 { href: '/docs/ports/040_servicemonitors', title: 'Prometheus ServiceMonitors' }
+            ]
+        },
+        {
+            title: 'Networking',
+            action: 'share',
+            group: '/networking',
+            items: [
+                { href: '/docs/networking/010_overview', title: 'Overview' },
+                { href: '/docs/networking/020_dual_stack', title: 'Dual Stack Networking' }
             ]
         },
         {

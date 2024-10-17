@@ -90,6 +90,12 @@ deployed with nothing more than a name, and a container image.</p>
 
 </div>
 
+<h3 id="_dual_stack_kubernetes_clusters">Dual-Stack Kubernetes Clusters</h3>
+<div class="section">
+<p>The Operator supports running Coherence on dual-stack IPv4 and IPv6 Kubernetes clusters.</p>
+
+</div>
+
 <h3 id="_consistency">Consistency</h3>
 <div class="section">
 <p>By using the Operator to manage Coherence clusters all clusters are configured and managed the same way making it easier
