@@ -33,6 +33,13 @@ func TestCertifyMinimalSpec(t *testing.T) {
 			Namespace: ns,
 			Name:      "certify-minimal",
 		},
+		Spec: v1.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: v1.CoherenceResourceSpec{
+				Coherence: &v1.CoherenceSpec{
+					EnableIPMonitor: ptr.To(false),
+				},
+			},
+		},
 	}
 
 	err := testContext.Client.Create(context.TODO(), d)
@@ -56,6 +63,9 @@ func TestCertifyScaling(t *testing.T) {
 		Spec: v1.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
 				Replicas: ptr.To(int32(1)),
+				Coherence: &v1.CoherenceSpec{
+					EnableIPMonitor: ptr.To(false),
+				},
 				ReadinessProbe: &v1.ReadinessProbeSpec{
 					InitialDelaySeconds: ptr.To(int32(10)),
 					PeriodSeconds:       ptr.To(int32(10)),

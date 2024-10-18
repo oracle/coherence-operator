@@ -34,6 +34,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 		Spec: v1.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
 				Coherence: &v1.CoherenceSpec{
+					EnableIPMonitor: ptr.To(false),
 					Metrics: &v1.PortSpecWithSSL{
 						Enabled: ptr.To(true),
 					},
@@ -101,6 +102,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 		Spec: v1.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
 				Coherence: &v1.CoherenceSpec{
+					EnableIPMonitor: ptr.To(false),
 					Metrics: &v1.PortSpecWithSSL{
 						Enabled: ptr.To(true),
 						Port:    ptr.To(int32(9619)),
