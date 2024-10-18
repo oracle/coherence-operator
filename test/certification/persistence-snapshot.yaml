@@ -11,6 +11,7 @@ spec:
     initialDelaySeconds: 10
     periodSeconds: 10
   coherence:
+    enableIpMonitor: false
     cacheConfig: test-cache-config.xml
     management:
       enabled: true

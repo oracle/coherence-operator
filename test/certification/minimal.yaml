@@ -2,3 +2,6 @@ apiVersion: coherence.oracle.com/v1
 kind: Coherence
 metadata:
   name: certify-minimal
+spec:
+  coherence:
+    enableIpMonitor: false
