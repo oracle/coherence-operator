@@ -984,6 +984,10 @@
               },
               {
                 "id": "custom.align"
+              },
+              {
+                "id": "decimals",
+                "value": 0
               }
             ]
           },

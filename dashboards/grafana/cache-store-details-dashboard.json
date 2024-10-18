@@ -599,7 +599,7 @@
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Cache Store Wrutes",
+          "legendFormat": "Cache Store Writes",
           "refId": "A"
         }
       ],
@@ -688,7 +688,7 @@
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Cache Store Wrutes",
+          "legendFormat": "Cache Store Reads",
           "refId": "A"
         }
       ],
