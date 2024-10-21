@@ -97,4 +97,6 @@ jobs:
 
     - name: Image Scan
       shell: bash
-      run: make trivy-scan
+      run:  |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+        make trivy-scan

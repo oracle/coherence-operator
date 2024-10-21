@@ -35,6 +35,8 @@ This page will be updated and maintained over time to include common issues we s
 
 * <<arm-java8, I'm using Arm64 and Java 8 and the JVM will not start due to using G1GC>>
 
+* <<ipmon, Why do I see warnings about IPMonitor being disabled when Coherence starts>>
+
 == Issues
 
 [#no-operator]
@@ -250,3 +252,16 @@ This will cause errors on Arm64 Java 8 JMS unless the JVM option `-XX:+UnlockExp
 added in the Coherence resource spec (see <<docs/jvm/030_jvm_args.adoc,Adding Arbitrary JVM Arguments>>).
 Alternatively specify a different garbage collector, ideally on a version of Java this old, use CMS
 (see <<docs/jvm/040_gc.adoc,Garbage Collector Settings>>).
+
+[#ipmon]
+=== Why do I see warnings about IPMonitor being disabled when Coherence starts
+
+When Coherence starts a message similar to the following is displayed in the Coherence container's log:
+
+[source]
+----
+2024-07-01 14:43:55.410/3.785 Oracle Coherence GE 14.1.1.2206.10 (dev-jonathanknight) <Warning> (thread=Coherence, member=n/a): IPMonitor has been explicitly disabled, this is not a recommended practice and will result in a minimum death detection time of 300 seconds for failed machines or networks.
+----
+
+This message is because the default behaviour of the Operator is to disable the Coherence IP Monitor,
+see the <<_coherence_operator_api_docs/coherence/090_ipmonitor.adoc,IP Monitor documentation>> for an explanation.
