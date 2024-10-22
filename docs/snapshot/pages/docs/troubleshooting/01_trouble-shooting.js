@@ -50,6 +50,10 @@ This page will be updated and maintained over time to include common issues we s
 <p><router-link to="#arm-java8" @click.native="this.scrollFix('#arm-java8')">I&#8217;m using Arm64 and Java 8 and the JVM will not start due to using G1GC</router-link></p>
 
 </li>
+<li>
+<p><router-link to="#ipmon" @click.native="this.scrollFix('#ipmon')">Why do I see warnings about IPMonitor being disabled when Coherence starts</router-link></p>
+
+</li>
 </ul>
 </div>
 
@@ -280,6 +284,20 @@ This will cause errors on Arm64 Java 8 JMS unless the JVM option <code>-XX:+Unlo
 added in the Coherence resource spec (see <router-link to="/docs/jvm/030_jvm_args">Adding Arbitrary JVM Arguments</router-link>).
 Alternatively specify a different garbage collector, ideally on a version of Java this old, use CMS
 (see <router-link to="/docs/jvm/040_gc">Garbage Collector Settings</router-link>).</p>
+
+</div>
+
+<h3 id="ipmon">Why do I see warnings about IPMonitor being disabled when Coherence starts</h3>
+<div class="section">
+<p>When Coherence starts a message similar to the following is displayed in the Coherence container&#8217;s log:</p>
+
+<markup
+
+
+>2024-07-01 14:43:55.410/3.785 Oracle Coherence GE 14.1.1.2206.10 (dev-jonathanknight) &lt;Warning&gt; (thread=Coherence, member=n/a): IPMonitor has been explicitly disabled, this is not a recommended practice and will result in a minimum death detection time of 300 seconds for failed machines or networks.</markup>
+
+<p>This message is because the default behaviour of the Operator is to disable the Coherence IP Monitor,
+see the <router-link to="#_coherence_operator_api_docs/coherence/090_ipmonitor.adoc" @click.native="this.scrollFix('#_coherence_operator_api_docs/coherence/090_ipmonitor.adoc')">IP Monitor documentation</router-link> for an explanation.</p>
 
 </div>
 </div>
