@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2024, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -10,9 +10,41 @@
 
 == Coherence IPMonitor
 
-The Coherence IPMonitor is a failure detection mechanism used by Coherence to detect machine failures. It does this by pinging the echo port, (port 7) on remote hosts that other cluster members are running on. When running in Kubernetes, every Pod has its own IP address, so it looks to Coherence like every member is on a different host. Failure detection using IPMonitor is less useful in Kubernetes than it is on physical machines or VMs, so the Operator disables the IPMonitor by default. This is configurable though and if it is felt that using IPMonitor is useful to an application, it can be re-enabled.
+The Coherence IPMonitor is a failure detection mechanism used by Coherence to detect machine failures.
+It does this by pinging the echo port, (port 7) on remote hosts that other cluster members are running on.
+When running in Kubernetes, every Pod has its own IP address, so it looks to Coherence like every member is on a different host.
+Failure detection using IPMonitor is less useful in Kubernetes than it is on physical machines or VMs, so the Operator disables
+the IPMonitor by default. This is configurable though and if it is felt that using IPMonitor is useful to an application,
+it can be re-enabled.
 
-To re-enable IPMonitor set the boolean flag `enableIpMonitor` in the `coherence` section of the Coherence resource yaml:
+=== Coherence Warning Message
+
+Disabling IP Monitor causes Coherence to print a warning in the logs similar to the one shown below.
+This can be ignored when using the Operator.
+
+[source]
+----
+2024-07-01 14:43:55.410/3.785 Oracle Coherence GE 14.1.1.2206.10 (dev-jonathanknight) <Warning> (thread=Coherence, member=n/a): IPMonitor has been explicitly disabled, this is not a recommended practice and will result in a minimum death detection time of 300 seconds for failed machines or networks.
+----
+
+=== Re-Enable the IP Monitor
+
+To re-enable IPMonitor set the boolean flag `enableIpMonitor` in the `coherence` section of the Coherence resource yaml.
+
+[CAUTION]
+====
+The Coherence IP Monitor works by using Java's `INetAddress.isReachable()` method to "ping" another cluster member's IP address.
+Under the covers the JDK will use an ICMP echo request to port 7 of the server. This can fail if port 7 is blocked,
+for example using firewalls, or in Kubernetes using Network Policies or tools such as Istio.
+In particular when using Network Policies it is impossible to open a port for ICMP as currently Network Policies
+only support TCP or UDP and not ICMP.
+
+If the Coherence IP Monitor is enabled in a Kubernetes cluster where port 7 is blocked then the cluster will fail to start.
+Typically, the issue will be seen as one member will start and become the senior member. None of the other cluster members
+will be abe to get IP Monitor to connect to the senior member, so they wil fail to start.
+====
+
+The yaml below shows an example of re-enabling the IP Monitor.
 
 [source,yaml]
 .coherence-storage.yaml
@@ -26,4 +58,5 @@ spec:
     enableIpMonitor: true
 ----
 
-Setting `enableIpMonitor` will disable the IPMonitor, which is the default behaviour when `enableIpMonitor` is not specified in the yaml.
+Setting `enableIpMonitor` field to `false` will disable the IPMonitor, which is the default behaviour when `enableIpMonitor` is
+not specified in the yaml.
