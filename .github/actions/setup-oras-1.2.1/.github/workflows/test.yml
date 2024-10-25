@@ -1,0 +1,136 @@
+# Copyright The ORAS Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request:
+    branches:
+      - main
+      - release-*
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-basic-setup:
+    name: Test Setup ORAS CLI
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        version:
+          - 1.1.0
+          - 1.2.0
+      fail-fast: true
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup ORAS v${{ matrix.version }}
+      uses: ./
+      with:
+        version: ${{ matrix.version }}
+
+    - name: Verify ORAS version installed
+      env:
+        ORAS_VERSION_EXPECTED: ${{ matrix.version }}
+      run: |
+        echo ---
+        oras version
+        echo ---
+        read -ra ORAS_VERSION_INSTALLED <<<$(oras version)
+        [ "${ORAS_VERSION_INSTALLED[1]}" == "$ORAS_VERSION_EXPECTED" ]
+
+  create-test-variables:
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.get-checksum-url.outputs.URL }}
+      checksum: ${{ steps.get-checksum-url.outputs.CHECKSUM }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+      - id: get-checksum-url
+        run: |
+          RELEASE=$(jq -r 'keys_unsorted[0] as $k | .[$k].linux.amd64' src/lib/data/releases.json)
+          echo "CHECKSUM=$(echo $RELEASE | jq -r '.checksum')" >> "$GITHUB_OUTPUT"
+          echo "URL=$(echo $RELEASE | jq -r '.url')" >> "$GITHUB_OUTPUT"
+
+  test-custom-url:
+    name: Test Setup using URL
+    runs-on: ubuntu-latest
+    needs: create-test-variables
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup ORAS using URL
+      uses: ./
+      with:
+        url: ${{ needs.create-test-variables.outputs.url }}
+        checksum: ${{ needs.create-test-variables.outputs.checksum }}
+
+    - name: Setup ORAS using URL without checksum
+      id: no-checksum
+      continue-on-error: true
+      uses: ./
+      with:
+        url: ${{ needs.create-test-variables.outputs.url }}
+    - name: 'Should Fail: Setup ORAS using URL without checksum'
+      if: steps.no-checksum.outcome != 'failure'
+      run: |
+        echo "Setup ORAS using URL without checksum should fail, but succeeded."
+        exit 1
+    
+    - name: Setup ORAS using checksum without url
+      id: no-url
+      continue-on-error: true
+      uses: ./
+      with:
+        checksum: ${{ needs.create-test-variables.outputs.checksum }}
+    - name: 'Should Fail: Setup ORAS using checksum without url'
+      if: steps.no-url.outcome != 'failure'
+      run: |
+        echo "Setup ORAS using checksum without url should fail, but succeeded."
+        exit 1
+    
+    - name: Setup ORAS using URL and invalid checksum
+      id: invalid-checksum
+      continue-on-error: true
+      uses: ./
+      with:
+        url: ${{ needs.create-test-variables.outputs.url }}
+        checksum: abcedf
+    - name: 'Should Fail: Setup ORAS using URL and invalid checksum'
+      if: steps.invalid-checksum.outcome != 'failure'
+      run: |
+        echo "Setup ORAS using URL and invalid checksum should fail, but succeeded."
+        exit 1
+    
+    - name: Setup ORAS using invalid URL
+      id: invalid-url
+      continue-on-error: true
+      uses: ./
+      with:
+        url: invalid-url
+        checksum: test
+    - name: 'Should Fail: Setup ORAS using invalid URL'
+      if: steps.invalid-url.outcome != 'failure'
+      run: |
+        echo "Setup ORAS using invalid URL should fail, but succeeded."
+        exit 1
