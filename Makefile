@@ -1974,19 +1974,17 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 # ======================================================================================================================
 ##@ Miscellaneous
 
-TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.54.1
 TRIVY_CACHE ?=
 
 .PHONY: trivy-scan
 trivy-scan: build-operator-images $(TOOLS_BIN)/trivy ## Scan the Operator image using Trivy
-
 ifeq (Darwin, $(UNAME_S))
-	$(TOOLS_BIN)/trivy --cache-dir $(HOME)/Library/Caches/trivy image $(OPERATOR_IMAGE)
+	$(TOOLS_BIN)/trivy --exit-code 1 --severity CRITICAL,HIGH --cache-dir $(HOME)/Library/Caches/trivy image $(OPERATOR_IMAGE)
 else
 ifdef TRIVY_CACHE
-	$(TOOLS_BIN)/trivy --cache-dir $(TRIVY_CACHE) image $(OPERATOR_IMAGE)
+	$(TOOLS_BIN)/trivy --exit-code 1 --severity CRITICAL,HIGH --cache-dir $(TRIVY_CACHE) image $(OPERATOR_IMAGE)
 else
-	$(TOOLS_BIN)/trivy image $(OPERATOR_IMAGE)
+	$(TOOLS_BIN)/trivy --exit-code 1 --severity CRITICAL,HIGH image $(OPERATOR_IMAGE)
 endif
 endif
 
