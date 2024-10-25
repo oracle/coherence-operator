@@ -15,6 +15,11 @@ jobs:
   update-trivy-db:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+    
       - name: Setup oras
         uses: ./.github/actions/setup-oras-1.2.1
 
