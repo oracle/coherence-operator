@@ -1,0 +1,97 @@
+name: 'Aqua Security Trivy'
+description: 'Scans container images for vulnerabilities with Trivy'
+author: 'Aqua Security'
+inputs:
+  scan-type:
+    description: 'Scan type to use for scanning vulnerability'
+    required: false
+    default: 'image'
+  image-ref:
+    description: 'image reference(for backward compatibility)'
+    required: true
+  input:
+    description: 'reference of tar file to scan'
+    required: false
+    default: ''
+  scan-ref:
+    description: 'Scan reference'
+    required: false
+    default: '.'
+  exit-code:
+    description: 'exit code when vulnerabilities were found'
+    required: false
+    default: '0'
+  ignore-unfixed:
+    description: 'ignore unfixed vulnerabilities'
+    required: false
+    default: 'false'
+  vuln-type:
+    description: 'comma-separated list of vulnerability types (os,library)'
+    required: false
+    default: 'os,library'
+  severity:
+    description: 'severities of vulnerabilities to be displayed'
+    required: false
+    default: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+  format:
+    description: 'output format (table, json, template)'
+    required: false
+    default: 'table'
+  template:
+    description: 'use an existing template for rendering output (@/contrib/sarif.tpl, @/contrib/gitlab.tpl, @/contrib/junit.tpl'
+    required: false
+    default: ''
+  output:
+    description: 'writes results to a file with the specified file name'
+    required: false
+    default: ''
+  skip-dirs:
+    description: 'comma separated list of directories where traversal is skipped'
+    required: false
+    default: ''
+  skip-files:
+    description: 'comma separated list of files to be skipped'
+    required: false
+    default: ''
+  cache-dir:
+    description: 'specify where the cache is stored'
+    required: false
+    default: ''
+  timeout:
+    description: 'timeout (default 5m0s)'
+    required: false
+    default: ''
+  ignore-policy:
+    description: 'filter vulnerabilities with OPA rego language'
+    required: false
+    default: ''
+  hide-progress:
+    description: 'hide progress output'
+    required: false
+    default: 'true'
+  list-all-pkgs:
+    description: 'output all packages regardless of vulnerability'
+    required: false
+    default: 'false'
+runs:
+  using: 'docker'
+  image: "Dockerfile"
+  args:
+    - '-a ${{ inputs.scan-type }}'
+    - '-b ${{ inputs.format }}'
+    - '-c ${{ inputs.template }}'
+    - '-d ${{ inputs.exit-code }}'
+    - '-e ${{ inputs.ignore-unfixed }}'
+    - '-f ${{ inputs.vuln-type }}'
+    - '-g ${{ inputs.severity }}'
+    - '-h ${{ inputs.output }}'
+    - '-i ${{ inputs.image-ref }}'
+    - '-j ${{ inputs.scan-ref }}'
+    - '-k ${{ inputs.skip-dirs }}'
+    - '-l ${{ inputs.input }}'
+    - '-m ${{ inputs.cache-dir }}'
+    - '-n ${{ inputs.timeout }}'
+    - '-o ${{ inputs.ignore-policy }}'
+    - '-p ${{ inputs.hide-progress }}'
+    - '-q ${{ inputs.skip-files }}'
+    - '-r ${{ inputs.list-all-pkgs }}'
