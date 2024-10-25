@@ -84,19 +84,19 @@ jobs:
         sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
-    - name: Start KinD Cluster
-      shell: bash
-      run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-        make kind
-        kubectl version
-        kubectl get nodes
-        docker pull gcr.io/distroless/java
-        docker pull gcr.io/distroless/java11-debian11
-        docker pull gcr.io/distroless/java17-debian11
-
-    - name: Image Scan
+    - name: Build Image
       shell: bash
       run:  |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-        make trivy-scan
+        export VERSION=${{ github.sha }}
+        make build-operator-images 
+
+    - name: Run Trivy scanner without downloading DBs
+      uses: ./.github/actions/trivy-action-0.28.0
+      with:
+        image-ref: 'ghcr.io/oracle/coherence-operator:${{ github.sha }}'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+      env:
+        TRIVY_SKIP_DB_UPDATE: true
+        TRIVY_SKIP_JAVA_DB_UPDATE: true

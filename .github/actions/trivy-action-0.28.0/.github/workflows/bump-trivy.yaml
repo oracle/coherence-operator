@@ -1,0 +1,40 @@
+name: Bump trivy
+
+on:
+  workflow_dispatch:
+    inputs:
+      trivy_version:
+        required: true
+        type: string
+        description: the trivy version
+
+run-name: Bump trivy to v${{ inputs.trivy_version }}
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Trivy versions
+        run: |
+          find test/data -type f -name '*.test' | xargs sed -r -i 's/"version": "[0-9]+\.[0-9]+\.[0-9]+"/"version": "${{ inputs.trivy_version }}"/'
+          sed -r -i '/^\| `version`/ s/[0-9]+\.[0-9]+\.[0-9]+/${{ inputs.trivy_version }}/g' README.md
+          sed -r -i 's/(default:[ ]*'"'"')v[0-9]+\.[0-9]+\.[0-9]+/\1v${{ inputs.trivy_version }}/' action.yaml
+
+      - name: Create PR
+        id: create-pr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.ORG_REPO_TOKEN }}
+          title: "chore(deps): Update trivy to v${{ inputs.trivy_version }}"
+          commit-message: "chore(deps): Update trivy to v${{ inputs.trivy_version }}"
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          branch-suffix: timestamp
+          branch: bump-trivy
+          delete-branch: true
+
+      - name: Check outputs
+        run: |
+          echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"
