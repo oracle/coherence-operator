@@ -1974,15 +1974,25 @@ tanzu-install: ## Install the Coherence Operator package into Tanzu
 # ======================================================================================================================
 ##@ Miscellaneous
 
-TRIVY_IMAGE=ghcr.io/aquasecurity/trivy:0.54.1
+TRIVY_CACHE ?=
+
 .PHONY: trivy-scan
-trivy-scan: $(BUILD_TARGETS)/build-operator ## Scan the Operator image using Trivy
-	docker pull $(TRIVY_IMAGE)
+trivy-scan: build-operator-images $(TOOLS_BIN)/trivy ## Scan the Operator image using Trivy
 ifeq (Darwin, $(UNAME_S))
-	docker run --rm -v $HOME/Library/Caches:/root/.cache/ -v /var/run/docker.sock:/var/run/docker.sock $(TRIVY_IMAGE) image $(OPERATOR_IMAGE)
+	$(TOOLS_BIN)/trivy --exit-code 1 --severity CRITICAL,HIGH --cache-dir $(HOME)/Library/Caches/trivy image $(OPERATOR_IMAGE)
 else
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(TRIVY_IMAGE) image $(OPERATOR_IMAGE)
+ifdef TRIVY_CACHE
+	$(TOOLS_BIN)/trivy --exit-code 1 --severity CRITICAL,HIGH --cache-dir $(TRIVY_CACHE) image $(OPERATOR_IMAGE)
+else
+	$(TOOLS_BIN)/trivy --exit-code 1 --severity CRITICAL,HIGH image $(OPERATOR_IMAGE)
 endif
+endif
+
+.PHONY: get-trivy
+get-trivy: $(TOOLS_BIN)/trivy
+
+$(TOOLS_BIN)/trivy:
+	test -s $(TOOLS_BIN)/trivy || curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $(TOOLS_BIN) v0.56.2
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
