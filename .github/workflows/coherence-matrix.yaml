@@ -35,8 +35,8 @@ jobs:
         matrixName:
           - "15.1.1-0-SNAPSHOT"
           - "15.1.1-0-SNAPSHOT-Graal"
-          - "24.03"
-          - "24.03-Graal"
+          - "24.09"
+          - "24.09-Graal"
           - "22.06"
           - "14.1.2-0-SNAPSHOT"
           - "14.1.1-2206-SNAPSHOT"
@@ -58,21 +58,21 @@ jobs:
             javaVersion: 17
             baseImage: "gcr.io/distroless/java17-debian12"
 
-          - matrixName: "24.03"
-            coherenceVersion: "24.03.1"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:24.03.1"
+          - matrixName: "24.09"
+            coherenceVersion: "24.09"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:24.09"
             javaVersion: 17
             baseImage: "gcr.io/distroless/java17-debian12"
 
-          - matrixName: "24.03-Graal"
-            coherenceVersion: "24.03.1"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:24.03.1-graal"
+          - matrixName: "24.09-Graal"
+            coherenceVersion: "24.09"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:24.09-graal"
             javaVersion: 17
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "22.06"
-            coherenceVersion: "22.06.9"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.9"
+            coherenceVersion: "22.06.10"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.10"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
@@ -89,15 +89,15 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0-SNAPSHOT"
-            coherenceVersion: "14.1.1-0-19-SNAPSHOT"
+            coherenceVersion: "14.1.1-0-20-SNAPSHOT"
             coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-19-SNAPSHOT"
             javaVersion: 8
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0"
-            coherenceVersion: "14.1.1-0-18"
+            coherenceVersion: "14.1.1-0-19"
             javaVersion: 8
-            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-18"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-19"
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1.0.0"
@@ -113,8 +113,8 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "12.2.1-4-SNAPSHOT"
-            coherenceVersion: "12.2.1-4-21-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1-4-21-SNAPSHOT"
+            coherenceVersion: "12.2.1-4-24-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:12.2.1-4-24-SNAPSHOT"
             javaVersion: 8
             baseImage: "gcr.io/distroless/java11-debian11"
 

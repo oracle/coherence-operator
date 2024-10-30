@@ -51,51 +51,51 @@ jobs:
         - 3.2.6
         include:
         - compatibilityVersion: 3.4.0
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
         - compatibilityVersion: 3.3.5
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
         - compatibilityVersion: 3.3.4
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
         - compatibilityVersion: 3.3.3
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
         - compatibilityVersion: 3.3.2
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
         - compatibilityVersion: 3.3.1
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
         - compatibilityVersion: 3.3.0
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
         - compatibilityVersion: 3.2.11
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb
         - compatibilityVersion: 3.2.10
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb
         - compatibilityVersion: 3.2.9
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.7
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
         - compatibilityVersion: 3.2.6
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.9"
+          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
 

@@ -42,7 +42,7 @@
         <coherence.legacy.groupId>com.oracle.coherence.ce</coherence.legacy.groupId>
         <coherence.legacy.version>21.12.5</coherence.legacy.version>
 
-        <coherence.version>22.06.8</coherence.version>
+        <coherence.version>22.06.10</coherence.version>
         <coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
 
         <coherence.test.base.image>gcr.io/distroless/java11-debian11</coherence.test.base.image>
