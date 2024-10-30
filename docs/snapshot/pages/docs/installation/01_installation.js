@@ -200,7 +200,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-ce:22.06.9</code> - The default Coherence image.</p>
+<p><code>ghcr.io/oracle/coherence-ce:22.06.10</code> - The default Coherence image.</p>
 
 </li>
 </ul>
