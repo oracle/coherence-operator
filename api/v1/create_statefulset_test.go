@@ -654,7 +654,6 @@ func TestCreateStatefulSetWithTopologySpreadConstraintsEmpty(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.TopologySpreadConstraints = []corev1.TopologySpreadConstraint{}
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
