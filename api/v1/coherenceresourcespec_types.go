@@ -729,7 +729,7 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 			ServiceAccountName:           in.GetServiceAccountName(),
 			ShareProcessNamespace:        in.ShareProcessNamespace,
 			Tolerations:                  in.Tolerations,
-			TopologySpreadConstraints:    in.TopologySpreadConstraints,
+			TopologySpreadConstraints:    in.EnsureTopologySpreadConstraints(deployment),
 			InitContainers: []corev1.Container{
 				in.CreateOperatorInitContainer(deployment),
 			},

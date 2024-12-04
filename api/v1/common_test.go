@@ -367,7 +367,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		})
 	}
 
-	lp, _ := deployment.GetSpec().Coherence.GetLocalPorts()
+	lp, _ := spec.Coherence.GetLocalPorts()
 
 	// The Coherence Container
 	cohContainer := corev1.Container{
@@ -467,7 +467,8 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 					VolumeSource: emptyVolume,
 				},
 			},
-			Affinity: spec.CreateDefaultPodAffinity(deployment),
+			TopologySpreadConstraints: spec.EnsureTopologySpreadConstraints(deployment),
+			Affinity:                  spec.CreateDefaultPodAffinity(deployment),
 		},
 	}
 
