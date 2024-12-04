@@ -1697,9 +1697,6 @@ kind-load: kind-load-operator kind-load-coherence  ## Load all images into the K
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
-	kind load docker-image --name $(KIND_CLUSTER) gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0 || true
-	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/elasticsearch/elasticsearch:$(ELASTIC_VERSION) || true
-	kind load docker-image --name $(KIND_CLUSTER) docker.elastic.co/kibana/kibana:$(ELASTIC_VERSION) || true
 
 .PHONY: kind-load-coherence
 kind-load-coherence:   ## Load the Coherence image into the KinD cluster
