@@ -98,13 +98,6 @@ func (in *CoherenceJob) GetStatefulSetSpec() (*CoherenceStatefulSetResourceSpec,
 	return nil, false
 }
 
-func (in *CoherenceJob) GetAnnotations() map[string]string {
-	if in != nil {
-		return in.Annotations
-	}
-	return nil
-}
-
 func (in *CoherenceJob) AddAnnotation(key, value string) {
 	if in != nil {
 		if in.Annotations == nil {

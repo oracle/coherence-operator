@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,6 +27,11 @@ var _ reconcile.Reconciler = &ReconcileSecret{}
 
 // NewSecretReconciler returns a new Secret reconciler.
 func NewSecretReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.SecondaryResourceReconciler {
+	return NewNamedSecretReconciler(mgr, cs, controllerName)
+}
+
+// NewNamedSecretReconciler returns a new Secret reconciler.
+func NewNamedSecretReconciler(mgr manager.Manager, cs clients.ClientSet, name string) reconciler.SecondaryResourceReconciler {
 	r := &ReconcileSecret{
 		SimpleReconciler: reconciler.SimpleReconciler{
 			ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
@@ -37,7 +42,7 @@ func NewSecretReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.S
 		},
 	}
 
-	r.SetCommonReconciler(controllerName, mgr, cs)
+	r.SetCommonReconciler(name, mgr, cs)
 	return r
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -35,6 +35,11 @@ var _ reconcile.Reconciler = &ReconcileServiceMonitor{}
 
 // NewServiceMonitorReconciler returns a new ServiceMonitor reconciler.
 func NewServiceMonitorReconciler(mgr manager.Manager, cs clients.ClientSet) reconciler.SecondaryResourceReconciler {
+	return NewNamedServiceMonitorReconciler(mgr, cs, controllerName)
+}
+
+// NewNamedServiceMonitorReconciler returns a new ServiceMonitor reconciler.
+func NewNamedServiceMonitorReconciler(mgr manager.Manager, cs clients.ClientSet, name string) reconciler.SecondaryResourceReconciler {
 	r := &ReconcileServiceMonitor{
 		ReconcileSecondaryResource: reconciler.ReconcileSecondaryResource{
 			Kind:      coh.ResourceTypeServiceMonitor,
@@ -44,7 +49,7 @@ func NewServiceMonitorReconciler(mgr manager.Manager, cs clients.ClientSet) reco
 		monClient: client.NewForConfigOrDie(mgr.GetConfig()),
 	}
 
-	r.SetCommonReconciler(controllerName, mgr, cs)
+	r.SetCommonReconciler(name, mgr, cs)
 	return r
 }
 

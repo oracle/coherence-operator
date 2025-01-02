@@ -328,13 +328,6 @@ func (in *Coherence) CreateAnnotations() map[string]string {
 	return annotations
 }
 
-func (in *Coherence) GetAnnotations() map[string]string {
-	if in != nil {
-		return in.Annotations
-	}
-	return nil
-}
-
 func (in *Coherence) AddAnnotation(key, value string) {
 	if in != nil {
 		if in.Annotations == nil {
