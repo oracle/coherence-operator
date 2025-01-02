@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,11 +23,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/version"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	rest2 "k8s.io/client-go/rest"
+	"k8s.io/utils/ptr"
 	"net/http"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -91,6 +93,9 @@ func execute() error {
 		return errors.Wrap(err, "unable to create client")
 	}
 
+	vpr := operator.GetViper()
+	f := vpr.GetBool(operator.FlagDryRun)
+
 	options := ctrl.Options{
 		Scheme:                 scheme,
 		HealthProbeBindAddress: viper.GetString(operator.FlagHealthAddress),
@@ -99,6 +104,9 @@ func execute() error {
 		},
 		LeaderElection:   viper.GetBool(operator.FlagLeaderElection),
 		LeaderElectionID: lockName,
+		Controller: config.Controller{
+			SkipNameValidation: ptr.To(f),
+		},
 	}
 
 	// Determine the Operator scope...

@@ -11,13 +11,37 @@
   <caching-scheme-mapping>
     <cache-mapping>
       <cache-name>*</cache-name>
-      <scheme-name>remote-scheme</scheme-name>
+      <scheme-name>${coherence.profile near}-${coherence.client remote}</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
+    <near-scheme>
+      <scheme-name>near-remote</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>{front-limit-entries 10000}</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>thin-remote</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+      <scheme-name>near-grpc</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>thin-grpc</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
     <remote-cache-scheme>
-      <scheme-name>remote-scheme</scheme-name>
+      <scheme-name>thin-remote</scheme-name>
       <service-name>RemoteCache</service-name>
       <initiator-config>
         <tcp-initiator>
@@ -30,5 +54,26 @@
         </tcp-initiator>
       </initiator-config>
     </remote-cache-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <name-service-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </name-service-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+      <request-timeout system-property="coherence.grpc.request.timeout"/>
+      <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
+      <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
+      <heartbeat-ack-required system-property="coherence.grpc.heartbeat.ack"/>
+    </remote-grpc-cache-scheme>
   </caching-schemes>
 </cache-config>
