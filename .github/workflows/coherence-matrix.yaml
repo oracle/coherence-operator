@@ -196,6 +196,7 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
+        docker pull gcr.io/distroless/java17-debian12
         docker pull ${{ matrix.coherenceImage }}
 
     - name: Coherence Certification Tests
