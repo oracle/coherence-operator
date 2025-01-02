@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.k8s.testing;
 
-import com.oracle.coherence.client.GrpcSessionConfiguration;
-
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
-import com.tangosol.net.SessionConfiguration;
 
 /**
  * A simple Coherence gRPC client.
@@ -30,10 +28,8 @@ public class GrpcClient {
      */
     public static void main(String[] args) {
         try {
-            SessionConfiguration config = GrpcSessionConfiguration.builder()
-                    .build();
-
-            Session session = Session.create(config).get();
+            Coherence coherence = Coherence.client(Coherence.Mode.Grpc).startAndWait();
+            Session   session   = coherence.getSession();
 
             System.out.println("Getting cache 'test' from gRPC session");
             NamedCache<String, String> cache = session.getCache("test");

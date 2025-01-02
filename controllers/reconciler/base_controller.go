@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -289,7 +289,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusActionsState(ctx context.Conte
 // CanCreate determines whether any specified start quorum has been met.
 func (in *CommonReconciler) CanCreate(ctx context.Context, deployment coh.CoherenceResource) (bool, string) {
 	spec := deployment.GetSpec()
-	if spec.StartQuorum == nil || len(spec.StartQuorum) == 0 {
+	if len(spec.StartQuorum) == 0 {
 		// there is no start quorum
 		return true, ""
 	}

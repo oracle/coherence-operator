@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+  ~ Copyright (c) 2020, 2025, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -42,10 +42,10 @@
         <coherence.legacy.groupId>com.oracle.coherence.ce</coherence.legacy.groupId>
         <coherence.legacy.version>21.12.5</coherence.legacy.version>
 
-        <coherence.version>22.06.10</coherence.version>
+        <coherence.version>14.1.2-0-0</coherence.version>
         <coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
 
-        <coherence.test.base.image>gcr.io/distroless/java11-debian11</coherence.test.base.image>
+        <coherence.test.base.image>gcr.io/distroless/java17-debian12</coherence.test.base.image>
         <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>
