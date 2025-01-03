@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2025, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -11,7 +11,7 @@
   <caching-scheme-mapping>
     <cache-mapping>
       <cache-name>*</cache-name>
-      <scheme-name>${coherence.profile near}-${coherence.client remote}</scheme-name>
+      <scheme-name>${coherence.profile thin}-${coherence.client remote}</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
