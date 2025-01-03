@@ -107,9 +107,14 @@ func CreateClientJob(ns, name string, tc ClientTestCase) *batchv1.Job {
 			Value: extendPort,
 		})
 	case ClientTypeGrpc:
+		grpcAddress := tc.Cluster.ServiceFQDNs["grpc"]
 		envVars = append(envVars, corev1.EnvVar{
-			Name:  "COHERENCE_GRPC_CHANNELS_DEFAULT_HOST",
-			Value: tc.Cluster.ServiceFQDNs["grpc"],
+			Name:  "COHERENCE_GRPC_ADDRESS",
+			Value: grpcAddress,
+		})
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  "COHERENCE_GRPC_PORT",
+			Value: "1408",
 		})
 	}
 
