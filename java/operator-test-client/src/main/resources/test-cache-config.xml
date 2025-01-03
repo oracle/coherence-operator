@@ -32,18 +32,18 @@
     </remote-cache-scheme>
 
     <remote-grpc-cache-scheme>
-      <scheme-name>thin-grpc</scheme-name>
+      <scheme-name>thin-grpc-fixed</scheme-name>
       <remote-scope-name system-property="coherence.grpc.remote.scope"/>
       <service-name>RemoteGrpcCache</service-name>
       <cluster-name system-property="coherence.grpc.remote.cluster"/>
       <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
       <grpc-channel system-property="coherence.grpc.channel">
-        <name-service-addresses>
+        <remote-addresses>
           <socket-address>
-            <address system-property="coherence.grpc.address"/>
-            <port system-property="coherence.grpc.port"/>
+            <address system-property="coherence.grpc.address">127.0.0.1</address>
+            <port system-property="coherence.grpc.port">1408</port>
           </socket-address>
-        </name-service-addresses>
+        </remote-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
       </grpc-channel>
       <request-timeout system-property="coherence.grpc.request.timeout"/>

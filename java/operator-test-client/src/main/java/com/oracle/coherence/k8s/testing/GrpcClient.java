@@ -28,7 +28,7 @@ public class GrpcClient {
      */
     public static void main(String[] args) {
         try {
-            Coherence coherence = Coherence.client(Coherence.Mode.Grpc).startAndWait();
+            Coherence coherence = Coherence.client(Coherence.Mode.GrpcFixed).startAndWait();
             Session   session   = coherence.getSession();
 
             System.out.println("Getting cache 'test' from gRPC session");
