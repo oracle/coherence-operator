@@ -11,35 +11,11 @@
   <caching-scheme-mapping>
     <cache-mapping>
       <cache-name>*</cache-name>
-      <scheme-name>${coherence.profile thin}-${coherence.client remote}</scheme-name>
+      <scheme-name>thin-${coherence.client remote}</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
-    <near-scheme>
-      <scheme-name>near-remote</scheme-name>
-      <front-scheme>
-        <local-scheme>
-          <high-units>{front-limit-entries 10000}</high-units>
-        </local-scheme>
-      </front-scheme>
-      <back-scheme>
-        <remote-cache-scheme>
-          <scheme-ref>thin-remote</scheme-ref>
-        </remote-cache-scheme>
-      </back-scheme>
-    </near-scheme>
-
-    <near-scheme>
-      <scheme-name>near-grpc</scheme-name>
-      <scheme-ref>near-direct</scheme-ref>
-      <back-scheme>
-        <remote-grpc-cache-scheme>
-          <scheme-ref>thin-grpc</scheme-ref>
-        </remote-grpc-cache-scheme>
-      </back-scheme>
-    </near-scheme>
-
     <remote-cache-scheme>
       <scheme-name>thin-remote</scheme-name>
       <service-name>RemoteCache</service-name>
