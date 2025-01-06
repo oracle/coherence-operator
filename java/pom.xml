@@ -64,6 +64,7 @@
         <version.lib.junit>4.13.1</version.lib.junit>
         <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
         <version.lib.mockito>3.10.0</version.lib.mockito>
+        <version.lib.protobuf>3.25.5</version.lib.protobuf>
         <version.lib.spring>2.7.18</version.lib.spring>
 
         <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
@@ -102,33 +103,18 @@
         <dependencies>
             <dependency>
                 <groupId>${coherence.groupId}</groupId>
-                <artifactId>coherence</artifactId>
+                <artifactId>coherence-bom</artifactId>
                 <version>${coherence.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
+
             <dependency>
-                <groupId>${coherence.groupId}</groupId>
-                <artifactId>coherence-management</artifactId>
-                <version>${coherence.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${coherence.groupId}</groupId>
-                <artifactId>coherence-metrics</artifactId>
-                <version>${coherence.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${coherence.groupId}</groupId>
-                <artifactId>coherence-cdi-server</artifactId>
-                <version>${coherence.version}</version>
-            </dependency>
-            <dependency>
-              <groupId>${coherence.groupId}</groupId>
-              <artifactId>coherence-java-client</artifactId>
-              <version>${coherence.version}</version>
-            </dependency>
-            <dependency>
-              <groupId>${coherence.groupId}</groupId>
-              <artifactId>coherence-grpc-proxy</artifactId>
-              <version>${coherence.version}</version>
+              <groupId>com.google.protobuf</groupId>
+              <artifactId>protobuf-bom</artifactId>
+              <version>${version.lib.protobuf}</version>
+              <type>pom</type>
+              <scope>import</scope>
             </dependency>
 
             <dependency>
