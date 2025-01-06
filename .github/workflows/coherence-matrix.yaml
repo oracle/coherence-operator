@@ -1,4 +1,4 @@
-# Copyright 2021, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2021, 2025, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -84,27 +84,27 @@ jobs:
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "22.06"
-            coherenceVersion: "22.06.11"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.11"
+            coherenceVersion: "22.06.10"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.10"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-2206-SNAPSHOT"
-            coherenceVersion: "14.1.1-2206-12-SNAPSHOT"
+            coherenceVersion: "14.1.1-2206-11-SNAPSHOT"
             coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-2206-12-SNAPSHOT"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0-SNAPSHOT"
-            coherenceVersion: "14.1.1-0-21-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-21-SNAPSHOT"
+            coherenceVersion: "14.1.1-0-20-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-20-SNAPSHOT"
             javaVersion: 8
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0"
-            coherenceVersion: "14.1.1-0-20"
+            coherenceVersion: "14.1.1-0-19"
             javaVersion: 8
-            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-20"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-19"
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1.0.0"
