@@ -91,7 +91,7 @@ jobs:
 
           - matrixName: "14.1.1-2206-SNAPSHOT"
             coherenceVersion: "14.1.1-2206-11-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-2206-12-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-2206-11-SNAPSHOT"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
