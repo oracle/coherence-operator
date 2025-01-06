@@ -79,7 +79,7 @@
           <image>
             <name>${cnbp-image-name}</name>
             <env>
-              <BP_JVM_VERSION>11.*</BP_JVM_VERSION>
+              <BP_JVM_VERSION>17.*</BP_JVM_VERSION>
             </env>
           </image>
         </configuration>
