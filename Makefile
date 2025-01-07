@@ -39,7 +39,7 @@ KUBERNETES_DOC_VERSION=v1.30
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 22.06.10
+COHERENCE_VERSION_LTS ?= 14.1.2-0-0
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
@@ -48,8 +48,8 @@ COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):
 COHERENCE_GROUP_ID       ?= com.oracle.coherence.ce
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
-BUILD_JAVA_VERSION        ?= 11
-COHERENCE_TEST_BASE_IMAGE ?= gcr.io/distroless/java11-debian11
+BUILD_JAVA_VERSION        ?= 17
+COHERENCE_TEST_BASE_IMAGE ?= gcr.io/distroless/java17-debian12
 
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
@@ -1639,7 +1639,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.31.0@sha256:53df588e04085fd41ae12de0c3fe4c72f7013bba32a20e7325357a1ac94ba865"
+KIND_IMAGE     ?= "kindest/node:v1.32.0@sha256:c48c62eac5da28cdadcf560d1d8616cfa6783b58f0d94cf63ad1bf49600cb027"
 CALICO_TIMEOUT ?= 300s
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2000,7 +2000,7 @@ controller-gen: $(TOOLS_BIN)/controller-gen ## Download controller-gen locally i
 
 $(TOOLS_BIN)/controller-gen:
 	@echo "Downloading controller-gen"
-	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.16.2
+	test -s $(TOOLS_BIN)/controller-gen || GOBIN=$(TOOLS_BIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.17.0
 	ls -al $(TOOLS_BIN)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2306,7 +2306,7 @@ get-istio: $(BUILD_PROPS)
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.55.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.63.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

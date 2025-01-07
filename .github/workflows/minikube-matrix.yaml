@@ -40,22 +40,19 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
+          - v1.32
+          - v1.31
+          - v1.30
           - v1.29
-          - v1.28
-          - v1.27
-          - v1.26
-          - v1.25
         include:
+          - matrixName: v1.32
+            k8s: v1.32.0
+          - matrixName: v1.31
+            k8s: v1.31.4
+          - matrixName: v1.30
+            k8s: v1.30.8
           - matrixName: v1.29
-            k8s: v1.29.2
-          - matrixName: v1.28
-            k8s: v1.28.6
-          - matrixName: v1.27
-            k8s: v1.27.11
-          - matrixName: v1.26
-            k8s: v1.26.14
-          - matrixName: v1.25
-            k8s: 1.25.16
+            k8s: v1.29.12
 
     steps:
     - uses: actions/checkout@v4
@@ -131,6 +128,7 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
+        docker pull gcr.io/distroless/java17-debian12
         ./hack/k8s-certification.sh
 
     - uses: actions/upload-artifact@v4

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -21,11 +21,19 @@ import (
 var _ reconcile.Reconciler = &SimpleReconciler{}
 
 func NewConfigMapReconciler(mgr manager.Manager, cs clients.ClientSet) SecondaryResourceReconciler {
-	return NewSimpleReconciler(mgr, cs, "controllers.ConfigMap", coh.ResourceTypeConfigMap, &corev1.ConfigMap{})
+	return NewNamedConfigMapReconciler(mgr, cs, "controllers.ConfigMap")
+}
+
+func NewNamedConfigMapReconciler(mgr manager.Manager, cs clients.ClientSet, name string) SecondaryResourceReconciler {
+	return NewSimpleReconciler(mgr, cs, name, coh.ResourceTypeConfigMap, &corev1.ConfigMap{})
 }
 
 func NewServiceReconciler(mgr manager.Manager, cs clients.ClientSet) SecondaryResourceReconciler {
-	return NewSimpleReconciler(mgr, cs, "controllers.Service", coh.ResourceTypeService, &corev1.Service{})
+	return NewNamedServiceReconciler(mgr, cs, "controllers.Service")
+}
+
+func NewNamedServiceReconciler(mgr manager.Manager, cs clients.ClientSet, name string) SecondaryResourceReconciler {
+	return NewSimpleReconciler(mgr, cs, name, coh.ResourceTypeService, &corev1.Service{})
 }
 
 // NewSimpleReconciler returns a new SimpleReconciler.

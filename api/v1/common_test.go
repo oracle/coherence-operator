@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -139,7 +139,7 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
 		}
-		t.Errorf(msg)
+		t.Error(msg)
 	}
 }
 
@@ -194,7 +194,7 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
 		}
-		t.Errorf(msg)
+		t.Error(msg)
 	}
 }
 

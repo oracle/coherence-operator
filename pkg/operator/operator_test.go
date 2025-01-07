@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -51,7 +51,7 @@ func TestShouldCreateV1CRDs(t *testing.T) {
 
 	for crd, found := range expected {
 		if !found {
-			t.Errorf("Failed to create CRD " + crd)
+			t.Error("Failed to create CRD " + crd)
 		}
 	}
 }
@@ -88,7 +88,7 @@ func TestShouldNotCreateJobCRDWhenFlagIsFalse(t *testing.T) {
 
 	for crd, found := range expected {
 		if !found {
-			t.Errorf("Failed to create CRD " + crd)
+			t.Error("Failed to create CRD " + crd)
 		}
 	}
 }

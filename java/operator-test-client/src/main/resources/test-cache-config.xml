@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2025, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -11,13 +11,13 @@
   <caching-scheme-mapping>
     <cache-mapping>
       <cache-name>*</cache-name>
-      <scheme-name>remote-scheme</scheme-name>
+      <scheme-name>thin-${coherence.client remote}</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
     <remote-cache-scheme>
-      <scheme-name>remote-scheme</scheme-name>
+      <scheme-name>thin-remote</scheme-name>
       <service-name>RemoteCache</service-name>
       <initiator-config>
         <tcp-initiator>
@@ -30,5 +30,26 @@
         </tcp-initiator>
       </initiator-config>
     </remote-cache-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc-fixed</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address">127.0.0.1</address>
+            <port system-property="coherence.grpc.port">1408</port>
+          </socket-address>
+        </remote-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+      <request-timeout system-property="coherence.grpc.request.timeout"/>
+      <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
+      <heartbeat-interval system-property="coherence.grpc.heartbeat.interval"/>
+      <heartbeat-ack-required system-property="coherence.grpc.heartbeat.ack"/>
+    </remote-grpc-cache-scheme>
   </caching-schemes>
 </cache-config>

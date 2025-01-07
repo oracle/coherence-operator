@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -242,10 +242,10 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.
 	// This is important to ensure, for example, that a ConfigMap is created before the
 	// StatefulSet that uses it.
 	reconcilers := []reconciler.SecondaryResourceReconciler{
-		reconciler.NewConfigMapReconciler(mgr, cs),
-		secret.NewSecretReconciler(mgr, cs),
-		reconciler.NewServiceReconciler(mgr, cs),
-		servicemonitor.NewServiceMonitorReconciler(mgr, cs),
+		reconciler.NewNamedConfigMapReconciler(mgr, cs, "controllers.JobConfigMap"),
+		secret.NewNamedSecretReconciler(mgr, cs, "controllers.JobSecret"),
+		reconciler.NewNamedServiceReconciler(mgr, cs, "controllers.JobService"),
+		servicemonitor.NewNamedServiceMonitorReconciler(mgr, cs, "controllers.JobServiceMonitor"),
 		job.NewJobReconciler(mgr, cs),
 	}
 

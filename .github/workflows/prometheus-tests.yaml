@@ -104,6 +104,7 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
+        docker pull gcr.io/distroless/java17-debian12
 
     - name: E2E Prometheus Tests
       shell: bash

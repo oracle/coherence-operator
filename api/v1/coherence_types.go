@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -244,7 +244,7 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 	if in.WorkingDir != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
 	}
-	if in.Args != nil && len(in.Args) > 0 {
+	if len(in.Args) > 0 {
 		args := strings.Join(in.Args, " ")
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
 	}
@@ -692,14 +692,14 @@ func (in *JVMSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 		in.Debug.UpdateCoherenceContainer(c)
 
 		// Add additional classpath items to the Coherence container
-		if in.Classpath != nil && len(in.Classpath) > 0 {
+		if len(in.Classpath) > 0 {
 			// always use the linux/unix path separator as we only ever run on linux
 			cp := strings.Join(in.Classpath, ":")
 			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmExtraClasspath, Value: cp})
 		}
 
 		// Add JVM args variables to the Coherence container
-		if in.Args != nil && len(in.Args) > 0 {
+		if len(in.Args) > 0 {
 			args := strings.Join(in.Args, " ")
 			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarJvmArgs, Value: args})
 		}
@@ -1338,83 +1338,83 @@ type ServiceMonitorSpec struct {
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// The label to use to retrieve the job name from.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
 	// +optional
 	JobLabel string `json:"jobLabel,omitempty"`
 	// TargetLabels transfers labels on the Kubernetes Service onto the target.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
 	// +listType=atomic
 	// +optional
 	TargetLabels []string `json:"targetLabels,omitempty"`
 	// PodTargetLabels transfers labels on the Kubernetes Pod onto the target.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
 	// +listType=atomic
 	// +optional
 	PodTargetLabels []string `json:"podTargetLabels,omitempty"`
 	// SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
 	// +optional
 	SampleLimit *uint64 `json:"sampleLimit,omitempty"`
 	// HTTP path to scrape for metrics.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	Path string `json:"path,omitempty"`
 	// HTTP scheme to use for scraping.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	Scheme string `json:"scheme,omitempty"`
 	// Optional HTTP URL parameters
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	Params map[string][]string `json:"params,omitempty"`
 	// Interval at which metrics should be scraped
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	Interval monitoringv1.Duration `json:"interval,omitempty"`
 	// Timeout after which the scrape is ended
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	ScrapeTimeout monitoringv1.Duration `json:"scrapeTimeout,omitempty"`
 	// TLS configuration to use when scraping the endpoint
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
 	// File to read bearer token for scraping targets.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
 	// Secret to mount to read bearer token for scraping targets. The secret
 	// needs to be in the same namespace as the service monitor and accessible by
 	// the Prometheus Operator.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
 	// HonorLabels chooses the metric labels on collisions with target labels.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	HonorLabels bool `json:"honorLabels,omitempty"`
 	// HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	HonorTimestamps *bool `json:"honorTimestamps,omitempty"`
 	// BasicAuth allow an endpoint to authenticate over basic authentication
 	// More info: https://prometheus.io/docs/operating/configuration/#endpoints
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	BasicAuth *monitoringv1.BasicAuth `json:"basicAuth,omitempty"`
 	// MetricRelabelings to apply to samples before ingestion.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +listType=atomic
 	// +optional
 	MetricRelabelings []monitoringv1.RelabelConfig `json:"metricRelabelings,omitempty"`
 	// Relabelings to apply to samples before scraping.
 	// More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +listType=atomic
 	// +optional
 	Relabelings []monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
 	// ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	ProxyURL *string `json:"proxyURL,omitempty"`
 }
@@ -1979,7 +1979,7 @@ type ServiceSpec struct {
 	// "Cluster" obscures the client source IP and may cause a second hop to
 	// another node, but should have good overall load-spreading.
 	// +optional
-	ExternalTrafficPolicy *corev1.ServiceExternalTrafficPolicyType `json:"externalTrafficPolicy,omitempty"`
+	ExternalTrafficPolicy *corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty"`
 	// healthCheckNodePort specifies the healthcheck nodePort for the service.
 	// If not specified, HealthCheckNodePort is created by the service api
 	// backend with the allocated nodePort. Will use user-specified nodePort value
@@ -2028,7 +2028,7 @@ type ServiceSpec struct {
 	// clusterIPs fields depend on the value of this field.  This field will be
 	// wiped when updating a service to type ExternalName.
 	// +optional
-	IPFamilyPolicy *corev1.IPFamilyPolicyType `json:"ipFamilyPolicy,omitempty"`
+	IPFamilyPolicy *corev1.IPFamilyPolicy `json:"ipFamilyPolicy,omitempty"`
 	// allocateLoadBalancerNodePorts defines if NodePorts will be automatically
 	// allocated for services with type LoadBalancer.  Default is "true". It may be
 	// set to "false" if the cluster load-balancer does not rely on NodePorts.
@@ -2349,17 +2349,17 @@ func (in *PodDNSConfig) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 
 	cfg := corev1.PodDNSConfig{}
 
-	if in.Nameservers != nil && len(in.Nameservers) > 0 {
+	if len(in.Nameservers) > 0 {
 		cfg.Nameservers = in.Nameservers
 		podTemplate.Spec.DNSConfig = &cfg
 	}
 
-	if in.Searches != nil && len(in.Searches) > 0 {
+	if len(in.Searches) > 0 {
 		cfg.Searches = in.Searches
 		podTemplate.Spec.DNSConfig = &cfg
 	}
 
-	if in.Options != nil && len(in.Options) > 0 {
+	if len(in.Options) > 0 {
 		cfg.Options = in.Options
 		podTemplate.Spec.DNSConfig = &cfg
 	}

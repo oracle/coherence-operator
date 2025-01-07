@@ -1,4 +1,4 @@
-# Copyright 2021, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2021, 2025, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -37,8 +37,9 @@ jobs:
           - "15.1.1-0-SNAPSHOT-Graal"
           - "24.09"
           - "24.09-Graal"
-          - "22.06"
+          - "14.1.2-0"
           - "14.1.2-0-SNAPSHOT"
+          - "22.06"
           - "14.1.1-2206-SNAPSHOT"
           - "14.1.1-0-SNAPSHOT"
           - "14.1.1-0"
@@ -70,27 +71,33 @@ jobs:
             javaVersion: 17
             baseImage: "gcr.io/distroless/java17-debian12"
 
+          - matrixName: "14.1.2-0-SNAPSHOT"
+            coherenceVersion: "14.1.2-0-1-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.2-0-1-SNAPSHOT"
+            javaVersion: 17
+            baseImage: "gcr.io/distroless/java17-debian12"
+
+          - matrixName: "14.1.2-0"
+            coherenceVersion: "14.1.2-0-0"
+            javaVersion: 8
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.2-0-0"
+            baseImage: "gcr.io/distroless/java17-debian12"
+
           - matrixName: "22.06"
             coherenceVersion: "22.06.10"
             coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.10"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
-          - matrixName: "14.1.2-0-SNAPSHOT"
-            coherenceVersion: "14.1.2-0-0-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.2-0-0-SNAPSHOT"
-            javaVersion: 17
-            baseImage: "gcr.io/distroless/java17-debian12"
-
           - matrixName: "14.1.1-2206-SNAPSHOT"
-            coherenceVersion: "14.1.1-2206-10-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-2206-10-SNAPSHOT"
+            coherenceVersion: "14.1.1-2206-11-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-2206-11-SNAPSHOT"
             javaVersion: 11
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0-SNAPSHOT"
             coherenceVersion: "14.1.1-0-20-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-19-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:14.1.1-0-20-SNAPSHOT"
             javaVersion: 8
             baseImage: "gcr.io/distroless/java11-debian11"
 
@@ -189,6 +196,7 @@ jobs:
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
+        docker pull gcr.io/distroless/java17-debian12
         docker pull ${{ matrix.coherenceImage }}
 
     - name: Coherence Certification Tests

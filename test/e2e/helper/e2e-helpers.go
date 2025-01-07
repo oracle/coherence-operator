@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -441,7 +442,7 @@ func WaitForOperatorPods(ctx TestContext, namespace string, retryInterval, timeo
 
 func DeleteJob(ctx TestContext, namespace, jobName string) error {
 	cl := ctx.KubeClient.BatchV1().Jobs(namespace)
-	if err := cl.Delete(ctx.Context, jobName, metav1.DeleteOptions{}); err != nil && !errors.IsNotFound(err) {
+	if err := cl.Delete(ctx.Context, jobName, metav1.DeleteOptions{PropagationPolicy: ptr.To(metav1.DeletePropagationBackground)}); err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 	pods, err := ListPodsWithLabelSelector(ctx, namespace, "job-name="+jobName)

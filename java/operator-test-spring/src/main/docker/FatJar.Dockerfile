@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java
+FROM gcr.io/distroless/java17-debian12
 
 ADD ${project.artifactId}-${project.version}.jar /app/libs/${project.artifactId}-${project.version}.jar
 
