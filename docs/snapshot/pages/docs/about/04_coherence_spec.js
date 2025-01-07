@@ -2537,109 +2537,109 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>jobLabel</code></td>
-<td class="">The label to use to retrieve the job name from. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
+<td class="">The label to use to retrieve the job name from. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>targetLabels</code></td>
-<td class="">TargetLabels transfers labels on the Kubernetes Service onto the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
+<td class="">TargetLabels transfers labels on the Kubernetes Service onto the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec</a></td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>podTargetLabels</code></td>
-<td class="">PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
+<td class="">PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec</a></td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>sampleLimit</code></td>
-<td class="">SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitorspec</a></td>
+<td class="">SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec</a></td>
 <td class=""><code>&#42;uint64</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>path</code></td>
-<td class="">HTTP path to scrape for metrics. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">HTTP path to scrape for metrics. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>scheme</code></td>
-<td class="">HTTP scheme to use for scraping. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">HTTP scheme to use for scraping. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>params</code></td>
-<td class="">Optional HTTP URL parameters See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">Optional HTTP URL parameters See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>map[string][]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>interval</code></td>
-<td class="">Interval at which metrics should be scraped See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">Interval at which metrics should be scraped See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>monitoringv1.Duration</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>scrapeTimeout</code></td>
-<td class="">Timeout after which the scrape is ended See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">Timeout after which the scrape is ended See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>monitoringv1.Duration</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>tlsConfig</code></td>
-<td class="">TLS configuration to use when scraping the endpoint See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">TLS configuration to use when scraping the endpoint See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>&#42;monitoringv1.TLSConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>bearerTokenFile</code></td>
-<td class="">File to read bearer token for scraping targets. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">File to read bearer token for scraping targets. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>bearerTokenSecret</code></td>
-<td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>honorLabels</code></td>
-<td class="">HonorLabels chooses the metric labels on collisions with target labels. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">HonorLabels chooses the metric labels on collisions with target labels. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>honorTimestamps</code></td>
-<td class="">HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>basicAuth</code></td>
-<td class="">BasicAuth allow an endpoint to authenticate over basic authentication More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/operating/configuration/#endpoints">https://prometheus.io/docs/operating/configuration/#endpoints</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">BasicAuth allow an endpoint to authenticate over basic authentication More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/operating/configuration/#endpoints">https://prometheus.io/docs/operating/configuration/#endpoints</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>&#42;monitoringv1.BasicAuth</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>metricRelabelings</code></td>
-<td class="">MetricRelabelings to apply to samples before ingestion. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">MetricRelabelings to apply to samples before ingestion. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>[]monitoringv1.RelabelConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>relabelings</code></td>
-<td class="">Relabelings to apply to samples before scraping. More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">Relabelings to apply to samples before scraping. More info: <a id="" title="" target="_blank" href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config">https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config</a> See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>[]monitoringv1.RelabelConfig</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>proxyURL</code></td>
-<td class="">ProxyURL eg <a id="" title="" target="_blank" href="http://proxyserver:2195">http://proxyserver:2195</a> Directs scrapes to proxy through this endpoint. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint</a></td>
+<td class="">ProxyURL eg <a id="" title="" target="_blank" href="http://proxyserver:2195">http://proxyserver:2195</a> Directs scrapes to proxy through this endpoint. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -2761,7 +2761,7 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 <tr>
 <td class=""><code>externalTrafficPolicy</code></td>
 <td class="">externalTrafficPolicy denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints. "Local" preserves the client source IP and avoids a second hop for LoadBalancer and Nodeport type services, but risks potentially imbalanced traffic spreading. "Cluster" obscures the client source IP and may cause a second hop to another node, but should have good overall load-spreading.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#ServiceExternalTrafficPolicyType">https://pkg.go.dev/k8s.io/api/core/v1#ServiceExternalTrafficPolicyType</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#serviceexternaltrafficpolicy-v1-core">corev1.ServiceExternalTrafficPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -2793,7 +2793,7 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <tr>
 <td class=""><code>ipFamilyPolicy</code></td>
 <td class="">IPFamilyPolicy represents the dual-stack-ness requested or required by this Service, and is gated by the "IPv6DualStack" feature gate.  If there is no value provided, then this field will be set to SingleStack. Services can be "SingleStack" (a single IP family), "PreferDualStack" (two IP families on dual-stack configured clusters or a single IP family on single-stack clusters), or "RequireDualStack" (two IP families on dual-stack configured clusters, otherwise fail). The ipFamilies and clusterIPs fields depend on the value of this field.  This field will be wiped when updating a service to type ExternalName.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicyType">https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicyType</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#ipfamilypolicy-v1-core">corev1.IPFamilyPolicy</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
