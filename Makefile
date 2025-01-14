@@ -2500,9 +2500,6 @@ endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Update the Operator version and all references to the previous version
-# This must be run with NEXT_VERSION=x.y.z specified (where x.y.z is the new version number)
-# E.G:
-#     make new-version NEXT_VERSION=3.4.99
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: new-version
 new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z specified)
@@ -2515,6 +2512,28 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 	find config \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	find helm-charts \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	$(SED) -e 's/<revision>$(subst .,\.,$(VERSION))<\/revision>/<revision>$(NEXT_VERSION)<\/revision>/g' java/pom.xml
+
+GIT_BRANCH="version-update-$(VERSION)"
+GIT_LABEL="version-update"
+
+.PHONY: new-version-pr
+new-version-pr: ## Create a PR to update the version
+	git config user.email "action@github.com"
+	git config user.name "GitHub Action"
+	git checkout -b $(GIT_BRANCH)
+	git commit -am "Version update to $(VERSION)"
+	git push --set-upstream origin $(GIT_BRANCH)
+
+	gh label create "$(GIT_LABEL)" \
+		--description "Pull requests with version update" \
+		--force \
+	|| true
+
+	gh pr create \
+		--title "Version update to $(VERSION)" \
+		--body "Current pull request contains version update to version $(VERSION)" \
+		--label "$(GIT_LABEL)" \
+		--head $(GIT_BRANCH)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Create the third-party license file
