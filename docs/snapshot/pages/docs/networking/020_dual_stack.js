@@ -109,7 +109,7 @@ spec:
 
 <ul class="ulist">
 <li>
-<p>Since Operator 3.4.1 it is possible to configure the IP family for the WKA Service. The <code>spec.coherence.wka.ipFamily</code>
+<p>Since Operator 3.4.2 it is possible to configure the IP family for the WKA Service. The <code>spec.coherence.wka.ipFamily</code>
 field can be set to either "IPv4" or "IPv6". This will cause Coherence to bind to the relevant IP address type.</p>
 
 </li>
@@ -129,7 +129,7 @@ spec:
     wka:
       ipFamily: IPv6</markup>
 
-<p>Since Operator 3.4.1 it is also possible to configure the IP families used by the headless service created for the StatefulSet
+<p>Since Operator 3.4.2 it is also possible to configure the IP families used by the headless service created for the StatefulSet
 if this is required.</p>
 
 <p>The yaml below will configure WKA to use only IPv6, the headless Service created for the StatefulSet will be
