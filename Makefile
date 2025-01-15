@@ -15,17 +15,18 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.4.1
+VERSION ?= 3.4.2
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.4.0
+PREV_VERSION ?= 3.4.1
+NEXT_VERSION := $(shell sh ./hack/next-version.sh "$(VERSION)")
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.4.0
+COMPATIBLE_VERSION  ?= 3.4.1
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
@@ -61,7 +62,7 @@ TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 # The current working directory
 CURRDIR := $(shell pwd)
 
-GH_TOKEN ?= 
+GH_TOKEN ?=
 ifeq ("$(GH_TOKEN)", "")
   GH_AUTH := 'Foo: Bar'
 else
@@ -364,7 +365,7 @@ ISTIO_VERSION ?=
 # ----------------------------------------------------------------------------------------------------------------------
 # The version of Tanzu to install, leave empty for the latest
 TANZU_VERSION ?=
-TANZU =  
+TANZU =
 
 # ======================================================================================================================
 # Makefile targets start here
@@ -420,11 +421,15 @@ $(BUILD_PROPS):
 # Clean-up all of the build artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: clean
-clean: ## Cleans the build 
+clean: ## Cleans the build
 	-rm -rf $(BUILD_OUTPUT) || true
 	-rm -rf $(BUILD_BIN) || true
 	-rm -rf bundle || true
+	rm config/crd/bases/*.yaml || true
+	rm -rf config/crd-small || true
 	rm pkg/data/zz_generated_*.go || true
+	rm pkg/data/assets/*.yaml || true
+	rm pkg/data/assets/*.json || true
 	./mvnw -f java clean $(MAVEN_BUILD_OPTS)
 	./mvnw -f examples clean $(MAVEN_BUILD_OPTS)
 
@@ -2074,7 +2079,7 @@ ifeq ($(OPERATOR_RELEASE_IMAGE), $(OPERATOR_IMAGE))
 		--amend $(OPERATOR_IMAGE)-amd64 \
 		--amend $(OPERATOR_IMAGE)-arm64
 	docker manifest annotate $(OPERATOR_IMAGE) $(OPERATOR_IMAGE)-arm64 --arch arm64
-	docker manifest push $(OPERATOR_IMAGE) 
+	docker manifest push $(OPERATOR_IMAGE)
 else
 	@echo "Tagging $(OPERATOR_IMAGE)-amd64 as $(OPERATOR_RELEASE_IMAGE)-amd64"
 	docker tag $(OPERATOR_IMAGE)-amd64 $(OPERATOR_RELEASE_IMAGE)-amd64
@@ -2354,6 +2359,10 @@ serve-docs:
 	cd $(BUILD_OUTPUT)/docs; \
 	python -m SimpleHTTPServer 8080
 
+# ======================================================================================================================
+# Release targets
+# ======================================================================================================================
+##@ Release Targets
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Pre-Release Tasks
@@ -2372,23 +2381,6 @@ pre-release:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: post-release
 post-release: check-new-version new-version
-
-.PHONY: check-new-version
-check-new-version:
-ifeq (, $(NEW_VERSION))
-	@echo "You must specify the NEW_VERSION parameter"
-	exit 1
-else
-	@echo "Updating version from $(VERSION) to $(NEW_VERSION)"
-endif
-
-.PHONY: new-version
-new-version:
-	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' MAKEFILE
-	$(SED) 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' MAKEFILE
-	find config \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEW_VERSION)/g' {} +
-	find java \( -name 'pom.xml' \) -exec $(SED) 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEW_VERSION)<\/version>/g' {} +
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator dashboards
@@ -2498,7 +2490,7 @@ push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
 # Release the Coherence Operator.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: release
-release:
+release: ## Release the Operator
 ifeq (true, $(RELEASE_DRY_RUN))
 release: build-all-images release-ghpages
 	@echo "release dry-run: would have pushed images"
@@ -2506,6 +2498,42 @@ else
 release: build-all-images push-release-images release-ghpages
 endif
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Update the Operator version and all references to the previous version
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: new-version
+new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z specified)
+	$(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' MAKEFILE
+	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' MAKEFILE
+	find docs \( -name '*.adoc' -o -name '*.yaml' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
+	find examples \( -name 'pom.xml' \) -exec $(SED) 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEXT_VERSION)<\/version>/g' {} +
+	find examples \( -name '*.adoc' -o -name 'Dockerfile' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
+	find examples \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
+	find config \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
+	find helm-charts \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
+	$(SED) -e 's/<revision>$(subst .,\.,$(VERSION))<\/revision>/<revision>$(NEXT_VERSION)<\/revision>/g' java/pom.xml
+
+GIT_BRANCH="version-update-$(VERSION)"
+GIT_LABEL="version-update"
+
+.PHONY: new-version-pr
+new-version-pr: ## Create a PR to update the version
+	git config user.email "action@github.com"
+	git config user.name "GitHub Action"
+	git checkout -b $(GIT_BRANCH)
+	git commit -am "Version update to $(VERSION)"
+	git push --set-upstream origin $(GIT_BRANCH)
+
+	gh label create "$(GIT_LABEL)" \
+		--description "Pull requests with version update" \
+		--force \
+	|| true
+
+	gh pr create \
+		--title "Version update to $(VERSION)" \
+		--body "Current pull request contains version update to version $(VERSION)" \
+		--label "$(GIT_LABEL)" \
+		--head $(GIT_BRANCH)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Create the third-party license file

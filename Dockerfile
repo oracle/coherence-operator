@@ -13,11 +13,13 @@ ARG operator_image
 
 LABEL "com.oracle.coherence.application"="operator"
 LABEL "com.oracle.coherence.version"="$version"
+LABEL "org.opencontainers.image.description"="The Oracle Coherece Kubernetes Operator image ($target)"
+LABEL "org.opencontainers.image.source"="https://github.com/oracle/coherence-operator"
 
 ENV COHERENCE_IMAGE=$coherence_image \
     OPERATOR_IMAGE=$operator_image
 
-COPY bin/linux/$target/*                                  /files/
+COPY bin/linux/$target/*                                               /files/
 COPY java/coherence-operator/target/docker/lib/*.jar                   /files/lib/
 COPY java/coherence-operator/target/docker/logging/logging.properties  /files/logging/logging.properties
 
