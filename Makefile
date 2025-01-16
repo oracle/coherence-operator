@@ -2503,8 +2503,8 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: new-version
 new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z specified)
-	$(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' MAKEFILE
-	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' MAKEFILE
+	$(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' Makefile
+	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' Makefile
 	find docs \( -name '*.adoc' -o -name '*.yaml' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	find examples \( -name 'pom.xml' \) -exec $(SED) 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEXT_VERSION)<\/version>/g' {} +
 	find examples \( -name '*.adoc' -o -name 'Dockerfile' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
