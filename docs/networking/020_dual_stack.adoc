@@ -11,7 +11,7 @@
 == Dual Stack Networking
 
 This section describes using Coherence and the Operator with a dual stack Kubernetes cluster,
-where Pods and Services can have both IPv4 and IPv4 interfaces.
+where Pods and Services can have both IPv4 and IPv6 interfaces.
 
 [NOTE]
 ====
