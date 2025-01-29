@@ -3,7 +3,7 @@
 <h2 id="_dual_stack_networking">Dual Stack Networking</h2>
 <div class="section">
 <p>This section describes using Coherence and the Operator with a dual stack Kubernetes cluster,
-where Pods and Services can have both IPv4 and IPv4 interfaces.</p>
+where Pods and Services can have both IPv4 and IPv6 interfaces.</p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
