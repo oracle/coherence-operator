@@ -271,7 +271,7 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.
 func (in *CoherenceJobReconciler) GetReconciler() reconcile.Reconciler { return in }
 
 // ensureHashApplied ensures that the hash label is present in the CoherenceJob resource, patching it if required
-func (in *CoherenceJobReconciler) ensureHashApplied(ctx context.Context, c coh.CoherenceResource) (bool, error) {
+func (in *CoherenceJobReconciler) ensureHashApplied(ctx context.Context, c *coh.CoherenceJob) (bool, error) {
 	currentHash := ""
 	labels := c.GetLabels()
 	if len(labels) > 0 {
@@ -279,15 +279,15 @@ func (in *CoherenceJobReconciler) ensureHashApplied(ctx context.Context, c coh.C
 	}
 
 	// Re-fetch the CoherenceJob resource to ensure we have the most recent copy
-	latest := c.DeepCopyResource()
-	hash, _ := coh.EnsureHashLabel(latest)
+	latest := c.DeepCopy()
+	hash, _ := coh.EnsureJobHashLabel(latest)
 
 	if currentHash != hash {
-		if c.IsBeforeVersion("3.2.8") {
-			// Before 3.2.8 there was a bug calculating the has in the defaulting web-hook
+		if c.IsBeforeVersion("3.4.2") {
+			// Before 3.4.2 there was a bug calculating the has in the defaulting web-hook
 			// This would cause the hashes to be different here, when in fact they should not be
 			// If the CoherenceJob resource being processes has no version annotation, or a version
-			// prior to 3.2.8 then we return as if the hashes matched
+			// prior to 3.4.2 then we return as if the hashes matched
 			if labels == nil {
 				labels = make(map[string]string)
 			}

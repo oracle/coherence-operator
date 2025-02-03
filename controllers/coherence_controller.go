@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -349,14 +349,14 @@ func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coh
 
 	// Re-fetch the Coherence resource to ensure we have the most recent copy
 	latest := c.DeepCopy()
-	hash, _ := coh.EnsureHashLabel(latest)
+	hash, _ := coh.EnsureCoherenceHashLabel(latest)
 
 	if currentHash != hash {
-		if c.IsBeforeVersion("3.3.0") {
-			// Before 3.3.0 there was a bug calculating the has in the defaulting web-hook
+		if c.IsBeforeVersion("3.4.2") {
+			// Before 3.4.2 there was a bug calculating the hash in the defaulting web-hook
 			// This would cause the hashes to be different here, when in fact they should not be
 			// If the Coherence resource being processes has no version annotation, or a version
-			// prior to 3.3.0 then we return as if the hashes matched
+			// prior to 3.4.2 then we return as if the hashes matched
 			if labels == nil {
 				labels = make(map[string]string)
 			}

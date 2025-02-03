@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -67,6 +67,12 @@ func (in *CoherenceJob) Default() {
 	}
 
 	SetCommonDefaults(in)
+
+	// apply a label with the hash of the spec - ths must be the last action here to make sure that
+	// any modifications to the spec field are included in the hash
+	if hash, applied := EnsureJobHashLabel(in); applied {
+		webhookLogger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
+	}
 }
 
 // The path in this annotation MUST match the const below
