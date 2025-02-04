@@ -62,11 +62,3 @@ func ComputeHash(in interface{}, collisionCount *int32) string {
 
 	return rand.SafeEncodeString(fmt.Sprint(hasher.Sum32()))
 }
-
-//// DeepHashObject writes specified object to hash using the spew library
-//// which follows pointers and prints actual values of the nested objects
-//// ensuring the hash does not change when a pointer changes.
-//func DeepHashObject(hasher hash.Hash, objectToWrite interface{}) {
-//	b, _ := json.Marshal(objectToWrite)
-//	hasher.Write(b)
-//}
