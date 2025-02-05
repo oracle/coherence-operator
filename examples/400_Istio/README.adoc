@@ -25,6 +25,23 @@ Coherence clusters can be manually configured to work with Istio, even if not us
 See the Istio example in the <<examples/no-operator/04_istio/README.adoc,No Operator Examples>>
 ====
 
+[IMPORTANT]
+====
+*Upgrading Istio*
+
+The Istio documentations states that the recommended way to upgrade Istio is to use
+https://istio.io/latest/docs/setup/upgrade/canary/[Istio revisions and canary upgrades].
+If Istio is upgraded using a simple in-place upgrade option this will cause Coherence Pods to have communication issues
+and ultimately make the Coherence cluster unusable. This is because an in-place Istio upgrade will cause the Istio Proxy
+in the side-car containers to receive config updates and then to drain all the TCP connections it is managing, hence
+causing Coherence containers to disconnect from each other.
+
+This issue is not just related to Coherence but can impact any long-lived TCP connections, for example connections to a database.
+
+If you are using Istio in a managed environment where you do not control its life-cycle, you must ensure that the people
+that are responsible for managing Istio use the recommended upgrade approach.
+====
+
 === How Does Coherence Work with Istio?
 
 Istio is a "Service Mesh" so the clue to how Istio works in Kubernetes is in the name, it relies on the configuration

@@ -40,7 +40,7 @@ KUBERNETES_DOC_VERSION=v1.30
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 14.1.2-0-0
+COHERENCE_VERSION_LTS ?= 14.1.2-0-1
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
@@ -358,7 +358,18 @@ METALLB_VERSION ?= v0.12.1
 # Istio settings
 # ----------------------------------------------------------------------------------------------------------------------
 # The version of Istio to install, leave empty for the latest
-ISTIO_VERSION ?=
+ISTIO_VERSION    ?=
+ISTIO_PROFILE    ?= demo
+ISTIO_USE_CONFIG ?= false
+ifeq (,$(ISTIO_VERSION))
+	ISTIO_VERSION_USE := $(shell $(SCRIPTS_DIR)/find-istio-version.sh "$(TOOLS_DIRECTORY)/istio-latest.txt")
+	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION_USE))
+	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION_USE)
+else
+	ISTIO_VERSION_USE := $(ISTIO_VERSION)
+	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION))
+	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION)
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tanzu settings
@@ -415,6 +426,9 @@ $(BUILD_PROPS):
 	OPERATOR_IMAGE_NAME=$(OPERATOR_IMAGE_NAME)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	VERSION=$(VERSION)\n\
+	ISTIO_VERSION_USE=$(ISTIO_VERSION_USE)\n\
+	ISTIO_REVISION=$(ISTIO_REVISION)\n\
+	ISTIO_PROFILE=$(ISTIO_PROFILE)\n\
 	OPERATOR_PACKAGE_IMAGE=$(OPERATOR_PACKAGE_IMAGE)\n" > $(BUILD_PROPS)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1739,6 +1753,7 @@ k3d-create: $(TOOLS_BIN)/k3d ## Create the k3d cluster
 		--registry-use $(K3D_INTERNAL_REGISTRY) --no-lb \
 		--runtime-ulimit "nofile=64000:64000" --runtime-ulimit "nproc=64000:64000" \
 		--api-port 127.0.0.1:6550
+	$(SCRIPTS_DIR)/k3d-label-node.sh
 
 .PHONY: k3d-stop
 k3d-stop: $(TOOLS_BIN)/k3d  ## Stop a default k3d cluster
@@ -2273,38 +2288,52 @@ uninstall-metallb: ## Uninstall MetalLB
 # Install the latest Istio version
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-istio
-install-istio: get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
-	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
-	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
-	kubectl -n istio-system wait --for condition=available deployment.apps/istiod
+install-istio: delete-istio-config get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
+	$(ISTIO_HOME)/bin/istioctl install -f $(BUILD_OUTPUT)/istio-config.yaml -y
+	kubectl -n istio-system wait --for condition=available deployment.apps/istiod-$(ISTIO_REVISION)
 	kubectl -n istio-system wait --for condition=available deployment.apps/istio-ingressgateway
 	kubectl -n istio-system wait --for condition=available deployment.apps/istio-egressgateway
-	kubectl apply -f ./hack/istio-strict.yaml
-	kubectl -n $(OPERATOR_NAMESPACE) apply -f ./hack/istio-operator.yaml
+	kubectl apply -f $(SCRIPTS_DIR)/istio-strict.yaml
+	kubectl -n $(OPERATOR_NAMESPACE) apply -f $(SCRIPTS_DIR)/istio-operator.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
 	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
 	kubectl label namespace $(CLUSTER_NAMESPACE) istio-injection=enabled --overwrite=true
 	kubectl apply -f $(ISTIO_HOME)/samples/addons
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Upgrade Istio
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: upgrade-istio
+upgrade-istio: delete-istio-config $(BUILD_OUTPUT)/istio-config.yaml ## Upgrade an already installed Istio to the Istio version specified by ISTIO_VERSION
+	$(ISTIO_HOME)/bin/istioctl upgrade -f $(SCRIPTS_DIR)/istio-config.yaml -y
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Istio
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-istio
-uninstall-istio: get-istio ## Uninstall Istio from k8s
-	kubectl -n $(OPERATOR_NAMESPACE) delete -f ./hack/istio-operator.yaml || true
-	kubectl delete -f ./hack/istio-strict.yaml
-	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
+uninstall-istio: delete-istio-config get-istio ## Uninstall Istio from k8s
+	kubectl -n $(OPERATOR_NAMESPACE) delete -f $(SCRIPTS_DIR)/istio-operator.yaml || true
+	kubectl delete -f ./hack/istio-strict.yaml || true
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
+$(BUILD_OUTPUT)/istio-config.yaml: $(BUILD_PROPS)
+	@echo "Creating Istio config: rev=$(ISTIO_REVISION)"
+	cp $(SCRIPTS_DIR)/istio-config.yaml $(BUILD_OUTPUT)/istio-config.yaml
+	$(SED) -e 's/ISTIO_PROFILE/$(ISTIO_PROFILE)/g' $(BUILD_OUTPUT)/istio-config.yaml
+	$(SED) -e 's/ISTIO_REVISION/$(ISTIO_REVISION)/g' $(BUILD_OUTPUT)/istio-config.yaml
+
+.PHONY: delete-istio-config
+delete-istio-config:
+	rm $(BUILD_OUTPUT)/istio-config.yaml || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Get the latest Istio version
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
-get-istio: $(BUILD_PROPS)
-	$(SCRIPTS_DIR)/get-istio-latest.sh "$(ISTIO_VERSION)" "$(TOOLS_DIRECTORY)"
-	$(eval ISTIO_HOME := $(shell find $(TOOLS_DIRECTORY) -maxdepth 1 -type d | grep istio))
+get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to the build/tools/istio-* directory
+	$(SCRIPTS_DIR)/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
 	@echo "Istio installed at $(ISTIO_HOME)"
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Obtain the golangci-lint binary
