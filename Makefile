@@ -366,9 +366,15 @@ ifeq (,$(ISTIO_VERSION))
 	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION_USE))
 	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION_USE)
 else
+ifeq (latest,$(ISTIO_VERSION))
+	ISTIO_VERSION_USE := $(shell $(SCRIPTS_DIR)/find-istio-version.sh "$(TOOLS_DIRECTORY)/istio-latest.txt")
+	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION_USE))
+	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION_USE)
+else
 	ISTIO_VERSION_USE := $(ISTIO_VERSION)
 	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION))
 	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION)
+endif
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
