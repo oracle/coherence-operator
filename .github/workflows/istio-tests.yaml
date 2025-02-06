@@ -1,4 +1,4 @@
-# Copyright 2019, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2025, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -38,8 +38,8 @@ jobs:
       matrix:
         istioVersion:
         - latest
-        - 1.18.2
-        - 1.17.5
+        - 1.23.4
+        - 1.22.8
 
     steps:
     - uses: actions/checkout@v4
