@@ -2033,7 +2033,7 @@ $(TOOLS_BIN)/controller-gen:
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-KUSTOMIZE_VERSION ?= v5.4.2
+KUSTOMIZE_VERSION ?= v5.6.0
 
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize

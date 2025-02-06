@@ -10,28 +10,6 @@
 
 == O/S Networking Configuration
 
-=== Operating System Library Requirements
-
-In order for Coherence clusters to form correctly, the `conntrack` library
-must be installed.  Most Kubernetes distributions will do this for you.
-If you have issues with clusters not forming, then you should check that
-`conntrack` is installed using this command (or equivalent):
-
-[source,bash]
-----
-rpm -qa | grep conntrack
-----
-
-You should see output similar to that shown below.  If you do not, then you
-should install `conntrack` using your operating system tools.
-
-[source,bash]
-----
-libnetfilter_conntrack-1.0.6-1.el7_3.x86_64
-conntrack-tools-1.4.4-4.el7.x86_64
-----
-
-
 === Firewall (iptables) Requirements
 
 Some Kubernetes distributions create `iptables` rules that block some
