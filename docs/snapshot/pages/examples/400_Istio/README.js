@@ -18,6 +18,23 @@ just use the default socket configurations and Istio will control and route all 
 See the Istio example in the <router-link to="/examples/no-operator/04_istio/README">No Operator Examples</router-link></p>
 </p>
 </div>
+<div class="admonition important">
+<p class="admonition-textlabel">Important</p>
+<p ><p><strong>Upgrading Istio</strong></p>
+
+<p>The Istio documentations states that the recommended way to upgrade Istio is to use
+<a id="" title="" target="_blank" href="https://istio.io/latest/docs/setup/upgrade/canary/">Istio revisions and canary upgrades</a>.
+If Istio is upgraded using a simple in-place upgrade option this will cause Coherence Pods to have communication issues
+and ultimately make the Coherence cluster unusable. This is because an in-place Istio upgrade will cause the Istio Proxy
+in the side-car containers to receive config updates and then to drain all the TCP connections it is managing, hence
+causing Coherence containers to disconnect from each other.</p>
+
+<p>This issue is not just related to Coherence but can impact any long-lived TCP connections, for example connections to a database.</p>
+
+<p>If you are using Istio in a managed environment where you do not control its life-cycle, you must ensure that the people
+that are responsible for managing Istio use the recommended upgrade approach.</p>
+</p>
+</div>
 
 <h3 id="_how_does_coherence_work_with_istio">How Does Coherence Work with Istio?</h3>
 <div class="section">
