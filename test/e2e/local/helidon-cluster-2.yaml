@@ -1,0 +1,15 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: helidon-test
+spec:
+  replicas: 3
+  image: ${TEST_APPLICATION_IMAGE_HELIDON_2}
+  application:
+    type: helidon
+  jvm:
+    args:
+      - -Dcoherence.log=jdk
+  ports:
+    - name: web
+      port: 8080

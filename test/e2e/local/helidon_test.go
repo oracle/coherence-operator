@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -19,6 +19,18 @@ import (
 func TestHelidonCdiCluster(t *testing.T) {
 	testContext.CleanupAfterTest(t)
 	_, pods := helper.AssertDeployments(testContext, t, "helidon-cluster.yaml")
+	AssertHelidonEndpoint(t, pods)
+}
+
+func TestHelidonThreeCdiCluster(t *testing.T) {
+	testContext.CleanupAfterTest(t)
+	_, pods := helper.AssertDeployments(testContext, t, "helidon-cluster-3.yaml")
+	AssertHelidonEndpoint(t, pods)
+}
+
+func TestHelidonTwoCdiCluster(t *testing.T) {
+	testContext.CleanupAfterTest(t)
+	_, pods := helper.AssertDeployments(testContext, t, "helidon-cluster-2.yaml")
 	AssertHelidonEndpoint(t, pods)
 }
 

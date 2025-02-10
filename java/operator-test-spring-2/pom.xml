@@ -17,13 +17,15 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>operator-test-spring</artifactId>
+  <artifactId>operator-test-spring-2</artifactId>
 
-  <description>Oracle Coherence Kubernetes Operator Test (Spring v3.x)</description>
-  <name>operator-test-spring</name>
+  <description>Oracle Coherence Kubernetes Operator Test (Spring v2.x)</description>
+  <name>operator-test-spring-2</name>
 
   <properties>
     <cnbp-image-name>${project.artifactId}-cnbp:${project.version}</cnbp-image-name>
+
+    <version.lib.spring>2.7.18</version.lib.spring>
   </properties>
 
   <dependencies>
@@ -79,6 +81,9 @@
         <configuration>
           <image>
             <name>${cnbp-image-name}</name>
+            <env>
+              <BP_JVM_VERSION>17.*</BP_JVM_VERSION>
+            </env>
           </image>
         </configuration>
       </plugin>

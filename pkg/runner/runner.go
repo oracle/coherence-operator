@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -41,6 +41,8 @@ const (
 	ServerMain = "com.oracle.coherence.k8s.Main"
 	// SpringBootMain is the default Spring Boot main class name.
 	SpringBootMain = "org.springframework.boot.loader.PropertiesLauncher"
+	// ConsoleMain is the Coherence console main class
+	ConsoleMain = "com.tangosol.net.CacheFactory"
 
 	// AppTypeNone is the argument to specify no application type.
 	AppTypeNone = ""
@@ -117,7 +119,7 @@ func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 
 	rootCmd.AddCommand(initCommand(env))
 	rootCmd.AddCommand(serverCommand())
-	rootCmd.AddCommand(consoleCommand())
+	rootCmd.AddCommand(consoleCommand(v))
 	rootCmd.AddCommand(queryPlusCommand())
 	rootCmd.AddCommand(statusCommand())
 	rootCmd.AddCommand(readyCommand())
@@ -950,13 +952,14 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 		// This is a Spring Boot App so Coherence jar is embedded in the Spring Boot application
 		args = append(args, "-Dloader.path="+cp,
 			"-Dcoherence.operator.springboot.listener=false",
-			"-Dloader.main=com.oracle.coherence.k8s.CoherenceVersion",
-			"org.springframework.boot.loader.PropertiesLauncher", v)
+			"-Dloader.main=com.oracle.coherence.k8s.CoherenceVersion")
 
 		if jar, _ := details.lookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
 			// This is a fat jar Spring boot app so put the fat jar on the classpath
 			args = append(args, "-cp", jar)
 		}
+
+		args = append(args, "org.springframework.boot.loader.PropertiesLauncher", v)
 	} else {
 		// We can use normal Java
 		args = append(args, "-cp", cp,

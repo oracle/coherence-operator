@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -67,6 +67,70 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar)
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestSpringBootFatJarConsole(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	jar := "/apps/lib/foo.jar"
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type:             ptr.To(AppTypeSpring),
+					SpringBootFatJar: &jar,
+				},
+			},
+		},
+	}
+
+	args := []string{"console", "--dry-run"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	jar := "/apps/lib/foo.jar"
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type:             ptr.To(AppTypeSpring),
+					SpringBootFatJar: &jar,
+				},
+			},
+		},
+	}
+
+	args := []string{"console", "--dry-run", "--", "foo", "bar"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, ""), "foo", "bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -166,6 +230,10 @@ func GetMinimalExpectedSpringBootArgs() []string {
 }
 
 func GetMinimalExpectedSpringBootFatJarArgs(jar string) []string {
+	return GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, "")
+}
+
+func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, main string) []string {
 	args := []string{
 		GetJavaArg(),
 		"-cp",
@@ -173,5 +241,25 @@ func GetMinimalExpectedSpringBootFatJarArgs(jar string) []string {
 		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
 	}
 
+	if main != "" {
+		args = append(args, "-Dloader.main="+main)
+	}
+
 	return append(AppendCommonExpectedArgs(args), SpringBootMain)
+}
+
+func GetMinimalExpectedSpringBootFatJarArgsForRole(jar, main, role string) []string {
+	args := []string{
+		GetJavaArg(),
+		"-cp",
+		jar,
+		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
+		"-Dcoherence.distributed.localstorage=false",
+	}
+
+	if main != "" {
+		args = append(args, "-Dloader.main="+main)
+	}
+
+	return append(AppendCommonExpectedNonServerArgs(args, role), SpringBootMain)
 }

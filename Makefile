@@ -126,13 +126,18 @@ OPERATOR_REPO_IMAGE     := $(OPERATOR_REPO_PREFIX):$(VERSION)
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_APPLICATION_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test:1.0.0
-TEST_COMPATIBILITY_IMAGE           := $(RELEASE_IMAGE_PREFIX)operator-test-compatibility:1.0.0
-TEST_APPLICATION_IMAGE_CLIENT      := $(RELEASE_IMAGE_PREFIX)operator-test-client:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon:1.0.0
-TEST_APPLICATION_IMAGE_SPRING      := $(RELEASE_IMAGE_PREFIX)operator-test-spring:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_FAT  := $(RELEASE_IMAGE_PREFIX)operator-test-spring-fat:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_CNBP := $(RELEASE_IMAGE_PREFIX)operator-test-spring-cnbp:1.0.0
+TEST_APPLICATION_IMAGE               := $(RELEASE_IMAGE_PREFIX)operator-test:1.0.0
+TEST_COMPATIBILITY_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test-compatibility:1.0.0
+TEST_APPLICATION_IMAGE_CLIENT        := $(RELEASE_IMAGE_PREFIX)operator-test-client:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON       := $(RELEASE_IMAGE_PREFIX)operator-test-helidon:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON_3     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon-3:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON_2     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING        := $(RELEASE_IMAGE_PREFIX)operator-test-spring:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_FAT    := $(RELEASE_IMAGE_PREFIX)operator-test-spring-fat:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_CNBP   := $(RELEASE_IMAGE_PREFIX)operator-test-spring-cnbp:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_2      := $(RELEASE_IMAGE_PREFIX)operator-test-spring-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(RELEASE_IMAGE_PREFIX)operator-test-spring-fat-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(RELEASE_IMAGE_PREFIX)operator-test-spring-cnbp-2:1.0.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -288,20 +293,25 @@ OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
-TTL_REGISTRY                       := ttl.sh
-TTL_TIMEOUT                        := 1h
-TTL_UUID_FILE                      := $(BUILD_OUTPUT)/ttl-uuid.txt
-TTL_UUID                           := $(shell if [ -f $(TTL_UUID_FILE) ]; then cat $(TTL_UUID_FILE); else uuidgen | tr A-Z a-z > $(TTL_UUID_FILE) && cat $(TTL_UUID_FILE); fi)
-TTL_OPERATOR_IMAGE                 := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME):$(TTL_TIMEOUT)
-TTL_PACKAGE_IMAGE                  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-package:$(TTL_TIMEOUT)
-TTL_REPO_IMAGE                     := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-repo:$(TTL_TIMEOUT)
-TTL_APPLICATION_IMAGE              := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test:$(TTL_TIMEOUT)
-TTL_COMPATIBILITY_IMAGE            := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-compatibility:$(TTL_TIMEOUT)
-TTL_APPLICATION_IMAGE_CLIENT       := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-client:$(TTL_TIMEOUT)
-TTL_APPLICATION_IMAGE_HELIDON      := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-helidon:$(TTL_TIMEOUT)
-TTL_APPLICATION_IMAGE_SPRING       := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring:$(TTL_TIMEOUT)
-TTL_APPLICATION_IMAGE_SPRING_FAT   := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-fat:$(TTL_TIMEOUT)
-TTL_APPLICATION_IMAGE_SPRING_CNBP  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-cnbp:$(TTL_TIMEOUT)
+TTL_REGISTRY                        := ttl.sh
+TTL_TIMEOUT                         := 1h
+TTL_UUID_FILE                       := $(BUILD_OUTPUT)/ttl-uuid.txt
+TTL_UUID                            := $(shell if [ -f $(TTL_UUID_FILE) ]; then cat $(TTL_UUID_FILE); else uuidgen | tr A-Z a-z > $(TTL_UUID_FILE) && cat $(TTL_UUID_FILE); fi)
+TTL_OPERATOR_IMAGE                  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME):$(TTL_TIMEOUT)
+TTL_PACKAGE_IMAGE                   := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-package:$(TTL_TIMEOUT)
+TTL_REPO_IMAGE                      := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/$(OPERATOR_IMAGE_NAME)-repo:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE               := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test:$(TTL_TIMEOUT)
+TTL_COMPATIBILITY_IMAGE             := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-compatibility:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_CLIENT        := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-client:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_HELIDON       := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-helidon:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_HELIDON_3     := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-helidon-3:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_HELIDON_2     := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-helidon-2:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING        := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_FAT    := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-fat:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_CNBP   := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-cnbp:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_2      := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-2:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_FAT_2  := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-fat-2:$(TTL_TIMEOUT)
+TTL_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TTL_REGISTRY)/coherence/$(TTL_UUID)/operator-test-spring-cnbp-2:$(TTL_TIMEOUT)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -311,6 +321,8 @@ GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
+
+GO_VERSION := $(shell go env GOVERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Setting SHELL to bash allows bash commands to be executed by recipes.
@@ -496,21 +508,32 @@ build-operator-with-tools: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java ## Build th
 		. -t $(OPERATOR_IMAGE)
 
 .PHONY: build-operator-debug
-build-operator-debug: $(BUILD_BIN)/linux/amd64/runner-debug $(BUILD_TARGETS)/java ## Build the Coherence Operator image with the Delve debugger
-	docker build --no-cache --build-arg version=$(VERSION) \
-		--build-arg BASE_IMAGE=$(OPERATOR_IMAGE_DELVE) \
+build-operator-debug: $(BUILD_TARGETS)/delve-image $(BUILD_BIN)/runner-debug $(BUILD_TARGETS)/java ## Build the Coherence Operator image with the Delve debugger
+	docker build --platform linux/$(IMAGE_ARCH) --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
-		--build-arg target=amd64 \
+		--build-arg target=$(IMAGE_ARCH) \
 		-f debug/Dockerfile \
 		. -t $(OPERATOR_IMAGE_DEBUG)
 
-build-delve-image: ## Build the Coherence Operator Delve debugger base image
-	docker build -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) debug
+.PHONY: build-delve-image
+build-delve-image: $(BUILD_TARGETS)/delve-image ## Build the Coherence Operator Delve debugger base image
 
-$(BUILD_BIN)/linux/amd64/runner-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN)/linux/amd64/runner-debug ./runner
-	chmod +x $(BUILD_BIN)/linux/amd64/runner-debug
+$(BUILD_TARGETS)/delve-image:
+	GV=$(GO_VERSION) && GVS="$${GV#go}" && \
+	docker build --build-arg BASE_IMAGE=golang:$${GVS} -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) debug
+	touch $(BUILD_TARGETS)/delve-image
+
+$(BUILD_BIN)/runner-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
+	mkdir -p $(BUILD_BIN_AMD64) || true
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_AMD64)/runner-debug ./runner
+	mkdir -p $(BUILD_BIN_ARM64)/linux || true
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner-debug ./runner
+ifeq (x86_64, $(UNAME_M))
+	cp -f $(BUILD_BIN_AMD64)/runner-debug $(BUILD_BIN)/runner-debug
+else
+	cp -f $(BUILD_BIN_ARM64)/runner-debug $(BUILD_BIN)/runner-debug
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator images without the test images
@@ -524,6 +547,8 @@ build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator ima
 .PHONY: build-test-images
 build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image ## Build all of the test images
 	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
@@ -531,6 +556,13 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
 	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
 	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
+	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
+	docker build -f java/operator-test-spring-2/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) java/operator-test-spring-2/target
+	rm -rf java/operator-test-spring-2/target/spring || true && mkdir java/operator-test-spring-2/target/spring
+	cp java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar java/operator-test-spring-2/target/spring/operator-test-spring-2-$(MVN_VERSION).jar
+	cd java/operator-test-spring-2/target/spring && jar -xvf operator-test-spring-2-$(MVN_VERSION).jar && rm -f operator-test-spring-2-$(MVN_VERSION).jar
+	docker build -f java/operator-test-spring-2/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_2) java/operator-test-spring-2/target
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the basic Operator Test image
@@ -564,11 +596,15 @@ ensure-sdk:
 build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/runner ./runner
 	mkdir -p $(BUILD_BIN_AMD64) || true
-	cp -f $(BUILD_BIN)/runner $(BUILD_BIN_AMD64)/runner
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN_AMD64)/runner ./runner
 	mkdir -p $(BUILD_BIN_ARM64)/linux || true
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner ./runner
+ifeq (x86_64, $(UNAME_M))
+	cp -f $(BUILD_BIN_AMD64)/runner $(BUILD_BIN)/runner
+else
+	cp -f $(BUILD_BIN_ARM64)/runner $(BUILD_BIN)/runner
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Java artifacts
@@ -956,9 +992,14 @@ e2e-local-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 e2e-local-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-local-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 e2e-local-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+e2e-local-test: export TEST_APPLICATION_IMAGE_HELIDON_3 := $(TEST_APPLICATION_IMAGE_HELIDON_3)
+e2e-local-test: export TEST_APPLICATION_IMAGE_HELIDON_2 := $(TEST_APPLICATION_IMAGE_HELIDON_2)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
+e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-local-test: export COH_SKIP_SITE := true
@@ -1010,9 +1051,14 @@ run-e2e-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-e2e-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON_3 := $(TEST_APPLICATION_IMAGE_HELIDON_3)
+run-e2e-test: export TEST_APPLICATION_IMAGE_HELIDON_2 := $(TEST_APPLICATION_IMAGE_HELIDON_2)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
+run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 run-e2e-test: gotestsum  ## Run the Operator 'remote' end-to-end functional tests using an ALREADY DEPLOYED Operator
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
@@ -1032,9 +1078,14 @@ e2e-k3d-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 e2e-k3d-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-k3d-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 e2e-k3d-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_HELIDON_3 := $(TEST_APPLICATION_IMAGE_HELIDON_3)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_HELIDON_2 := $(TEST_APPLICATION_IMAGE_HELIDON_2)
 e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 e2e-k3d-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-k3d-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 e2e-k3d-test: export COH_SKIP_SITE := true
@@ -1116,9 +1167,14 @@ run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_HELIDON_3 := $(TEST_APPLICATION_IMAGE_HELIDON_3)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_HELIDON_2 := $(TEST_APPLICATION_IMAGE_HELIDON_2)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+run-prometheus-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 run-prometheus-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-prometheus-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-prometheus-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
@@ -1149,9 +1205,14 @@ just-compatibility-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 just-compatibility-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 just-compatibility-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 just-compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON_3 := $(TEST_APPLICATION_IMAGE_HELIDON_3)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_HELIDON_2 := $(TEST_APPLICATION_IMAGE_HELIDON_2)
 just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+just-compatibility-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 just-compatibility-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 just-compatibility-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 just-compatibility-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -1204,9 +1265,14 @@ run-certification: export BUILD_OUTPUT := $(BUILD_OUTPUT)
 run-certification: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-certification: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 run-certification: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
+run-certification: export TEST_APPLICATION_IMAGE_HELIDON_3 := $(TEST_APPLICATION_IMAGE_HELIDON_3)
+run-certification: export TEST_APPLICATION_IMAGE_HELIDON_2 := $(TEST_APPLICATION_IMAGE_HELIDON_2)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING := $(TEST_APPLICATION_IMAGE_SPRING)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING_FAT := $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 run-certification: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+run-certification: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
+run-certification: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+run-certification: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 run-certification: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 run-certification: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
 run-certification: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
@@ -1719,9 +1785,14 @@ kind-load: kind-load-operator kind-load-coherence  ## Load all images into the K
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_CLIENT) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_3) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_2) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_2) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) || true
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) || true
 
 .PHONY: kind-load-coherence
 kind-load-coherence:   ## Load the Coherence image into the KinD cluster
@@ -2125,9 +2196,14 @@ push-test-images:
 	docker push $(TEST_APPLICATION_IMAGE)
 	docker push $(TEST_APPLICATION_IMAGE_CLIENT)
 	docker push $(TEST_APPLICATION_IMAGE_HELIDON)
+	docker push $(TEST_APPLICATION_IMAGE_HELIDON_3)
+	docker push $(TEST_APPLICATION_IMAGE_HELIDON_2)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+	docker push $(TEST_APPLICATION_IMAGE_SPRING_2)
+	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Test images to ttl.sh
@@ -2140,12 +2216,22 @@ push-ttl-test-images:
 	docker push $(TTL_APPLICATION_IMAGE_CLIENT)
 	docker tag $(TEST_APPLICATION_IMAGE_HELIDON) $(TTL_APPLICATION_IMAGE_HELIDON)
 	docker push $(TTL_APPLICATION_IMAGE_HELIDON)
+	docker tag $(TEST_APPLICATION_IMAGE_HELIDON_3) $(TTL_APPLICATION_IMAGE_HELIDON_3)
+	docker push $(TTL_APPLICATION_IMAGE_HELIDON_3)
+	docker tag $(TEST_APPLICATION_IMAGE_HELIDON_2) $(TTL_APPLICATION_IMAGE_HELIDON_2)
+	docker push $(TTL_APPLICATION_IMAGE_HELIDON_2)
 	docker tag $(TEST_APPLICATION_IMAGE_SPRING) $(TTL_APPLICATION_IMAGE_SPRING)
 	docker push $(TTL_APPLICATION_IMAGE_SPRING)
 	docker tag $(TEST_APPLICATION_IMAGE_SPRING_FAT) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
 	docker push $(TTL_APPLICATION_IMAGE_SPRING_FAT)
 	docker tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
 	docker push $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+	docker tag $(TEST_APPLICATION_IMAGE_SPRING_2) $(TTL_APPLICATION_IMAGE_SPRING_2)
+	docker push $(TTL_APPLICATION_IMAGE_SPRING_2)
+	docker tag $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
+	docker push $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
+	docker tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
+	docker push $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
