@@ -46,6 +46,7 @@
         <coherence.legacy.version>21.12.5</coherence.legacy.version>
 
         <coherence.version>14.1.2-0-0</coherence.version>
+        <coherence.ce.version>24.09.2</coherence.ce.version>
         <coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
 
         <coherence.test.base.image>gcr.io/distroless/java17-debian12</coherence.test.base.image>

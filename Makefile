@@ -41,6 +41,7 @@ KUBERNETES_DOC_VERSION=v1.30
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
 COHERENCE_VERSION_LTS ?= 14.1.2-0-1
+COHERENCE_CE_LATEST   ?= 24.09.2
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
 COHERENCE_IMAGE_NAME     ?= coherence-ce
@@ -484,12 +485,14 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUI
 		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
+		--build-arg release=$(GITCOMMIT) \
 		--build-arg target=amd64 \
 		. -t $(OPERATOR_IMAGE)-amd64
 	docker build --platform linux/arm64 --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
+		--build-arg release=$(GITCOMMIT) \
 		--build-arg target=arm64 \
 		. -t $(OPERATOR_IMAGE)-arm64
 	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
@@ -546,8 +549,8 @@ build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator ima
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
 build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image ## Build all of the test images
-	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
-	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Dcoherence.ce.version=$(COHERENCE_CE_LATEST) -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests -Dcoherence.ce.version=$(COHERENCE_CE_LATEST) -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)

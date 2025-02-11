@@ -24,7 +24,7 @@ func TestSpringBootApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeSpring),
+					Type: ptr.To(AppTypeSpring2),
 				},
 			},
 		},
@@ -34,7 +34,37 @@ func TestSpringBootApplication(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootArgs()
+	expectedArgs := GetMinimalExpectedSpringBootArgs(SpringBootMain2)
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestSpringBoot3Application(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type: ptr.To(AppTypeSpring3),
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := GetMinimalExpectedSpringBootArgs(SpringBootMain3)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -55,7 +85,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring),
+					Type:             ptr.To(AppTypeSpring2),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -87,7 +117,7 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring),
+					Type:             ptr.To(AppTypeSpring2),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -119,7 +149,7 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring),
+					Type:             ptr.To(AppTypeSpring2),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -151,7 +181,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring),
+					Type:             ptr.To(AppTypeSpring2),
 					SpringBootFatJar: &jar,
 					Main:             ptr.To("foo.Bar"),
 				},
@@ -183,7 +213,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeSpring),
+					Type: ptr.To(AppTypeSpring2),
 					CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
 						Enabled: ptr.To(true),
 					},
@@ -208,7 +238,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 	g.Expect(len(e.OsCmd.Args)).To(Equal(4))
 	g.Expect(e.OsCmd.Args[0]).To(Equal(coh.DefaultCnbpLauncher))
 	g.Expect(e.OsCmd.Args[1]).To(Equal("java"))
-	g.Expect(e.OsCmd.Args[3]).To(Equal(SpringBootMain))
+	g.Expect(e.OsCmd.Args[3]).To(Equal(SpringBootMain2))
 
 	g.Expect(e.OsCmd.Args[2]).To(HavePrefix("@"))
 	fileName := e.OsCmd.Args[2][1:]
@@ -220,12 +250,12 @@ func TestSpringBootBuildpacks(t *testing.T) {
 	g.Expect(actualOpts).To(ConsistOf(expectedOpts))
 }
 
-func GetMinimalExpectedSpringBootArgs() []string {
+func GetMinimalExpectedSpringBootArgs(main string) []string {
 	args := []string{
 		GetJavaArg(),
 		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
 	}
-	args = append(AppendCommonExpectedArgs(args), SpringBootMain)
+	args = append(AppendCommonExpectedArgs(args), main)
 	return args
 }
 
@@ -245,7 +275,7 @@ func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, main string) []string {
 		args = append(args, "-Dloader.main="+main)
 	}
 
-	return append(AppendCommonExpectedArgs(args), SpringBootMain)
+	return append(AppendCommonExpectedArgs(args), SpringBootMain2)
 }
 
 func GetMinimalExpectedSpringBootFatJarArgsForRole(jar, main, role string) []string {
@@ -261,5 +291,5 @@ func GetMinimalExpectedSpringBootFatJarArgsForRole(jar, main, role string) []str
 		args = append(args, "-Dloader.main="+main)
 	}
 
-	return append(AppendCommonExpectedNonServerArgs(args, role), SpringBootMain)
+	return append(AppendCommonExpectedNonServerArgs(args, role), SpringBootMain2)
 }

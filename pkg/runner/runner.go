@@ -39,8 +39,10 @@ const (
 	HelidonMain = "io.helidon.microprofile.cdi.Main"
 	// ServerMain is the default server main class name.
 	ServerMain = "com.oracle.coherence.k8s.Main"
-	// SpringBootMain is the default Spring Boot main class name.
-	SpringBootMain = "org.springframework.boot.loader.PropertiesLauncher"
+	// SpringBootMain2 is the default Spring Boot 2.x main class name.
+	SpringBootMain2 = "org.springframework.boot.loader.PropertiesLauncher"
+	// SpringBootMain3 is the default Spring Boot 3.x main class name.
+	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
 	// ConsoleMain is the Coherence console main class
 	ConsoleMain = "com.tangosol.net.CacheFactory"
 
@@ -52,8 +54,10 @@ const (
 	AppTypeCoherence = "coherence"
 	// AppTypeHelidon is the argument to specify a Helidon application.
 	AppTypeHelidon = "helidon"
-	// AppTypeSpring is the argument to specify a Spring application.
-	AppTypeSpring = "spring"
+	// AppTypeSpring2 is the argument to specify an exploded Spring Boot 2.x application.
+	AppTypeSpring2 = "spring"
+	// AppTypeSpring3 is the argument to specify an exploded Spring Boot 3.x application.
+	AppTypeSpring3 = "spring3"
 	// AppTypeOperator is the argument to specify running an Operator command.
 	AppTypeOperator = "operator"
 
@@ -321,7 +325,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	// Configure the classpath to support images created with the JIB Maven plugin
 	// This is enabled by default unless the image is a buildpacks image, or we
 	// are running a Spring Boot application.
-	if !details.isBuildPacks() && details.AppType != AppTypeSpring && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
+	if !details.isBuildPacks() && !details.IsSpringBoot() && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
 		cpFile := filepath.Join(appDir, "jib-classpath-file")
 		fi, e := os.Stat(cpFile)
@@ -601,7 +605,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeSpring:
+	case details.IsSpringBoot():
 		app = "SpringBoot"
 		cmd, err = createSpringBootCommand(details.getJavaExecutable(), details)
 	case details.AppType == AppTypeHelidon:
@@ -648,7 +652,10 @@ func readFirstLineFromFile(path string) (string, error) {
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	if details.isBuildPacks() {
-		return _createBuildPackCommand(details, SpringBootMain, details.getSpringBootArgs())
+		if details.AppType == AppTypeSpring2 {
+			return _createBuildPackCommand(details, SpringBootMain2, details.getSpringBootArgs())
+		}
+		return _createBuildPackCommand(details, SpringBootMain3, details.getSpringBootArgs())
 	}
 	args := details.getSpringBootCommand()
 	return _createJavaCommand(javaCmd, details, args)
@@ -933,14 +940,14 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 	}
 
 	// Get the classpath to use (we need Coherence jar)
-	cp := details.UtilsDir + "/lib/coherence-operator.jar" + ":" + details.getClasspath()
+	cp := details.getClasspath()
 
 	var exe string
 	var cmd *exec.Cmd
 	var args []string
 
 	if details.isBuildPacks() {
-		// This is a buildpacks image so use the Buildpacks launcher to run Java
+		// This is a build-packs image so use the Build-packs launcher to run Java
 		exe = getBuildpackLauncher()
 		args = []string{"java"}
 	} else {
@@ -948,8 +955,9 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 		exe = details.getJavaExecutable()
 	}
 
-	if details.AppType == AppTypeSpring {
+	if details.IsSpringBoot() {
 		// This is a Spring Boot App so Coherence jar is embedded in the Spring Boot application
+		cp := strings.ReplaceAll(cp, ":", ",")
 		args = append(args, "-Dloader.path="+cp,
 			"-Dcoherence.operator.springboot.listener=false",
 			"-Dloader.main=com.oracle.coherence.k8s.CoherenceVersion")
@@ -959,7 +967,13 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 			args = append(args, "-cp", jar)
 		}
 
-		args = append(args, "org.springframework.boot.loader.PropertiesLauncher", v)
+		if details.AppType == AppTypeSpring2 {
+			// we are running SpringBoot 2.x
+			args = append(args, SpringBootMain2, v)
+		} else {
+			// we are running SpringBoot 3.x
+			args = append(args, SpringBootMain3, v)
+		}
 	} else {
 		// We can use normal Java
 		args = append(args, "-cp", cp,

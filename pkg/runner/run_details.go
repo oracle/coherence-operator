@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -54,6 +54,14 @@ type RunDetails struct {
 	MainArgs          []string
 	BuildPacks        *bool
 	env               *viper.Viper
+}
+
+// IsSpringBoot returns true if this is a Spring Boot application
+func (in *RunDetails) IsSpringBoot() bool {
+	if in.env == nil {
+		return false
+	}
+	return in.AppType == AppTypeSpring2 || in.AppType == AppTypeSpring3
 }
 
 // Getenv returns the value for the specified environment variable, or empty string if not set.

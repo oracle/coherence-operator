@@ -35,9 +35,9 @@ func consoleCommand(v *viper.Viper) *cobra.Command {
 // Configure the runner to run a Coherence CacheFactory console
 func console(details *RunDetails, args []string, v *viper.Viper) {
 	app := strings.ToLower(v.GetString(v1.EnvVarAppType))
-	if app == AppTypeSpring {
-		details.AppType = AppTypeSpring
-		details.MainClass = SpringBootMain
+	if app == AppTypeSpring2 {
+		details.AppType = AppTypeSpring2
+		details.MainClass = SpringBootMain2
 		details.addArg("-Dloader.main=" + ConsoleMain)
 	} else {
 		details.AppType = AppTypeJava

@@ -122,6 +122,14 @@ func GetMinimalExpectedArgs() []string {
 		"$DEFAULT$")
 }
 
+func GetMinimalExpectedArgsWithoutCP() []string {
+	args := make([]string, 0)
+	args = append(args, GetJavaArg())
+	return append(AppendCommonExpectedArgs(args),
+		"com.oracle.coherence.k8s.Main",
+		"$DEFAULT$")
+}
+
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	args := []string{
 		GetJavaArg(),

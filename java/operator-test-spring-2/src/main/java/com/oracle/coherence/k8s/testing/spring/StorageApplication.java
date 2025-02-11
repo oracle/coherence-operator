@@ -9,6 +9,7 @@ package com.oracle.coherence.k8s.testing.spring;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.Session;
 
@@ -58,8 +59,8 @@ public class StorageApplication {
     @Order(1)
     public ApplicationRunner runCoherence() {
         return (args) -> {
-            LOGGER.info("Starting DefaultCacheServer with args " + Arrays.toString(args.getSourceArgs()));
-            DefaultCacheServer.main(args.getSourceArgs());
+            LOGGER.info("Starting Coherence with args " + Arrays.toString(args.getSourceArgs()));
+            Coherence.main(args.getSourceArgs());
         };
     }
 
