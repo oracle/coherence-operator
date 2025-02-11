@@ -96,7 +96,39 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar)
+	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar, SpringBootMain2)
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+}
+
+func TestSpringBoot3FatJarApplication(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	jar := "/apps/lib/foo.jar"
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Application: &coh.ApplicationSpec{
+					Type:             ptr.To(AppTypeSpring3),
+					SpringBootFatJar: &jar,
+				},
+			},
+		},
+	}
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(d)
+
+	expectedCommand := GetJavaCommand()
+	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar, SpringBootMain3)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -193,7 +225,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgs(jar), "-Dloader.main=foo.Bar")
+	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgs(jar, SpringBootMain2), "-Dloader.main=foo.Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -259,11 +291,11 @@ func GetMinimalExpectedSpringBootArgs(main string) []string {
 	return args
 }
 
-func GetMinimalExpectedSpringBootFatJarArgs(jar string) []string {
-	return GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, "")
+func GetMinimalExpectedSpringBootFatJarArgs(jar, main string) []string {
+	return GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, main, "")
 }
 
-func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, main string) []string {
+func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, springMain, main string) []string {
 	args := []string{
 		GetJavaArg(),
 		"-cp",
@@ -275,7 +307,7 @@ func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, main string) []string {
 		args = append(args, "-Dloader.main="+main)
 	}
 
-	return append(AppendCommonExpectedArgs(args), SpringBootMain2)
+	return append(AppendCommonExpectedArgs(args), springMain)
 }
 
 func GetMinimalExpectedSpringBootFatJarArgsForRole(jar, main, role string) []string {
