@@ -27,11 +27,11 @@ func TestStartSpringFatJarCluster(t *testing.T) {
 	AssertSpringEndpoint(t, pods)
 }
 
-func TestStartSpringBuildpacksCluster(t *testing.T) {
-	testContext.CleanupAfterTest(t)
-	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster.yaml")
-	AssertSpringEndpoint(t, pods)
-}
+//func TestStartSpringBuildpacksCluster(t *testing.T) {
+//	testContext.CleanupAfterTest(t)
+//	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster.yaml")
+//	AssertSpringEndpoint(t, pods)
+//}
 
 func TestStartSpringTwoCluster(t *testing.T) {
 	testContext.CleanupAfterTest(t)

@@ -949,7 +949,7 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 	if details.isBuildPacks() {
 		// This is a build-packs image so use the Build-packs launcher to run Java
 		exe = getBuildpackLauncher()
-		args = []string{"java"}
+		args = []string{exe}
 	} else {
 		// this should be a normal image with Java available
 		exe = details.getJavaExecutable()
