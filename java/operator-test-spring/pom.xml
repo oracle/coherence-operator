@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2020, 2025, Oracle and/or its affiliates.
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
-  -->
+
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -24,13 +26,25 @@
 
   <properties>
     <cnbp-image-name>${project.artifactId}-cnbp:${project.version}</cnbp-image-name>
+    <coherence.test.base.image>gcr.io/distroless/java21-debian12</coherence.test.base.image>
   </properties>
+
+  <dependencyManagement>
+      <dependencies>
+          <dependency>
+              <groupId>${coherence.groupId}</groupId>
+              <artifactId>coherence-bom</artifactId>
+              <version>${coherence.ce.version}</version>
+              <type>pom</type>
+              <scope>import</scope>
+          </dependency>
+      </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
       <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${coherence.ce.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -88,6 +102,9 @@
         <artifactId>jib-maven-plugin</artifactId>
         <version>${version.plugin.jib}</version>
         <configuration>
+          <from>
+              <image>docker://${coherence.test.base.image.21}</image>
+          </from>
           <skip>true</skip>
         </configuration>
       </plugin>

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021, 2024, Oracle and/or its affiliates.
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
-  -->
+
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -26,6 +28,18 @@
     <main.class>com.oracle.coherence.k8s.testing.Main</main.class>
   </properties>
 
+  <dependencyManagement>
+      <dependencies>
+          <dependency>
+              <groupId>${coherence.groupId}</groupId>
+              <artifactId>coherence-bom</artifactId>
+              <version>${coherence.version}</version>
+              <type>pom</type>
+              <scope>import</scope>
+          </dependency>
+      </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.groupId}</groupId>
@@ -34,7 +48,6 @@
     <dependency>
       <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence-java-client</artifactId>
-      <version>${coherence.version}</version>
     </dependency>
   </dependencies>
 

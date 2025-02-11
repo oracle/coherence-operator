@@ -106,6 +106,7 @@ jobs:
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
         docker pull gcr.io/distroless/java17-debian12
+        docker pull gcr.io/distroless/java21-debian12
 
     - name: K3d Tests
       shell: bash

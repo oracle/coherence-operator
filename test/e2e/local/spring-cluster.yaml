@@ -6,7 +6,7 @@ spec:
   replicas: 3
   image: ${TEST_APPLICATION_IMAGE_SPRING}
   application:
-    type: spring
+    type: spring3
     workingDir: /spring
   jvm:
     args:

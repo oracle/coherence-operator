@@ -50,8 +50,9 @@ COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):
 COHERENCE_GROUP_ID       ?= com.oracle.coherence.ce
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
-BUILD_JAVA_VERSION        ?= 17
-COHERENCE_TEST_BASE_IMAGE ?= gcr.io/distroless/java17-debian12
+BUILD_JAVA_VERSION           ?= 17
+COHERENCE_TEST_BASE_IMAGE_17 ?= gcr.io/distroless/java17-debian12
+COHERENCE_TEST_BASE_IMAGE_21 ?= gcr.io/distroless/java21-debian12
 
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
@@ -96,7 +97,7 @@ OPERATOR_SDK_VERSION := v1.9.0
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE_17) -Dcoherence.test.base.image.21=$(COHERENCE_TEST_BASE_IMAGE_21) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -549,19 +550,38 @@ build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator ima
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
 build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image ## Build all of the test images
-	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests -Dcoherence.ce.version=$(COHERENCE_CE_LATEST) -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) $(MAVEN_BUILD_OPTS)
-	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests -Dcoherence.ce.version=$(COHERENCE_CE_LATEST) -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) $(MAVEN_BUILD_OPTS)
-	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) $(MAVEN_BUILD_OPTS)
+#   Helidon 4
+	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
+		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) \
+		$(MAVEN_BUILD_OPTS)
+#   Helidon 3
+	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests \
+		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) \
+		$(MAVEN_BUILD_OPTS)
+#   Helidon 2
+	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) \
+		$(MAVEN_BUILD_OPTS)
+#   Spring Boot 3.x JIB
 	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
+#   Spring Boot 3.x CNBP
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
+#   Spring Boot 3.x fat jar
 	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
+#   Spring Boot 3.x exploded fat jar
 	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
 	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
 	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
 	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
+#   Spring Boot 2.x JIB
 	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
+#   Spring Boot 2.x CNBP
 	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
+#   Spring Boot 2.x fat jar
 	docker build -f java/operator-test-spring-2/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) java/operator-test-spring-2/target
+#   Spring Boot 2.x exploded fat jar
 	rm -rf java/operator-test-spring-2/target/spring || true && mkdir java/operator-test-spring-2/target/spring
 	cp java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar java/operator-test-spring-2/target/spring/operator-test-spring-2-$(MVN_VERSION).jar
 	cd java/operator-test-spring-2/target/spring && jar -xvf operator-test-spring-2-$(MVN_VERSION).jar && rm -f operator-test-spring-2-$(MVN_VERSION).jar

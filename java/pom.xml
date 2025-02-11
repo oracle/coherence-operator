@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright (c) 2020, 2025, Oracle and/or its affiliates.
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
-  -->
+
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -50,6 +51,7 @@
         <coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
 
         <coherence.test.base.image>gcr.io/distroless/java17-debian12</coherence.test.base.image>
+        <coherence.test.base.image.21>gcr.io/distroless/java21-debian12</coherence.test.base.image.21>
         <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>
@@ -103,14 +105,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>${coherence.groupId}</groupId>
-                <artifactId>coherence-bom</artifactId>
-                <version>${coherence.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
             <dependency>
               <groupId>com.google.protobuf</groupId>
               <artifactId>protobuf-bom</artifactId>
