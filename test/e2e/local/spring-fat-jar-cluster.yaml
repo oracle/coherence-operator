@@ -6,7 +6,7 @@ spec:
   replicas: 3
   image: ${TEST_APPLICATION_IMAGE_SPRING_FAT}
   application:
-    type: spring
+    type: spring3
     springBootFatJar: /app/libs/operator-test-spring-${MVN_VERSION}.jar
   jvm:
     args:

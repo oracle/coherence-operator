@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.kubernetes</groupId>
+    <artifactId>operator-parent</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>operator-test-spring-2</artifactId>
+
+  <description>Oracle Coherence Kubernetes Operator Test (Spring v2.x)</description>
+  <name>operator-test-spring-2</name>
+
+  <properties>
+    <cnbp-image-name>${project.artifactId}-cnbp:${project.version}</cnbp-image-name>
+
+    <version.lib.spring>2.7.18</version.lib.spring>
+  </properties>
+
+  <dependencyManagement>
+      <dependencies>
+          <dependency>
+              <groupId>${coherence.groupId}</groupId>
+              <artifactId>coherence-bom</artifactId>
+              <version>${coherence.version}</version>
+              <type>pom</type>
+              <scope>import</scope>
+          </dependency>
+      </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.groupId}</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>${version.lib.spring}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/docker</directory>
+        <targetPath>${project.build.directory}</targetPath>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>repackage</id>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>spring-dir</id>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+            <configuration>
+              <layout>DIR</layout>
+              <outputDirectory>${project.build.directory}/spring</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <image>
+            <name>${cnbp-image-name}</name>
+            <env>
+              <BP_JVM_VERSION>17.*</BP_JVM_VERSION>
+            </env>
+          </image>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>${version.plugin.jib}</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

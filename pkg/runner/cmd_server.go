@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -55,19 +55,29 @@ func server(details *RunDetails, _ *cobra.Command) {
 		mc = mainCls
 		found = true
 	}
+	isSpring := details.IsSpringBoot()
 	switch {
-	case found && details.AppType != AppTypeSpring:
+	case found && !isSpring:
 		// we have a main class specified, and we're not a Spring Boot app
 		details.MainArgs = []string{mc}
-	case found && details.AppType == AppTypeSpring:
-		// we have a main class and the app is Spring Boot
+	case found && details.AppType == AppTypeSpring2:
+		// we have a main class and the app is Spring Boot 2.x
 		// the main is PropertiesLauncher,
-		details.MainClass = SpringBootMain
+		details.MainClass = SpringBootMain2
 		// the specified main class is set as a Spring loader property
 		details.addArg("-Dloader.main=" + mc)
-	case !found && details.AppType == AppTypeSpring:
-		// the app type is Spring Boot so main is PropertiesLauncher
-		details.MainClass = SpringBootMain
+	case found && details.AppType == AppTypeSpring3:
+		// we have a main class and the app is Spring Boot 3.x
+		// the main is PropertiesLauncher,
+		details.MainClass = SpringBootMain3
+		// the specified main class is set as a Spring loader property
+		details.addArg("-Dloader.main=" + mc)
+	case !found && details.AppType == AppTypeSpring2:
+		// the app type is Spring Boot 2.x so main is PropertiesLauncher
+		details.MainClass = SpringBootMain2
+	case !found && details.AppType == AppTypeSpring3:
+		// the app type is Spring Boot 3.x so main is PropertiesLauncher
+		details.MainClass = SpringBootMain3
 	case !found && details.AppType == AppTypeCoherence:
 		// the app type is Coherence so main is DefaultMain
 		details.MainArgs = []string{DefaultMain}

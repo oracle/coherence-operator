@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -67,8 +67,11 @@ like the diagram below; where you can see the `/spring` directory contains the S
 └─⊕ var
 ----
 
-This type of image can be run by the Coherence Operator by specifying an application type of `spring` in the
-`spec.application.type` field and by setting the working directory to the exploded directory, for example:
+*Spring Boot 2.x or 3.x*
+This type of image can be run by the Coherence Operator by specifying an application type of `spring`
+for Spring Boot 2.x applications or `spring3` for SpringBoot 3.x applications.
+The application type is set in the `spec.application.type` field and by setting the working directory
+to the exploded directory, for example:
 
 [source,yaml]
 ----
@@ -83,13 +86,37 @@ spec:
     workingDir: /spring  # <2>
 ----
 
-<1> The `type` field set to `spring` tells the Operator that this is a Spring Boot application.
+<1> The `type` field set to `spring` tells the Operator that this is a Spring Boot 2.x application.
+<2> The working directory has been set to the directory containing the exploded Spring Boot application.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: my-spring-app:1.0.0
+  application:
+    type: spring3        # <1>
+    workingDir: /spring  # <2>
+----
+
+<1> The `type` field set to `spring3` tells the Operator that this is a Spring Boot 3.x application.
 <2> The working directory has been set to the directory containing the exploded Spring Boot application.
 
 When the Operator starts the application it will then run a command equivalent to:
+
+*Spring Boot 2.x*
 [source,bash]
 ----
 cd /spring && java org.springframework.boot.loader.PropertiesLauncher
+----
+
+*Spring Boot 3.x*
+[source,bash]
+----
+cd /spring && java org.springframework.boot.loader.launch.PropertiesLauncher
 ----
 
 
@@ -127,15 +154,22 @@ spec:
 <2> The location of the Spring Boot jar has been set.
 
 When the Operator starts the application it will then run a command equivalent to:
+
+*Spring Boot 2.x*
 [source,bash]
 ----
 java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.PropertiesLauncher
 ----
 
+*Spring Boot 3.x*
+[source,bash]
+----
+java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.launch.PropertiesLauncher
+----
+
 NOTE: The Operator does not run the fat jar using the `java -jar` command because it needs to add various other
 JVM arguments and append to the classpath, so it has to run the `org.springframework.boot.loader.PropertiesLauncher`
 class as opposed to the `org.springframework.boot.loader.JarLauncher` that `java -jar` would run.
-
 
 === Using Could Native Buildpacks
 
@@ -188,14 +222,22 @@ spec:
     type: spring # <1>
 ----
 
-<1> The application type has been set to `spring` so that the operator knows that this is a Spring Boot application,
-and the fact that the image is a Buildpacks image will be auto-discovered.
+<1> The application type has been set to `spring` (for Spring Boot 2.x) or `spring3` (for Spring Boot 3.x) so that the
+operator knows that this is a Spring Boot application, and the fact that the image is a Buildpacks image will be auto-discovered.
 
 When the Operator starts the application it will then run the buildpacks launcher with a command equivalent
 to this:
+
+*Spring Boot 2.x*
 [source,bash]
 ----
 /cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.PropertiesLauncher
+----
+
+*Spring Boot 3.x*
+[source,bash]
+----
+/cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.launch.PropertiesLauncher
 ----
 
 ==== Buildpacks Detection

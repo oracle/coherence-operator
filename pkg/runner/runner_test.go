@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -122,6 +122,14 @@ func GetMinimalExpectedArgs() []string {
 		"$DEFAULT$")
 }
 
+func GetMinimalExpectedArgsWithoutCP() []string {
+	args := make([]string, 0)
+	args = append(args, GetJavaArg())
+	return append(AppendCommonExpectedArgs(args),
+		"com.oracle.coherence.k8s.Main",
+		"$DEFAULT$")
+}
+
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	args := []string{
 		GetJavaArg(),
@@ -135,11 +143,18 @@ func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 }
 
 func AppendCommonExpectedArgs(args []string) []string {
-	return append(args,
-		"-Dcoherence.role=test",
+	return append(AppendCommonExpectedNonServerArgs(args, "test"),
 		"-XshowSettings:all",
 		"-XX:+PrintCommandLineFlags",
 		"-XX:+PrintFlagsFinal",
+	)
+}
+
+func AppendCommonExpectedNonServerArgs(args []string, role string) []string {
+	if role != "" {
+		args = append(args, "-Dcoherence.role="+role)
+	}
+	return append(args,
 		"-Dcoherence.wka=test-wka..svc",
 		"-Dcoherence.cluster=test",
 		"-Dcoherence.k8s.operator.health.port=6676",

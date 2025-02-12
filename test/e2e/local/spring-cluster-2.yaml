@@ -1,0 +1,16 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: spring-test
+spec:
+  replicas: 3
+  image: ${TEST_APPLICATION_IMAGE_SPRING_2}
+  application:
+    type: spring
+    workingDir: /spring
+  jvm:
+    args:
+      - -Dcoherence.log=jdk
+  ports:
+    - name: web
+      port: 8080

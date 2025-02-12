@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -24,21 +24,39 @@
     <description>Oracle Coherence Kubernetes Operator Test (Helidon)</description>
     <name>operator-test-helidon</name>
 
+    <properties>
+        <version.lib.helidon>4.1.6</version.lib.helidon>
+        <version.lib.activation-api>2.1.3</version.lib.activation-api>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${coherence.groupId}</groupId>
+                <artifactId>coherence-bom</artifactId>
+                <version>${coherence.ce.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.helidon</groupId>
+                <artifactId>helidon-dependencies</artifactId>
+                <version>${version.lib.helidon}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>${coherence.groupId}</groupId>
             <artifactId>coherence</artifactId>
-            <version>${coherence.version}</version>
         </dependency>
         <dependency>
             <groupId>${coherence.groupId}</groupId>
             <artifactId>coherence-cdi-server</artifactId>
-            <version>${coherence.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${coherence.groupId}</groupId>
-            <artifactId>coherence-management</artifactId>
-            <version>${coherence.version}</version>
         </dependency>
 
         <dependency>
@@ -46,7 +64,7 @@
             <artifactId>helidon-microprofile</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jboss</groupId>
+            <groupId>io.smallrye</groupId>
             <artifactId>jandex</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
@@ -54,6 +72,7 @@
         <dependency>
             <groupId>jakarta.activation</groupId>
             <artifactId>jakarta.activation-api</artifactId>
+            <version>${version.lib.activation-api}</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
@@ -65,6 +84,9 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>${version.plugin.jib}</version>
                 <configuration>
+                    <from>
+                        <image>docker://${coherence.test.base.image.21}</image>
+                    </from>
                     <container>
                       <mainClass>io.helidon.microprofile.cdi.Main</mainClass>
                     </container>

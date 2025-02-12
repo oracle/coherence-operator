@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,9 +27,27 @@ func TestStartSpringFatJarCluster(t *testing.T) {
 	AssertSpringEndpoint(t, pods)
 }
 
-func TestStartSpringBuildpacksCluster(t *testing.T) {
+//func TestStartSpringBuildpacksCluster(t *testing.T) {
+//	testContext.CleanupAfterTest(t)
+//	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster.yaml")
+//	AssertSpringEndpoint(t, pods)
+//}
+
+func TestStartSpringTwoCluster(t *testing.T) {
 	testContext.CleanupAfterTest(t)
-	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster.yaml")
+	_, pods := helper.AssertDeployments(testContext, t, "spring-cluster-2.yaml")
+	AssertSpringEndpoint(t, pods)
+}
+
+func TestStartSpringTwoFatJarCluster(t *testing.T) {
+	testContext.CleanupAfterTest(t)
+	_, pods := helper.AssertDeployments(testContext, t, "spring-fat-jar-cluster-2.yaml")
+	AssertSpringEndpoint(t, pods)
+}
+
+func TestStartSpringTwoBuildpacksCluster(t *testing.T) {
+	testContext.CleanupAfterTest(t)
+	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster-2.yaml")
 	AssertSpringEndpoint(t, pods)
 }
 

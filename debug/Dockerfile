@@ -3,8 +3,7 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
-ARG BASE_IMAGE=ghcr.io/oracle/coherence-operator:delve
-FROM $BASE_IMAGE
+FROM ghcr.io/oracle/coherence-operator:delve
 
 ARG target
 ARG version
@@ -19,8 +18,8 @@ ENV COHERENCE_IMAGE=$coherence_image \
 
 WORKDIR /
 
-COPY bin/linux/$target/runner                                          /files/runner
+COPY bin/linux/$target/runner-debug                                    /files/runner
 COPY java/coherence-operator/target/docker/lib/*.jar                   /files/lib/
 COPY java/coherence-operator/target/docker/logging/logging.properties  /files/logging/logging.properties
 
-ENTRYPOINT ["dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/manager", "--"]
+ENTRYPOINT ["dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/files/runner", "--"]

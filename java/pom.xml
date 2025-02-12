@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright (c) 2020, 2025, Oracle and/or its affiliates.
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
-  -->
+
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+-->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -24,7 +25,10 @@
         <module>operator-compatibility</module>
         <module>operator-test</module>
         <module>operator-test-helidon</module>
+        <module>operator-test-helidon-3</module>
+        <module>operator-test-helidon-2</module>
         <module>operator-test-spring</module>
+        <module>operator-test-spring-2</module>
         <module>operator-test-client</module>
     </modules>
 
@@ -43,9 +47,11 @@
         <coherence.legacy.version>21.12.5</coherence.legacy.version>
 
         <coherence.version>14.1.2-0-0</coherence.version>
+        <coherence.ce.version>24.09.2</coherence.ce.version>
         <coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
 
         <coherence.test.base.image>gcr.io/distroless/java17-debian12</coherence.test.base.image>
+        <coherence.test.base.image.21>gcr.io/distroless/java21-debian12</coherence.test.base.image.21>
         <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>
@@ -53,19 +59,17 @@
         <test.certs.location>../build/_output/certs</test.certs.location>
 
         <!-- library dependency versions -->
-        <version.lib.activation-api>1.2.2</version.lib.activation-api>
         <version.lib.asciidoctor.diagram>2.0.2</version.lib.asciidoctor.diagram>
         <version.lib.bedrock>5.1.6</version.lib.bedrock>
         <version.lib.checkstyle>8.18</version.lib.checkstyle>
         <version.lib.commonjava.directory>0.3.1</version.lib.commonjava.directory>
         <version.lib.glassfish.copyright>2.1</version.lib.glassfish.copyright>
         <version.lib.hamcrest>1.3</version.lib.hamcrest>
-        <version.lib.helidon>2.6.5</version.lib.helidon>
         <version.lib.junit>4.13.1</version.lib.junit>
         <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
         <version.lib.mockito>3.10.0</version.lib.mockito>
         <version.lib.protobuf>3.25.5</version.lib.protobuf>
-        <version.lib.spring>2.7.18</version.lib.spring>
+        <version.lib.spring>3.4.2</version.lib.spring>
 
         <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
         <version.lib.gson>2.8.9</version.lib.gson>
@@ -102,14 +106,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>${coherence.groupId}</groupId>
-                <artifactId>coherence-bom</artifactId>
-                <version>${coherence.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
               <groupId>com.google.protobuf</groupId>
               <artifactId>protobuf-bom</artifactId>
               <version>${version.lib.protobuf}</version>
@@ -121,25 +117,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot</artifactId>
                 <version>${version.lib.spring}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
-                <version>${version.lib.spring}</version>
-            </dependency>
-
-            <!-- Helidon -->
-            <dependency>
-                <groupId>io.helidon</groupId>
-                <artifactId>helidon-dependencies</artifactId>
-                <version>${version.lib.helidon}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.activation</groupId>
-                <artifactId>jakarta.activation-api</artifactId>
-                <version>${version.lib.activation-api}</version>
             </dependency>
 
             <!-- Generated client dependencies -->
