@@ -62,8 +62,11 @@ like the diagram below; where you can see the <code>/spring</code> directory con
 ├─⊕ usr
 └─⊕ var</markup>
 
-<p>This type of image can be run by the Coherence Operator by specifying an application type of <code>spring</code> in the
-<code>spec.application.type</code> field and by setting the working directory to the exploded directory, for example:</p>
+<p><strong>Spring Boot 2.x or 3.x</strong>
+This type of image can be run by the Coherence Operator by specifying an application type of <code>spring</code>
+for Spring Boot 2.x applications or <code>spring3</code> for SpringBoot 3.x applications.
+The application type is set in the <code>spec.application.type</code> field and by setting the working directory
+to the exploded directory, for example:</p>
 
 <markup
 lang="yaml"
@@ -79,15 +82,41 @@ spec:
     workingDir: /spring  <span class="conum" data-value="2" /></markup>
 
 <ul class="colist">
-<li data-value="1">The <code>type</code> field set to <code>spring</code> tells the Operator that this is a Spring Boot application.</li>
+<li data-value="1">The <code>type</code> field set to <code>spring</code> tells the Operator that this is a Spring Boot 2.x application.</li>
+<li data-value="2">The working directory has been set to the directory containing the exploded Spring Boot application.</li>
+</ul>
+<markup
+lang="yaml"
+
+>apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: test
+spec:
+  image: my-spring-app:1.0.0
+  application:
+    type: spring3        <span class="conum" data-value="1" />
+    workingDir: /spring  <span class="conum" data-value="2" /></markup>
+
+<ul class="colist">
+<li data-value="1">The <code>type</code> field set to <code>spring3</code> tells the Operator that this is a Spring Boot 3.x application.</li>
 <li data-value="2">The working directory has been set to the directory containing the exploded Spring Boot application.</li>
 </ul>
 <p>When the Operator starts the application it will then run a command equivalent to:</p>
+
+<p><strong>Spring Boot 2.x</strong></p>
 
 <markup
 lang="bash"
 
 >cd /spring &amp;&amp; java org.springframework.boot.loader.PropertiesLauncher</markup>
+
+<p><strong>Spring Boot 3.x</strong></p>
+
+<markup
+lang="bash"
+
+>cd /spring &amp;&amp; java org.springframework.boot.loader.launch.PropertiesLauncher</markup>
 
 </div>
 
@@ -127,10 +156,19 @@ spec:
 </ul>
 <p>When the Operator starts the application it will then run a command equivalent to:</p>
 
+<p><strong>Spring Boot 2.x</strong></p>
+
 <markup
 lang="bash"
 
 >java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.PropertiesLauncher</markup>
+
+<p><strong>Spring Boot 3.x</strong></p>
+
+<markup
+lang="bash"
+
+>java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.launch.PropertiesLauncher</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">The Operator does not run the fat jar using the <code>java -jar</code> command because it needs to add various other
@@ -191,16 +229,25 @@ spec:
     type: spring <span class="conum" data-value="1" /></markup>
 
 <ul class="colist">
-<li data-value="1">The application type has been set to <code>spring</code> so that the operator knows that this is a Spring Boot application,
-and the fact that the image is a Buildpacks image will be auto-discovered.</li>
+<li data-value="1">The application type has been set to <code>spring</code> (for Spring Boot 2.x) or <code>spring3</code> (for Spring Boot 3.x) so that the
+operator knows that this is a Spring Boot application, and the fact that the image is a Buildpacks image will be auto-discovered.</li>
 </ul>
 <p>When the Operator starts the application it will then run the buildpacks launcher with a command equivalent
 to this:</p>
+
+<p><strong>Spring Boot 2.x</strong></p>
 
 <markup
 lang="bash"
 
 >/cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.PropertiesLauncher</markup>
+
+<p><strong>Spring Boot 3.x</strong></p>
+
+<markup
+lang="bash"
+
+>/cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.launch.PropertiesLauncher</markup>
 
 
 <h4 id="_buildpacks_detection">Buildpacks Detection</h4>
