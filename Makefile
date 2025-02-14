@@ -773,6 +773,7 @@ copyright:  ## Check copyright headers
 	@java -cp hack/glassfish-copyright-maven-plugin-2.1.jar \
 	  org.glassfish.copyright.Copyright -C hack/copyright.txt \
 	  -X .adoc \
+	  -X artifacts/ \
 	  -X bin/ \
 	  -X build/ \
 	  -X clientset/ \
@@ -812,6 +813,7 @@ copyright:  ## Check copyright headers
 	  -X mvnw \
 	  -X mvnw.cmd \
 	  -X .png \
+	  -X preflight.log \
 	  -X PROJECT \
 	  -X .sh \
 	  -X tanzu/package/package.yml \
@@ -1612,6 +1614,9 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/restricted >> $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
+	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
+	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
 	cd $(BUILD_MANIFESTS)/crd && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
 	rm $(BUILD_MANIFESTS)/crd/temp.yaml
 	mv $(BUILD_MANIFESTS)/crd/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
@@ -2404,15 +2409,23 @@ uninstall-metallb: ## Uninstall MetalLB
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-istio
 install-istio: delete-istio-config get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
+ifeq (true,$(ISTIO_USE_CONFIG))
 	$(ISTIO_HOME)/bin/istioctl install -f $(BUILD_OUTPUT)/istio-config.yaml -y
 	kubectl -n istio-system wait --for condition=available deployment.apps/istiod-$(ISTIO_REVISION)
+else
+	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
+	kubectl -n istio-system wait --for condition=available deployment.apps/istiod
+endif
 	kubectl -n istio-system wait --for condition=available deployment.apps/istio-ingressgateway
 	kubectl -n istio-system wait --for condition=available deployment.apps/istio-egressgateway
 	kubectl apply -f $(SCRIPTS_DIR)/istio-strict.yaml
 	kubectl -n $(OPERATOR_NAMESPACE) apply -f $(SCRIPTS_DIR)/istio-operator.yaml
 	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(OPERATOR_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
 	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
 	kubectl label namespace $(CLUSTER_NAMESPACE) istio-injection=enabled --overwrite=true
+	kubectl label namespace $(CLUSTER_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
 	kubectl apply -f $(ISTIO_HOME)/samples/addons
 
 # ----------------------------------------------------------------------------------------------------------------------

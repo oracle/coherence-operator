@@ -1,4 +1,7 @@
 
+.github/
+.idea/
+artifacts/
 build/
 converter/
 dashboards/

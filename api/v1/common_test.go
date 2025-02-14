@@ -450,9 +450,13 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		initContainer.Image = *operatorImage
 	}
 
+	annotations := make(map[string]string)
+	annotations[coh.AnnotationIstioConfig] = coh.DefaultIstioConfigAnnotationValue
+
 	podTemplate := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels: podLabels,
+			Labels:      podLabels,
+			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
 			InitContainers: []corev1.Container{initContainer},

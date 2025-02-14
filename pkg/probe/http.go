@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -69,6 +69,7 @@ func DoHTTPProbe(url *url.URL, headers http.Header, client GetHTTPInterface) (Re
 	if headers.Get("Host") != "" {
 		req.Host = headers.Get("Host")
 	}
+	log.Info("Executing HTTP Probe", "URL", url.String(), "Headers", headers)
 	res, err := client.Do(req)
 	if err != nil {
 		// Convert errors into failures to catch timeouts.

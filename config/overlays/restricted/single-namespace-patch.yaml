@@ -1,0 +1,16 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: WATCH_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --enable-webhook=false
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --install-crd=false
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --node-lookup-enabled=false

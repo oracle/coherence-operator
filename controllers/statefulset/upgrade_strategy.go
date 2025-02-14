@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -21,8 +21,15 @@ import (
 )
 
 type UpgradeStrategy interface {
+	// IsOperatorManaged returns true if this strategy requires the Operator to manage the upgrade
 	IsOperatorManaged() bool
-	RollingUpgrade(context.Context, *appsv1.StatefulSet, kubernetes.Interface) (reconcile.Result, error)
+	// RollingUpgrade performs the rolling upgrade
+	// Parameters:
+	// context.Context      - the Go context to use
+	// *appsv1.StatefulSet  - a pointer to the StatefulSet to upgrade
+	// string               - the name of the WKA service
+	// kubernetes.Interface - the K8s client
+	RollingUpgrade(context.Context, *appsv1.StatefulSet, string, kubernetes.Interface) (reconcile.Result, error)
 }
 
 func GetUpgradeStrategy(c coh.CoherenceResource, p probe.CoherenceProbe) UpgradeStrategy {
@@ -66,7 +73,7 @@ var _ UpgradeStrategy = ByPodUpgradeStrategy{}
 type ByPodUpgradeStrategy struct {
 }
 
-func (in ByPodUpgradeStrategy) RollingUpgrade(context.Context, *appsv1.StatefulSet, kubernetes.Interface) (reconcile.Result, error) {
+func (in ByPodUpgradeStrategy) RollingUpgrade(context.Context, *appsv1.StatefulSet, string, kubernetes.Interface) (reconcile.Result, error) {
 	return reconcile.Result{}, nil
 }
 
@@ -81,7 +88,7 @@ var _ UpgradeStrategy = ManualUpgradeStrategy{}
 type ManualUpgradeStrategy struct {
 }
 
-func (in ManualUpgradeStrategy) RollingUpgrade(context.Context, *appsv1.StatefulSet, kubernetes.Interface) (reconcile.Result, error) {
+func (in ManualUpgradeStrategy) RollingUpgrade(context.Context, *appsv1.StatefulSet, string, kubernetes.Interface) (reconcile.Result, error) {
 	return reconcile.Result{}, nil
 }
 
@@ -98,8 +105,8 @@ type ByNodeUpgradeStrategy struct {
 	scalingProbe *coh.Probe
 }
 
-func (in ByNodeUpgradeStrategy) RollingUpgrade(ctx context.Context, sts *appsv1.StatefulSet, c kubernetes.Interface) (reconcile.Result, error) {
-	return rollingUpgrade(in.cp, in.scalingProbe, &PodNodeName{}, "NodeName", ctx, sts, c)
+func (in ByNodeUpgradeStrategy) RollingUpgrade(ctx context.Context, sts *appsv1.StatefulSet, svc string, c kubernetes.Interface) (reconcile.Result, error) {
+	return rollingUpgrade(in.cp, in.scalingProbe, &PodNodeName{}, "NodeName", ctx, sts, svc, c)
 }
 
 func (in ByNodeUpgradeStrategy) IsOperatorManaged() bool {
@@ -116,8 +123,8 @@ type ByNodeLabelUpgradeStrategy struct {
 	label        string
 }
 
-func (in ByNodeLabelUpgradeStrategy) RollingUpgrade(ctx context.Context, sts *appsv1.StatefulSet, c kubernetes.Interface) (reconcile.Result, error) {
-	return rollingUpgrade(in.cp, in.scalingProbe, &PodNodeLabel{Label: in.label}, in.label, ctx, sts, c)
+func (in ByNodeLabelUpgradeStrategy) RollingUpgrade(ctx context.Context, sts *appsv1.StatefulSet, svc string, c kubernetes.Interface) (reconcile.Result, error) {
+	return rollingUpgrade(in.cp, in.scalingProbe, &PodNodeLabel{Label: in.label}, in.label, ctx, sts, svc, c)
 }
 
 func (in ByNodeLabelUpgradeStrategy) IsOperatorManaged() bool {
@@ -170,7 +177,7 @@ func (p *PodNodeLabel) GetNodeId(ctx context.Context, c kubernetes.Interface, po
 
 // ----- helper methods ----------------------------------------------------------------------------
 
-func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe *coh.Probe, fn PodNodeIdSupplier, idName string, ctx context.Context, sts *appsv1.StatefulSet, c kubernetes.Interface) (reconcile.Result, error) {
+func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe *coh.Probe, fn PodNodeIdSupplier, idName string, ctx context.Context, sts *appsv1.StatefulSet, svc string, c kubernetes.Interface) (reconcile.Result, error) {
 	var err error
 	var replicas int32
 
@@ -263,7 +270,7 @@ func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe *coh.Probe, fn PodNode
 		// We have Pods to be upgraded
 		nodeId, _ := fn.GetNodeId(ctx, c, pods.Items[0])
 		// Check Pods are "safe"
-		if cp.ExecuteProbeForSubSetOfPods(ctx, sts, scalingProbe, pods, podsToUpdate) {
+		if cp.ExecuteProbeForSubSetOfPods(ctx, sts, svc, scalingProbe, pods, podsToUpdate) {
 			// delete the Pods
 			log.Info("Upgrading all Pods for Node identifier", "Namespace", sts.Namespace, "Name", sts.Name, "NodeId", idName, "IdValue", nodeId, "Count", len(podsToUpdate.Items))
 			err = deletePods(ctx, podsToUpdate, c)

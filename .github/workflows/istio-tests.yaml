@@ -130,6 +130,7 @@ jobs:
         make deploy
         ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
         make e2e-client-test
+        make e2e-test
         make undeploy
         ISTIO_VERSION=${{ matrix.istioVersion }} make uninstall-istio
 

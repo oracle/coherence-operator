@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -53,7 +53,7 @@ func (in *CoherenceProbe) SetGetPodHostName(fn func(pod corev1.Pod) string) {
 	in.getPodHostName = fn
 }
 
-func (in *CoherenceProbe) GetPodHostName(pod corev1.Pod) string {
+func (in *CoherenceProbe) GetPodIpOrHostName(pod corev1.Pod) string {
 	hostName, found := pod.Labels[operator.LabelTestHostName]
 	if found {
 		return hostName
@@ -65,6 +65,17 @@ func (in *CoherenceProbe) GetPodHostName(pod corev1.Pod) string {
 		return pod.Status.PodIP
 	}
 	return in.getPodHostName(pod)
+}
+
+func (in *CoherenceProbe) GetPodHostName(pod corev1.Pod, svc string) string {
+	hostName, found := pod.Labels[operator.LabelTestHostName]
+	if found {
+		return hostName
+	}
+	if in.getPodHostName != nil {
+		return in.getPodHostName(pod)
+	}
+	return fmt.Sprintf("%s.%s.%s", pod.Name, svc, pod.Namespace)
 }
 
 func (in *CoherenceProbe) SetTranslatePort(fn func(name string, port int) int) {
@@ -92,7 +103,7 @@ func (in *CoherenceProbe) IsStatusHA(ctx context.Context, deployment coh.Coheren
 	spec, found := deployment.GetStatefulSetSpec()
 	if found {
 		p := spec.GetScalingProbe()
-		return in.ExecuteProbe(ctx, sts, p)
+		return in.ExecuteProbe(ctx, sts, deployment.GetWkaServiceName(), p)
 	}
 	return true
 }
@@ -145,7 +156,7 @@ func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment coh.Co
 	}
 
 	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", ns, "Name", name)
-	if in.ExecuteProbe(ctx, sts, stsSpec.GetSuspendProbe()) {
+	if in.ExecuteProbe(ctx, sts, deployment.GetWkaServiceName(), stsSpec.GetSuspendProbe()) {
 		return ServiceSuspendSuccessful
 	}
 	return ServiceSuspendFailed
@@ -161,16 +172,16 @@ func (in *CoherenceProbe) GetPodsForStatefulSet(ctx context.Context, sts *appsv1
 	return pods, err
 }
 
-func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, sts *appsv1.StatefulSet, probe *coh.Probe) bool {
+func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, sts *appsv1.StatefulSet, svc string, probe *coh.Probe) bool {
 	pods, err := in.GetPodsForStatefulSet(ctx, sts)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
 		return false
 	}
-	return in.ExecuteProbeForSubSetOfPods(ctx, sts, probe, pods, pods)
+	return in.ExecuteProbeForSubSetOfPods(ctx, sts, svc, probe, pods, pods)
 }
 
-func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *appsv1.StatefulSet, probe *coh.Probe, stsPods, pods corev1.PodList) bool {
+func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *appsv1.StatefulSet, svc string, probe *coh.Probe, stsPods, pods corev1.PodList) bool {
 	logger := log.WithValues("Namespace", sts.GetNamespace(), "Name", sts.GetName())
 
 	// All Pods must be in the Running Phase
@@ -200,7 +211,7 @@ func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *
 				log.Info("Using pod " + pod.Name + " to execute probe")
 			}
 
-			ha, err := in.RunProbe(ctx, pod, probe)
+			ha, err := in.RunProbe(ctx, pod, svc, probe)
 			if err == nil {
 				log.Info(fmt.Sprintf("Executed probe using pod %s result=%t", pod.Name, ha))
 				return ha
@@ -228,12 +239,12 @@ func (in *CoherenceProbe) IsPodReady(pod corev1.Pod) (bool, string) {
 	return false, string(pod.Status.Phase)
 }
 
-func (in *CoherenceProbe) RunProbe(ctx context.Context, pod corev1.Pod, handler *coh.Probe) (bool, error) {
+func (in *CoherenceProbe) RunProbe(ctx context.Context, pod corev1.Pod, svc string, handler *coh.Probe) (bool, error) {
 	switch {
 	case handler.Exec != nil:
 		return in.ProbeUsingExec(ctx, pod, handler)
 	case handler.HTTPGet != nil:
-		return in.ProbeUsingHTTP(pod, handler)
+		return in.ProbeUsingHTTP(pod, svc, handler)
 	case handler.TCPSocket != nil:
 		return in.ProbeUsingTCP(pod, handler)
 	default:
@@ -262,12 +273,12 @@ func (in *CoherenceProbe) ProbeUsingExec(ctx context.Context, pod corev1.Pod, ha
 	return exitCode == 0, nil
 }
 
-func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bool, error) {
+func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, svc string, handler *coh.Probe) (bool, error) {
 	var (
-		scheme corev1.URIScheme
-		host   string
-		port   int
-		path   string
+		scheme   corev1.URIScheme
+		hostOrIP string
+		port     int
+		path     string
 	)
 
 	action := handler.HTTPGet
@@ -279,9 +290,9 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bo
 	}
 
 	if action.Host == "" {
-		host = in.GetPodHostName(pod)
+		hostOrIP = in.GetPodIpOrHostName(pod)
 	} else {
-		host = action.Host
+		hostOrIP = action.Host
 	}
 
 	port, err := in.findPort(pod, action.Port)
@@ -295,12 +306,14 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bo
 		path = action.Path
 	}
 
-	u, err := url.Parse(fmt.Sprintf("%s://%s:%d/%s", scheme, host, port, path))
+	u, err := url.Parse(fmt.Sprintf("%s://%s:%d/%s", scheme, hostOrIP, port, path))
 	if err != nil {
 		return false, err
 	}
 
 	header := http.Header{}
+	header.Set("Host", in.GetPodHostName(pod, svc))
+
 	if action.HTTPHeaders != nil {
 		for _, h := range action.HTTPHeaders {
 			hh, found := header[h.Name]
@@ -315,7 +328,7 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, handler *coh.Probe) (bo
 	p := NewHTTPProbe()
 	result, s, err := p.Probe(u, header, handler.GetTimeout())
 
-	log.Info(fmt.Sprintf("HTTP Probe URL: %s result=%v msg=%s error=%v", u.String(), result, s, err))
+	log.Info("Executed HTTP Probe", "URL", u, "Result", fmt.Sprintf("%v", result), "Msg", s, "Error", err)
 
 	return result == Success, err
 }
@@ -329,7 +342,7 @@ func (in *CoherenceProbe) ProbeUsingTCP(pod corev1.Pod, handler *coh.Probe) (boo
 	action := handler.TCPSocket
 
 	if action.Host == "" {
-		host = in.GetPodHostName(pod)
+		host = in.GetPodIpOrHostName(pod)
 	} else {
 		host = action.Host
 	}

@@ -21,6 +21,7 @@ import (
 	"io"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -905,19 +906,36 @@ func httpGetWithBackoff(url string, details *RunDetails) string {
 
 // Do a http get for the specified url and return the response body for
 // a 200 response or empty string for a non-200 response or error.
-func httpGet(url string, client http.Client) (string, int, error) {
-	log.Info("Performing http get", "url", url)
+func httpGet(urlString string, client http.Client) (string, int, error) {
+	log.Info("Performing http get", "url", urlString)
 
-	resp, err := client.Get(url)
+	u, err := url.Parse(urlString)
 	if err != nil {
-		return "", http.StatusInternalServerError, errors.Wrapf(err, "failed to get URL %s", url)
+		return "", http.StatusInternalServerError, errors.Wrapf(err, "failed to parse URL %s", urlString)
+	}
+
+	req, err := http.NewRequest("GET", urlString, nil)
+	if err != nil {
+		return "", http.StatusInternalServerError, errors.Wrapf(err, "failed to create request for URL %s", urlString)
+	}
+
+	req.Host = u.Host
+
+	h := http.Header{}
+	h.Set("Host", u.Host)
+	h.Set("User-Agent", fmt.Sprintf("coherence-operator-runner/%s", operator.GetVersion()))
+	req.Header = h
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", http.StatusInternalServerError, errors.Wrapf(err, "failed to get URL %s", urlString)
 	}
 	//noinspection GoUnhandledErrorResult
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", resp.StatusCode, errors.Wrapf(err, "failed to read response body from URL %s", url)
+		return "", resp.StatusCode, errors.Wrapf(err, "failed to read response body from URL %s", urlString)
 	}
 
 	s := string(body)
