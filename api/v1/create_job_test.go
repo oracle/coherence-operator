@@ -9,6 +9,7 @@ package v1_test
 import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 	"testing"
 )
@@ -132,6 +133,38 @@ func TestCreateJobWithEnvVarsFrom(t *testing.T) {
 	expected := createMinimalExpectedJob(deployment)
 
 	addEnvVarsFromToJob(expected, coh.ContainerNameCoherence, from...)
+
+	// assert that the StatefulSet is as expected
+	assertJobCreation(t, deployment, expected)
+}
+
+func TestAddLifecycleToJobCoherenceContainer(t *testing.T) {
+	lc := &corev1.Lifecycle{
+		PostStart: &corev1.LifecycleHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/foo",
+				Port: intstr.FromInt32(1234),
+			},
+		},
+		PreStop: &corev1.LifecycleHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/bar",
+				Port: intstr.FromInt32(987),
+			},
+		},
+	}
+
+	spec := coh.CoherenceJobResourceSpec{
+		CoherenceResourceSpec: coh.CoherenceResourceSpec{
+			Lifecycle: lc,
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJobDeployment(spec)
+	// Create expected StatefulSet
+	expected := createMinimalExpectedJob(deployment)
+	expected.Spec.Template.Spec.Containers[0].Lifecycle = lc
 
 	// assert that the StatefulSet is as expected
 	assertJobCreation(t, deployment, expected)

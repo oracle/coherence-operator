@@ -286,6 +286,10 @@ type CoherenceResourceSpec struct {
 	// The default labels to use are determined by the Operator.
 	// +optional
 	SiteLabel *string `json:"siteLabel,omitempty"`
+	// Lifecycle applies actions that the management system should take in response to container lifecycle events.
+	// Cannot be updated.
+	// +optional
+	Lifecycle *corev1.Lifecycle `json:"lifecycle,omitempty"`
 }
 
 // Action is an action to execute when the StatefulSet becomes ready.
@@ -876,6 +880,8 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 		c.StartupProbe = in.CreateDefaultLivenessProbe()
 		in.StartupProbe.UpdateProbeSpec(healthPort, DefaultLivenessPath, c.StartupProbe)
 	}
+
+	c.Lifecycle = in.Lifecycle
 
 	return c
 }

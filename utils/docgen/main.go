@@ -15,6 +15,7 @@ import (
 	"go/token"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 )
@@ -105,29 +106,58 @@ func printAPIDocs(paths []string) {
 	// we need to parse once more to now add the self links
 	types = ParseDocumentationFrom(paths)
 
+	for _, t := range types {
+		strukt := t[0]
+		if strukt.Name == "Coherence" {
+			printType(t, false)
+		}
+	}
+
+	for _, t := range types {
+		strukt := t[0]
+		if strukt.Name == "CoherenceJob" {
+			printType(t, false)
+		}
+	}
+
+	sort.Slice(types, func(i, j int) bool {
+		first := types[i][0]
+		second := types[j][0]
+		return first.Name < second.Name
+	})
+
 	printContents(types)
 
 	for _, t := range types {
 		strukt := t[0]
-		if len(t) > 1 {
-			fmt.Printf("\n=== %s\n\n%s\n\n", strukt.Name, strukt.Doc)
+		if strukt.Name != "Coherence" && strukt.Name != "CoherenceJob" {
+			printType(t, true)
+		}
+	}
+}
 
-			fmt.Println("[cols=\"1,10,1,1\"options=\"header\"]")
-			fmt.Println("|===")
-			fmt.Println("| Field | Description | Type | Required")
-			fields := t[1:]
+func printType(t KubeTypes, back bool) {
+	strukt := t[0]
+	if len(t) > 1 {
+		fmt.Printf("\n=== %s\n\n%s\n\n", strukt.Name, strukt.Doc)
 
-			for _, f := range fields {
-				var d string
-				if f.Doc == "" {
-					d = "&#160;"
-				} else {
-					d = strings.ReplaceAll(f.Doc, "\\n", " +\n")
-				}
-				fmt.Println("m|", f.Name, "|", d, "m|", f.Type, "|", f.Mandatory)
+		fmt.Println("[cols=\"1,10,1,1\"options=\"header\"]")
+		fmt.Println("|===")
+		fmt.Println("| Field | Description | Type | Required")
+		fields := t[1:]
+
+		for _, f := range fields {
+			var d string
+			if f.Doc == "" {
+				d = "&#160;"
+			} else {
+				d = strings.ReplaceAll(f.Doc, "\\n", " +\n")
 			}
-			fmt.Println("|===")
-			fmt.Println("")
+			fmt.Println("m|", f.Name, "|", d, "m|", f.Type, "|", f.Mandatory)
+		}
+		fmt.Println("|===")
+		fmt.Println("")
+		if back {
 			fmt.Println("<<Table of Contents,Back to TOC>>")
 		}
 	}

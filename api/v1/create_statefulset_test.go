@@ -748,3 +748,33 @@ func TestCreateStatefulSetWithGlobalAnnotations(t *testing.T) {
 	// assert that the Job is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestAddLifecycleToStatefulSetCoherenceContainer(t *testing.T) {
+	lc := &corev1.Lifecycle{
+		PostStart: &corev1.LifecycleHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/foo",
+				Port: intstr.FromInt32(1234),
+			},
+		},
+		PreStop: &corev1.LifecycleHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Path: "/bar",
+				Port: intstr.FromInt32(987),
+			},
+		},
+	}
+
+	spec := coh.CoherenceResourceSpec{
+		Lifecycle: lc,
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].Lifecycle = lc
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}

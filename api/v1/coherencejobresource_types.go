@@ -18,7 +18,7 @@ import (
 
 // ----- Coherence type ------------------------------------------------------------------
 
-// CoherenceJob is the top level schema for the Coherence API and custom resource definition (CRD)
+// CoherenceJob is the top level schema for the CoherenceJob API and custom resource definition (CRD)
 // for configuring Coherence Job workloads.
 //
 // +kubebuilder:object:root=true
