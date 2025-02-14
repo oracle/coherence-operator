@@ -209,7 +209,7 @@ func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.Sta
 
 		for _, action := range spec.Actions {
 			if action.Probe != nil {
-				if ok := coherenceProbe.ExecuteProbe(ctx, sts, action.Probe); !ok {
+				if ok := coherenceProbe.ExecuteProbe(ctx, sts, deployment.GetWkaServiceName(), action.Probe); !ok {
 					log.Info("Action probe execution failed.", "probe", action.Probe)
 				}
 			}
@@ -367,7 +367,7 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 				return reconcile.Result{}, nil
 			}
 
-			return strategy.RollingUpgrade(ctx, current, in.GetClientSet().KubeClient)
+			return strategy.RollingUpgrade(ctx, current, deployment.GetWkaServiceName(), in.GetClientSet().KubeClient)
 		}
 	}
 

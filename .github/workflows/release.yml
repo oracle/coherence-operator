@@ -97,6 +97,17 @@ jobs:
         asset_name: coherence-operator.yaml
         asset_content_type: text/plain
 
+    - name: Upload Restricted Release Yaml
+      id: upload-release-yaml
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/coherence-operator-restricted.yaml
+        asset_name: coherence-operator-restricted.yaml
+        asset_content_type: text/plain
+
     - name: Upload Release CRD
       id: upload-release-crd
       uses: actions/upload-release-asset@v1

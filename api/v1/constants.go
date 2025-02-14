@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -64,6 +64,12 @@ const (
 	AnnotationFeatureSuspend = "com.oracle.coherence.operator/feature.suspend"
 	// AnnotationOperatorVersion is the Operator version annotations
 	AnnotationOperatorVersion = "com.oracle.coherence.operator/version"
+	// AnnotationIstioConfig is the Istio config annotation applied to Pods.
+	AnnotationIstioConfig = "proxy.istio.io/config"
+	// DefaultIstioConfigAnnotationValue is the default for the istio config annotation.
+	// This makes the Istio Sidecar the first container in the Pod to allow it to ideally
+	// be started before the Coherence container
+	DefaultIstioConfigAnnotationValue = "{ \"holdApplicationUntilProxyStarts\": true }"
 
 	// DefaultServiceAccount is the default k8s service account name.
 	DefaultServiceAccount = "default"

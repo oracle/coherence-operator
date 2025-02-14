@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -671,20 +671,16 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 		podLabels[k] = v
 	}
 
-	var annotations map[string]string
+	annotations := make(map[string]string)
+	// Add the default Istio config annotation.
+	// Adding this first allows it to be overridden in Coherence or CoherenceJob spec
+	annotations[AnnotationIstioConfig] = DefaultIstioConfigAnnotationValue
+
 	globalAnnotations := deployment.CreateGlobalAnnotations()
-	if globalAnnotations != nil {
-		if annotations == nil {
-			annotations = make(map[string]string)
-		}
-		for k, v := range globalAnnotations {
-			annotations[k] = v
-		}
+	for k, v := range globalAnnotations {
+		annotations[k] = v
 	}
 	if in.Annotations != nil {
-		if annotations == nil {
-			annotations = make(map[string]string)
-		}
 		for k, v := range in.Annotations {
 			annotations[k] = v
 		}

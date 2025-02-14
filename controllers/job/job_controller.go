@@ -430,7 +430,7 @@ func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job,
 		probeStatus := status.FindJobProbeStatus(name)
 		podCondition := in.findPodReadyCondition(pod)
 		if in.shouldExecuteProbe(probeStatus, podCondition) {
-			_, err := p.RunProbe(ctx, pod, &action.Probe)
+			_, err := p.RunProbe(ctx, pod, deployment.GetWkaServiceName(), &action.Probe)
 			if err == nil {
 				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", "nil")
 				probeStatus.Success = ptr.To(true)

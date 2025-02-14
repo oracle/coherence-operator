@@ -26,6 +26,10 @@ bin/
 bundle/
 temp/
 
+# OpenShift pre-flight
+artifacts/
+preflight.log
+
 # licensed
 .licenses/
 meta/
