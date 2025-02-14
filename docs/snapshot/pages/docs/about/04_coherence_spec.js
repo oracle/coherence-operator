@@ -709,7 +709,7 @@ This field is alpha-level. To use this field, you must enable the <code>JobPodFa
 <code>Indexed</code> means that the Pods of a Job get an associated completion index from 0 to (.spec.completions - 1), available in the annotation batch.kubernetes.io/job-completion-index. The Job is considered complete when there is one successfully completed Pod for each index. When value is <code>Indexed</code>, .spec.completions must be specified and <code>.spec.parallelism</code> must be less than or equal to 10^5. In addition, The Pod name takes the form <code>$(job-name)-$(index)-$(random-string)</code>, the Pod hostname takes the form <code>$(job-name)-$(index)</code>.<br>
 <br>
 More completion modes can be added in the future. If the Job controller observes a mode that it doesn&#8217;t recognize, which is possible during upgrades due to version skew, the controller skips updates for the Job.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#completionmode-v1-batch">batchv1.CompletionMode</a></code></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/batch/v1#CompletionMode">https://pkg.go.dev/k8s.io/api/batch/v1#CompletionMode</a></code></td>
 <td class="">false</td>
 </tr>
 <tr>
