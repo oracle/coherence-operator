@@ -56,6 +56,7 @@ var (
 
 func main() {
 	// hard coded links to types that are not in the k8s docs
+	selfLinks["batchv1.CompletionMode"] = "https://pkg.go.dev/k8s.io/api/batch/v1#CompletionMode"
 	selfLinks["corev1.DNSPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#DNSPolicy"
 	selfLinks["corev1.IPFamily"] = "https://pkg.go.dev/k8s.io/api/core/v1#IPFamily"
 	selfLinks["corev1.IPFamilyPolicyType"] = "https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicyType"
