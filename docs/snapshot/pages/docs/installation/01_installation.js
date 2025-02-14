@@ -45,7 +45,16 @@ easily be installed into a Kubernetes cluster.</p>
 <ul class="ulist">
 <li>
 <p><router-link to="#manifest" @click.native="this.scrollFix('#manifest')">Simple installation using Kubectl</router-link></p>
+<ul class="ulist">
+<li>
+<p><router-link to="#manifest-restrict" @click.native="this.scrollFix('#manifest-restrict')">Installing Without Cluster Roles</router-link></p>
 
+</li>
+<li>
+<p><router-link to="#manual-crd" @click.native="this.scrollFix('#manual-crd')">Manually Install the CRDs</router-link></p>
+
+</li>
+</ul>
 </li>
 <li>
 <p><router-link to="#helm" @click.native="this.scrollFix('#helm')">Install the Helm chart</router-link></p>
@@ -285,9 +294,68 @@ lang="bash"
 >kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/${VERSION}/coherence-operator.yaml</markup>
 
 
+<h3 id="manifest-restrict">Installing Without Cluster Roles</h3>
+<div class="section">
+<p>The default install for the Operator is to have one Operator deployment that manages all Coherence resources across
+all the namespaces in a Kubernetes cluster. This requires the Operator to have cluster role RBAC permissions
+to manage and monitor all the resources.</p>
+
+<p>Sometimes, for security reasons or for example in a shared Kubernetes cluster this is not desirable.
+The Operator can therefore be installed with plain namespaced scoped roles and role bindings.
+The Operator release includes a single yaml file named <code>coherence-operator-restricted.yaml</code> that may be used to install
+the Operator into a single namespace without any cluster roles.</p>
+
+<p>The Operator installed with this yaml</p>
+
+<ul class="ulist">
+<li>
+<p>will not install the CRDs</p>
+
+</li>
+<li>
+<p>will not use WebHooks</p>
+
+</li>
+<li>
+<p>wil not look-up Node labels for Coherence site and rack configurations</p>
+
+</li>
+</ul>
+<markup
+lang="bash"
+
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.2/coherence-operator-restricted.yaml</markup>
+
+<div class="admonition important">
+<p class="admonition-textlabel">Important</p>
+<p ><p>When installing the Operator in a restricted mode, the CRDs must have already been manually installed into
+the Kubernetes cluster.</p>
+</p>
+</div>
+</div>
+
+<h3 id="manual-crd">Manually Install the CRDs</h3>
+<div class="section">
+<p>Although by default the Operator will install its CRDs, they can be manually installed into Kubernetes.
+This may be required where the Operator is running with restricted permissions as described above.</p>
+
+<p>The Operator release artifacts include small versions of the two CRDs which can be installed with the following commands:</p>
+
+<markup
+lang="bash"
+
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.2/coherence.oracle.com_coherence_small.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.2/coherencejob.oracle.com_coherence_small.yaml</markup>
+
+<p>The small versions of the CRDs are identical to the full versions but hav a cut down OpenAPI spec with a lot of comments
+removed so that the CRDs are small enough to be installed with <code>kubectl apply</code></p>
+
+</div>
+
 <h3 id="_change_the_operator_replica_count">Change the Operator Replica Count</h3>
 <div class="section">
-<p>When installing with single manifest yaml file, the replica count can be changed by editing the yaml file itself to change the occurrence of <code>replicas: 3</code> in the manifest yaml to <code>replicas: 1</code></p>
+<p>When installing with single manifest yaml file, the replica count can be changed by editing the yaml file itself
+to change the occurrence of <code>replicas: 3</code> in the manifest yaml to <code>replicas: 1</code></p>
 
 <p>For example, this could be done using <code>sed</code></p>
 
