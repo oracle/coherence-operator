@@ -27,6 +27,96 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <p class="admonition-inline">This document was generated from comments in the Go structs in the pkg/api/ directory.</p>
 </div>
 
+<h3 id="_coherence">Coherence</h3>
+<div class="section">
+<p>Coherence is the top level schema for the Coherence API and custom resource definition (CRD).</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>metadata</code></td>
+<td class="">&#160;</td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>spec</code></td>
+<td class="">&#160;</td>
+<td class=""><code><router-link to="#_coherencestatefulsetresourcespec" @click.native="this.scrollFix('#_coherencestatefulsetresourcespec')">CoherenceStatefulSetResourceSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>status</code></td>
+<td class="">&#160;</td>
+<td class=""><code><router-link to="#_coherenceresourcestatus" @click.native="this.scrollFix('#_coherenceresourcestatus')">CoherenceResourceStatus</router-link></code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<h3 id="_coherencejob">CoherenceJob</h3>
+<div class="section">
+<p>CoherenceJob is the top level schema for the CoherenceJob API and custom resource definition (CRD) for configuring Coherence Job workloads.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>metadata</code></td>
+<td class="">&#160;</td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>spec</code></td>
+<td class="">&#160;</td>
+<td class=""><code><router-link to="#_coherencejobresourcespec" @click.native="this.scrollFix('#_coherencejobresourcespec')">CoherenceJobResourceSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>status</code></td>
+<td class="">&#160;</td>
+<td class=""><code><router-link to="#_coherenceresourcestatus" @click.native="this.scrollFix('#_coherenceresourcestatus')">CoherenceResourceStatus</router-link></code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
 <h3 id="_table_of_contents">Table of Contents</h3>
 <div class="section">
 <ul class="ulist">
@@ -39,10 +129,6 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 
 </li>
 <li>
-<p><router-link to="#_coherenceresourcespec" @click.native="this.scrollFix('#_coherenceresourcespec')">CoherenceResourceSpec</router-link></p>
-
-</li>
-<li>
 <p><router-link to="#_applicationspec" @click.native="this.scrollFix('#_applicationspec')">ApplicationSpec</router-link></p>
 
 </li>
@@ -51,7 +137,51 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 
 </li>
 <li>
+<p><router-link to="#_coherence" @click.native="this.scrollFix('#_coherence')">Coherence</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencejob" @click.native="this.scrollFix('#_coherencejob')">CoherenceJob</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencejoblist" @click.native="this.scrollFix('#_coherencejoblist')">CoherenceJobList</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencejobprobe" @click.native="this.scrollFix('#_coherencejobprobe')">CoherenceJobProbe</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencejobprobestatus" @click.native="this.scrollFix('#_coherencejobprobestatus')">CoherenceJobProbeStatus</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencejobresourcespec" @click.native="this.scrollFix('#_coherencejobresourcespec')">CoherenceJobResourceSpec</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencejobstatus" @click.native="this.scrollFix('#_coherencejobstatus')">CoherenceJobStatus</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencelist" @click.native="this.scrollFix('#_coherencelist')">CoherenceList</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherenceresourcespec" @click.native="this.scrollFix('#_coherenceresourcespec')">CoherenceResourceSpec</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherenceresourcestatus" @click.native="this.scrollFix('#_coherenceresourcestatus')">CoherenceResourceStatus</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#_coherencespec" @click.native="this.scrollFix('#_coherencespec')">CoherenceSpec</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#_coherencestatefulsetresourcespec" @click.native="this.scrollFix('#_coherencestatefulsetresourcespec')">CoherenceStatefulSetResourceSpec</router-link></p>
 
 </li>
 <li>
@@ -178,22 +308,6 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <p><router-link to="#_startquorumstatus" @click.native="this.scrollFix('#_startquorumstatus')">StartQuorumStatus</router-link></p>
 
 </li>
-<li>
-<p><router-link to="#_coherence" @click.native="this.scrollFix('#_coherence')">Coherence</router-link></p>
-
-</li>
-<li>
-<p><router-link to="#_coherencelist" @click.native="this.scrollFix('#_coherencelist')">CoherenceList</router-link></p>
-
-</li>
-<li>
-<p><router-link to="#_coherenceresourcestatus" @click.native="this.scrollFix('#_coherenceresourcestatus')">CoherenceResourceStatus</router-link></p>
-
-</li>
-<li>
-<p><router-link to="#_coherencestatefulsetresourcespec" @click.native="this.scrollFix('#_coherencestatefulsetresourcespec')">CoherenceStatefulSetResourceSpec</router-link></p>
-
-</li>
 </ul>
 </div>
 
@@ -281,6 +395,448 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <td class="">Annotations to add to the Job.</td>
 <td class=""><code>map[string]string</code></td>
 <td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_applicationspec">ApplicationSpec</h3>
+<div class="section">
+<p>ApplicationSpec is the specification of the application deployed into the Coherence.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>type</code></td>
+<td class="">The application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to "node". The default is to run a plain Java application.</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>main</code></td>
+<td class="">Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is "node" the main may be a Javascript file.</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>args</code></td>
+<td class="">Args is the optional arguments to pass to the main class.</td>
+<td class=""><code>[]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>workingDir</code></td>
+<td class="">The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is "/app".</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>cloudNativeBuildPack</code></td>
+<td class="">Optional settings that may be configured if using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: <a id="" title="" target="_blank" href="https://github.com/paketo-buildpacks/spring-boot">https://github.com/paketo-buildpacks/spring-boot</a> and <a id="" title="" target="_blank" href="https://buildpacks.io/">https://buildpacks.io/</a></td>
+<td class=""><code>&#42;<router-link to="#_cloudnativebuildpackspec" @click.native="this.scrollFix('#_cloudnativebuildpackspec')">CloudNativeBuildPackSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>springBootFatJar</code></td>
+<td class="">SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_cloudnativebuildpackspec">CloudNativeBuildPackSpec</h3>
+<div class="section">
+<p>CloudNativeBuildPackSpec is the configuration when using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: <a id="" title="" target="_blank" href="https://github.com/paketo-buildpacks/spring-boot">https://github.com/paketo-buildpacks/spring-boot</a> and <a id="" title="" target="_blank" href="https://buildpacks.io/">https://buildpacks.io/</a></p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>enabled</code></td>
+<td class="">Enable or disable buildpack detection. The operator will automatically detect Cloud Native Buildpack images but if this auto-detection fails to work correctly for a specific image then this field can be set to true to signify that the image is a buildpack image or false to signify that it is not a buildpack image.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>launcher</code></td>
+<td class="">&#160;</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencejoblist">CoherenceJobList</h3>
+<div class="section">
+<p>CoherenceJobList is a list of CoherenceJob resources.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>metadata</code></td>
+<td class="">&#160;</td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>items</code></td>
+<td class="">&#160;</td>
+<td class=""><code>[]<router-link to="#_coherencejob" @click.native="this.scrollFix('#_coherencejob')">CoherenceJob</router-link></code></td>
+<td class="">true</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencejobprobe">CoherenceJobProbe</h3>
+<div class="section">
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>readyCount</code></td>
+<td class="">The number of job Pods that should be ready before executing the Probe. If not set the default will be the same as the job&#8217;s Completions value. The probe will be executed on all Pods</td>
+<td class=""><code>&#42;int32</code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencejobprobestatus">CoherenceJobProbeStatus</h3>
+<div class="section">
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>pod</code></td>
+<td class="">&#160;</td>
+<td class=""><code>string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>lastReadyTime</code></td>
+<td class="">&#160;</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#time-v1-meta">metav1.Time</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>lastProbeTime</code></td>
+<td class="">&#160;</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#time-v1-meta">metav1.Time</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>success</code></td>
+<td class="">&#160;</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>error</code></td>
+<td class="">&#160;</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencejobresourcespec">CoherenceJobResourceSpec</h3>
+<div class="section">
+<p>CoherenceJobResourceSpec defines the specification of a CoherenceJob resource.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>cluster</code></td>
+<td class="">The name of the Coherence cluster that this CoherenceJob resource belongs to. A CoherenceJob will typically be part of an existing cluster, so this field is required.</td>
+<td class=""><code>string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>completions</code></td>
+<td class="">Specifies the desired number of successfully finished pods the job should be run with.  Setting to nil means that the success of any pod signals the success of all pods, and allows parallelism to have any positive value.  Setting to 1 means that parallelism is limited to 1 and the success of that pod signals the success of the job. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/">https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/</a></td>
+<td class=""><code>&#42;int32</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>syncCompletionsToReplicas</code></td>
+<td class="">SyncCompletions is a flag to indicate that the Operator should always set the Completions value to be the same as the Replicas value. When a Job is then scaled, the Completions value will also be changed.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>podFailurePolicy</code></td>
+<td class="">Specifies the policy of handling failed pods. In particular, it allows to specify the set of actions and conditions which need to be satisfied to take the associated action. If empty, the default behaviour applies - the counter of failed pods, represented by the job&#8217;s .status.failed field, is incremented, and it is checked against the backoffLimit. This field cannot be used in combination with restartPolicy=OnFailure.<br>
+<br>
+This field is alpha-level. To use this field, you must enable the <code>JobPodFailurePolicy</code> feature gate (disabled by default).</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#podfailurepolicy-v1-batch">batchv1.PodFailurePolicy</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>backoffLimit</code></td>
+<td class="">Specifies the number of retries before marking this job failed. Defaults to 6</td>
+<td class=""><code>&#42;int32</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>ttlSecondsAfterFinished</code></td>
+<td class="">ttlSecondsAfterFinished limits the lifetime of a Job that has finished execution (either Complete or Failed). If this field is set, ttlSecondsAfterFinished after the Job finishes, it is eligible to be automatically deleted. When the Job is being deleted, its lifecycle guarantees (e.g. finalizers) will be honored. If this field is unset, the Job won&#8217;t be automatically deleted. If this field is set to zero, the Job becomes eligible to be deleted immediately after it finishes.</td>
+<td class=""><code>&#42;int32</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>completionMode</code></td>
+<td class="">CompletionMode specifies how Pod completions are tracked. It can be <code>NonIndexed</code> (default) or <code>Indexed</code>.<br>
+<br>
+<code>NonIndexed</code> means that the Job is considered complete when there have been .spec.completions successfully completed Pods. Each Pod completion is homologous to each other.<br>
+<br>
+<code>Indexed</code> means that the Pods of a Job get an associated completion index from 0 to (.spec.completions - 1), available in the annotation batch.kubernetes.io/job-completion-index. The Job is considered complete when there is one successfully completed Pod for each index. When value is <code>Indexed</code>, .spec.completions must be specified and <code>.spec.parallelism</code> must be less than or equal to 10^5. In addition, The Pod name takes the form <code>$(job-name)-$(index)-$(random-string)</code>, the Pod hostname takes the form <code>$(job-name)-$(index)</code>.<br>
+<br>
+More completion modes can be added in the future. If the Job controller observes a mode that it doesn&#8217;t recognize, which is possible during upgrades due to version skew, the controller skips updates for the Job.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#completionmode-v1-batch">batchv1.CompletionMode</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspend</code></td>
+<td class="">Suspend specifies whether the Job controller should create Pods or not. If a Job is created with suspend set to true, no Pods are created by the Job controller. If a Job is suspended after creation (i.e. the flag goes from false to true), the Job controller will delete all active Pods associated with this Job. Users must design their workload to gracefully handle this. Suspending a Job will reset the StartTime field of the Job, effectively resetting the ActiveDeadlineSeconds timer too. Defaults to false.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>jobAnnotations</code></td>
+<td class="">JobAnnotations are free-form yaml that will be added to the Coherence workload&#8217;s <code>Job</code> as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
+<br>
+The default behaviour is to copy all annotations from the <code>Coherence</code> resource to the <code>Job</code>, specifying any annotations in the <code>JobAnnotations</code> will override this behaviour and only include the <code>JobAnnotations</code>.<br>
+<br>
+annotations:<br>
+  foo.io/one: "value1" +<br>
+  foo.io/two: "value2" +<br>
+<br>
+see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>readyAction</code></td>
+<td class="">ReadyAction is a probe that will be executed when one or more Pods reach the ready state. The probe will be executed on every Pod that is ready. One the required number of ready Pods is reached the probe will also be executed on every Pod that becomes ready after that time.</td>
+<td class=""><code>&#42;<router-link to="#_coherencejobprobe" @click.native="this.scrollFix('#_coherencejobprobe')">CoherenceJobProbe</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>forceExit</code></td>
+<td class="">ForceExit is a flag to indicate whether the Operator should call System.exit to forcefully exit the process when the configured main class completes execution.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>envFrom</code></td>
+<td class="">List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated.</td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>global</code></td>
+<td class="">Global contains attributes that will be applied to all resources managed by the Coherence Operator.</td>
+<td class=""><code>&#42;<router-link to="#_globalspec" @click.native="this.scrollFix('#_globalspec')">GlobalSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>initResources</code></td>
+<td class="">InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod.<br>
+ ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
+The Coherence operator does not apply any default resources.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencejobstatus">CoherenceJobStatus</h3>
+<div class="section">
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>probeStatus</code></td>
+<td class="">&#160;</td>
+<td class=""><code>[]<router-link to="#_coherencejobprobestatus" @click.native="this.scrollFix('#_coherencejobprobestatus')">CoherenceJobProbeStatus</router-link></code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencelist">CoherenceList</h3>
+<div class="section">
+<p>CoherenceList is a list of Coherence resources.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>metadata</code></td>
+<td class="">&#160;</td>
+<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>items</code></td>
+<td class="">&#160;</td>
+<td class=""><code>[]<router-link to="#_coherence" @click.native="this.scrollFix('#_coherence')">Coherence</router-link></code></td>
+<td class="">true</td>
 </tr>
 </tbody>
 </table>
@@ -629,6 +1185,12 @@ For example:<br>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
+<tr>
+<td class=""><code>lifecycle</code></td>
+<td class="">Lifecycle applies actions that the management system should take in response to container lifecycle events. Cannot be updated.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#lifecycle-v1-core">corev1.Lifecycle</a></code></td>
+<td class="">false</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -636,9 +1198,9 @@ For example:<br>
 
 </div>
 
-<h3 id="_applicationspec">ApplicationSpec</h3>
+<h3 id="_coherenceresourcestatus">CoherenceResourceStatus</h3>
 <div class="section">
-<p>ApplicationSpec is the specification of the application deployed into the Coherence.</p>
+<p>CoherenceResourceStatus defines the observed state of Coherence resource.</p>
 
 
 <div class="table__overflow elevation-1  ">
@@ -658,81 +1220,96 @@ For example:<br>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class=""><code>phase</code></td>
+<td class="">The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod&#8217;s status. There are eight possible phase values:<br>
+<br>
+Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc.) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment&#8217;s start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Completed:      The Coherence resource is running a Job and the Job has completed. Failed:         An error occurred reconciling the deployment and its secondary resources.</td>
+<td class=""><code>ConditionType</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>coherenceCluster</code></td>
+<td class="">The name of the Coherence cluster that this deployment is part of.</td>
+<td class=""><code>string</code></td>
+<td class="">false</td>
+</tr>
 <tr>
 <td class=""><code>type</code></td>
-<td class="">The application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to "node". The default is to run a plain Java application.</td>
-<td class=""><code>&#42;string</code></td>
+<td class="">The type of the Coherence resource.</td>
+<td class=""><code>CoherenceType</code></td>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>main</code></td>
-<td class="">Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is "node" the main may be a Javascript file.</td>
-<td class=""><code>&#42;string</code></td>
+<td class=""><code>replicas</code></td>
+<td class="">Replicas is the desired number of members in the Coherence deployment represented by the Coherence resource.</td>
+<td class=""><code>int32</code></td>
+<td class="">true</td>
+</tr>
+<tr>
+<td class=""><code>currentReplicas</code></td>
+<td class="">CurrentReplicas is the current number of members in the Coherence deployment represented by the Coherence resource.</td>
+<td class=""><code>int32</code></td>
+<td class="">true</td>
+</tr>
+<tr>
+<td class=""><code>readyReplicas</code></td>
+<td class="">ReadyReplicas is the number of members in the Coherence deployment represented by the Coherence resource that are in the ready state.</td>
+<td class=""><code>int32</code></td>
+<td class="">true</td>
+</tr>
+<tr>
+<td class=""><code>active</code></td>
+<td class="">When the Coherence resource is running a Job, the number of pending and running pods.</td>
+<td class=""><code>int32</code></td>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>args</code></td>
-<td class="">Args is the optional arguments to pass to the main class.</td>
-<td class=""><code>[]string</code></td>
+<td class=""><code>succeeded</code></td>
+<td class="">When the Coherence resource is running a Job, the number of pods which reached phase Succeeded.</td>
+<td class=""><code>int32</code></td>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>workingDir</code></td>
-<td class="">The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is "/app".</td>
-<td class=""><code>&#42;string</code></td>
+<td class=""><code>failed</code></td>
+<td class="">When the Coherence resource is running a Job, the number of pods which reached phase Failed.</td>
+<td class=""><code>int32</code></td>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>cloudNativeBuildPack</code></td>
-<td class="">Optional settings that may be configured if using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: <a id="" title="" target="_blank" href="https://github.com/paketo-buildpacks/spring-boot">https://github.com/paketo-buildpacks/spring-boot</a> and <a id="" title="" target="_blank" href="https://buildpacks.io/">https://buildpacks.io/</a></td>
-<td class=""><code>&#42;<router-link to="#_cloudnativebuildpackspec" @click.native="this.scrollFix('#_cloudnativebuildpackspec')">CloudNativeBuildPackSpec</router-link></code></td>
+<td class=""><code>role</code></td>
+<td class="">The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name</td>
+<td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>springBootFatJar</code></td>
-<td class="">SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"</td>
-<td class=""><code>&#42;string</code></td>
-<td class="">false</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
-
-</div>
-
-<h3 id="_cloudnativebuildpackspec">CloudNativeBuildPackSpec</h3>
-<div class="section">
-<p>CloudNativeBuildPackSpec is the configuration when using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: <a id="" title="" target="_blank" href="https://github.com/paketo-buildpacks/spring-boot">https://github.com/paketo-buildpacks/spring-boot</a> and <a id="" title="" target="_blank" href="https://buildpacks.io/">https://buildpacks.io/</a></p>
-
-
-<div class="table__overflow elevation-1  ">
-<table class="datatable table">
-<colgroup>
-<col style="width: 7.692%;">
-<col style="width: 76.923%;">
-<col style="width: 7.692%;">
-<col style="width: 7.692%;">
-</colgroup>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-<th>Type</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class=""><code>enabled</code></td>
-<td class="">Enable or disable buildpack detection. The operator will automatically detect Cloud Native Buildpack images but if this auto-detection fails to work correctly for a specific image then this field can be set to true to signify that the image is a buildpack image or false to signify that it is not a buildpack image.</td>
-<td class=""><code>&#42;bool</code></td>
+<td class=""><code>selector</code></td>
+<td class="">label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
+<td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
-<td class=""><code>launcher</code></td>
+<td class=""><code>conditions</code></td>
+<td class="">The status conditions.</td>
+<td class=""><code>Conditions</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>hash</code></td>
+<td class="">Hash is the hash of the latest applied Coherence spec</td>
+<td class=""><code>string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>actionsExecuted</code></td>
+<td class="">ActionsExecuted tracks whether actions were executed</td>
+<td class=""><code>bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>jobProbes</code></td>
 <td class="">&#160;</td>
-<td class=""><code>&#42;string</code></td>
+<td class=""><code>[]<router-link to="#_coherencejobprobestatus" @click.native="this.scrollFix('#_coherencejobprobestatus')">CoherenceJobProbeStatus</router-link></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -862,6 +1439,153 @@ see: <router-link to="#coherence_settings/070_wka.adoc" @click.native="this.scro
 <td class=""><code>localPortAdjust</code></td>
 <td class="">LocalPortAdjust sets the Coherence unicast port adjust value. To specify a range of unicast ports from which ports are selected, include a port value that represents the upper limit of the port range.</td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString">https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString</a></code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
+<h3 id="_coherencestatefulsetresourcespec">CoherenceStatefulSetResourceSpec</h3>
+<div class="section">
+<p>CoherenceStatefulSetResourceSpec defines the specification of a Coherence resource. A Coherence resource is typically one or more Pods that perform the same functionality, for example storage members.</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>cluster</code></td>
+<td class="">The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource&#8217;s name will be used as the cluster name.</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>statefulSetAnnotations</code></td>
+<td class="">StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster <code>StatefulSet</code> as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
+<br>
+The default behaviour is to copy all annotations from the <code>Coherence</code> resource to the <code>StatefulSet</code>, specifying any annotations in the <code>StatefulSetAnnotations</code> will override this behaviour and only include the <code>StatefulSetAnnotations</code>.<br>
+<br>
+annotations:<br>
+  foo.io/one: "value1" +<br>
+  foo.io/two: "value2" +<br>
+<br>
+see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
+<td class=""><code>map[string]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>volumeClaimTemplates</code></td>
+<td class="">VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod. The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">https://kubernetes.io/docs/concepts/storage/persistent-volumes/</a> Every claim in this list must have at least one matching (by name) volumeMount in one container in the template. A claim in this list takes precedence over any volumes in the template, with the same name.</td>
+<td class=""><code>[]<router-link to="#_persistentvolumeclaim" @click.native="this.scrollFix('#_persistentvolumeclaim')">PersistentVolumeClaim</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>scaling</code></td>
+<td class="">The configuration to control safe scaling.</td>
+<td class=""><code>&#42;<router-link to="#_scalingspec" @click.native="this.scrollFix('#_scalingspec')">ScalingSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspendProbe</code></td>
+<td class="">The configuration of the probe used to signal that services must be suspended before a deployment is stopped.</td>
+<td class=""><code>&#42;<router-link to="#_probe" @click.native="this.scrollFix('#_probe')">Probe</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspendServicesOnShutdown</code></td>
+<td class="">A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shut down cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>resumeServicesOnStartup</code></td>
+<td class="">ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when the Coherence container is started. This only applies to storage enabled distributed cache services. This ensures that services that are suspended due to the shutdown of a storage tier, but those services are still running (albeit suspended) in other storage disabled deployments, will be resumed when storage comes back. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state. The default value if not specified is true.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>autoResumeServices</code></td>
+<td class="">AutoResumeServices is a map of Coherence service names to allow more fine-grained control over which services may be auto-resumed by the operator when a Coherence Pod starts. The key to the map is the name of the Coherence service. This should be the fully qualified name if scoped services are being used in Coherence. The value is a bool, set to <code>true</code> to allow the service to be auto-resumed or <code>false</code> to not allow the service to be auto-resumed. Adding service names to this list will override any value set in <code>ResumeServicesOnStartup</code>, so if the <code>ResumeServicesOnStartup</code> field is <code>false</code> but there are service names in the <code>AutoResumeServices</code>, mapped to <code>true</code>, those services will still be resumed. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.</td>
+<td class=""><code>map[string]bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>suspendServiceTimeout</code></td>
+<td class="">SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds)</td>
+<td class=""><code>&#42;int</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>haBeforeUpdate</code></td>
+<td class="">Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>allowUnsafeDelete</code></td>
+<td class="">AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is <code>false</code>. The primary use for setting this flag to <code>true</code> is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to <code>true</code> in a production environment, especially when using Coherence persistence features.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>actions</code></td>
+<td class="">Actions to execute once all the Pods are ready after an initial deployment</td>
+<td class=""><code>[]<router-link to="#_action" @click.native="this.scrollFix('#_action')">Action</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>envFrom</code></td>
+<td class="">List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated.</td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>global</code></td>
+<td class="">Global contains attributes that will be applied to all resources managed by the Coherence Operator.</td>
+<td class=""><code>&#42;<router-link to="#_globalspec" @click.native="this.scrollFix('#_globalspec')">GlobalSpec</router-link></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>initResources</code></td>
+<td class="">InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod.<br>
+ ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
+The Coherence operator does not apply any default resources.</td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>rollingUpdateStrategy</code></td>
+<td class="">The rolling upgrade strategy to use. If present, the value must be one of "UpgradeByPod", "UpgradeByNode" of "OnDelete". If not set, the default is "UpgradeByPod" UpgradeByPod will perform a rolling upgrade one Pod at a time. UpgradeByNode will update all Pods on a Node at the same time. OnDelete will not automatically apply any updates, Pods must be manually deleted for updates to be applied to the restarted Pod.</td>
+<td class=""><code>&#42;RollingUpdateStrategyType</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>rollingUpdateLabel</code></td>
+<td class="">The name of the Node label to use to group Pods during a rolling upgrade. This field ony applies if RollingUpdateStrategy is set to NodeLabel. If RollingUpdateStrategy is set to NodeLabel and this field is omitted then the rolling upgrade will be by Node. It is the users responsibility to ensure that Nodes actually have the label used for this field. The label should be one of the node labels used to set the Coherence site or rack value.</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>headlessServiceIpFamilies</code></td>
+<td class="">HeadlessServiceIpFamilies is the optional array of IP families that can be configured for the headless service used for the StatefulSet.</td>
+<td class=""><code>[]<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamily">https://pkg.go.dev/k8s.io/api/core/v1#IPFamily</a></code></td>
 <td class="">false</td>
 </tr>
 </tbody>
@@ -2901,362 +3625,6 @@ This field may hold a maximum of two entries (dual-stack families, in either ord
 <td class="">Whether this quorum&#8217;s condition has been met</td>
 <td class=""><code>bool</code></td>
 <td class="">true</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
-
-</div>
-
-<h3 id="_coherence">Coherence</h3>
-<div class="section">
-<p>Coherence is the top level schema for the Coherence API and custom resource definition (CRD).</p>
-
-
-<div class="table__overflow elevation-1  ">
-<table class="datatable table">
-<colgroup>
-<col style="width: 7.692%;">
-<col style="width: 76.923%;">
-<col style="width: 7.692%;">
-<col style="width: 7.692%;">
-</colgroup>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-<th>Type</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class=""><code>metadata</code></td>
-<td class="">&#160;</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#objectmeta-v1-meta">metav1.ObjectMeta</a></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>spec</code></td>
-<td class="">&#160;</td>
-<td class=""><code><router-link to="#_coherencestatefulsetresourcespec" @click.native="this.scrollFix('#_coherencestatefulsetresourcespec')">CoherenceStatefulSetResourceSpec</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>status</code></td>
-<td class="">&#160;</td>
-<td class=""><code><router-link to="#_coherenceresourcestatus" @click.native="this.scrollFix('#_coherenceresourcestatus')">CoherenceResourceStatus</router-link></code></td>
-<td class="">false</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
-
-</div>
-
-<h3 id="_coherencelist">CoherenceList</h3>
-<div class="section">
-<p>CoherenceList is a list of Coherence resources.</p>
-
-
-<div class="table__overflow elevation-1  ">
-<table class="datatable table">
-<colgroup>
-<col style="width: 7.692%;">
-<col style="width: 76.923%;">
-<col style="width: 7.692%;">
-<col style="width: 7.692%;">
-</colgroup>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-<th>Type</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class=""><code>metadata</code></td>
-<td class="">&#160;</td>
-<td class=""><code><a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#listmeta-v1-meta">metav1.ListMeta</a></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>items</code></td>
-<td class="">&#160;</td>
-<td class=""><code>[]<router-link to="#_coherence" @click.native="this.scrollFix('#_coherence')">Coherence</router-link></code></td>
-<td class="">true</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
-
-</div>
-
-<h3 id="_coherenceresourcestatus">CoherenceResourceStatus</h3>
-<div class="section">
-<p>CoherenceResourceStatus defines the observed state of Coherence resource.</p>
-
-
-<div class="table__overflow elevation-1  ">
-<table class="datatable table">
-<colgroup>
-<col style="width: 7.692%;">
-<col style="width: 76.923%;">
-<col style="width: 7.692%;">
-<col style="width: 7.692%;">
-</colgroup>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-<th>Type</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class=""><code>phase</code></td>
-<td class="">The phase of a Coherence resource is a simple, high-level summary of where the Coherence resource is in its lifecycle. The conditions array, the reason and message fields, and the individual container status arrays contain more detail about the pod&#8217;s status. There are eight possible phase values:<br>
-<br>
-Initialized:    The deployment has been accepted by the Kubernetes system. Created:        The deployments secondary resources, (e.g. the StatefulSet, Services etc.) have been created. Ready:          The StatefulSet for the deployment has the correct number of replicas and ready replicas. Waiting:        The deployment&#8217;s start quorum conditions have not yet been met. Scaling:        The number of replicas in the deployment is being scaled up or down. RollingUpgrade: The StatefulSet is performing a rolling upgrade. Stopped:        The replica count has been set to zero. Completed:      The Coherence resource is running a Job and the Job has completed. Failed:         An error occurred reconciling the deployment and its secondary resources.</td>
-<td class=""><code>ConditionType</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>coherenceCluster</code></td>
-<td class="">The name of the Coherence cluster that this deployment is part of.</td>
-<td class=""><code>string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>type</code></td>
-<td class="">The type of the Coherence resource.</td>
-<td class=""><code>CoherenceType</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>replicas</code></td>
-<td class="">Replicas is the desired number of members in the Coherence deployment represented by the Coherence resource.</td>
-<td class=""><code>int32</code></td>
-<td class="">true</td>
-</tr>
-<tr>
-<td class=""><code>currentReplicas</code></td>
-<td class="">CurrentReplicas is the current number of members in the Coherence deployment represented by the Coherence resource.</td>
-<td class=""><code>int32</code></td>
-<td class="">true</td>
-</tr>
-<tr>
-<td class=""><code>readyReplicas</code></td>
-<td class="">ReadyReplicas is the number of members in the Coherence deployment represented by the Coherence resource that are in the ready state.</td>
-<td class=""><code>int32</code></td>
-<td class="">true</td>
-</tr>
-<tr>
-<td class=""><code>active</code></td>
-<td class="">When the Coherence resource is running a Job, the number of pending and running pods.</td>
-<td class=""><code>int32</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>succeeded</code></td>
-<td class="">When the Coherence resource is running a Job, the number of pods which reached phase Succeeded.</td>
-<td class=""><code>int32</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>failed</code></td>
-<td class="">When the Coherence resource is running a Job, the number of pods which reached phase Failed.</td>
-<td class=""><code>int32</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>role</code></td>
-<td class="">The effective role name for this deployment. This will come from the Spec.Role field if set otherwise the deployment name will be used for the role name</td>
-<td class=""><code>string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>selector</code></td>
-<td class="">label query over deployments that should match the replicas count. This is same as the label selector but in the string format to avoid introspection by clients. The string will be in the same format as the query-param syntax. More info about label selectors: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/</a></td>
-<td class=""><code>string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>conditions</code></td>
-<td class="">The status conditions.</td>
-<td class=""><code>Conditions</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>hash</code></td>
-<td class="">Hash is the hash of the latest applied Coherence spec</td>
-<td class=""><code>string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>actionsExecuted</code></td>
-<td class="">ActionsExecuted tracks whether actions were executed</td>
-<td class=""><code>bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>jobProbes</code></td>
-<td class="">&#160;</td>
-<td class=""><code>[]CoherenceJobProbeStatus</code></td>
-<td class="">false</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
-
-</div>
-
-<h3 id="_coherencestatefulsetresourcespec">CoherenceStatefulSetResourceSpec</h3>
-<div class="section">
-<p>CoherenceStatefulSetResourceSpec defines the specification of a Coherence resource. A Coherence resource is typically one or more Pods that perform the same functionality, for example storage members.</p>
-
-
-<div class="table__overflow elevation-1  ">
-<table class="datatable table">
-<colgroup>
-<col style="width: 7.692%;">
-<col style="width: 76.923%;">
-<col style="width: 7.692%;">
-<col style="width: 7.692%;">
-</colgroup>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-<th>Type</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class=""><code>cluster</code></td>
-<td class="">The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource&#8217;s name will be used as the cluster name.</td>
-<td class=""><code>&#42;string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>statefulSetAnnotations</code></td>
-<td class="">StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster <code>StatefulSet</code> as annotations. Any annotations should be placed BELOW this "annotations:" key, for example:<br>
-<br>
-The default behaviour is to copy all annotations from the <code>Coherence</code> resource to the <code>StatefulSet</code>, specifying any annotations in the <code>StatefulSetAnnotations</code> will override this behaviour and only include the <code>StatefulSetAnnotations</code>.<br>
-<br>
-annotations:<br>
-  foo.io/one: "value1" +<br>
-  foo.io/two: "value2" +<br>
-<br>
-see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes Annotations</a></td>
-<td class=""><code>map[string]string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>volumeClaimTemplates</code></td>
-<td class="">VolumeClaimTemplates defines extra PVC mappings that will be added to the Coherence Pod. The content of this yaml should match the normal k8s volumeClaimTemplates section of a StatefulSet spec as described in <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">https://kubernetes.io/docs/concepts/storage/persistent-volumes/</a> Every claim in this list must have at least one matching (by name) volumeMount in one container in the template. A claim in this list takes precedence over any volumes in the template, with the same name.</td>
-<td class=""><code>[]<router-link to="#_persistentvolumeclaim" @click.native="this.scrollFix('#_persistentvolumeclaim')">PersistentVolumeClaim</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>scaling</code></td>
-<td class="">The configuration to control safe scaling.</td>
-<td class=""><code>&#42;<router-link to="#_scalingspec" @click.native="this.scrollFix('#_scalingspec')">ScalingSpec</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>suspendProbe</code></td>
-<td class="">The configuration of the probe used to signal that services must be suspended before a deployment is stopped.</td>
-<td class=""><code>&#42;<router-link to="#_probe" @click.native="this.scrollFix('#_probe')">Probe</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>suspendServicesOnShutdown</code></td>
-<td class="">A flag controlling whether storage enabled cache services in this deployment will be suspended before the deployment is shutdown or scaled to zero. The action of suspending storage enabled services when the whole deployment is being stopped ensures that cache services with persistence enabled will shut down cleanly without the possibility of Coherence trying to recover and re-balance partitions as Pods are stopped. The default value if not specified is true.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>resumeServicesOnStartup</code></td>
-<td class="">ResumeServicesOnStartup allows the Operator to resume suspended Coherence services when the Coherence container is started. This only applies to storage enabled distributed cache services. This ensures that services that are suspended due to the shutdown of a storage tier, but those services are still running (albeit suspended) in other storage disabled deployments, will be resumed when storage comes back. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state. The default value if not specified is true.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>autoResumeServices</code></td>
-<td class="">AutoResumeServices is a map of Coherence service names to allow more fine-grained control over which services may be auto-resumed by the operator when a Coherence Pod starts. The key to the map is the name of the Coherence service. This should be the fully qualified name if scoped services are being used in Coherence. The value is a bool, set to <code>true</code> to allow the service to be auto-resumed or <code>false</code> to not allow the service to be auto-resumed. Adding service names to this list will override any value set in <code>ResumeServicesOnStartup</code>, so if the <code>ResumeServicesOnStartup</code> field is <code>false</code> but there are service names in the <code>AutoResumeServices</code>, mapped to <code>true</code>, those services will still be resumed. Note that starting Pods with suspended partitioned cache services may stop the Pod reaching the ready state.</td>
-<td class=""><code>map[string]bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>suspendServiceTimeout</code></td>
-<td class="">SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds)</td>
-<td class=""><code>&#42;int</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>haBeforeUpdate</code></td>
-<td class="">Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>allowUnsafeDelete</code></td>
-<td class="">AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is <code>false</code>. The primary use for setting this flag to <code>true</code> is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to <code>true</code> in a production environment, especially when using Coherence persistence features.</td>
-<td class=""><code>&#42;bool</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>actions</code></td>
-<td class="">Actions to execute once all the Pods are ready after an initial deployment</td>
-<td class=""><code>[]<router-link to="#_action" @click.native="this.scrollFix('#_action')">Action</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>envFrom</code></td>
-<td class="">List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#envfromsource-v1-core">corev1.EnvFromSource</a></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>global</code></td>
-<td class="">Global contains attributes that will be applied to all resources managed by the Coherence Operator.</td>
-<td class=""><code>&#42;<router-link to="#_globalspec" @click.native="this.scrollFix('#_globalspec')">GlobalSpec</router-link></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>initResources</code></td>
-<td class="">InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod.<br>
- ref: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/</a> +<br>
-The Coherence operator does not apply any default resources.</td>
-<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#resourcerequirements-v1-core">corev1.ResourceRequirements</a></code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>rollingUpdateStrategy</code></td>
-<td class="">The rolling upgrade strategy to use. If present, the value must be one of "UpgradeByPod", "UpgradeByNode" of "OnDelete". If not set, the default is "UpgradeByPod" UpgradeByPod will perform a rolling upgrade one Pod at a time. UpgradeByNode will update all Pods on a Node at the same time. OnDelete will not automatically apply any updates, Pods must be manually deleted for updates to be applied to the restarted Pod.</td>
-<td class=""><code>&#42;RollingUpdateStrategyType</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>rollingUpdateLabel</code></td>
-<td class="">The name of the Node label to use to group Pods during a rolling upgrade. This field ony applies if RollingUpdateStrategy is set to NodeLabel. If RollingUpdateStrategy is set to NodeLabel and this field is omitted then the rolling upgrade will be by Node. It is the users responsibility to ensure that Nodes actually have the label used for this field. The label should be one of the node labels used to set the Coherence site or rack value.</td>
-<td class=""><code>&#42;string</code></td>
-<td class="">false</td>
-</tr>
-<tr>
-<td class=""><code>headlessServiceIpFamilies</code></td>
-<td class="">HeadlessServiceIpFamilies is the optional array of IP families that can be configured for the headless service used for the StatefulSet.</td>
-<td class=""><code>[]<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#IPFamily">https://pkg.go.dev/k8s.io/api/core/v1#IPFamily</a></code></td>
-<td class="">false</td>
 </tr>
 </tbody>
 </table>
