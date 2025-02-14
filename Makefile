@@ -736,6 +736,7 @@ docs/about/04_coherence_spec.adoc: $(API_GO_FILES) utils/docgen/main.go
 		api/v1/coherenceresourcespec_types.go \
 		api/v1/coherence_types.go \
 		api/v1/coherenceresource_types.go \
+		api/v1/coherencejobresource_types.go \
 		> docs/about/04_coherence_spec.adoc
 
 # ----------------------------------------------------------------------------------------------------------------------
