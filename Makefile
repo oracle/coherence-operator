@@ -2413,6 +2413,7 @@ install-istio: delete-istio-config get-istio ## Install the latest version of Is
 ifeq (true,$(ISTIO_USE_CONFIG))
 	$(ISTIO_HOME)/bin/istioctl install -f $(BUILD_OUTPUT)/istio-config.yaml -y
 	kubectl -n istio-system wait --for condition=available deployment.apps/istiod-$(ISTIO_REVISION)
+	$(ISTIO_HOME)/bin/istioctl tag set default --revision $(ISTIO_REVISION)
 else
 	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
 	kubectl -n istio-system wait --for condition=available deployment.apps/istiod
