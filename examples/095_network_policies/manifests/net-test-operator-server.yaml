@@ -6,7 +6,7 @@ spec:
   selector:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.4.2"
+    app.kubernetes.io/version: "3.4.3"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
     coherenceNetTest: server
@@ -27,14 +27,14 @@ metadata:
   labels:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.4.2"
+    app.kubernetes.io/version: "3.4.3"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
     coherenceNetTest: server
 spec:
   containers:
   - name: net-test
-    image: ghcr.io/oracle/coherence-operator:3.4.2
+    image: ghcr.io/oracle/coherence-operator:3.4.3
     ports:
     - containerPort: 8000
       name: operator

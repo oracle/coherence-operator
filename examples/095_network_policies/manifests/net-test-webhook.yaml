@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: net-test
-        image: ghcr.io/oracle/coherence-operator:3.4.2
+        image: ghcr.io/oracle/coherence-operator:3.4.3
         env:
           - name: OPERATOR_HOST
             value: net-test-operator-server.coherence.svc

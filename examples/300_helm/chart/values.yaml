@@ -5,7 +5,7 @@ operator:
   namespace: coherence
   service: coherence-operator-rest
   port: 8000
-  image: ghcr.io/oracle/coherence-operator-utils:3.4.2
+  image: ghcr.io/oracle/coherence-operator-utils:3.4.3
   condition: Ready
   timeout: 5m
   interval: 10s

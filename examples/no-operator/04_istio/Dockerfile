@@ -1,4 +1,4 @@
-FROM ghcr.io/oracle/coherence-operator:3.4.2 AS Builder
+FROM ghcr.io/oracle/coherence-operator:3.4.3 AS Builder
 
 FROM ghcr.io/oracle/coherence-ce:22.06.10
 COPY --from=Builder /files /files
