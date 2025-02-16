@@ -287,7 +287,7 @@ spec:
               control-plane: coherence
               app.kubernetes.io/name: coherence-operator
               app.kubernetes.io/instance: coherence-operator-manager
-              app.kubernetes.io/version: "3.4.2"
+              app.kubernetes.io/version: "3.4.3"
 {{- end }}
 {{- if .Values.affinity }}
       affinity:

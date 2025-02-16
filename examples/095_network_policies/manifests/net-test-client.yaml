@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: net-test
-        image: ghcr.io/oracle/coherence-operator:3.4.2
+        image: ghcr.io/oracle/coherence-operator:3.4.3
         env:
           - name: HOST
             value: net-test-coherence-server.coh-test.svc
