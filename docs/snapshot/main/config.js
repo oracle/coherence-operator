@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "3.4.2",
+        release: "3.4.3",
         releases: [
-            "3.4.2"
+            "3.4.3"
         ],
         pathColors: {
             "*": "blue-grey"
