@@ -53,6 +53,7 @@ type RunDetails struct {
 	MainClass         string
 	MainArgs          []string
 	BuildPacks        *bool
+	ExtraEnv          []string
 	env               *viper.Viper
 }
 

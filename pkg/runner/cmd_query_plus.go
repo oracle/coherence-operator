@@ -9,6 +9,7 @@ package runner
 import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -18,8 +19,8 @@ const (
 )
 
 // queryPlusCommand creates the corba "queryplus" sub-command
-func queryPlusCommand() *cobra.Command {
-	return &cobra.Command{
+func queryPlusCommand(v *viper.Viper) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   CommandQueryPlus,
 		Short: "Start a Coherence interactive QueryPlus console",
 		Long:  "Starts a Coherence interactive QueryPlus console",
@@ -28,6 +29,10 @@ func queryPlusCommand() *cobra.Command {
 			return run(cmd, queryPlus)
 		},
 	}
+	addEnvVarFlag(cmd)
+	addJvmArgFlag(cmd)
+	setupFlags(cmd, v)
+	return cmd
 }
 
 // Configure the runner to run a Coherence Query Plus console
@@ -39,9 +44,8 @@ func queryPlus(details *RunDetails, _ *cobra.Command) {
 		details.MainArgs = os.Args[2:]
 	}
 	details.addArg("-Dcoherence.distributed.localstorage=false")
+	details.addArg("-Dcoherence.localport.adjust=true")
+	details.addArg("-Dcoherence.management.http.enabled=false")
+	details.addArg("-Dcoherence.metrics.http.enabled=false")
 	details.setenv(v1.EnvVarCohRole, "queryPlus")
-	details.unsetenv(v1.EnvVarJvmMemoryHeap)
-	details.unsetenv(v1.EnvVarCoherenceLocalPortAdjust)
-	details.unsetenv(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
-	details.unsetenv(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
 }
