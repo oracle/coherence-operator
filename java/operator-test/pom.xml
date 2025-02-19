@@ -59,7 +59,7 @@
           <version>${version.plugin.jib}</version>
           <configuration>
               <from>
-                  <image>docker://${coherence.test.base.image}</image>
+                  <image>${coherence.test.base.image}</image>
               </from>
               <container>
                   <mainClass>com.oracle.coherence.k8s.testing.RestServer</mainClass>
