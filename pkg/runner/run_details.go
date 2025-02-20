@@ -199,13 +199,6 @@ func (in *RunDetails) setenv(key, value string) {
 	in.env.Set(key, value)
 }
 
-func (in *RunDetails) unsetenv(key string) {
-	if in.env == nil {
-		in.env = viper.New()
-	}
-	in.env.Set(key, nil)
-}
-
 func (in *RunDetails) isEnvTrue(name string) bool {
 	value := in.Getenv(name)
 	return strings.ToLower(value) == "true"
