@@ -71,6 +71,12 @@ else
   GH_AUTH := 'authorization: Bearer $(GH_TOKEN)'
 endif
 
+# defines $n to be a newline character which is useful in messages
+define n
+
+
+endef
+
 # ----------------------------------------------------------------------------------------------------------------------
 # By default we target amd64 as this is by far the most common local build environment
 # We actually build images for amd64 and arm64
@@ -91,7 +97,7 @@ GOPROXY         ?= https://proxy.golang.org
 # ----------------------------------------------------------------------------------------------------------------------
 # Set the location of the Operator SDK executable
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_SDK_VERSION := v1.9.0
+OPERATOR_SDK_VERSION := v1.39.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Options to append to the Maven command
@@ -102,44 +108,38 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-BASE_IMAGE_REGISTRY     ?= ghcr.io
-BASE_IMAGE_REPO         ?= oracle
-OPERATOR_IMAGE_REGISTRY ?= $(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_REPO)
-RELEASE_IMAGE_PREFIX    ?= $(OPERATOR_IMAGE_REGISTRY)/
-OPERATOR_IMAGE_NAME     := coherence-operator
+OPERATOR_IMAGE_REGISTRY ?= ghcr.io/oracle
 OPERATOR_BASE_IMAGE     ?= scratch
-OPERATOR_OL_BASE_IMAGE  ?= container-registry.oracle.com/java/jdk:17
-OPERATOR_IMAGE_REPO     := $(RELEASE_IMAGE_PREFIX)$(OPERATOR_IMAGE_NAME)
-OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REPO):$(VERSION)
-OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REPO):delve
-OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REPO):debug
-TEST_BASE_IMAGE         ?= $(OPERATOR_IMAGE_REPO)-test-base:$(VERSION)
-# The Operator images to push
-OPERATOR_RELEASE_REPO   ?= $(OPERATOR_IMAGE_REPO)
-OPERATOR_RELEASE_IMAGE  := $(OPERATOR_RELEASE_REPO):$(VERSION)
-TEST_BASE_RELEASE_IMAGE := $(OPERATOR_RELEASE_REPO)-test-base:$(VERSION)
-BUNDLE_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REPO)-bundle:$(VERSION)
+OPERATOR_IMAGE_NAME     := coherence-operator
+OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
+OPERATOR_IMAGE_AMD      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
+OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
+OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
+OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
 
-OPERATOR_PACKAGE_PREFIX := $(OPERATOR_IMAGE_REPO)-package
-OPERATOR_PACKAGE_IMAGE  := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
-OPERATOR_REPO_PREFIX    := $(OPERATOR_IMAGE_REPO)-repo
-OPERATOR_REPO_IMAGE     := $(OPERATOR_REPO_PREFIX):$(VERSION)
+TEST_BASE_IMAGE         := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-test-base:$(VERSION)
+
+# Tanzu packages
+OPERATOR_PACKAGE_PREFIX   := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-package
+OPERATOR_PACKAGE_IMAGE    := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
+OPERATOR_REPO_PREFIX      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-repo
+OPERATOR_REPO_IMAGE       := $(OPERATOR_REPO_PREFIX):$(VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_APPLICATION_IMAGE               := $(RELEASE_IMAGE_PREFIX)operator-test:1.0.0
-TEST_COMPATIBILITY_IMAGE             := $(RELEASE_IMAGE_PREFIX)operator-test-compatibility:1.0.0
-TEST_APPLICATION_IMAGE_CLIENT        := $(RELEASE_IMAGE_PREFIX)operator-test-client:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON       := $(RELEASE_IMAGE_PREFIX)operator-test-helidon:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON_3     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon-3:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON_2     := $(RELEASE_IMAGE_PREFIX)operator-test-helidon-2:1.0.0
-TEST_APPLICATION_IMAGE_SPRING        := $(RELEASE_IMAGE_PREFIX)operator-test-spring:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_FAT    := $(RELEASE_IMAGE_PREFIX)operator-test-spring-fat:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_CNBP   := $(RELEASE_IMAGE_PREFIX)operator-test-spring-cnbp:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_2      := $(RELEASE_IMAGE_PREFIX)operator-test-spring-2:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(RELEASE_IMAGE_PREFIX)operator-test-spring-fat-2:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(RELEASE_IMAGE_PREFIX)operator-test-spring-cnbp-2:1.0.0
+TEST_APPLICATION_IMAGE               := $(OPERATOR_IMAGE_REGISTRY)/operator-test:1.0.0
+TEST_COMPATIBILITY_IMAGE             := $(OPERATOR_IMAGE_REGISTRY)/operator-test-compatibility:1.0.0
+TEST_APPLICATION_IMAGE_CLIENT        := $(OPERATOR_IMAGE_REGISTRY)/operator-test-client:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON       := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON_3     := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon-3:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON_2     := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING        := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_FAT    := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_CNBP   := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_2      := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp-2:1.0.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -167,7 +167,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(OPERATOR_IMAGE_REPO)-bundle:$(VERSION)
+BUNDLE_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release build options
@@ -209,6 +209,7 @@ LOCAL_STORAGE_RESTART ?= false
 # This is required if building and testing in environments that need to pull or push
 # images to private registries. For example building and testing with k8s in OCI.
 # ----------------------------------------------------------------------------------------------------------------------
+DOCKER_CMD ?= docker
 DOCKER_SERVER ?=
 DOCKER_USERNAME ?=
 DOCKER_PASSWORD ?=
@@ -275,6 +276,7 @@ override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
 override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar.gz
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
+override BUILD_PREFLIGHT     := $(BUILD_OUTPUT)/preflight
 override SCRIPTS_DIR         := $(CURRDIR)/hack
 override EXAMPLES_DIR        := $(CURRDIR)/examples
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
@@ -350,6 +352,7 @@ HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
 CRDV1_FILES      = $(shell find ./config/crd -type f)
 JAVA_FILES       = $(shell find ./java -type f)
+MANIFEST_FILES   = $(shell find ./config -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
 
@@ -442,7 +445,6 @@ $(BUILD_PROPS):
 	COHERENCE_IMAGE_NAME=$(COHERENCE_IMAGE_NAME)\n\
 	COHERENCE_IMAGE_TAG=$(COHERENCE_IMAGE_TAG)\n\
 	OPERATOR_IMAGE_REGISTRY=$(OPERATOR_IMAGE_REGISTRY)\n\
-	RELEASE_IMAGE_PREFIX=$(RELEASE_IMAGE_PREFIX)\n\
 	OPERATOR_IMAGE_NAME=$(OPERATOR_IMAGE_NAME)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	VERSION=$(VERSION)\n\
@@ -482,50 +484,50 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
 $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUILD_TARGETS)/cli
-	docker build --platform linux/amd64 --no-cache --build-arg version=$(VERSION) \
-		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
-		--build-arg coherence_image=$(COHERENCE_IMAGE) \
-		--build-arg operator_image=$(OPERATOR_IMAGE) \
-		--build-arg release=$(GITCOMMIT) \
-		--build-arg target=amd64 \
-		. -t $(OPERATOR_IMAGE)-amd64
-	docker build --platform linux/arm64 --no-cache --build-arg version=$(VERSION) \
-		--build-arg BASE_IMAGE=$(OPERATOR_BASE_IMAGE) \
-		--build-arg coherence_image=$(COHERENCE_IMAGE) \
-		--build-arg operator_image=$(OPERATOR_IMAGE) \
-		--build-arg release=$(GITCOMMIT) \
-		--build-arg target=arm64 \
-		. -t $(OPERATOR_IMAGE)-arm64
-	docker tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
+	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),amd64,$(OPERATOR_IMAGE))
+	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),arm64,$(OPERATOR_IMAGE))
+	$(DOCKER_CMD) tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
 	touch $(BUILD_TARGETS)/build-operator
+
+define buildOperatorImage
+	$(DOCKER_CMD) build --platform linux/$(2) --no-cache --build-arg version=$(VERSION) \
+		--build-arg BASE_IMAGE=$(1) \
+		--build-arg coherence_image=$(COHERENCE_IMAGE) \
+		--build-arg operator_image=$(3) \
+		--build-arg release=$(GITCOMMIT) \
+		--build-arg target=$(2) \
+		--load -t $(3)-$(2) .
+endef
+
+OPERATOR_OL_BASE_IMAGE  ?= container-registry.oracle.com/java/jdk:17
 
 .PHONY: build-operator-with-tools
 build-operator-with-tools: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java ## Build the Coherence Operator image on OL-8 with debug tools
 	mkdir -p $(BUILD_OUTPUT)/images || true
 	cat Dockerfile debug/Tools.Dockerfile > $(BUILD_OUTPUT)/images/Dockerfile
-	docker build --no-cache --build-arg version=$(VERSION) \
+	$(DOCKER_CMD) build --no-cache --build-arg version=$(VERSION) \
 		--build-arg BASE_IMAGE=$(OPERATOR_OL_BASE_IMAGE) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=amd64 \
 		-f $(BUILD_OUTPUT)/images/Dockerfile \
-		. -t $(OPERATOR_IMAGE)
+		--load -t $(OPERATOR_IMAGE) .
 
 .PHONY: build-operator-debug
 build-operator-debug: $(BUILD_TARGETS)/delve-image $(BUILD_BIN)/runner-debug $(BUILD_TARGETS)/java ## Build the Coherence Operator image with the Delve debugger
-	docker build --platform linux/$(IMAGE_ARCH) --no-cache --build-arg version=$(VERSION) \
+	$(DOCKER_CMD) build --platform linux/$(IMAGE_ARCH) --no-cache --build-arg version=$(VERSION) \
 		--build-arg coherence_image=$(COHERENCE_IMAGE) \
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=$(IMAGE_ARCH) \
 		-f debug/Dockerfile \
-		. -t $(OPERATOR_IMAGE_DEBUG)
+		--load -t $(OPERATOR_IMAGE_DEBUG) .
 
 .PHONY: build-delve-image
 build-delve-image: $(BUILD_TARGETS)/delve-image ## Build the Coherence Operator Delve debugger base image
 
 $(BUILD_TARGETS)/delve-image:
 	GV=$(GO_VERSION) && GVS="$${GV#go}" && \
-	docker build --build-arg BASE_IMAGE=golang:$${GVS} -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) debug
+	$(DOCKER_CMD) build --build-arg BASE_IMAGE=golang:$${GVS} -f debug/Base.Dockerfile -t $(OPERATOR_IMAGE_DELVE) --load debug
 	touch $(BUILD_TARGETS)/delve-image
 
 $(BUILD_BIN)/runner-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
@@ -569,23 +571,23 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 #   Spring Boot 3.x CNBP
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 3.x fat jar
-	docker build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) java/operator-test-spring/target
+	$(DOCKER_CMD) build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) --load java/operator-test-spring/target
 #   Spring Boot 3.x exploded fat jar
 	rm -rf java/operator-test-spring/target/spring || true && mkdir java/operator-test-spring/target/spring
 	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
 	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
-	docker build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) java/operator-test-spring/target
+	$(DOCKER_CMD) build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) --load java/operator-test-spring/target
 #   Spring Boot 2.x JIB
 	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 2.x CNBP
 	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 2.x fat jar
-	docker build -f java/operator-test-spring-2/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) java/operator-test-spring-2/target
+	$(DOCKER_CMD) build -f java/operator-test-spring-2/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) --load java/operator-test-spring-2/target
 #   Spring Boot 2.x exploded fat jar
 	rm -rf java/operator-test-spring-2/target/spring || true && mkdir java/operator-test-spring-2/target/spring
 	cp java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar java/operator-test-spring-2/target/spring/operator-test-spring-2-$(MVN_VERSION).jar
 	cd java/operator-test-spring-2/target/spring && jar -xvf operator-test-spring-2-$(MVN_VERSION).jar && rm -f operator-test-spring-2-$(MVN_VERSION).jar
-	docker build -f java/operator-test-spring-2/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_2) java/operator-test-spring-2/target
+	$(DOCKER_CMD) build -f java/operator-test-spring-2/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_2) --load java/operator-test-spring-2/target
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the basic Operator Test image
@@ -683,7 +685,7 @@ endef
 .PHONY: manifests
 manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition and other yaml manifests.
 
-$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(BUILD_MANIFESTS_PKG)
+$(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(MANIFEST_FILES) $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
 config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen
@@ -708,7 +710,7 @@ $(BUILD_OUTPUT)/config.json:
 	@echo "Generating Operator config"
 	@printf "{\n \
 	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
-	  \"operator-image\": \"$(OPERATOR_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+	  \"operator-image\": \"$(OPERATOR_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
 	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -889,24 +891,27 @@ stop: ## kill any locally running operator process
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: bundle
-bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manifests  ## Generate OLM bundle manifests and metadata, then validate generated files.
-	$(OPERATOR_SDK) generate kustomize manifests -q
+bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manifests $(MANIFEST_FILES) ## Generate OLM bundle manifests and metadata, then validate generated files.
+	$(OPERATOR_SDK) generate kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
-	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.22
-	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=community --optional-values=image-path=bundle.Dockerfile
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=operatorhubv2 --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=capabilities --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=categories --optional-values=k8s-version=1.26
+	rm -rf bundle_tmp*
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the bundle image.
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: bundle-build
-bundle-build:  ## Build the OLM image
-	docker build --no-cache -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+.PHONY: bundle-image
+bundle-image: bundle  ## Build the OLM image
+	$(DOCKER_CMD) build --no-cache -f bundle.Dockerfile -t $(BUNDLE_IMAGE) --load .
 
 .PHONY: bundle-push
 bundle-push: ## Push the OLM bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(DOCKER_CMD) push $(OPE) $(BUNDLE_IMAGE)
 
 .PHONY: opm
 OPM = ./bin/opm
@@ -925,14 +930,14 @@ OPM = $(shell which opm)
 endif
 endif
 
-# A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
+# A comma-separated list of bundle images
 # These images MUST exist in a registry and be pull-able.
-BUNDLE_IMGS ?= $(BUNDLE_IMG)
+BUNDLE_IMAGE_LIST ?= $(BUNDLE_IMAGE)
 
-# The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+# The image tag given to the resulting catalog image
+CATALOG_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog:$(VERSION)
 
-# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
+# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMAGE_LIST to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
 FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
 endif
@@ -941,14 +946,116 @@ endif
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm ## Build an OLM catalog image.
-	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+catalog-build: opm ## Build a catalog image.
+	$(OPM) index add --container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) --bundles $(BUNDLE_IMAGE_LIST) $(FROM_INDEX_OPT)
 
 # Push the catalog image.
 .PHONY: catalog-push
-catalog-push: ## Push an OLM catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+catalog-push: ## Push a catalog image.
+	$(DOCKER_CMD) push $(CATALOG_IMAGE)
 
+.PHONY: scorecard
+scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard tests.
+	$(OPERATOR_SDK) scorecard ./bundle
+
+# ======================================================================================================================
+# Targets to run a local container registry
+# ======================================================================================================================
+REGISTRY_USER ?= operator
+REGISTRY_PWD  ?= secret
+
+$(TOOLS_DIRECTORY)/registry/auth/htpasswd:
+	mkdir -p ${TOOLS_DIRECTORY}/registry/{auth,certs,data} || true
+	htpasswd -bBc ${TOOLS_DIRECTORY}/registry/auth/htpasswd $(REGISTRY_USER) $(REGISTRY_PWD)
+
+.PHONY: registry
+registry: $(TOOLS_DIRECTORY)/registry/auth/htpasswd
+	mkdir -p ${TOOLS_DIRECTORY}/registry/{auth,certs,data} || true
+	openssl req -newkey rsa:4096 -nodes -sha256 \
+	  -keyout $(TOOLS_DIRECTORY)/registry/certs/domain.key \
+	  -x509 -days 3650 -subj "/CN=localhost" \
+	  -addext "subjectAltName = DNS:registry" \
+	  -out $(TOOLS_DIRECTORY)/registry/certs/domain.crt
+	$(DOCKER_CMD) network create registry-network || true
+	$(DOCKER_CMD) run --name registry --network registry-network \
+	  -p 5555:5000  \
+	  -v ${TOOLS_DIRECTORY}/registry/data:/var/lib/registry:z \
+	  -v ${TOOLS_DIRECTORY}/registry/auth:/auth:z \
+	  -e "REGISTRY_AUTH=htpasswd" \
+	  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+	  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+	  -v ${TOOLS_DIRECTORY}/registry/certs:/certs:z \
+	  -e "REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt" \
+	  -e "REGISTRY_HTTP_TLS_KEY=/certs/domain.key" \
+	  -e REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true \
+	  -d docker.io/library/registry:latest
+	$(DOCKER_CMD) login localhost:5555 -u $(REGISTRY_USER) -p $(REGISTRY_PWD)
+
+.PHONY: registry-stop
+registry-stop:
+	$(DOCKER_CMD) rm -f registry
+
+# ======================================================================================================================
+# Targets for OpenShift - requires various OpenShift CLI tools
+# ======================================================================================================================
+##@ OpenShift related tasks
+
+.PHONY: preflight
+preflight: ## Run the OpenShift preflight tests against the Operator Image in a container
+	mkdir -p $(BUILD_PREFLIGHT) || true
+	$(DOCKER_CMD) network create registry-network || true
+	$(DOCKER_CMD) run -it --rm --network registry-network \
+	  --security-opt=label=disable \
+	  --env KUBECONFIG=/kubeconfig/config \
+	  --env PFLT_DOCKERCONFIG=/dockerconfig/config.json \
+	  --env PFLT_LOGLEVEL=trace \
+	  --env PFLT_CHANNEL=beta \
+	  --env PFLT_LOGFILE=/artifacts/preflight.log \
+	  -v $(BUILD_PREFLIGHT):/artifacts \
+	  -v $(HOME)/.kube/:/kubeconfig:ro \
+	  -v $(SCRIPTS_DIR):/dockerconfig:ro \
+	  quay.io/opdev/preflight:stable check container --insecure $(OPERATOR_IMAGE)
+
+.PHONY: preflight-oc
+preflight-oc: $(BUILD_PREFLIGHT)/preflight.yaml preflight-oc-cleanup ## Run the OpenShift preflight tests as a K8s Job against the Operator Image
+	oc apply -f $(BUILD_PREFLIGHT)/preflight.yaml
+	oc wait --for condition=complete job/preflight --timeout 480s
+	oc logs job/preflight > $(BUILD_PREFLIGHT)/preflight.log || true
+
+.PHONY: preflight-oc-cleanup
+preflight-oc-cleanup: $(BUILD_PREFLIGHT)/preflight.yaml ## Clean up the OpenShift preflight tests Job
+	oc delete -f $(BUILD_PREFLIGHT)/preflight.yaml || true
+
+# This variable should be passed in and is the credentials for the container registry
+# that holds the Operator Image to be pulled by the preflight Job.
+# This is usually obtained by running:
+#     echo -n bogus:$(oc whoami -t) | base64
+PREFLIGHT_REGISTRY_CRED ?=
+
+.PHONY: jk
+jk: $(BUILD_PREFLIGHT)/preflight.yaml
+
+# Generate the preflight job yaml
+$(BUILD_PREFLIGHT)/preflight.yaml: hack/preflight.yaml
+#ifeq ($(PREFLIGHT_REGISTRY_CRED),)
+#  $(error $(n)The PREFLIGHT_REGISTRY_CRED variable must be specified to run preflight$(n)Typically using the command$(n)$(n)   export PREFLIGHT_REGISTRY_CRED=$$(echo -n bogus:$$(oc whoami -t) | base64)$(n)$(n))
+#endif
+	cp hack/preflight.yaml $(BUILD_PREFLIGHT)/preflight.yaml
+	$(SED) -e 's^image-placeholder^$(OPERATOR_IMAGE)^g' $(BUILD_PREFLIGHT)/preflight.yaml
+	$(SED) -e 's/registry-credential-placeholder/$(PREFLIGHT_REGISTRY_CRED)/g' $(BUILD_PREFLIGHT)/preflight.yaml
+
+.PHONY: oc-login
+oc-login:
+	oc login -u kubeadmin https://api.crc.testing:6443
+
+# REGISTRY=$(oc get route/default-route -n openshift-image-registry -o=jsonpath='{.spec.host}')
+# OPERATOR_RELEASE_REGISTRY=${REGISTRY}/oracle
+# podman login -u bogus -p $(oc whoami -t) --tls-verify=false $REGISTRY
+# creds for auth config: echo -n bogus:$(oc whoami -t) | base64
+# Allow operator-test:coherence-operator-service-account in operator-test to pull images
+# oc policy add-role-to-user system:image-puller system:serviceaccount:operator-test:coherence-operator-service-account --namespace=oracle
+# Allow anything in operator-test to pull images
+# oc policy add-role-to-user system:image-puller system:serviceaccounts:operator-test --namespace=oracle
 
 # ======================================================================================================================
 # Targets to run various tests
@@ -1306,7 +1413,7 @@ run-certification: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 run-certification: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 run-certification: export VERSION := $(VERSION)
 run-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
-run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
+run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)
 run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-certification: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-certification: gotestsum
@@ -1445,7 +1552,7 @@ run-coherence-compatibility: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLIC
 run-coherence-compatibility: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 run-coherence-compatibility: export VERSION := $(VERSION)
 run-coherence-compatibility: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
-run-coherence-compatibility: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REPO)
+run-coherence-compatibility: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)
 run-coherence-compatibility: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-coherence-compatibility: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-coherence-compatibility: gotestsum $(BUILD_TARGETS)/generate
@@ -1508,7 +1615,8 @@ endif
 
 .PHONY: just-deploy
 just-deploy: ## Deploy the Coherence Operator without rebuilding anything
-	$(call do_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
@@ -1572,11 +1680,6 @@ define prepare_deploy
 	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
 endef
 
-define do_deploy
-	$(call prepare_deploy,$(1),$(2))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
-endef
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
@@ -1601,7 +1704,7 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 
-$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq
+$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)/crd
 	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/temp.yaml
@@ -1825,7 +1928,7 @@ kind-load: kind-load-operator kind-load-coherence  ## Load all images into the K
 
 .PHONY: kind-load-coherence
 kind-load-coherence:   ## Load the Coherence image into the KinD cluster
-	docker pull $(COHERENCE_IMAGE)
+	$(DOCKER_CMD) pull $(COHERENCE_IMAGE)
 	kind load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
 
 .PHONY: kind-load-operator
@@ -2190,77 +2293,60 @@ test-examples: build-examples
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Docker image
 # ----------------------------------------------------------------------------------------------------------------------
+PUSH_ARGS ?=
+
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
-ifeq ($(OPERATOR_RELEASE_IMAGE), $(OPERATOR_IMAGE))
-	@echo "Pushing $(OPERATOR_IMAGE)"
-	docker push $(OPERATOR_IMAGE)-amd64
-	docker push $(OPERATOR_IMAGE)-arm64
-	docker manifest create $(OPERATOR_IMAGE) \
-		--amend $(OPERATOR_IMAGE)-amd64 \
-		--amend $(OPERATOR_IMAGE)-arm64
-	docker manifest annotate $(OPERATOR_IMAGE) $(OPERATOR_IMAGE)-arm64 --arch arm64
-	docker manifest push $(OPERATOR_IMAGE)
-else
-	@echo "Tagging $(OPERATOR_IMAGE)-amd64 as $(OPERATOR_RELEASE_IMAGE)-amd64"
-	docker tag $(OPERATOR_IMAGE)-amd64 $(OPERATOR_RELEASE_IMAGE)-amd64
-	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)-amd64"
-	docker push $(OPERATOR_RELEASE_IMAGE)-amd64
-	@echo "Tagging $(OPERATOR_IMAGE)-arm64 as $(OPERATOR_RELEASE_IMAGE)-arm64"
-	docker tag $(OPERATOR_IMAGE)-arm64 $(OPERATOR_RELEASE_IMAGE)-arm64
-	@echo "Pushing $(OPERATOR_RELEASE_IMAGE)-arm64"
-	docker push $(OPERATOR_RELEASE_IMAGE)-arm64
-	docker manifest create $(OPERATOR_RELEASE_IMAGE) \
-		--amend $(OPERATOR_RELEASE_IMAGE)-amd64 \
-		--amend $(OPERATOR_RELEASE_IMAGE)-arm64
-	docker manifest annotate $(OPERATOR_RELEASE_IMAGE) $(OPERATOR_RELEASE_IMAGE)-arm64 --arch arm64
-	docker manifest push $(OPERATOR_RELEASE_IMAGE)
-endif
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
+	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
+		--amend $(OPERATOR_IMAGE_AMD) \
+		--amend $(OPERATOR_IMAGE_ARM)
+	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
 push-test-images:
-	docker push $(TEST_APPLICATION_IMAGE)
-	docker push $(TEST_APPLICATION_IMAGE_CLIENT)
-	docker push $(TEST_APPLICATION_IMAGE_HELIDON)
-	docker push $(TEST_APPLICATION_IMAGE_HELIDON_3)
-	docker push $(TEST_APPLICATION_IMAGE_HELIDON_2)
-	docker push $(TEST_APPLICATION_IMAGE_SPRING)
-	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT)
-	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-	docker push $(TEST_APPLICATION_IMAGE_SPRING_2)
-	docker push $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
-	docker push $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_CLIENT)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_3)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Test images to ttl.sh
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-ttl-test-images
 push-ttl-test-images:
-	docker tag $(TEST_APPLICATION_IMAGE) $(TTL_APPLICATION_IMAGE)
-	docker push $(TTL_APPLICATION_IMAGE)
-	docker tag $(TEST_APPLICATION_IMAGE_CLIENT) $(TTL_APPLICATION_IMAGE_CLIENT)
-	docker push $(TTL_APPLICATION_IMAGE_CLIENT)
-	docker tag $(TEST_APPLICATION_IMAGE_HELIDON) $(TTL_APPLICATION_IMAGE_HELIDON)
-	docker push $(TTL_APPLICATION_IMAGE_HELIDON)
-	docker tag $(TEST_APPLICATION_IMAGE_HELIDON_3) $(TTL_APPLICATION_IMAGE_HELIDON_3)
-	docker push $(TTL_APPLICATION_IMAGE_HELIDON_3)
-	docker tag $(TEST_APPLICATION_IMAGE_HELIDON_2) $(TTL_APPLICATION_IMAGE_HELIDON_2)
-	docker push $(TTL_APPLICATION_IMAGE_HELIDON_2)
-	docker tag $(TEST_APPLICATION_IMAGE_SPRING) $(TTL_APPLICATION_IMAGE_SPRING)
-	docker push $(TTL_APPLICATION_IMAGE_SPRING)
-	docker tag $(TEST_APPLICATION_IMAGE_SPRING_FAT) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
-	docker push $(TTL_APPLICATION_IMAGE_SPRING_FAT)
-	docker tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
-	docker push $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
-	docker tag $(TEST_APPLICATION_IMAGE_SPRING_2) $(TTL_APPLICATION_IMAGE_SPRING_2)
-	docker push $(TTL_APPLICATION_IMAGE_SPRING_2)
-	docker tag $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
-	docker push $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
-	docker tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
-	docker push $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE) $(TTL_APPLICATION_IMAGE)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_CLIENT) $(TTL_APPLICATION_IMAGE_CLIENT)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_CLIENT)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_HELIDON) $(TTL_APPLICATION_IMAGE_HELIDON)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_HELIDON)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_HELIDON_3) $(TTL_APPLICATION_IMAGE_HELIDON_3)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_HELIDON_3)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_HELIDON_2) $(TTL_APPLICATION_IMAGE_HELIDON_2)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_HELIDON_2)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING) $(TTL_APPLICATION_IMAGE_SPRING)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_FAT) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_FAT)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_2) $(TTL_APPLICATION_IMAGE_SPRING_2)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_2)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
+	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
@@ -2279,15 +2365,15 @@ build-compatibility-image: $(BUILD_TARGETS)/java
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-compatibility-image
 push-compatibility-image: build-compatibility-image
-	docker push $(TEST_COMPATIBILITY_IMAGE)
+	$(DOCKER_CMD) push $(TEST_COMPATIBILITY_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images to ttl.sh
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-ttl-compatibility-image
 push-ttl-compatibility-image:
-	docker tag $(TEST_COMPATIBILITY_IMAGE) $(TTL_COMPATIBILITY_IMAGE)
-	docker push $(TTL_COMPATIBILITY_IMAGE)
+	$(DOCKER_CMD) tag $(TEST_COMPATIBILITY_IMAGE) $(TTL_COMPATIBILITY_IMAGE)
+	$(DOCKER_CMD) push $(TTL_COMPATIBILITY_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
@@ -2300,8 +2386,8 @@ push-all-images: push-test-images push-operator-image
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-ttl-operator-images
 push-ttl-operator-images:
-	docker tag $(OPERATOR_IMAGE) $(TTL_OPERATOR_IMAGE)
-	docker push $(TTL_OPERATOR_IMAGE)
+	$(DOCKER_CMD) tag $(OPERATOR_IMAGE) $(TTL_OPERATOR_IMAGE)
+	$(DOCKER_CMD) push $(TTL_OPERATOR_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all the images to ttl.sh
@@ -2493,6 +2579,7 @@ docs: api-doc-gen
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/
 	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
+	tar -C $(BUILD_OUTPUT) -czvf $(BUILD_OUTPUT)/docs.tar.gz ./docs
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Test the documentation.

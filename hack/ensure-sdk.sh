@@ -1,9 +1,11 @@
 #!/bin/sh
 
-REQUIRED_VERSION=$1
+REQUIRED_VERSION="$(curl -s https://api.github.com/repos/operator-framework/operator-sdk/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')"
 OPERATOR_SDK_HOME=$2
 
 UNAME_S=$(uname -s)
+UNAME_M=$(uname -m)
+
 OPERATOR_SDK=${OPERATOR_SDK_HOME}/operator-sdk
 OK=0
 
@@ -25,12 +27,20 @@ if [ ${OK} != 0 ]; then
   echo "Operator SDK not found or not correct version"
 
   if [ "${UNAME_S}" = "Darwin" ]; then
-    URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_darwin_amd64"
+    if [ "${UNAME_S}" = "x86_64" ]; then
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_darwin_amd64"
+    else
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_darwin_arm64"
+    fi
   else
-    URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk-linux-amd64"
+    if [ "${UNAME_S}" = "x86_64" ]; then
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk-linux-amd64"
+    else
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk-linux-arm64"
+    fi
   fi
 
-  echo "Downloading Operator SDK ${UNAME_S} version from ${URL}"
+  echo "Downloading Operator SDK ${UNAME_S}/${UNAME_M} version ${REQUIRED_VERSION} from ${URL}"
   curl -L ${URL} -o ${OPERATOR_SDK}
   chmod +x ${OPERATOR_SDK}
 fi

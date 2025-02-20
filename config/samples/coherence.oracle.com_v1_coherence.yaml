@@ -3,4 +3,4 @@ kind: Coherence
 metadata:
   name: coherence-sample
 spec:
-  replicas: 1
+  replicas: 3
