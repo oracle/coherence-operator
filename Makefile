@@ -71,6 +71,12 @@ else
   GH_AUTH := 'authorization: Bearer $(GH_TOKEN)'
 endif
 
+# defines $n to be a newline character which is useful in messages
+define n
+
+
+endef
+
 # ----------------------------------------------------------------------------------------------------------------------
 # By default we target amd64 as this is by far the most common local build environment
 # We actually build images for amd64 and arm64
@@ -102,27 +108,16 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_BASE_IMAGE         ?= scratch
+OPERATOR_IMAGE_REGISTRY ?= ghcr.io/oracle
+OPERATOR_BASE_IMAGE     ?= scratch
+OPERATOR_IMAGE_NAME     := coherence-operator
+OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
+OPERATOR_IMAGE_AMD      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
+OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
+OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
+OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
 
-OPERATOR_IMAGE_REGISTRY     ?= ghcr.io/oracle
-OPERATOR_IMAGE_NAME         := coherence-operator
-OPERATOR_IMAGE_ARM_SUFFIX   := $(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
-OPERATOR_IMAGE_ARM          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)
-OPERATOR_IMAGE_AMD_SUFFIX   := $(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
-OPERATOR_IMAGE_AMD          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX)
-OPERATOR_IMAGE_SUFFIX       := $(OPERATOR_IMAGE_NAME):$(VERSION)
-OPERATOR_IMAGE              := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_SUFFIX)
-OPERATOR_IMAGE_DELVE_SUFFIX := $(OPERATOR_IMAGE_NAME):delve
-OPERATOR_IMAGE_DELVE        := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_DELVE_SUFFIX)
-OPERATOR_IMAGE_DEBUG_SUFFIX := $(OPERATOR_IMAGE_NAME):debug
-OPERATOR_IMAGE_DEBUG        := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_DEBUG_SUFFIX)
-
-TEST_BASE_IMAGE_SUFFIX      := $(OPERATOR_IMAGE_NAME)-test-base:$(VERSION)
-TEST_BASE_IMAGE             ?= $(OPERATOR_IMAGE_REGISTRY)/$(TEST_BASE_IMAGE_SUFFIX)
-
-# The Operator images to push
-OPERATOR_RELEASE_REGISTRY ?= $(OPERATOR_IMAGE_REGISTRY)
-OPERATOR_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_SUFFIX)
+TEST_BASE_IMAGE         := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-test-base:$(VERSION)
 
 # Tanzu packages
 OPERATOR_PACKAGE_PREFIX   := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-package
@@ -133,30 +128,18 @@ OPERATOR_REPO_IMAGE       := $(OPERATOR_REPO_PREFIX):$(VERSION)
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_APPLICATION_IMAGE_SUFFIX               := operator-test:1.0.0
-TEST_APPLICATION_IMAGE                      := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SUFFIX)
-TEST_COMPATIBILITY_IMAGE_SUFFIX             := operator-test-compatibility:1.0.0
-TEST_COMPATIBILITY_IMAGE                    := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_COMPATIBILITY_IMAGE_SUFFIX)
-TEST_APPLICATION_IMAGE_CLIENT_SUFFIX        := operator-test-client:1.0.0
-TEST_APPLICATION_IMAGE_CLIENT               := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_CLIENT_SUFFIX)
-TEST_APPLICATION_IMAGE_HELIDON_SUFFIX       := operator-test-helidon:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON              := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_HELIDON_SUFFIX)
-TEST_APPLICATION_IMAGE_HELIDON_3_SUFFIX     := operator-test-helidon-3:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON_3            := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_HELIDON_3_SUFFIX)
-TEST_APPLICATION_IMAGE_HELIDON_2_SUFFIX     := operator-test-helidon-2:1.0.0
-TEST_APPLICATION_IMAGE_HELIDON_2            := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_HELIDON_2_SUFFIX)
-TEST_APPLICATION_IMAGE_SPRING_SUFFIX        := operator-test-spring:1.0.0
-TEST_APPLICATION_IMAGE_SPRING               := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_SUFFIX)
-TEST_APPLICATION_IMAGE_SPRING_FAT_SUFFIX    := operator-test-spring-fat:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_FAT           := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_FAT_SUFFIX)
-TEST_APPLICATION_IMAGE_SPRING_CNBP_SUFFIX   := operator-test-spring-cnbp:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_CNBP          := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_CNBP_SUFFIX)
-TEST_APPLICATION_IMAGE_SPRING_2_SUFFIX      := operator-test-spring-2:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_2             := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_2_SUFFIX)
-TEST_APPLICATION_IMAGE_SPRING_FAT_2_SUFFIX  := operator-test-spring-fat-2:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_FAT_2         := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_FAT_2_SUFFIX)
-TEST_APPLICATION_IMAGE_SPRING_CNBP_2_SUFFIX := operator-test-spring-cnbp-2:1.0.0
-TEST_APPLICATION_IMAGE_SPRING_CNBP_2        := $(OPERATOR_IMAGE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2_SUFFIX)
+TEST_APPLICATION_IMAGE               := $(OPERATOR_IMAGE_REGISTRY)/operator-test:1.0.0
+TEST_COMPATIBILITY_IMAGE             := $(OPERATOR_IMAGE_REGISTRY)/operator-test-compatibility:1.0.0
+TEST_APPLICATION_IMAGE_CLIENT        := $(OPERATOR_IMAGE_REGISTRY)/operator-test-client:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON       := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON_3     := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon-3:1.0.0
+TEST_APPLICATION_IMAGE_HELIDON_2     := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING        := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_FAT    := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_CNBP   := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_2      := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat-2:1.0.0
+TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp-2:1.0.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -184,8 +167,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMAGE_SUFFIX := $(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
-BUNDLE_IMAGE        := $(OPERATOR_IMAGE_REGISTRY)/$(BUNDLE_IMAGE_SUFFIX)
+BUNDLE_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release build options
@@ -294,6 +276,7 @@ override BUILD_MANIFESTS     := $(BUILD_OUTPUT)/manifests
 override BUILD_MANIFESTS_PKG := $(BUILD_OUTPUT)/coherence-operator-manifests.tar.gz
 override BUILD_PROPS         := $(BUILD_OUTPUT)/build.properties
 override BUILD_TARGETS       := $(BUILD_OUTPUT)/targets
+override BUILD_PREFLIGHT     := $(BUILD_OUTPUT)/preflight
 override SCRIPTS_DIR         := $(CURRDIR)/hack
 override EXAMPLES_DIR        := $(CURRDIR)/examples
 override TEST_LOGS_DIR       := $(BUILD_OUTPUT)/test-logs
@@ -462,7 +445,6 @@ $(BUILD_PROPS):
 	COHERENCE_IMAGE_NAME=$(COHERENCE_IMAGE_NAME)\n\
 	COHERENCE_IMAGE_TAG=$(COHERENCE_IMAGE_TAG)\n\
 	OPERATOR_IMAGE_REGISTRY=$(OPERATOR_IMAGE_REGISTRY)\n\
-	$(OPERATOR_IMAGE_REGISTRY)/=$(OPERATOR_IMAGE_REGISTRY)/\n\
 	OPERATOR_IMAGE_NAME=$(OPERATOR_IMAGE_NAME)\n\
 	OPERATOR_IMAGE=$(OPERATOR_IMAGE)\n\
 	VERSION=$(VERSION)\n\
@@ -538,7 +520,7 @@ build-operator-debug: $(BUILD_TARGETS)/delve-image $(BUILD_BIN)/runner-debug $(B
 		--build-arg operator_image=$(OPERATOR_IMAGE) \
 		--build-arg target=$(IMAGE_ARCH) \
 		-f debug/Dockerfile \
-		-t $(OPERATOR_IMAGE_DEBUG) --load .
+		--load -t $(OPERATOR_IMAGE_DEBUG) .
 
 .PHONY: build-delve-image
 build-delve-image: $(BUILD_TARGETS)/delve-image ## Build the Coherence Operator Delve debugger base image
@@ -728,7 +710,7 @@ $(BUILD_OUTPUT)/config.json:
 	@echo "Generating Operator config"
 	@printf "{\n \
 	  \"coherence-image\": \"$(COHERENCE_IMAGE)\",\n \
-	  \"operator-image\": \"$(OPERATOR_RELEASE_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
+	  \"operator-image\": \"$(OPERATOR_IMAGE)\"\n}\n" > $(BUILD_OUTPUT)/config.json
 	cp $(BUILD_OUTPUT)/config.json $(BUILD_ASSETS)/config.json
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -929,7 +911,7 @@ bundle-image: bundle  ## Build the OLM image
 
 .PHONY: bundle-push
 bundle-push: ## Push the OLM bundle image.
-	$(DOCKER_CMD) push $(OPE) $(OPERATOR_RELEASE_REGISTRY)/$(BUNDLE_IMAGE_SUFFIX)
+	$(DOCKER_CMD) push $(OPE) $(BUNDLE_IMAGE)
 
 .PHONY: opm
 OPM = ./bin/opm
@@ -950,13 +932,12 @@ endif
 
 # A comma-separated list of bundle images
 # These images MUST exist in a registry and be pull-able.
-BUNDLE_IMGS ?= $(OPERATOR_RELEASE_REGISTRY)/$(BUNDLE_IMAGE_SUFFIX)
+BUNDLE_IMAGE_LIST ?= $(BUNDLE_IMAGE)
 
 # The image tag given to the resulting catalog image
-CATALOG_IMAGE_SUFFIX := $(OPERATOR_IMAGE_NAME)-catalog:$(VERSION)
-CATALOG_IMAGE        ?= $(OPERATOR_RELEASE_REGISTRY)/$(CATALOG_IMAGE_SUFFIX)
+CATALOG_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog:$(VERSION)
 
-# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
+# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMAGE_LIST to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
 FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
 endif
@@ -966,7 +947,7 @@ endif
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
 catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+	$(OPM) index add --container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) --bundles $(BUNDLE_IMAGE_LIST) $(FROM_INDEX_OPT)
 
 # Push the catalog image.
 .PHONY: catalog-push
@@ -1015,13 +996,13 @@ registry-stop:
 	$(DOCKER_CMD) rm -f registry
 
 # ======================================================================================================================
-# Targets for OpenShift
+# Targets for OpenShift - requires various OpenShift CLI tools
 # ======================================================================================================================
-## OpenShift related tasks
+##@ OpenShift related tasks
 
 .PHONY: preflight
-preflight: ## Run the OpenShift preflight tests against the Operator Image
-	mkdir -p $(BUILD_OUTPUT)/preflight
+preflight: ## Run the OpenShift preflight tests against the Operator Image in a container
+	mkdir -p $(BUILD_PREFLIGHT) || true
 	$(DOCKER_CMD) network create registry-network || true
 	$(DOCKER_CMD) run -it --rm --network registry-network \
 	  --security-opt=label=disable \
@@ -1030,10 +1011,38 @@ preflight: ## Run the OpenShift preflight tests against the Operator Image
 	  --env PFLT_LOGLEVEL=trace \
 	  --env PFLT_CHANNEL=beta \
 	  --env PFLT_LOGFILE=/artifacts/preflight.log \
-	  -v $(BUILD_OUTPUT)/preflight:/artifacts \
+	  -v $(BUILD_PREFLIGHT):/artifacts \
 	  -v $(HOME)/.kube/:/kubeconfig:ro \
 	  -v $(SCRIPTS_DIR):/dockerconfig:ro \
 	  quay.io/opdev/preflight:stable check container --insecure $(OPERATOR_IMAGE)
+
+.PHONY: preflight-oc
+preflight-oc: $(BUILD_PREFLIGHT)/preflight.yaml preflight-oc-cleanup ## Run the OpenShift preflight tests as a K8s Job against the Operator Image
+	oc apply -f $(BUILD_PREFLIGHT)/preflight.yaml
+	oc wait --for condition=complete job/preflight --timeout 480s
+	oc logs job/preflight > $(BUILD_PREFLIGHT)/preflight.log || true
+
+.PHONY: preflight-oc-cleanup
+preflight-oc-cleanup: $(BUILD_PREFLIGHT)/preflight.yaml ## Clean up the OpenShift preflight tests Job
+	oc delete -f $(BUILD_PREFLIGHT)/preflight.yaml || true
+
+# This variable should be passed in and is the credentials for the container registry
+# that holds the Operator Image to be pulled by the preflight Job.
+# This is usually obtained by running:
+#     echo -n bogus:$(oc whoami -t) | base64
+PREFLIGHT_REGISTRY_CRED ?=
+
+.PHONY: jk
+jk: $(BUILD_PREFLIGHT)/preflight.yaml
+
+# Generate the preflight job yaml
+$(BUILD_PREFLIGHT)/preflight.yaml: hack/preflight.yaml
+#ifeq ($(PREFLIGHT_REGISTRY_CRED),)
+#  $(error $(n)The PREFLIGHT_REGISTRY_CRED variable must be specified to run preflight$(n)Typically using the command$(n)$(n)   export PREFLIGHT_REGISTRY_CRED=$$(echo -n bogus:$$(oc whoami -t) | base64)$(n)$(n))
+#endif
+	cp hack/preflight.yaml $(BUILD_PREFLIGHT)/preflight.yaml
+	$(SED) -e 's^image-placeholder^$(OPERATOR_IMAGE)^g' $(BUILD_PREFLIGHT)/preflight.yaml
+	$(SED) -e 's/registry-credential-placeholder/$(PREFLIGHT_REGISTRY_CRED)/g' $(BUILD_PREFLIGHT)/preflight.yaml
 
 .PHONY: oc-login
 oc-login:
@@ -1606,7 +1615,8 @@ endif
 
 .PHONY: just-deploy
 just-deploy: ## Deploy the Coherence Operator without rebuilding anything
-	$(call do_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
@@ -1668,11 +1678,6 @@ define prepare_deploy
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal OPERATOR_IMAGE=$(1)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit set image controller=$(1)
 	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
-endef
-
-define do_deploy
-	$(call prepare_deploy,$(1),$(2))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 endef
 
 
@@ -2292,69 +2297,28 @@ PUSH_ARGS ?=
 
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
-ifeq ($(OPERATOR_RELEASE_REGISTRY), $(OPERATOR_IMAGE_REGISTRY))
-	@echo "Pushing $(OPERATOR_IMAGE)"
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)
-	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
-	$(DOCKER_CMD) manifest rm $(OPERATOR_IMAGE) || true
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
 	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
-		--amend $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX) \
-		--amend $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)
-	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_RELEASE_IMAGE)
-else
-	@echo "Tagging $(OPERATOR_IMAGE_AMD) as $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX)"
-	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_AMD) $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX)
-	@echo "Pushing $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX)"
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX)
-	@echo "Tagging $(OPERATOR_IMAGE_ARM) as $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)"
-	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_ARM) $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)
-	@echo "Pushing $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)"
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)
-	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_RELEASE_IMAGE) \
-		--amend $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_AMD_SUFFIX) \
-		--amend $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_ARM_SUFFIX)
-	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_RELEASE_IMAGE)
-endif
-
-define tag_and_push
-	@echo "Tagging $(1) as $(2)"
-	$(DOCKER_CMD) tag $(1) $(2)
-	@echo "Pushing $(2)"
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(2)
-	@echo "Removing tag $(2)"
-	$(DOCKER_CMD) rmi $(2)
-endef
+		--amend $(OPERATOR_IMAGE_AMD) \
+		--amend $(OPERATOR_IMAGE_ARM)
+	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
 push-test-images:
-ifeq ($(OPERATOR_RELEASE_REGISTRY), $(OPERATOR_IMAGE_REGISTRY))
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_CLIENT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_3)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_3)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
-else
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_CLIENT),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_CLIENT_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_HELIDON),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_HELIDON_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_HELIDON_2),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_HELIDON_2_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_HELIDON_3),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_HELIDON_3_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_SPRING),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_SPRING_CNBP),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_CNBP_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_SPRING_FAT),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_FAT_SUFFIX))
-	$(call tag_and_push,$(TEST_APPLICATION_IMAGE_SPRING_FAT_2),$(OPERATOR_RELEASE_REGISTRY)/$(TEST_APPLICATION_IMAGE_SPRING_FAT_2_SUFFIX))
-endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Test images to ttl.sh
@@ -2615,6 +2579,7 @@ docs: api-doc-gen
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/
 	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
+	tar -C $(BUILD_OUTPUT) -czvf $(BUILD_OUTPUT)/docs.tar.gz ./docs
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Test the documentation.

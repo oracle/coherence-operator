@@ -7,7 +7,7 @@ data:
     {
       "auths": {
         "default-route-openshift-image-registry.apps-crc.testing": {
-          "auth": "Ym9ndXM6c2hhMjU2fkR1VmdQNndqLXNRd2xQaFVDVC1iS3gyTkhTREtQQ0Y1cGJETlVfcFBnaUU="
+          "auth": "registry-credential-placeholder"
         }
       }
     }
@@ -29,7 +29,7 @@ spec:
             - check
             - container
             - --insecure
-            - default-route-openshift-image-registry.apps-crc.testing/oracle/coherence-operator:3.4.3-arm64
+            - image-placeholder
           env:
             - name: PFLT_LOGLEVEL
               value: trace

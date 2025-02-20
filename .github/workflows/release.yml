@@ -161,4 +161,15 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: /tmp/coherence-operator/_output/coherence-dashboards.tar.gz
         asset_name: coherence-dashboards.tar.gz
-        asset_content_type: text/plain
+        asset_content_type: application/tar+gzip
+
+    - name: Upload Docs
+      id: upload-docs
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /tmp/coherence-operator/_output/docs.tar.gz
+        asset_name: docs.tar.gz
+        asset_content_type: application/tar+gzip
