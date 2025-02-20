@@ -274,9 +274,9 @@ spec:
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
 {{- end }}
-{{- if .Values.affinity }}
+{{- if .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
-{{ toYaml .Values.affinity | indent 8 }}
+{{ toYaml .Values.topologySpreadConstraints | indent 8 }}
 {{- else }}
       topologySpreadConstraints:
         - maxSkew: 1
@@ -294,6 +294,19 @@ spec:
 {{ toYaml .Values.affinity | indent 8 }}
 {{- else }}
       affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - arm64
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:

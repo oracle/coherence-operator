@@ -103,7 +103,7 @@
         <version>${version.plugin.jib}</version>
         <configuration>
           <from>
-              <image>docker://${coherence.test.base.image.21}</image>
+              <image>${coherence.test.base.image.21}</image>
           </from>
           <skip>true</skip>
         </configuration>

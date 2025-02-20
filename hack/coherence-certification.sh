@@ -12,7 +12,7 @@
 #   by the test suite to install the operator.
 #
 # * The Operator image and its test images wil be pushed to an image registry.
-#   The registry to use should be set using the RELEASE_IMAGE_PREFIX environment
+#   The registry to use should be set using the OPERATOR_IMAGE_REGISTRY environment
 #   variable. If the registry requires credentials to push to then the
 #   docker login command should already have been executed before this script.
 #
