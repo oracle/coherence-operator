@@ -2579,7 +2579,7 @@ docs: api-doc-gen
 	mkdir -p $(BUILD_OUTPUT)/docs/images/images
 	cp -R docs/images/* build/_output/docs/images/
 	find examples/ -name \*.png -exec cp {} build/_output/docs/images/images/ \;
-	tar -C $(BUILD_OUTPUT) -czvf $(BUILD_OUTPUT)/docs.tar.gz ./docs
+	cd $(BUILD_OUTPUT)/docs && zip -r $(BUILD_OUTPUT)/docs.zip *
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Test the documentation.
