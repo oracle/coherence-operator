@@ -20,16 +20,20 @@ const (
 
 // consoleCommand creates the cobra sub-command to run a Coherence CacheFactory console.
 func consoleCommand(v *viper.Viper) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   CommandConsole,
 		Short: "Start a Coherence interactive console",
 		Long:  "Starts a Coherence interactive console",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd, func(details *RunDetails, _ *cobra.Command) {
+			return run(cmd, func(details *RunDetails, cmd *cobra.Command) {
 				console(details, args, v)
 			})
 		},
 	}
+	addEnvVarFlag(cmd)
+	addJvmArgFlag(cmd)
+	setupFlags(cmd, v)
+	return cmd
 }
 
 // Configure the runner to run a Coherence CacheFactory console
@@ -45,10 +49,9 @@ func console(details *RunDetails, args []string, v *viper.Viper) {
 	}
 	details.Command = CommandConsole
 	details.addArg("-Dcoherence.distributed.localstorage=false")
+	details.addArg("-Dcoherence.localport.adjust=true")
+	details.addArg("-Dcoherence.management.http.enabled=false")
+	details.addArg("-Dcoherence.metrics.http.enabled=false")
 	details.setenv(v1.EnvVarCohRole, "console")
-	details.unsetenv(v1.EnvVarJvmMemoryHeap)
-	details.unsetenv(v1.EnvVarCoherenceLocalPortAdjust)
-	details.unsetenv(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
-	details.unsetenv(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
 	details.MainArgs = args
 }
