@@ -1,6 +1,6 @@
 FROM gcr.io/distroless/java17-debian12
 
-ADD spring /spring
+COPY spring /spring
 
 WORKDIR /spring
 
