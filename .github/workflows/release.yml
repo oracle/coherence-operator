@@ -170,6 +170,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: /tmp/coherence-operator/_output/docs.tar.gz
-        asset_name: docs.tar.gz
-        asset_content_type: application/tar+gzip
+        asset_path: /tmp/coherence-operator/_output/docs.zip
+        asset_name: docs.zip
+        asset_content_type: application/zip
