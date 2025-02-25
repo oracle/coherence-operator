@@ -60,6 +60,7 @@
           <executable>docker</executable>
           <arguments>
             <argument>build</argument>
+            <argument>--load</argument>
             <argument>-t</argument>
             <argument>${coherence.compatibility.image.name}</argument>
             <argument>-f</argument>

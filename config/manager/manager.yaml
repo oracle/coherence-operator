@@ -28,6 +28,8 @@ spec:
         version: "3.4.3"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
+      annotations:
+        alpha.image.policy.openshift.io/resolve-names: '*'
     spec:
       serviceAccountName: service-account
       terminationGracePeriodSeconds: 10

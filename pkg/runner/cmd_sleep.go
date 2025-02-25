@@ -9,6 +9,7 @@ package runner
 import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -17,8 +18,8 @@ const (
 )
 
 // queryPlusCommand creates the corba "sleep" sub-command
-func sleepCommand() *cobra.Command {
-	return &cobra.Command{
+func sleepCommand(v *viper.Viper) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   CommandSleep,
 		Short: "Sleep for a number of seconds",
 		Long:  "Sleep for a number of seconds",
@@ -29,6 +30,10 @@ func sleepCommand() *cobra.Command {
 			})
 		},
 	}
+	addEnvVarFlag(cmd)
+	addJvmArgFlag(cmd)
+	setupFlags(cmd, v)
+	return cmd
 }
 
 func sleep(details *RunDetails, args []string) {
@@ -38,6 +43,8 @@ func sleep(details *RunDetails, args []string) {
 	details.MainArgs = args
 	details.UseOperatorHealth = true
 	details.addArg("-Dcoherence.distributed.localstorage=false")
+	details.addArg("-Dcoherence.localport.adjust=true")
+	details.addArg("-Dcoherence.management.http.enabled=false")
+	details.addArg("-Dcoherence.metrics.http.enabled=false")
 	details.setenv(v1.EnvVarCohRole, "sleep")
-	details.unsetenv(v1.EnvVarJvmMemoryHeap)
 }

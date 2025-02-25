@@ -57,6 +57,10 @@
         </dependency>
         <dependency>
             <groupId>${coherence.groupId}</groupId>
+            <artifactId>coherence-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${coherence.groupId}</groupId>
             <artifactId>coherence-cdi-server</artifactId>
             <version>${coherence.version}</version>
         </dependency>

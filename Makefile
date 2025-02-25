@@ -61,6 +61,10 @@ TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
 TEST_COHERENCE_VERSION ?= $(COHERENCE_VERSION)
 TEST_COHERENCE_GID ?= com.oracle.coherence.ce
 
+# The minimum certified OpenShift version the Operator runs on
+OPENSHIFT_MIN_VERSION   := v4.15
+OPENSHIFT_COMPONENT_PID := 67b738ef88736e8a179ac976
+
 # The current working directory
 CURRDIR := $(shell pwd)
 
@@ -340,13 +344,15 @@ SHELL = /usr/bin/env bash -o pipefail
 # Capture the Git commit to add to the build information that is then embedded in the Go binary
 # ----------------------------------------------------------------------------------------------------------------------
 GITCOMMIT         ?= $(shell git rev-list -1 HEAD)
+GITBRANCH         ?= $(shell git branch --show-current)
 GITREPO           := https://github.com/oracle/coherence-operator.git
 SOURCE_DATE_EPOCH := $(shell git show -s --format=format:%ct HEAD)
 DATE_FMT          := "%Y-%m-%dT%H:%M:%SZ"
-BUILD_DATE        := $(shell date -u -d "@$SOURCE_DATE_EPOCH" "+${DATE_FMT}" 2>/dev/null || date -u -r "${SOURCE_DATE_EPOCH}" "+${DATE_FMT}" 2>/dev/null || date -u "+${DATE_FMT}")
+#BUILD_DATE        := $(shell date -u -d "@$SOURCE_DATE_EPOCH" "+${DATE_FMT}" 2>/dev/null || date -u -r "${SOURCE_DATE_EPOCH}" "+${DATE_FMT}" 2>/dev/null || date -u "+${DATE_FMT}")
+BUILD_DATE        := $(shell date -u "+${DATE_FMT}")
 BUILD_USER        := $(shell whoami)
 
-LDFLAGS          = -X main.Version=$(VERSION) -X main.Commit=$(GITCOMMIT) -X main.Date=$(BUILD_DATE) -X main.Author=$(BUILD_USER)
+LDFLAGS          = -X main.Version=$(VERSION) -X main.Commit=$(GITCOMMIT) -X main.Branch=$(GITBRANCH) -X main.Date=$(BUILD_DATE) -X main.Author=$(BUILD_USER)
 GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
 API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
@@ -460,7 +466,9 @@ $(BUILD_PROPS):
 clean: ## Cleans the build
 	-rm -rf $(BUILD_OUTPUT) || true
 	-rm -rf $(BUILD_BIN) || true
+	-rm -rf artifacts || true
 	-rm -rf bundle || true
+	-rm bundle.Dockerfile || true
 	rm config/crd/bases/*.yaml || true
 	rm -rf config/crd-small || true
 	rm pkg/data/zz_generated_*.go || true
@@ -895,6 +903,13 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	$(OPERATOR_SDK) generate kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	@echo "" >> ./bundle/metadata/annotations.yaml
+	@echo "  # OpenShift annotations" >> ./bundle/metadata/annotations.yaml
+	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> ./bundle/metadata/annotations.yaml
+	@echo "" >> bundle.Dockerfile
+	@echo "# OpenShift labels" >> bundle.Dockerfile
+	@echo "LABEL com.redhat.openshift.versions=$(OPENSHIFT_MIN_VERSION)" >> bundle.Dockerfile
+	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate ./bundle
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.26
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=operatorhubv2 --optional-values=k8s-version=1.26
@@ -952,7 +967,7 @@ catalog-build: opm ## Build a catalog image.
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
-	$(DOCKER_CMD) push $(CATALOG_IMAGE)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(CATALOG_IMAGE)
 
 .PHONY: scorecard
 scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard tests.
@@ -1037,9 +1052,6 @@ jk: $(BUILD_PREFLIGHT)/preflight.yaml
 
 # Generate the preflight job yaml
 $(BUILD_PREFLIGHT)/preflight.yaml: hack/preflight.yaml
-#ifeq ($(PREFLIGHT_REGISTRY_CRED),)
-#  $(error $(n)The PREFLIGHT_REGISTRY_CRED variable must be specified to run preflight$(n)Typically using the command$(n)$(n)   export PREFLIGHT_REGISTRY_CRED=$$(echo -n bogus:$$(oc whoami -t) | base64)$(n)$(n))
-#endif
 	cp hack/preflight.yaml $(BUILD_PREFLIGHT)/preflight.yaml
 	$(SED) -e 's^image-placeholder^$(OPERATOR_IMAGE)^g' $(BUILD_PREFLIGHT)/preflight.yaml
 	$(SED) -e 's/registry-credential-placeholder/$(PREFLIGHT_REGISTRY_CRED)/g' $(BUILD_PREFLIGHT)/preflight.yaml
@@ -2299,6 +2311,7 @@ PUSH_ARGS ?=
 push-operator-image: $(BUILD_TARGETS)/build-operator
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
+	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
 	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
 		--amend $(OPERATOR_IMAGE_AMD) \
 		--amend $(OPERATOR_IMAGE_ARM)
@@ -2326,27 +2339,27 @@ push-test-images:
 .PHONY: push-ttl-test-images
 push-ttl-test-images:
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE) $(TTL_APPLICATION_IMAGE)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_CLIENT) $(TTL_APPLICATION_IMAGE_CLIENT)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_CLIENT)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_CLIENT)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_HELIDON) $(TTL_APPLICATION_IMAGE_HELIDON)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_HELIDON)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_HELIDON)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_HELIDON_3) $(TTL_APPLICATION_IMAGE_HELIDON_3)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_HELIDON_3)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_HELIDON_3)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_HELIDON_2) $(TTL_APPLICATION_IMAGE_HELIDON_2)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_HELIDON_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_HELIDON_2)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING) $(TTL_APPLICATION_IMAGE_SPRING)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_FAT) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_FAT)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_2) $(TTL_APPLICATION_IMAGE_SPRING_2)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_2)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
-	$(DOCKER_CMD) push $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
@@ -2365,7 +2378,7 @@ build-compatibility-image: $(BUILD_TARGETS)/java
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-compatibility-image
 push-compatibility-image: build-compatibility-image
-	$(DOCKER_CMD) push $(TEST_COMPATIBILITY_IMAGE)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_COMPATIBILITY_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images to ttl.sh
@@ -2373,7 +2386,7 @@ push-compatibility-image: build-compatibility-image
 .PHONY: push-ttl-compatibility-image
 push-ttl-compatibility-image:
 	$(DOCKER_CMD) tag $(TEST_COMPATIBILITY_IMAGE) $(TTL_COMPATIBILITY_IMAGE)
-	$(DOCKER_CMD) push $(TTL_COMPATIBILITY_IMAGE)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_COMPATIBILITY_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all of the Docker images
@@ -2387,7 +2400,7 @@ push-all-images: push-test-images push-operator-image
 .PHONY: push-ttl-operator-images
 push-ttl-operator-images:
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE) $(TTL_OPERATOR_IMAGE)
-	$(DOCKER_CMD) push $(TTL_OPERATOR_IMAGE)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_OPERATOR_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push all the images to ttl.sh

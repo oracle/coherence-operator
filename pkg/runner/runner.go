@@ -125,14 +125,14 @@ func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 	rootCmd.AddCommand(initCommand(env))
 	rootCmd.AddCommand(serverCommand())
 	rootCmd.AddCommand(consoleCommand(v))
-	rootCmd.AddCommand(queryPlusCommand())
+	rootCmd.AddCommand(queryPlusCommand(v))
 	rootCmd.AddCommand(statusCommand())
 	rootCmd.AddCommand(readyCommand())
 	rootCmd.AddCommand(nodeCommand())
 	rootCmd.AddCommand(operatorCommand(v))
 	rootCmd.AddCommand(networkTestCommand())
-	rootCmd.AddCommand(jShellCommand())
-	rootCmd.AddCommand(sleepCommand())
+	rootCmd.AddCommand(jShellCommand(v))
+	rootCmd.AddCommand(sleepCommand(v))
 
 	return rootCmd
 }
@@ -600,6 +600,11 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		details.addArgs(strings.Split(jvmArgs, " ")...)
 	}
 
+	extraJvmArgs := operator.GetExtraJvmArgs()
+	if extraJvmArgs != nil {
+		details.addArgs(extraJvmArgs...)
+	}
+
 	var cmd *exec.Cmd
 	var app string
 	switch {
@@ -621,6 +626,11 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	default:
 		app = "Graal (" + details.AppType + ")"
 		cmd, err = createGraalCommand(details)
+	}
+
+	extraEnv := operator.GetExtraEnvVars()
+	if cmd != nil && extraEnv != nil {
+		cmd.Env = append(cmd.Env, extraEnv...)
 	}
 
 	return app, cmd, err
@@ -1130,4 +1140,32 @@ func closeFile(f *os.File, log logr.Logger) {
 	if err != nil {
 		log.Error(err, "error closing file "+f.Name())
 	}
+}
+
+func addEnvVarFlag(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringSlice(
+		operator.FlagEnvVar,
+		nil,
+		"Additional environment variables to pass to the process",
+	)
+}
+
+func addJvmArgFlag(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringSlice(
+		operator.FlagJvmArg,
+		nil,
+		"AdditionalJVM args to pass to the process",
+	)
+}
+
+func setupFlags(cmd *cobra.Command, v *viper.Viper) {
+	// enable using dashed notation in flags and underscores in env
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	if err := v.BindPFlags(cmd.Flags()); err != nil {
+		setupLog.Error(err, "binding flags")
+		os.Exit(1)
+	}
+
+	v.AutomaticEnv()
 }

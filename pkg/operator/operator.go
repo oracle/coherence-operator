@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -77,6 +77,8 @@ const (
 	FlagWebhookCertDir        = "webhook-cert-dir"
 	FlagWebhookSecret         = "webhook-secret"
 	FlagWebhookService        = "webhook-service"
+	FlagEnvVar                = "env"
+	FlagJvmArg                = "jvm"
 
 	// EnvVarWatchNamespace is the environment variable to use to set the watch namespace(s)
 	EnvVarWatchNamespace = "WATCH_NAMESPACE"
@@ -474,6 +476,14 @@ func GetGlobalLabelsNoError() map[string]string {
 func GetGlobalLabels(v *viper.Viper) (map[string]string, error) {
 	args := v.GetStringSlice(FlagGlobalLabel)
 	return stringSliceToMap(args, FlagGlobalLabel)
+}
+
+func GetExtraEnvVars() []string {
+	return GetViper().GetStringSlice(FlagEnvVar)
+}
+
+func GetExtraJvmArgs() []string {
+	return GetViper().GetStringSlice(FlagJvmArg)
 }
 
 func stringSliceToMap(args []string, flag string) (map[string]string, error) {
