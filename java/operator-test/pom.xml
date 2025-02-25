@@ -43,6 +43,10 @@
     </dependency>
     <dependency>
       <groupId>${coherence.groupId}</groupId>
+      <artifactId>coherence-json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.groupId}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
     </dependency>
     <dependency>
