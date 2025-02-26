@@ -29,7 +29,9 @@ func TestCoherenceCLI(t *testing.T) {
 	hasFinalizer := controllerutil.ContainsFinalizer(&data, coh.CoherenceFinalizer)
 	g.Expect(hasFinalizer).To(BeTrue())
 
-	_, err := exec.Command("kubectl", "-n", data.Namespace, "exec", "storage-0",
+	out, err := exec.Command("kubectl", "-n", data.Namespace, "exec", "storage-0",
 		"-c", "coherence", "--", "/coherence-operator/utils/cohctl", "get", "members").CombinedOutput()
+	t.Log("CLI Output:")
+	t.Log(string(out))
 	g.Expect(err).NotTo(HaveOccurred())
 }
