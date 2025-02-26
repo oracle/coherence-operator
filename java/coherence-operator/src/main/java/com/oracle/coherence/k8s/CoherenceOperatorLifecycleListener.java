@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -157,7 +157,7 @@ public class CoherenceOperatorLifecycleListener
             context.getConfigurableCacheFactory().getInterceptorRegistry().registerEventInterceptor(this);
         }
         catch (Throwable t) {
-            LOGGER.error("Failed to initialise the Coherence Operator", t);
+            LOGGER.error("CoherenceOperator: Failed to initialise the Coherence Operator", t);
         }
     }
 
@@ -281,59 +281,126 @@ public class CoherenceOperatorLifecycleListener
             String  provider       = Config.getProperty("coherence.management.http.provider");
             String defaultProtocol = provider == null || provider.isEmpty() ? "http" : "https";
             String protocol        = Config.getProperty("coherence.operator.cli.protocol", defaultProtocol);
-            String home            = System.getProperty("user.home");
-            File   fileHome        = new File(home);
             String connectionType  = "http";
 
-            if (!fileHome.exists() || !fileHome.isDirectory()) {
-                LOGGER.info("CoherenceOperator: user home \"" + home
-                        + "\" does not exist, creating default cohctl config at /coherence-operator/utils");
-                home = "/coherence-operator/utils";
-                fileHome = new File(home);
+
+            // If COHCTL_HOME is set use that for the config location
+            String cohCtlHome = System.getenv("COHCTL_HOME");
+            if (cohCtlHome == null || !cohCtlHome.isEmpty()) {
+                // Try corresponding system property
+                cohCtlHome = Config.getProperty("cohctl.home");
             }
 
-            if (!fileHome.exists() || !fileHome.isDirectory()) {
-                LOGGER.error("CoherenceOperator: Cannot create cohctl config, directory " + home + " does not exist");
+            // If we have a COHCTL_HOME env var or property try to create the config there
+            if (cohCtlHome != null && !cohCtlHome.isEmpty()
+                && tryCreateConfig(new File(cohCtlHome), connectionType, protocol, port, clusterName)) {
                 return;
             }
 
-            File cohctlHome = new File(home + File.separator + ".cohctl");
-            File configFile = new File(cohctlHome, "cohctl.yaml");
+            // Either COHCTL_HOME was not set or we failed to create a config there, try ${user.home}
+            String userHome       = System.getProperty("user.home");
+            File   fileUserHome   = new File(userHome);
+            File   fileCohCtlHome = null;
 
-            if (!configFile.exists()) {
-                LOGGER.info("CoherenceOperator: creating default cohctl config at " + configFile.getAbsolutePath());
-                if (!cohctlHome.exists()) {
-                    cohctlHome.mkdirs();
+            if (fileUserHome.exists() && fileUserHome.isDirectory()) {
+                // use ${user.home}/.cohctl
+                fileCohCtlHome = new File(fileUserHome, ".cohctl");
+                if (!fileCohCtlHome.exists()) {
+                    try {
+                        if (!fileCohCtlHome.mkdirs()) {
+                            fileCohCtlHome = null;
+                        }
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("CoherenceOperator: Failed to create cohctl home directory at " + fileCohCtlHome, e);
+                        fileCohCtlHome = null;
+                    }
                 }
-                try (PrintWriter out = new PrintWriter(configFile)) {
-                    out.println("clusters:");
-                    out.println("    - name: default");
-                    out.println("      discoverytype: manual");
-                    out.println("      connectiontype: " + connectionType);
-                    out.println("      connectionurl: " + protocol + "://127.0.0.1:" + port + "/management/coherence/cluster");
-                    out.println("      nameservicediscovery: \"\"");
-                    out.println("      clusterversion: \"" + CacheFactory.VERSION + "\"");
-                    out.println("      clustername: \"" + clusterName + "\"");
-                    out.println("      clustertype: Standalone");
-                    out.println("      manuallycreated: false");
-                    out.println("      baseclasspath: \"\"");
-                    out.println("      additionalclasspath: \"\"");
-                    out.println("      arguments: \"\"");
-                    out.println("      managementport: 0");
-                    out.println("      persistencemode: \"\"");
-                    out.println("      loggingdestination: \"\"");
-                    out.println("      managementavailable: false");
-                    out.println("color: \"on\"");
-                    out.println("currentcontext: default");
-                    out.println("debug: false");
-                    out.println("defaultbytesformat: m");
-                    out.println("ignoreinvalidcerts: false");
-                    out.println("requesttimeout: 30");
+            }
+
+            boolean success = false;
+            if (fileCohCtlHome != null) {
+                if (fileCohCtlHome.exists() && fileCohCtlHome.isDirectory()) {
+                    success = tryCreateConfig(fileCohCtlHome, connectionType, protocol, port, clusterName);
                 }
+                else {
+                    if (!fileCohCtlHome.exists()) {
+                        LOGGER.error("CoherenceOperator: Cannot create cohctl config, directory "
+                                             + fileCohCtlHome + " does not exist");
+                    }
+                    else {
+                        LOGGER.error("CoherenceOperator: Cannot create cohctl config, location "
+                                             + fileCohCtlHome + " is not a directory");
+                    }
+                }
+            }
+
+            if (!success) {
+                if (fileCohCtlHome != null) {
+                    LOGGER.info("CoherenceOperator: unable to create cohctl config in \"" + fileCohCtlHome
+                                        + "\" creating cohctl config at /coherence-operator/utils");
+                }
+                tryCreateConfig(new File("/coherence-operator/utils"), connectionType, protocol, port, clusterName);
             }
         }
         catch (Exception e) {
             LOGGER.error("Coherence Operator: Failed to create default cohctl config. " + e.getMessage());
+        }
+    }
+
+    /**
+     * Try to create the Coherence CLI configuration.
+     *
+     * @param home            the location of the CLI home directory
+     * @param connectionType  the type of the connection http or https
+     * @param protocol        the protocol for the connection http or https
+     * @param port            the management over REST port
+     * @param clusterName     the cluster name
+     *
+     * @return {@code true} of the configuration was created
+     */
+    protected boolean tryCreateConfig(File home, String connectionType, String protocol, String port, String clusterName) {
+        File configFile = new File(home, "cohctl.yaml");
+
+        if (configFile.exists()) {
+            return true;
+        }
+
+        try {
+            LOGGER.info("CoherenceOperator: creating default cohctl config at " + configFile.getAbsolutePath());
+            if (!home.exists()) {
+                home.mkdirs();
+            }
+            try (PrintWriter out = new PrintWriter(configFile)) {
+                out.println("clusters:");
+                out.println("    - name: default");
+                out.println("      discoverytype: manual");
+                out.println("      connectiontype: " + connectionType);
+                out.println("      connectionurl: " + protocol + "://127.0.0.1:" + port + "/management/coherence/cluster");
+                out.println("      nameservicediscovery: \"\"");
+                out.println("      clusterversion: \"" + CacheFactory.VERSION + "\"");
+                out.println("      clustername: \"" + clusterName + "\"");
+                out.println("      clustertype: Standalone");
+                out.println("      manuallycreated: false");
+                out.println("      baseclasspath: \"\"");
+                out.println("      additionalclasspath: \"\"");
+                out.println("      arguments: \"\"");
+                out.println("      managementport: 0");
+                out.println("      persistencemode: \"\"");
+                out.println("      loggingdestination: \"\"");
+                out.println("      managementavailable: false");
+                out.println("color: \"on\"");
+                out.println("currentcontext: default");
+                out.println("debug: false");
+                out.println("defaultbytesformat: m");
+                out.println("ignoreinvalidcerts: false");
+                out.println("requesttimeout: 30");
+            }
+            return true;
+        }
+        catch (Exception e) {
+            LOGGER.error("Coherence Operator: Failed to create default cohctl config. " + e.getMessage());
+            return false;
         }
     }
 }

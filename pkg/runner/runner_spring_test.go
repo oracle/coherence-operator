@@ -161,6 +161,8 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
+	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
+		"-Dcoherence.management.http.enabled=false", "-Dcoherence.metrics.http.enabled=false")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -192,7 +194,10 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, ""), "foo", "bar")
+	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
+	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
+		"-Dcoherence.management.http.enabled=false", "-Dcoherence.metrics.http.enabled=false",
+		"foo", "bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())

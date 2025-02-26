@@ -1,0 +1,21 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  env:
+    - name: COH_SKIP_SITE
+      value: "true"
+    - name: COHCTL_HOME
+      value: /test/cli
+  volumeMounts:
+    - mountPath: /test/cli
+      name: cli
+      readOnly: false
+  volumes:
+    - name: cli
+      emptyDir: {}
+
+
+
+

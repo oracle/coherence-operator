@@ -9,6 +9,7 @@ package runner
 import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -18,8 +19,8 @@ const (
 )
 
 // queryPlusCommand creates the corba "jshell" sub-command
-func jShellCommand() *cobra.Command {
-	return &cobra.Command{
+func jShellCommand(v *viper.Viper) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   CommandJShell,
 		Short: "Start a Coherence interactive JShell console",
 		Long:  "Starts a Coherence interactive JShell console",
@@ -28,6 +29,10 @@ func jShellCommand() *cobra.Command {
 			return run(cmd, jShell)
 		},
 	}
+	addEnvVarFlag(cmd)
+	addJvmArgFlag(cmd)
+	setupFlags(cmd, v)
+	return cmd
 }
 
 // Configure the runner to run a Coherence JShell console
@@ -39,9 +44,8 @@ func jShell(details *RunDetails, _ *cobra.Command) {
 		details.MainArgs = os.Args[2:]
 	}
 	details.addArg("-Dcoherence.distributed.localstorage=false")
+	details.addArg("-Dcoherence.localport.adjust=true")
+	details.addArg("-Dcoherence.management.http.enabled=false")
+	details.addArg("-Dcoherence.metrics.http.enabled=false")
 	details.setenv(v1.EnvVarCohRole, "jshell")
-	details.unsetenv(v1.EnvVarJvmMemoryHeap)
-	details.unsetenv(v1.EnvVarCoherenceLocalPortAdjust)
-	details.unsetenv(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
-	details.unsetenv(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
 }
