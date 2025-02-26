@@ -69,7 +69,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: SERVICE_NAME
-            value: $(REST_SERVICE_NAME)
+            value: REST_SERVICE_NAME
         readinessProbe:
           httpGet:
             port: health

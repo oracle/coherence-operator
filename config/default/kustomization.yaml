@@ -20,3 +20,16 @@ resources:
 # Only CR(s) which requires webhooks and are applied on namespaces labeled with 'webhooks: enabled' will
 # be able to communicate with the Webhook Server.
 #- ../network-policy
+
+# Patch the SERVICE_NAME env var in the Operator Deployment
+# with the name of the Operator REST service.
+replacements:
+  - source:
+      kind: Service
+      name: rest
+    targets:
+      - select:
+          kind: Deployment
+          name: controller-manager
+        fieldPaths:
+          - spec.template.spec.containers.0.env.[name=SERVICE_NAME].value
