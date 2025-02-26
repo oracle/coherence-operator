@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,7 +11,6 @@ import (
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
-	"github.com/oracle/coherence-operator/controllers/webhook"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
@@ -177,25 +176,6 @@ func execute() error {
 		// We intercept the signal handler here so that we can do clean-up before the Manager stops
 		handler := ctrl.SetupSignalHandler()
 
-		// Set-up webhooks if required
-		var cr *webhook.CertReconciler
-		if operator.ShouldEnableWebhooks() {
-			// Set up the webhook certificate reconciler
-			cr = &webhook.CertReconciler{
-				Clientset: cs,
-			}
-			if err := cr.SetupWithManager(handler, mgr, cs); err != nil {
-				return errors.Wrap(err, " unable to create webhook certificate controller")
-			}
-
-			// Set up the webhooks
-			if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
-				return errors.Wrap(err, " unable to create webhook")
-			}
-		} else {
-			setupLog.Info("Operator is running with web-hooks disabled")
-		}
-
 		// Create the REST server
 		restServer := rest.NewServer(cs.KubeClient)
 		if err := restServer.SetupWithManager(mgr); err != nil {
@@ -215,13 +195,6 @@ func execute() error {
 		}
 
 		// +kubebuilder:scaffold:builder
-
-		go func() {
-			<-handler.Done()
-			if cr != nil {
-				cr.Cleanup()
-			}
-		}()
 
 		setupLog.Info("starting manager")
 		if err := mgr.Start(handler); err != nil {

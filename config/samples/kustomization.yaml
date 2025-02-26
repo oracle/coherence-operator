@@ -1,3 +1,5 @@
-## This file is auto-generated, do not modify ##
+## Append samples of your project ##
 resources:
-- coherence.oracle.com_v1_coherence.yaml
+  - coherence_v1_coherence.yaml
+  - coherence_v1_coherencejob.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

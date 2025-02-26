@@ -297,6 +297,7 @@ TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 TOOLS_MANIFESTS   = $(TOOLS_DIRECTORY)/manifests
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
+ENVTEST           = $(TOOLS_BIN)/setup-envtest
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests

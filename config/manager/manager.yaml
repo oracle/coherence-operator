@@ -44,9 +44,6 @@ spec:
         - containerPort: 8000
           name: operator
           protocol: TCP
-        - containerPort: 9443
-          name: webhook-server
-          protocol: TCP
         - containerPort: 8080
           name: metrics
           protocol: TCP
@@ -71,18 +68,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
-          - name: WEBHOOK_SERVICE
-            value: $(WEBHOOK_SERVICE_NAME)
-          - name: WEBHOOK_SECRET
-            value: $(WEBHOOK_SECRET_NAME)
           - name: SERVICE_NAME
             value: $(REST_SERVICE_NAME)
-          - name: CERT_TYPE
-            value: "self-signed"
-        volumeMounts:
-        - mountPath: /tmp/k8s-webhook-server/serving-certs
-          name: cert
-          readOnly: true
         readinessProbe:
           httpGet:
             port: health
@@ -102,12 +89,6 @@ spec:
           capabilities:
             drop:
               - "ALL"
-      volumes:
-      - name: cert
-        secret:
-          defaultMode: 420
-          secretName: coherence-webhook-server-cert
-          optional: true
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone

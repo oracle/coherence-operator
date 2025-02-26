@@ -1,50 +1,3 @@
-{{- if ne .Values.webhookCertType "manual" }}
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
-  namespace: {{ .Release.Namespace }}
-{{- if (.Values.globalLabels) }}
-  labels:
-{{ toYaml .Values.globalLabels | indent 4 }}
-{{- end }}
-{{- if (.Values.globalAnnotations) }}
-  annotations:
-{{ toYaml .Values.globalAnnotations | indent 4 }}
-{{- end }}
-{{- end }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: coherence-operator-webhook
-  namespace: {{ .Release.Namespace }}
-  labels:
-    control-plane: coherence
-    app.kubernetes.io/name: coherence-operator
-    app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "${VERSION}"
-    app.kubernetes.io/component: webhook
-    app.kubernetes.io/part-of: coherence-operator
-    app.kubernetes.io/managed-by: helm
-{{- if (.Values.globalLabels) }}
-{{ toYaml .Values.globalLabels | indent 4 }}
-{{- end }}
-{{- if (.Values.globalAnnotations) }}
-  annotations:
-{{ toYaml .Values.globalAnnotations | indent 4 }}
-{{- end }}
-spec:
-  ports:
-  - name: webhook
-    port: 443
-    targetPort: 9443
-  selector:
-    app.kubernetes.io/name: coherence-operator
-    app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "${VERSION}"
-    app.kubernetes.io/component: manager
 ---
 apiVersion: v1
 kind: Service
@@ -152,12 +105,7 @@ spec:
         - --node-lookup-enabled=false
 {{- end }}
 {{- if (eq .Values.clusterRoles false) }}
-        - --enable-webhook=false
         - --install-crd=false
-{{- else }}
-{{- if (eq .Values.webhooks false) }}
-        - --enable-webhook=false
-{{- end }}
 {{- end }}
 {{- if (eq .Values.allowCoherenceJobs false) }}
         - --install-job-crd=false
@@ -183,14 +131,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: WEBHOOK_SERVICE
-          value: coherence-operator-webhook
-        - name: WEBHOOK_SECRET
-          value: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
         - name: SERVICE_NAME
           value: coherence-operator-rest
-        - name: CERT_TYPE
-          value: {{ default "self-signed" .Values.webhookCertType | quote }}
         - name: COHERENCE_IMAGE
 {{- if kindIs "string" .Values.defaultCoherenceImage }}
           value: {{ .Values.defaultCoherenceImage | quote }}
@@ -226,19 +168,12 @@ spec:
         - containerPort: 8000
           name: operator
           protocol: TCP
-        - name: webhook-server
-          containerPort: 9443
-          protocol: TCP
         - containerPort: 8080
           name: metrics
           protocol: TCP
         - containerPort: 8088
           name: health
           protocol: TCP
-        volumeMounts:
-        - mountPath: /tmp/k8s-webhook-server/serving-certs
-          name: cert
-          readOnly: true
         readinessProbe:
           httpGet:
             port: health
@@ -337,8 +272,3 @@ spec:
                     app.kubernetes.io/version: "${VERSION}"
               weight: 1
 {{- end }}
-      volumes:
-      - name: cert
-        secret:
-          defaultMode: 420
-          secretName: {{ .Values.webhookCertSecret }}

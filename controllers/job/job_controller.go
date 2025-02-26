@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -249,7 +249,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 
 	errorList := coh.ValidateJobUpdate(desired, original)
 	if len(errorList) > 0 {
-		msg := fmt.Sprintf("upddates to the statefuleset would have been invalid, the update will not be re-queued: %v", errorList)
+		msg := fmt.Sprintf("upddates to the job would have been invalid, the update will not be re-queued: %v", errorList)
 		events := in.GetEventRecorder()
 		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
 		return reconcile.Result{Requeue: false}, errors.New(msg)

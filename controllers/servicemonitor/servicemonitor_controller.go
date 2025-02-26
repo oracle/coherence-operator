@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -257,14 +257,7 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, nam
 		}
 	}
 
-	if err == nil {
-		if hashMatches {
-			logger.Info("Update applied to ServiceMonitor even though hashes matched (possible external update)")
-		} else {
-			logger.Info("Update applied to ServiceMonitor")
-		}
-	}
-
+	logger.Info("Update applied to ServiceMonitor")
 	return nil
 }
 
@@ -273,7 +266,7 @@ func (in *ReconcileServiceMonitor) hasServiceMonitor() bool {
 	dc := discovery.NewDiscoveryClientForConfigOrDie(in.GetManager().GetConfig())
 	apiVersion := coh.ServiceMonitorGroupVersion
 	kind := coh.ServiceMonitorKind
-	ok, err := ResourceExists(dc, apiVersion, kind)
+	ok, err := resourceExists(dc, apiVersion, kind)
 	if err != nil {
 		in.GetLog().Error(err, "error checking for Prometheus ServiceMonitor CRD")
 		return false
@@ -283,7 +276,7 @@ func (in *ReconcileServiceMonitor) hasServiceMonitor() bool {
 
 // ResourceExists returns true if the given resource kind exists
 // in the given api group/version
-func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
+func resourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
 
 	_, apiLists, err := dc.ServerGroupsAndResources()
 	if err != nil {

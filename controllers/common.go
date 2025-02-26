@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -12,11 +12,11 @@ import (
 	"github.com/oracle/coherence-operator/pkg/utils"
 )
 
-func checkCoherenceHash(deployment *coh.Coherence, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
+func getDesiredResources(deployment *coh.Coherence, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
 	return checkHash(deployment, deployment.Status.Phase, storage, log)
 }
 
-func checkJobHash(deployment *coh.CoherenceJob, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
+func getDesiredJobResources(deployment *coh.CoherenceJob, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
 	return checkHash(deployment, deployment.Status.Phase, storage, log)
 }
 

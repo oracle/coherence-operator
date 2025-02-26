@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -18,67 +18,37 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/version"
 	"os"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
-	"time"
 )
 
 const (
 	DefaultRestHost       = "0.0.0.0"
 	DefaultRestPort int32 = 8000
 
-	// DefaultCertValidity makes new certificates default to a one-year expiration
-	DefaultCertValidity = 365 * 24 * time.Hour
-	// DefaultRotateBefore defines how long before expiration a certificate
-	// should be re-issued
-	DefaultRotateBefore = 24 * time.Hour
-
-	// CertFileName is used for Certificates inside a secret
-	CertFileName = "tls.crt"
-	// KeyFileName is used for Private Keys inside a secret
-	KeyFileName = "tls.key"
-
-	CertTypeSelfSigned    = "self-signed"
-	CertTypeCertManager   = "cert-manager"
-	CertTypeManual        = "manual"
-	CertManagerIssuerName = "coherence-webhook-server-issuer"
-
-	DefaultMutatingWebhookName   = "coherence-operator-mutating-webhook-configuration"
-	DefaultValidatingWebhookName = "coherence-operator-validating-webhook-configuration"
-
-	FlagCACertRotateBefore    = "ca-cert-rotate-before"
-	FlagCACertValidity        = "ca-cert-validity"
-	FlagCertType              = "cert-type"
-	FlagCertIssuer            = "cert-issuer"
-	FlagCoherenceImage        = "coherence-image"
-	FlagCRD                   = "install-crd"
-	FlagJobCRD                = "install-job-crd"
-	FlagDevMode               = "coherence-dev-mode"
-	FlagDryRun                = "dry-run"
-	FlagEnableWebhook         = "enable-webhook"
-	FlagGlobalAnnotation      = "global-annotation"
-	FlagGlobalLabel           = "global-label"
-	FlagHealthAddress         = "health-addr"
-	FlagLeaderElection        = "enable-leader-election"
-	FlagMetricsAddress        = "metrics-addr"
-	FlagMutatingWebhookName   = "mutating-webhook-name"
-	FlagOperatorNamespace     = "operator-namespace"
-	FlagNodeLookupEnabled     = "node-lookup-enabled"
-	FlagRackLabel             = "rack-label"
-	FlagRestHost              = "rest-host"
-	FlagRestPort              = "rest-port"
-	FlagServiceName           = "service-name"
-	FlagServicePort           = "service-port"
-	FlagSiteLabel             = "site-label"
-	FlagSkipServiceSuspend    = "skip-service-suspend"
-	FlagOperatorImage         = "operator-image"
-	FlagValidatingWebhookName = "validating-webhook-name"
-	FlagWebhookCertDir        = "webhook-cert-dir"
-	FlagWebhookSecret         = "webhook-secret"
-	FlagWebhookService        = "webhook-service"
-	FlagEnvVar                = "env"
-	FlagJvmArg                = "jvm"
+	FlagCoherenceImage     = "coherence-image"
+	FlagCRD                = "install-crd"
+	FlagJobCRD             = "install-job-crd"
+	FlagDevMode            = "coherence-dev-mode"
+	FlagDryRun             = "dry-run"
+	FlagEnableWebhook      = "enable-webhook"
+	FlagGlobalAnnotation   = "global-annotation"
+	FlagGlobalLabel        = "global-label"
+	FlagHealthAddress      = "health-addr"
+	FlagLeaderElection     = "enable-leader-election"
+	FlagMetricsAddress     = "metrics-addr"
+	FlagOperatorNamespace  = "operator-namespace"
+	FlagNodeLookupEnabled  = "node-lookup-enabled"
+	FlagRackLabel          = "rack-label"
+	FlagRestHost           = "rest-host"
+	FlagRestPort           = "rest-port"
+	FlagServiceName        = "service-name"
+	FlagServicePort        = "service-port"
+	FlagSiteLabel          = "site-label"
+	FlagSkipServiceSuspend = "skip-service-suspend"
+	FlagOperatorImage      = "operator-image"
+	FlagEnvVar             = "env"
+	FlagJvmArg             = "jvm"
 
 	// EnvVarWatchNamespace is the environment variable to use to set the watch namespace(s)
 	EnvVarWatchNamespace = "WATCH_NAMESPACE"
@@ -140,28 +110,6 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	}
 	_ = f.Close()
 
-	cmd.Flags().Duration(
-		FlagCACertRotateBefore,
-		DefaultRotateBefore,
-		"Duration representing how long before expiration CA certificates should be reissued",
-	)
-	cmd.Flags().Duration(
-		FlagCACertValidity,
-		DefaultCertValidity,
-		"Duration representing how long before a newly created CA cert expires",
-	)
-	cmd.Flags().String(
-		FlagCertType,
-		CertTypeSelfSigned,
-		fmt.Sprintf("The type of certificate management used for webhook certificates. "+
-			"Valid options are %v", []string{CertTypeSelfSigned, CertTypeCertManager, CertTypeManual}),
-	)
-	cmd.Flags().String(
-		FlagCertIssuer,
-		CertManagerIssuerName,
-		fmt.Sprintf("The name of an existing cert-manager issuer (in the same namespace) used for webhook certificates. "+
-			"Valid options are %v", []string{CertTypeSelfSigned, CertTypeCertManager, CertTypeManual}),
-	)
 	cmd.Flags().String(
 		FlagCoherenceImage,
 		"",
@@ -184,13 +132,8 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	)
 	cmd.Flags().Bool(
 		FlagEnableWebhook,
-		true,
-		"Enables the defaulting and validating web-hooks",
-	)
-	cmd.Flags().String(
-		FlagMutatingWebhookName,
-		DefaultMutatingWebhookName,
-		"Name of the Kubernetes ValidatingWebhookConfiguration resource. Only used when enable-webhook is true.",
+		false,
+		"This flag is here for backward compatibility but is ignored",
 	)
 	cmd.Flags().Bool(
 		FlagNodeLookupEnabled,
@@ -244,26 +187,6 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		"",
 		"The default Coherence Operator image to use if none is specified.",
 	)
-	cmd.Flags().String(
-		FlagValidatingWebhookName,
-		DefaultValidatingWebhookName,
-		"Name of the Kubernetes ValidatingWebhookConfiguration resource. Only used when enable-webhook is true.",
-	)
-	cmd.Flags().String(
-		FlagWebhookCertDir,
-		filepath.Join(os.TempDir(), "k8s-webhook-server", "serving-certs"),
-		"The name of the directory containing the webhook server key and certificate",
-	)
-	cmd.Flags().String(
-		FlagWebhookSecret,
-		"coherence-webhook-server-cert",
-		"K8s secret to be used for webhook certificates",
-	)
-	cmd.Flags().String(
-		FlagWebhookService,
-		"webhook-service",
-		"The K8s service used for the webhook",
-	)
 	cmd.Flags().StringArray(
 		FlagGlobalAnnotation,
 		nil,
@@ -284,32 +207,6 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	v.AutomaticEnv()
 }
 
-func ValidateFlags(v *viper.Viper) error {
-	var err error
-	certValidity := v.GetDuration(FlagCACertValidity)
-	certRotateBefore := v.GetDuration(FlagCACertRotateBefore)
-	if certRotateBefore > certValidity {
-		return fmt.Errorf("%s must be larger than %s", FlagCACertValidity, FlagCACertRotateBefore)
-	}
-
-	certType := v.GetString(FlagCertType)
-	if certType != CertTypeSelfSigned && certType != CertTypeCertManager && certType != CertTypeManual {
-		return fmt.Errorf("%s parameter is invalid", FlagCertType)
-	}
-
-	_, err = GetGlobalAnnotations(v)
-	if err != nil {
-		return err
-	}
-
-	_, err = GetGlobalLabels(v)
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
 func SetViper(v *viper.Viper) {
 	currentViper = v
 }
@@ -319,10 +216,6 @@ func GetViper() *viper.Viper {
 		return viper.GetViper()
 	}
 	return currentViper
-}
-
-func IsDevMode() bool {
-	return GetViper().GetBool(FlagDevMode)
 }
 
 func GetDefaultCoherenceImage() string {
@@ -369,52 +262,16 @@ func ShouldInstallJobCRD() bool {
 	return GetViper().GetBool(FlagJobCRD)
 }
 
-func ShouldEnableWebhooks() bool {
-	return GetViper().GetBool(FlagEnableWebhook) && !IsDryRun()
-}
-
 func IsDryRun() bool {
 	return GetViper().GetBool(FlagDryRun)
-}
-
-func ShouldUseSelfSignedCerts() bool {
-	return GetViper().GetString(FlagCertType) == CertTypeSelfSigned
-}
-
-func ShouldUseCertManager() bool {
-	return GetViper().GetString(FlagCertType) == CertTypeCertManager
 }
 
 func GetNamespace() string {
 	return GetViper().GetString(FlagOperatorNamespace)
 }
 
-func GetWebhookCertDir() string {
-	return GetViper().GetString(FlagWebhookCertDir)
-}
-
-func GetCACertRotateBefore() time.Duration {
-	return GetViper().GetDuration(FlagCACertRotateBefore)
-}
-
 func IsNodeLookupEnabled() bool {
 	return GetViper().GetBool(FlagNodeLookupEnabled)
-}
-
-func GetWebhookServiceDNSNames() []string {
-	var dns []string
-	s := GetViper().GetString(FlagWebhookService)
-	if IsDevMode() {
-		dns = []string{s}
-	} else {
-		ns := GetNamespace()
-		return []string{
-			fmt.Sprintf("%s.%s", s, ns),
-			fmt.Sprintf("%s.%s.svc", s, ns),
-			fmt.Sprintf("%s.%s.svc.cluster.local", s, ns),
-		}
-	}
-	return dns
 }
 
 func DetectKubernetesVersion(cs clients.ClientSet) (*version.Version, error) {
