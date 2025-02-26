@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -922,6 +922,7 @@ func AssertHelmInstallWithSubTest(t *testing.T, id string, cmd *exec.Cmd, g *Gom
 }
 
 func AssertHelmInstallWithStatefulSetSubTest(t *testing.T, id string, cmd *exec.Cmd, g *GomegaWithT, test StatefulSetSubTest) {
+	var err error
 	ns := helper.GetTestNamespace()
 
 	t.Cleanup(func() {
@@ -931,9 +932,6 @@ func AssertHelmInstallWithStatefulSetSubTest(t *testing.T, id string, cmd *exec.
 		Cleanup(ns, "operator")
 	})
 
-	t.Logf("Asserting Helm install. Removing Webhooks")
-	err := RemoveWebHook()
-	g.Expect(err).NotTo(HaveOccurred())
 	t.Logf("Asserting Helm install. Removing RBAC")
 	err = RemoveRBAC()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -984,25 +982,6 @@ func Cleanup(namespace, name string) {
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run()
 	_ = helper.WaitForDeleteOfPodsWithSelector(testContext, namespace, "control-plane=coherence", helper.RetryInterval, helper.Timeout)
-}
-
-// Remove the web-hooks that the Operator install creates to
-// ensure that nothing is left from a previous test.
-func RemoveWebHook() error {
-	// DefaultValidatingWebhookName
-	client := testContext.KubeClient.AdmissionregistrationV1()
-
-	err := client.MutatingWebhookConfigurations().Delete(goctx.TODO(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
-	if err != nil && !errors.IsNotFound(err) {
-		return err
-	}
-
-	err = client.ValidatingWebhookConfigurations().Delete(goctx.TODO(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
-	if err != nil && !errors.IsNotFound(err) {
-		return err
-	}
-
-	return nil
 }
 
 // Remove the CRDs that the Operator install creates.

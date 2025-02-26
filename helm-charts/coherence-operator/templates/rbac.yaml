@@ -7,7 +7,7 @@ metadata:
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -19,15 +19,15 @@ metadata:
 {{- if .Values.clusterRoles }}
 # -------------------------------------------------------------
 # This is the Cluster Roles required by the Coherence Operator
-# to self-manage its CRDs and Web-Hooks.
+# to self-manage its CRDs.
 # -------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: coherence-operator-crd-webhook-install
+  name: coherence-operator-crd-install
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -45,29 +45,18 @@ rules:
     - delete
     - get
     - update
-  - apiGroups:
-    - admissionregistration.k8s.io
-    resources:
-    - mutatingwebhookconfigurations
-    - validatingwebhookconfigurations
-    verbs:
-    - create
-    - delete
-    - get
-    - update
-    - watch
 ---
 # --------------------------------------------------------------------
 # This is the Cluster Role binding required by the Coherence Operator
-# to self-manage its CRDs and Web-Hooks.
+# to self-manage its CRDs.
 # --------------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: coherence-operator-crd-webhook-install
+  name: coherence-operator-crd-install
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -78,7 +67,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: coherence-operator-crd-webhook-install
+  name: coherence-operator-crd-install
 subjects:
 - kind: ServiceAccount
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
@@ -98,7 +87,7 @@ metadata:
   name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -126,7 +115,7 @@ metadata:
   name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -158,7 +147,7 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -253,7 +242,7 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -283,7 +272,7 @@ kind: Role
 metadata:
   name: leader-election-role
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -333,7 +322,7 @@ kind: RoleBinding
 metadata:
   name: leader-election-rolebinding
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}

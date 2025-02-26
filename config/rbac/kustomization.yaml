@@ -11,6 +11,12 @@ resources:
   - node_viewer_role_binding.yaml
   - leader_election_role.yaml
   - leader_election_role_binding.yaml
+  # These roles allow the Operator to install its own CRD
+  # If these are removed the Operator must be run with the
+  # command line arguments to not install CRDs and the CRDs
+  # must already be manually installed
+  - crd_install_role.yaml
+  - crd_install_role_binding.yaml
   # The following RBAC configurations are used to protect
   # the metrics endpoint with authn/authz. These configurations
   # ensure that only authorized users and service accounts
