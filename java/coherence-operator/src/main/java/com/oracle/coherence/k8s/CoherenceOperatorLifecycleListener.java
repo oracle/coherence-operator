@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -292,7 +292,8 @@ public class CoherenceOperatorLifecycleListener
             }
 
             // If we have a COHCTL_HOME env var or property try to create the config there
-            if (cohCtlHome != null && !cohCtlHome.isEmpty() && tryCreateConfig(new File(cohCtlHome), connectionType, protocol, port, clusterName)) {
+            if (cohCtlHome != null && !cohCtlHome.isEmpty()
+                && tryCreateConfig(new File(cohCtlHome), connectionType, protocol, port, clusterName)) {
                 return;
             }
 
@@ -313,10 +314,12 @@ public class CoherenceOperatorLifecycleListener
                 }
                 else {
                     if (!fileCohCtlHome.exists()) {
-                        LOGGER.error("CoherenceOperator: Cannot create cohctl config, directory " + fileCohCtlHome + " does not exist");
+                        LOGGER.error("CoherenceOperator: Cannot create cohctl config, directory "
+                                             + fileCohCtlHome + " does not exist");
                     }
                     else {
-                        LOGGER.error("CoherenceOperator: Cannot create cohctl config, location " + fileCohCtlHome + " is not a directory");
+                        LOGGER.error("CoherenceOperator: Cannot create cohctl config, location "
+                                             + fileCohCtlHome + " is not a directory");
                     }
                 }
             }
@@ -334,6 +337,17 @@ public class CoherenceOperatorLifecycleListener
         }
     }
 
+    /**
+     * Try to create the Coherence CLI configuration.
+     *
+     * @param home            the location of the CLI home directory
+     * @param connectionType  the type of the connection http or https
+     * @param protocol        the protocol for the connection http or https
+     * @param port            the management over REST port
+     * @param clusterName     the cluster name
+     *
+     * @return {@code true} of the configuration was created
+     */
     protected boolean tryCreateConfig(File home, String connectionType, String protocol, String port, String clusterName) {
         File configFile = new File(home, "cohctl.yaml");
 
