@@ -305,6 +305,17 @@ public class CoherenceOperatorLifecycleListener
             if (fileUserHome.exists() && fileUserHome.isDirectory()) {
                 // use ${user.home}/.cohctl
                 fileCohCtlHome = new File(fileUserHome, ".cohctl");
+                if (!fileCohCtlHome.exists()) {
+                    try {
+                        if (!fileCohCtlHome.mkdirs()) {
+                            fileCohCtlHome = null;
+                        }
+                    }
+                    catch (Exception e) {
+                        LOGGER.error("CoherenceOperator: Failed to create cohctl home directory at " + fileCohCtlHome, e);
+                        fileCohCtlHome = null;
+                    }
+                }
             }
 
             boolean success = false;
