@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/events"
 	mgmt "github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/spf13/viper"
@@ -25,7 +26,7 @@ import (
 	"strings"
 )
 
-// Result is a string used to handle the results for probing container readiness/livenss
+// Result is a string used to handle the results for probing container readiness/liveness
 type Result string
 
 const (
@@ -42,6 +43,7 @@ var log = logf.Log.WithName("Probe")
 type CoherenceProbe struct {
 	Client         client.Client
 	Config         *rest.Config
+	EventRecorder  events.OwnedEventRecorder
 	getPodHostName func(pod corev1.Pod) string
 	translatePort  func(name string, port int) int
 }
@@ -133,32 +135,26 @@ func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment coh.Co
 	stsSpec, _ := c.GetStatefulSetSpec()
 
 	if viper.GetBool(operator.FlagSkipServiceSuspend) {
-		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
-			operator.FlagSkipServiceSuspend+" is set to true",
-			"Namespace", ns, "Name", name)
-		return ServiceSuspendSkipped
-	}
-
-	// check whether the Coherence deployment supports service suspension
-	ann := deployment.GetAnnotations()
-	if ann[coh.AnnotationFeatureSuspend] != "true" {
-		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
-			coh.AnnotationFeatureSuspend+" annotation is missing or not set to true",
-			"Namespace", ns, "Name", name)
+		msg := fmt.Sprintf("Skipping suspension of Coherence services in StatefulSet %s, flag %s is set to true",
+			sts.Name, operator.FlagSkipServiceSuspend)
+		log.Info(msg, "Namespace", ns, "Name", name)
+		in.EventRecorder.Warn("ServiceSuspendSkipped", msg)
 		return ServiceSuspendSkipped
 	}
 
 	if !stsSpec.IsSuspendServicesOnShutdown() {
-		log.Info("Skipping suspension of Coherence services in StatefulSet "+sts.Name+
-			" spec.SuspendServicesOnShutdown is set to false",
-			"Namespace", ns, "Name", name)
+		msg := fmt.Sprintf("Skipping suspension of Coherence services in StatefulSet %s, spec.SuspendServicesOnShutdown is set to false", sts.Name)
+		log.Info(msg, "Namespace", ns, "Name", name)
+		in.EventRecorder.Warn("ServiceSuspendSkipped", msg)
 		return ServiceSuspendSkipped
 	}
 
 	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", ns, "Name", name)
 	if in.ExecuteProbe(ctx, sts, deployment.GetWkaServiceName(), stsSpec.GetSuspendProbe()) {
+		in.EventRecorder.Warnf("ServiceSuspendFailed", "failed to suspend Coherence services in StatefulSet %s", sts.Name)
 		return ServiceSuspendSuccessful
 	}
+	in.EventRecorder.Infof("ServiceSuspended", "suspended Coherence services in StatefulSet %s", sts.Name)
 	return ServiceSuspendFailed
 }
 
@@ -176,6 +172,7 @@ func (in *CoherenceProbe) ExecuteProbe(ctx context.Context, sts *appsv1.Stateful
 	pods, err := in.GetPodsForStatefulSet(ctx, sts)
 	if err != nil {
 		log.Error(err, "Error getting list of Pods for StatefulSet "+sts.Name)
+		in.EventRecorder.Infof("CheckStatusHA", "Failed to get pods for StatefulSet %s: %s", sts.Name, err.Error())
 		return false
 	}
 	return in.ExecuteProbeForSubSetOfPods(ctx, sts, svc, probe, pods, pods)
@@ -187,7 +184,9 @@ func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *
 	// All Pods must be in the Running Phase
 	for _, pod := range stsPods.Items {
 		if ready, phase := in.IsPodReady(pod); !ready {
-			logger.Info(fmt.Sprintf("Cannot execute probe, one or more Pods is not in a ready state - %s (%v) ", pod.Name, phase))
+			msg := fmt.Sprintf("Cannot execute probe, one or more Pods is not in a ready state - %s (%v) ", pod.Name, phase)
+			logger.Info(msg)
+			in.EventRecorder.Warn("CheckStatusHA", msg)
 			return false
 		}
 	}
@@ -195,13 +194,19 @@ func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *
 	count := int32(len(stsPods.Items))
 	switch {
 	case count == 0:
-		logger.Info("Cannot find any Pods for StatefulSet " + sts.Name)
+		msg := fmt.Sprintf("Skipping StatusHA check, no Pods found in StatefulSet %s", sts.Name)
+		logger.Info(msg)
+		in.EventRecorder.Info("CheckStatusHA", msg)
 		return true
 	case sts.Spec.Replicas == nil && count != 1:
-		logger.Info(fmt.Sprintf("Pod count of %d does not yet match StatefulSet replica count: 1", count))
+		msg := fmt.Sprintf("Pod count of %d does not yet match StatefulSet replica count: 1", count)
+		logger.Info(msg)
+		in.EventRecorder.Info("CheckStatusHA", msg)
 		return false
 	case sts.Spec.Replicas != nil && count != *sts.Spec.Replicas:
-		logger.Info(fmt.Sprintf("Pod count of %d does not yet match StatefulSet replica count: %d", count, *sts.Spec.Replicas))
+		msg := fmt.Sprintf("Pod count of %d does not yet match StatefulSet replica count: %d", count, *sts.Spec.Replicas)
+		in.EventRecorder.Info("CheckStatusHA", msg)
+		logger.Info(msg)
 		return false
 	}
 
@@ -213,12 +218,18 @@ func (in *CoherenceProbe) ExecuteProbeForSubSetOfPods(ctx context.Context, sts *
 
 			ha, err := in.RunProbe(ctx, pod, svc, probe)
 			if err == nil {
-				log.Info(fmt.Sprintf("Executed probe using pod %s result=%t", pod.Name, ha))
+				msg := fmt.Sprintf("Executed probe using pod %s result=%t", pod.Name, ha)
+				log.Info(msg)
+				in.EventRecorder.Info("CheckStatusHA", msg)
 				return ha
 			}
-			log.Info(fmt.Sprintf("Execute probe using pod %s (%t) error %s", pod.Name, ha, err.Error()))
+			msg := fmt.Sprintf("Execute probe using pod %s (%t) error %s", pod.Name, ha, err.Error())
+			in.EventRecorder.Warn("CheckStatusHA", msg)
+			log.Info(msg)
 		} else {
-			log.Info("Skipping execute probe for pod " + pod.Name + " as Pod status not in running phase")
+			msg := fmt.Sprintf("Skipping execute probe for pod %s as Pod status not in running phase", pod.Name)
+			log.Info(msg)
+			in.EventRecorder.Warn("CheckStatusHA", msg)
 		}
 	}
 

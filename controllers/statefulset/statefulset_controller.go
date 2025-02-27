@@ -13,6 +13,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/events"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -119,6 +120,8 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	stsCurrent, stsExists, err := in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
 	if err != nil {
 		logger.Info("Finished reconciling StatefulSet for deployment. Error getting StatefulSet", "error", err.Error())
+		in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonReconciling,
+			"error getting statefulset for deployment %s, %s", request.Name, err.Error())
 		return result, errors.Wrapf(err, "getting StatefulSet %s/%s", request.Namespace, request.Name)
 	}
 
@@ -132,6 +135,8 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		// find the owning Coherence resource
 		if deployment, err = in.FindOwningCoherenceResource(ctx, stsCurrent); err != nil {
 			logger.Info("Finished reconciling StatefulSet. Error finding parent Coherence resource", "error", err.Error())
+			in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonReconciling,
+				"finding parent Coherence resource %s, %s", request.Name, err.Error())
 			return reconcile.Result{}, err
 		}
 	}
@@ -146,6 +151,8 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				// If the Coherence resource did not exist then service suspension already happened
 				// when the Coherence resource was deleted.
 				logger.Info("Scaling down to zero")
+				in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+					"scaling statefuleset %s down to zero", request.Name)
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, false)
 				// TODO: what to do with error?
 				if err != nil {
@@ -153,14 +160,22 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				}
 				stsSpec, _ := deployment.GetStatefulSetSpec()
 				if stsSpec.IsSuspendServicesOnShutdown() {
+					in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+						"suspending Coherence services in statefuleset %s", request.Name)
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
 					switch suspended {
 					case probe.ServiceSuspendFailed:
+						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonScaling,
+							"failed suspending Coherence services in statefuleset %s", request.Name)
 						return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
 					case probe.ServiceSuspendSkipped:
-						logger.Info("Skipping suspension of Coherence services prior to deletion of StatefulSet")
+						logger.Info("skipping suspension of Coherence services prior to deletion of StatefulSet")
+						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+							"skipped suspended Coherence services in statefuleset %s", request.Name)
 					case probe.ServiceSuspendSuccessful:
+						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+							"suspended Coherence services in statefuleset %s", request.Name)
 					}
 				}
 			}
@@ -523,8 +538,9 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 // suspendServices suspends Coherence services in the target deployment.
 func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) probe.ServiceSuspendStatus {
 	probe := probe.CoherenceProbe{
-		Client: in.GetClient(),
-		Config: in.GetManager().GetConfig(),
+		Client:        in.GetClient(),
+		Config:        in.GetManager().GetConfig(),
+		EventRecorder: events.NewOwnedEventRecorder(deployment, in.GetEventRecorder()),
 	}
 	return probe.SuspendServices(ctx, deployment, current)
 }

@@ -7,7 +7,7 @@ metadata:
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -27,7 +27,7 @@ metadata:
   name: coherence-operator-crd-webhook-install
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -67,7 +67,7 @@ metadata:
   name: coherence-operator-crd-webhook-install
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -98,7 +98,7 @@ metadata:
   name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -126,7 +126,7 @@ metadata:
   name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -158,7 +158,7 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -266,7 +266,7 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -296,7 +296,7 @@ kind: Role
 metadata:
   name: leader-election-role
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -346,7 +346,7 @@ kind: RoleBinding
 metadata:
   name: leader-election-rolebinding
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}

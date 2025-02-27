@@ -3,8 +3,8 @@ kind: Kustomization
 
 resources:
 - webhook-secret.yaml
-- manager.yaml
 - service.yaml
+- manager.yaml
 
 images:
 - name: controller

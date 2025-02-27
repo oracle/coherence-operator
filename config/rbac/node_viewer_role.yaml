@@ -9,7 +9,8 @@ kind: ClusterRole
 metadata:
   name: node-viewer-role
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
 rules:
 - apiGroups:
   - ""

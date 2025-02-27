@@ -1,0 +1,27 @@
+# permissions for end users to edit coherencejob.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: coherencejob-editor-role
+rules:
+- apiGroups:
+  - coherence.oracle.com
+  resources:
+  - coherencejob
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - coherence.oracle.com
+  resources:
+  - coherencejob/status
+  verbs:
+  - get
