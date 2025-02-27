@@ -194,6 +194,14 @@ clusterRoles: true
 # The default is true.
 nodeRoles: false
 
+# The Coherence Operator no longer uses a web-hook.
+# If a previous instance f the Operator was installed that included web-hook these will need to be disabled.
+# otherwise it will not be possible to create or update Coherence resources.
+# When this flag has a value of true (which is the default) web-hook configurations will be created that will
+# be no-op configurations and will override any previous web-hooks that the old Operator created.
+# If the previous Operator install did not use web-hooks this value can be set to false
+webhooks: true
+
 # If set to false, the Operator will not support the CoherenceJob resource type.
 # The CoherenceJob CRD will not be installed by the Operator and the Operator will
 # not listen for any CoherenceJob resource events.

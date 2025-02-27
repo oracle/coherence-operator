@@ -9,5 +9,7 @@ patches:
     target:
       kind: Deployment
       name: controller-manager
+  - path: validating-webhook.yaml
+  - path: mutating-webhook.yaml
   - path: node-viewer-role.yaml
   - path: node_viewer_role_binding.yaml

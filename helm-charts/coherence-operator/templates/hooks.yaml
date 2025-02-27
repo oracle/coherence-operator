@@ -1,0 +1,48 @@
+# -------------------------------------------------------------
+# This file is used to overwrite any previous web-hooks that
+# a previous Coherence Operator install may have created.
+# The current operator version does not use web-hooks so any
+# existing web-hooks will need to be deleted. As Helm does
+# not really do deletes as part of an install instead we create
+# the web-hooks with what is effectively a no-op configuration.
+# The web-hooks configurations will never actually match any
+# resources so the API server will never attempt to call the
+# now non-existent server.
+#
+# If it is known that the old Operator web-hooks configurations
+# do not exist, then the chart can be installed with the
+# webhooks value in the values.yaml file set to false.
+#
+# -------------------------------------------------------------
+{{- if (.Values.webhooks) }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validating-webhook-configuration
+webhooks:
+  - name: coherence.oracle.com
+    admissionReviewVersions:
+      - v1
+    rules: []
+    sideEffects: None
+    clientConfig:
+      service:
+        name: webhook
+        namespace: default
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: mutating-webhook-configuration
+webhooks:
+  - name: coherence.oracle.com
+    admissionReviewVersions:
+      - v1
+    rules: []
+    sideEffects: None
+    clientConfig:
+      service:
+        name: webhook
+        namespace: default
+{{- end }}

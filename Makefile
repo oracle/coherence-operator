@@ -1733,7 +1733,7 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/restricted >> $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
-	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
+	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
 	cd $(BUILD_MANIFESTS)/crd && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
 	rm $(BUILD_MANIFESTS)/crd/temp.yaml
 	mv $(BUILD_MANIFESTS)/crd/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml

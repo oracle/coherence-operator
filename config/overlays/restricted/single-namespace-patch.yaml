@@ -1,3 +1,7 @@
+#
+# This patch will configure the Operator to only manage the
+# single namespace that it is installed into.
+#
 - op: add
   path: /spec/template/spec/containers/0/env/-
   value:
