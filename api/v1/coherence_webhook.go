@@ -7,6 +7,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"github.com/distribution/reference"
 	"github.com/go-test/deep"
@@ -44,22 +45,28 @@ const MutatingWebHookPath = "/mutate-coherence-oracle-com-v1-coherence"
 
 // An anonymous var to ensure that the Coherence struct implements webhook.Defaulter
 // there will be a compile time error here if this fails.
-var _ webhook.Defaulter = &Coherence{}
+var _ webhook.CustomDefaulter = &Coherence{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (in *Coherence) Default() {
-	spec, _ := in.GetStatefulSetSpec()
+func (in *Coherence) Default(_ context.Context, obj runtime.Object) error {
+	coh, ok := obj.(*Coherence)
+	if !ok {
+		return fmt.Errorf("expected a Coherence instance but got a %T", obj)
+	}
+
+	spec, _ := coh.GetStatefulSetSpec()
 	// set the default replicas if not present
 	if spec.Replicas == nil {
 		spec.SetReplicas(spec.GetReplicas())
 	}
-	SetCommonDefaults(in)
+	SetCommonDefaults(coh)
 
 	// apply a label with the hash of the spec - ths must be the last action here to make sure that
 	// any modifications to the spec field are included in the hash
-	if hash, applied := EnsureCoherenceHashLabel(in); applied {
+	if hash, applied := EnsureCoherenceHashLabel(coh); applied {
 		webhookLogger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 	}
+	return nil
 }
 
 // SetCommonDefaults sets defaults common to both a Job and StatefulSet
@@ -135,31 +142,36 @@ const ValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherence"
 
 // An anonymous var to ensure that the Coherence struct implements webhook.Validator
 // there will be a compile time error here if this fails.
-var _ webhook.Validator = &Coherence{}
+var _ webhook.CustomValidator = &Coherence{}
 var commonWebHook = CommonWebHook{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (in *Coherence) ValidateCreate() (admission.Warnings, error) {
-	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
+func (in *Coherence) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+	coh, ok := obj.(*Coherence)
+	if !ok {
+		return nil, fmt.Errorf("expected a Coherence instance but got a %T", obj)
+	}
+
+	logger := webhookLogger.WithValues("namespace", coh.GetNamespace(), "name", coh.GetName())
 	var warnings admission.Warnings
 
-	dt := in.GetDeletionTimestamp()
+	dt := coh.GetDeletionTimestamp()
 	if dt != nil {
 		// the deletion timestamp is set so do nothing
 		logger.Info("Skipping validation for deleted resource", "deletionTimestamp", *dt)
 		return warnings, nil
 	}
 
-	webhookLogger.Info("validate create", "name", in.Name)
-	if err := commonWebHook.validateReplicas(in); err != nil {
+	webhookLogger.Info("validate create", "name", coh.Name)
+	if err := commonWebHook.validateReplicas(coh); err != nil {
 		return warnings, err
 	}
-	if err := commonWebHook.validateImages(in); err != nil {
+	if err := commonWebHook.validateImages(coh); err != nil {
 		return warnings, err
 	}
-	if err := commonWebHook.validateNodePorts(in); err != nil {
+	if err := commonWebHook.validateNodePorts(coh); err != nil {
 		return warnings, err
 	}
 	return warnings, nil
@@ -168,39 +180,47 @@ func (in *Coherence) ValidateCreate() (admission.Warnings, error) {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (in *Coherence) ValidateUpdate(previous runtime.Object) (admission.Warnings, error) {
-	webhookLogger.Info("validate update", "name", in.Name)
-	logger := webhookLogger.WithValues("namespace", in.GetNamespace(), "name", in.GetName())
+func (in *Coherence) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
+	cohNew, ok := newObj.(*Coherence)
+	if !ok {
+		return nil, fmt.Errorf("expected a Coherence instance for new value but got a %T", newObj)
+	}
+	cohPrev, ok := oldObj.(*Coherence)
+	if !ok {
+		return nil, fmt.Errorf("expected a Coherence instance for old value but got a %T", newObj)
+	}
+
+	webhookLogger.Info("validate update", "name", cohNew.Name)
+	logger := webhookLogger.WithValues("namespace", cohNew.GetNamespace(), "name", cohNew.GetName())
 	var warnings admission.Warnings
 
-	dt := in.GetDeletionTimestamp()
+	dt := cohNew.GetDeletionTimestamp()
 	if dt != nil {
 		// the deletion timestamp is set so do nothing
 		logger.Info("Skipping validation for deleted resource", "deletionTimestamp", *dt)
 		return warnings, nil
 	}
 
-	if err := commonWebHook.validateReplicas(in); err != nil {
+	if err := commonWebHook.validateReplicas(cohNew); err != nil {
 		return warnings, err
 	}
-	if err := commonWebHook.validateImages(in); err != nil {
+	if err := commonWebHook.validateImages(cohNew); err != nil {
 		return warnings, err
 	}
-	prev := previous.(*Coherence)
 
-	if err := commonWebHook.validatePersistence(in, prev); err != nil {
+	if err := commonWebHook.validatePersistence(cohNew, cohPrev); err != nil {
 		return warnings, err
 	}
-	if err := in.validateVolumeClaimTemplates(prev); err != nil {
+	if err := cohNew.validateVolumeClaimTemplates(cohNew, cohPrev); err != nil {
 		return warnings, err
 	}
-	if err := commonWebHook.validateNodePorts(in); err != nil {
+	if err := commonWebHook.validateNodePorts(cohNew); err != nil {
 		return warnings, err
 	}
 
 	var errorList field.ErrorList
-	sts := in.Spec.CreateStatefulSet(in)
-	stsOld := prev.Spec.CreateStatefulSet(prev)
+	sts := cohNew.Spec.CreateStatefulSet(cohNew)
+	stsOld := cohPrev.Spec.CreateStatefulSet(cohPrev)
 	errorList = ValidateStatefulSetUpdate(&sts, &stsOld)
 
 	if len(errorList) > 0 {
@@ -213,27 +233,27 @@ func (in *Coherence) ValidateUpdate(previous runtime.Object) (admission.Warnings
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (in *Coherence) ValidateDelete() (admission.Warnings, error) {
+func (in *Coherence) ValidateDelete(context.Context, runtime.Object) (admission.Warnings, error) {
 	// we do not need to validate deletions
 	return nil, nil
 }
 
-func (in *Coherence) validateVolumeClaimTemplates(previous *Coherence) error {
-	if in.GetReplicas() == 0 || previous.GetReplicas() == 0 {
+func (in *Coherence) validateVolumeClaimTemplates(cohNew, cohPrev *Coherence) error {
+	if cohNew.GetReplicas() == 0 || cohPrev.GetReplicas() == 0 {
 		// changes are allowed if current or previous replicas == 0
 		return nil
 	}
 
-	if len(in.Spec.VolumeClaimTemplates) == 0 && len(previous.Spec.VolumeClaimTemplates) == 0 {
+	if len(cohNew.Spec.VolumeClaimTemplates) == 0 && len(cohPrev.Spec.VolumeClaimTemplates) == 0 {
 		// no PVCs in either deployment
 		return nil
 	}
 
-	diff := deep.Equal(previous.Spec.VolumeClaimTemplates, in.Spec.VolumeClaimTemplates)
+	diff := deep.Equal(cohPrev.Spec.VolumeClaimTemplates, cohNew.Spec.VolumeClaimTemplates)
 	if len(diff) != 0 {
 		return fmt.Errorf("the Coherence resource \"%s\" is invalid: "+
 			"changes cannot be made to spec.volumeclaimtemplates unless spec.replicas == 0 or the previous"+
-			" instance of the resource has spec.replicas == 0", in.Name)
+			" instance of the resource has spec.replicas == 0", cohNew.Name)
 	}
 	return nil
 }

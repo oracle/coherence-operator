@@ -14,12 +14,12 @@ ARG release
 
 LABEL "com.oracle.coherence.application"="operator"
 LABEL "com.oracle.coherence.version"="$version"
+LABEL "org.opencontainers.image.version"="$version"
 LABEL "org.opencontainers.image.revision"="$release"
-LABEL "org.opencontainers.image.description"="The Oracle Coherece Kubernetes Operator image ($target)"
 LABEL "org.opencontainers.image.source"="https://github.com/oracle/coherence-operator"
 LABEL "org.opencontainers.image.authors"="To contact the authors use this link https://github.com/oracle/coherence-operator/discussions"
 LABEL "org.opencontainers.image.licenses"="UPL-1.0"
-LABEL "org.opencontainers.image.description"="The Oracle Coherece Kubernetes Operator allows full lifecycle management of Oracle Coherence workloads in Kubernetes."
+LABEL "org.opencontainers.image.description"="The Oracle Coherence Kubernetes Operator allows full lifecycle management of Oracle Coherence workloads in Kubernetes."
 
 LABEL "name"="Oracle Coherence Kubernetes Operator"
 LABEL "vendor"="Oracle"

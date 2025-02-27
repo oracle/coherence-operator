@@ -12,11 +12,11 @@ import (
 	"github.com/oracle/coherence-operator/pkg/utils"
 )
 
-func checkCoherenceHash(deployment *coh.Coherence, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
+func getDesiredResources(deployment *coh.Coherence, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
 	return checkHash(deployment, deployment.Status.Phase, storage, log)
 }
 
-func checkJobHash(deployment *coh.CoherenceJob, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
+func getDesiredJobResources(deployment *coh.CoherenceJob, storage utils.Storage, log logr.Logger) (coh.Resources, error) {
 	return checkHash(deployment, deployment.Status.Phase, storage, log)
 }
 

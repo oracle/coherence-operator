@@ -4,8 +4,8 @@ metadata:
   name: webhook
   namespace: default
   labels:
-    control-plane: coherence
     app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/instance: coherence-operator-webhook
     app.kubernetes.io/version: "3.4.3"
     app.kubernetes.io/component: webhook

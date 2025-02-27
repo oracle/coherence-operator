@@ -9,7 +9,8 @@ kind: ClusterRoleBinding
 metadata:
   name: node-viewer-rolebinding
   labels:
-    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

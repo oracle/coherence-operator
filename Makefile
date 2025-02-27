@@ -297,6 +297,7 @@ TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 TOOLS_MANIFESTS   = $(TOOLS_DIRECTORY)/manifests
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
+ENVTEST           = $(TOOLS_BIN)/setup-envtest
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
@@ -909,6 +910,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	@echo "" >> bundle.Dockerfile
 	@echo "# OpenShift labels" >> bundle.Dockerfile
 	@echo "LABEL com.redhat.openshift.versions=$(OPENSHIFT_MIN_VERSION)" >> bundle.Dockerfile
+	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate ./bundle
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.26
@@ -925,25 +927,21 @@ bundle-image: bundle  ## Build the OLM image
 	$(DOCKER_CMD) build --no-cache -f bundle.Dockerfile -t $(BUNDLE_IMAGE) --load .
 
 .PHONY: bundle-push
-bundle-push: ## Push the OLM bundle image.
+bundle-push: bundle-image ## Push the OLM bundle image.
 	$(DOCKER_CMD) push $(OPE) $(BUNDLE_IMAGE)
 
+OPM = $(TOOLS_BIN)/opm
+
 .PHONY: opm
-OPM = ./bin/opm
-opm: ## Download opm locally if necessary.
-ifeq (,$(wildcard $(OPM)))
-ifeq (,$(shell which opm 2>/dev/null))
+opm: $(TOOLS_BIN)/opm
+
+$(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 	@{ \
 	set -e ;\
-	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.15.1/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
 	chmod +x $(OPM) ;\
 	}
-else
-OPM = $(shell which opm)
-endif
-endif
 
 # A comma-separated list of bundle images
 # These images MUST exist in a registry and be pull-able.
@@ -962,11 +960,15 @@ endif
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
 catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) --bundles $(BUNDLE_IMAGE_LIST) $(FROM_INDEX_OPT)
+	mkdir -p $(BUILD_OUTPUT)/catalog
+	$(OPM) index add --out-dockerfile $(BUILD_OUTPUT)/catalog/index.Dockerfile \
+		--container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) \
+		--bundles $(BUNDLE_IMAGE_LIST) $(FROM_INDEX_OPT)
+	rm -rf index_build_tmp*
 
 # Push the catalog image.
 .PHONY: catalog-push
-catalog-push: ## Push a catalog image.
+catalog-push: catalog-build ## Push a catalog image.
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(CATALOG_IMAGE)
 
 .PHONY: scorecard
@@ -1046,9 +1048,6 @@ preflight-oc-cleanup: $(BUILD_PREFLIGHT)/preflight.yaml ## Clean up the OpenShif
 # This is usually obtained by running:
 #     echo -n bogus:$(oc whoami -t) | base64
 PREFLIGHT_REGISTRY_CRED ?=
-
-.PHONY: jk
-jk: $(BUILD_PREFLIGHT)/preflight.yaml
 
 # Generate the preflight job yaml
 $(BUILD_PREFLIGHT)/preflight.yaml: hack/preflight.yaml
@@ -1732,7 +1731,7 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/restricted >> $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
-	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
+	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
 	cd $(BUILD_MANIFESTS)/crd && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
 	rm $(BUILD_MANIFESTS)/crd/temp.yaml
 	mv $(BUILD_MANIFESTS)/crd/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
@@ -2307,15 +2306,28 @@ test-examples: build-examples
 # ----------------------------------------------------------------------------------------------------------------------
 PUSH_ARGS ?=
 
+#.PHONY: push-operator-image
+#push-operator-image: $(BUILD_TARGETS)/build-operator
+#	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
+#	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
+#	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
+#	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
+#		--amend $(OPERATOR_IMAGE_AMD) \
+#		--amend $(OPERATOR_IMAGE_ARM)
+#	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_IMAGE)
+
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
-	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
-	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
-		--amend $(OPERATOR_IMAGE_AMD) \
-		--amend $(OPERATOR_IMAGE_ARM)
-	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_IMAGE)
+	chmod +x $(CURRDIR)/hack/run-buildah.sh
+	export OPERATOR_IMAGE=$(OPERATOR_IMAGE) \
+	&& export OPERATOR_IMAGE_AMD=$(OPERATOR_IMAGE_AMD) \
+	&& export OPERATOR_IMAGE_ARM=$(OPERATOR_IMAGE_ARM) \
+	&& export OPERATOR_IMAGE_REGISTRY=$(OPERATOR_IMAGE_REGISTRY) \
+	&& export VERSION=$(VERSION) \
+	&& export REVISION=$(GITCOMMIT) \
+	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& $(CURRDIR)/hack/run-buildah.sh PUSH
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
@@ -2409,10 +2421,10 @@ push-ttl-operator-images:
 push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Push all of the Docker images that are released
+# Push all of the images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image tanzu-repo
+push-release-images: push-operator-image bundle-push catalog-push tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
