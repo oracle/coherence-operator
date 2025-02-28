@@ -32,8 +32,11 @@ var (
 )
 
 func (in *Coherence) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	hook := &Coherence{}
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(in).
+		WithDefaulter(hook).
+		WithValidator(hook).
 		Complete()
 }
 

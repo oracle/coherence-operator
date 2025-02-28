@@ -33,3 +33,21 @@ replacements:
           name: controller-manager
         fieldPaths:
           - spec.template.spec.containers.0.env.[name=SERVICE_NAME].value
+  - source:
+      kind: Service
+      name: webhook
+    targets:
+      - select:
+          kind: Deployment
+          name: controller-manager
+        fieldPaths:
+          - spec.template.spec.containers.0.env.[name=WEBHOOK_SERVICE].value
+  - source:
+      kind: Secret
+      name: coherence-webhook-server-cert
+    targets:
+      - select:
+          kind: Deployment
+          name: controller-manager
+        fieldPaths:
+          - spec.template.spec.containers.0.env.[name=WEBHOOK_SECRET].value

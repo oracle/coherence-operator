@@ -15,7 +15,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-      control-plane: coherence
+      app.kubernetes.io/name: coherence-operator
+      app.kubernetes.io/instance: coherence-operator-manager
+      app.kubernetes.io/version: "3.4.3"
   replicas: 3
   template:
     metadata:
@@ -72,9 +74,9 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: WEBHOOK_SERVICE
-            value: $(WEBHOOK_SERVICE_NAME)
+            value: WEBHOOK_SERVICE_NAME
           - name: WEBHOOK_SECRET
-            value: $(WEBHOOK_SECRET_NAME)
+            value: WEBHOOK_SECRET_NAME
           - name: SERVICE_NAME
             value: REST_SERVICE_NAME
           - name: CERT_TYPE

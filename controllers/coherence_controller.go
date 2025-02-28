@@ -272,7 +272,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	if applied {
 		// We updated the Coherence resource, so requeue the event
 		in.GetEventRecorder().Eventf(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated,
-			fmt.Sprintf("applied version annotation"))
+			"applied version annotation")
 		return ctrl.Result{Requeue: true}, nil
 	}
 
