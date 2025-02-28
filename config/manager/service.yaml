@@ -16,6 +16,7 @@ spec:
       port: 443
       targetPort: webhook-server
   selector:
+    control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
     app.kubernetes.io/version: "3.4.3"
@@ -39,6 +40,7 @@ spec:
       port: 8000
       targetPort: operator
   selector:
+    control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
     app.kubernetes.io/version: "3.4.3"

@@ -4,8 +4,11 @@ kind: Role
 metadata:
   name: leader-election-role
   labels:
+    control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/version: "3.4.3"
+    app.kubernetes.io/part-of: coherence-operator
 rules:
   - apiGroups:
       - ""

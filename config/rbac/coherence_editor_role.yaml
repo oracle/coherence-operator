@@ -3,8 +3,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
+    control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/version: "3.4.3"
+    app.kubernetes.io/part-of: coherence-operator
   name: coherence-editor-role
 rules:
   - apiGroups:

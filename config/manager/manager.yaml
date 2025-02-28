@@ -4,17 +4,19 @@ metadata:
   name: controller-manager
   namespace: default
   labels:
+    app: coherence-operator
+    control-plane: coherence
+    version: "3.4.3"
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/managed-by: kustomize
-    app: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
     app.kubernetes.io/version: "3.4.3"
-    version: "3.4.3"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
 spec:
   selector:
     matchLabels:
+      control-plane: coherence
       app.kubernetes.io/name: coherence-operator
       app.kubernetes.io/instance: coherence-operator-manager
       app.kubernetes.io/version: "3.4.3"
@@ -22,14 +24,16 @@ spec:
   template:
     metadata:
       labels:
+        app: coherence-operator
+        control-plane: coherence
+        version: "3.4.3"
         app.kubernetes.io/name: coherence-operator
         app.kubernetes.io/managed-by: kustomize
-        app: coherence-operator
         app.kubernetes.io/instance: coherence-operator-manager
         app.kubernetes.io/version: "3.4.3"
-        version: "3.4.3"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
+        app.kubernetes.io/created-by: controller-manager
       annotations:
         alpha.image.policy.openshift.io/resolve-names: '*'
     spec:

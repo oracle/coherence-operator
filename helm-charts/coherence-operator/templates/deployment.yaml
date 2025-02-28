@@ -11,6 +11,9 @@ metadata:
 {{- end }}
 {{- if (.Values.globalAnnotations) }}
   annotations:
+    control-plane: coherence
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{ toYaml .Values.globalAnnotations | indent 4 }}
 {{- end }}
 {{- end }}
@@ -83,14 +86,15 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
+    app: coherence-operator
     control-plane: coherence
+    version: "${VERSION}"
     app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/instance: coherence-operator-manager
     app.kubernetes.io/version: "${VERSION}"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
-    app.kubernetes.io/managed-by: helm
-    app.kubernetes.io/created-by: controller-manager
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -111,16 +115,21 @@ spec:
   selector:
     matchLabels:
       control-plane: coherence
+      app.kubernetes.io/name: coherence-operator
+      app.kubernetes.io/instance: coherence-operator-manager
+      app.kubernetes.io/version: "${VERSION}"
   template:
     metadata:
       labels:
+        app: coherence-operator
         control-plane: coherence
+        version: "${VERSION}"
         app.kubernetes.io/name: coherence-operator
+        app.kubernetes.io/managed-by: helm
         app.kubernetes.io/instance: coherence-operator-manager
         app.kubernetes.io/version: "${VERSION}"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
-        app.kubernetes.io/managed-by: helm
         app.kubernetes.io/created-by: controller-manager
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 8 }}
