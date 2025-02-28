@@ -9,6 +9,7 @@ namespace: default
 namePrefix: "coherence-operator-"
 
 resources:
+  - ../crd-small
   - ../rbac
   - ../manager
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
@@ -20,6 +21,13 @@ resources:
 # Only CR(s) which requires webhooks and are applied on namespaces labeled with 'webhooks: enabled' will
 # be able to communicate with the Webhook Server.
 #- ../network-policy
+
+labels:
+  - pairs:
+      control-plane: coherence
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/version: "3.4.3"
+      app.kubernetes.io/part-of: coherence-operator
 
 # Patch the SERVICE_NAME env var in the Operator Deployment
 # with the name of the Operator REST service.

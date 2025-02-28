@@ -90,7 +90,6 @@ metadata:
     control-plane: coherence
     version: "${VERSION}"
     app.kubernetes.io/name: coherence-operator
-    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/instance: coherence-operator-manager
     app.kubernetes.io/version: "${VERSION}"
     app.kubernetes.io/component: manager
@@ -115,9 +114,6 @@ spec:
   selector:
     matchLabels:
       control-plane: coherence
-      app.kubernetes.io/name: coherence-operator
-      app.kubernetes.io/instance: coherence-operator-manager
-      app.kubernetes.io/version: "${VERSION}"
   template:
     metadata:
       labels:

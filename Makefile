@@ -903,7 +903,7 @@ stop: ## kill any locally running operator process
 bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manifests $(MANIFEST_FILES) ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
-	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --verbose --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	@echo "" >> ./bundle/metadata/annotations.yaml
 	@echo "  # OpenShift annotations" >> ./bundle/metadata/annotations.yaml
 	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> ./bundle/metadata/annotations.yaml
@@ -973,7 +973,7 @@ catalog-push: catalog-build ## Push a catalog image.
 
 .PHONY: scorecard
 scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard tests.
-	$(OPERATOR_SDK) scorecard ./bundle
+	$(OPERATOR_SDK) scorecard --verbose ./bundle
 
 # ======================================================================================================================
 # Targets to run a local container registry

@@ -1,22 +1,31 @@
 domain: oracle.com
 layout:
-- go.kubebuilder.io/v3
-projectName: coherence-operator
-repo: github.com/oracle/coherence-operator
-resources:
-- kind: Coherence
-  controller: true
-  domain: oracle.com
-  group: coherence.oracle.com
-  path: github.com/oracle/coherence-operator/api/v1
-  version: v1
-- kind: CoherenceJob
-  controller: true
-  domain: oracle.com
-  group: coherence.oracle.com
-  path: github.com/oracle/coherence-operator/api/v1
-  version: v1
-version: "3"
+- go.kubebuilder.io/v4
+multigroup: false
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
+projectName: coherence-operator
+repo: github.com/oracle/coherence-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: oracle.com
+  group: coherence.oracle.com
+  kind: Coherence
+  path: github.com/oracle/coherence-operator/api/v1
+  plural: coherence
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: oracle.com
+  group: coherence.oracle.com
+  kind: CoherenceJob
+  path: github.com/oracle/coherence-operator/api/v1
+  plural: coherencejob
+  version: v1
+version: "3"
