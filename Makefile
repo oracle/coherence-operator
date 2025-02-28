@@ -661,7 +661,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
-	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml)
+	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .

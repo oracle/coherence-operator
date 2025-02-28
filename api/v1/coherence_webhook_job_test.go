@@ -558,7 +558,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(context.Background(), current, prev)
+	_, err := current.ValidateUpdate(context.Background(), prev, current)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -703,6 +703,6 @@ func TestJobValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(context.Background(), current, prev)
+	_, err := current.ValidateUpdate(context.Background(), prev, current)
 	g.Expect(err).To(HaveOccurred())
 }

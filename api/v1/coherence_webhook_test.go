@@ -790,6 +790,6 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(context.Background(), current, prev)
+	_, err := current.ValidateUpdate(context.Background(), prev, current)
 	g.Expect(err).To(HaveOccurred())
 }
