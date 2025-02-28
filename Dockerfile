@@ -25,7 +25,7 @@ LABEL "name"="Oracle Coherence Kubernetes Operator"
 LABEL "vendor"="Oracle"
 LABEL "version"="$version"
 LABEL "release"="$release"
-LABEL "maintainer"="Oracle Coherence Engieering Team"
+LABEL "maintainer"="Oracle Coherence Engineering Team"
 LABEL "summary"="A Kubernetes Operator for managing Oracle Coherence clusters"
 LABEL "description"="The Oracle Coherece Kubernetes Operator allows full lifecycle management of Oracle Coherence workloads in Kubernetes."
 
