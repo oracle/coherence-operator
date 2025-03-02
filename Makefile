@@ -1156,7 +1156,7 @@ e2e-local-test: export VERSION := $(VERSION)
 e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets gotestsum undeploy install-crds  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
@@ -1176,7 +1176,7 @@ e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional te
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy-and-wait
+prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -1242,7 +1242,7 @@ e2e-k3d-test: export VERSION := $(VERSION)
 e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-k3d-test: reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
 
@@ -1265,7 +1265,7 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
@@ -1281,7 +1281,7 @@ e2e-helm-test: export COHERENCE_IMAGE_REGISTRY := $(COHERENCE_IMAGE_REGISTRY)
 e2e-helm-test: export COHERENCE_IMAGE_NAME := $(COHERENCE_IMAGE_NAME)
 e2e-helm-test: export COHERENCE_IMAGE_TAG := $(COHERENCE_IMAGE_TAG)
 e2e-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum  ## Run the Operator Helm chart end-to-end functional tests
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -1298,7 +1298,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
+e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -1704,6 +1704,9 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## U
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
 	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 	@echo "Undeploy Coherence Operator completed"
+	@echo "Uninstalling CRDs - executing deletion"
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true
+	@echo "Uninstall CRDs completed"
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2379,9 +2382,11 @@ push-ttl-test-images:
 .PHONY: build-compatibility-image
 build-compatibility-image: $(BUILD_TARGETS)/java
 	./mvnw -B -f java/operator-compatibility package -DskipTests \
+		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-compatibility exec:exec \
+		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
 
