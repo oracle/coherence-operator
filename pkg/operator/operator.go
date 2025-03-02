@@ -57,6 +57,7 @@ const (
 	FlagDevMode               = "coherence-dev-mode"
 	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"
+	FlagEnableHttp2           = "enable-http2"
 	FlagGlobalAnnotation      = "global-annotation"
 	FlagGlobalLabel           = "global-label"
 	FlagHealthAddress         = "health-addr"
@@ -68,6 +69,7 @@ const (
 	FlagRackLabel             = "rack-label"
 	FlagRestHost              = "rest-host"
 	FlagRestPort              = "rest-port"
+	FlagSecureMetrics         = "metrics-secure"
 	FlagServiceName           = "service-name"
 	FlagServicePort           = "service-port"
 	FlagSiteLabel             = "site-label"
@@ -183,6 +185,11 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		"Enables automatic installation/update of CoherenceJob CRD",
 	)
 	cmd.Flags().Bool(
+		FlagEnableHttp2,
+		false,
+		"If set, HTTP/2 will be enabled for the metrics and webhook servers",
+	)
+	cmd.Flags().Bool(
 		FlagEnableWebhook,
 		true,
 		"Enables the defaulting and validating web-hooks",
@@ -216,6 +223,11 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		FlagRestPort,
 		DefaultRestPort,
 		"The port that the REST server will bind to",
+	)
+	cmd.Flags().Bool(
+		FlagSecureMetrics,
+		true,
+		"FlagSecureMetrics",
 	)
 	cmd.Flags().String(
 		FlagServiceName,

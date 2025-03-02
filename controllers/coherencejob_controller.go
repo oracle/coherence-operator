@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strconv"
@@ -163,7 +164,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	storeHash, _ := storage.GetHash()
 	var desiredResources coh.Resources
 
-	desiredResources, err = checkJobHash(deployment, storage, log)
+	desiredResources, err = getDesiredJobResources(deployment, storage, log)
 	if err != nil {
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -258,6 +259,7 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.
 	return ctrl.NewControllerManagedBy(mgr).
 		For(template).
 		Named("coherencejob").
+		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(in)
 }
 

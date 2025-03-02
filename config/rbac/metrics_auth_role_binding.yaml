@@ -1,11 +1,7 @@
-# ---------------------------------------------------------------------
-# This is the Cluster Role binding required by the Coherence Operator
-# during normal operation to manage Coherence clusters.
-# ---------------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: manager-rolebinding
+  name: metrics-auth-rolebinding
   labels:
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
@@ -15,8 +11,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: manager-role
+  name: metrics-auth-role
 subjects:
 - kind: ServiceAccount
-  name: service-account
-  namespace: default
+  name: controller-manager
+  namespace: system

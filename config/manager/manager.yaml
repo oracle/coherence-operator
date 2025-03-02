@@ -4,12 +4,13 @@ metadata:
   name: controller-manager
   namespace: default
   labels:
-    control-plane: coherence
-    app.kubernetes.io/name: coherence-operator
     app: coherence-operator
+    control-plane: coherence
+    version: "3.4.3"
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/instance: coherence-operator-manager
     app.kubernetes.io/version: "3.4.3"
-    version: "3.4.3"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
 spec:
@@ -20,14 +21,16 @@ spec:
   template:
     metadata:
       labels:
-        control-plane: coherence
-        app.kubernetes.io/name: coherence-operator
         app: coherence-operator
+        control-plane: coherence
+        version: "3.4.3"
+        app.kubernetes.io/name: coherence-operator
+        app.kubernetes.io/managed-by: kustomize
         app.kubernetes.io/instance: coherence-operator-manager
         app.kubernetes.io/version: "3.4.3"
-        version: "3.4.3"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
+        app.kubernetes.io/created-by: controller-manager
       annotations:
         alpha.image.policy.openshift.io/resolve-names: '*'
     spec:
@@ -58,6 +61,7 @@ spec:
         args:
           - operator
           - --enable-leader-election
+          - --install-crd=false
         envFrom:
           - configMapRef:
               name: env-vars
@@ -72,11 +76,11 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: WEBHOOK_SERVICE
-            value: $(WEBHOOK_SERVICE_NAME)
+            value: WEBHOOK_SERVICE_NAME
           - name: WEBHOOK_SECRET
-            value: $(WEBHOOK_SECRET_NAME)
+            value: WEBHOOK_SECRET_NAME
           - name: SERVICE_NAME
-            value: $(REST_SERVICE_NAME)
+            value: REST_SERVICE_NAME
           - name: CERT_TYPE
             value: "self-signed"
         volumeMounts:
@@ -97,6 +101,13 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
           failureThreshold: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

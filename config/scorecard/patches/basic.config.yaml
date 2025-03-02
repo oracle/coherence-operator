@@ -2,9 +2,9 @@
   path: /stages/0/tests/-
   value:
     entrypoint:
-    - scorecard-test
-    - basic-check-spec
-    image: quay.io/operator-framework/scorecard-test:v1.4.2
+      - scorecard-test
+      - basic-check-spec
+    image: quay.io/operator-framework/scorecard-test:v1.39.1
     labels:
       suite: basic
       test: basic-check-spec-test

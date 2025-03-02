@@ -57,7 +57,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>${version.plugin.maven.exec}</version>
         <configuration>
-          <executable>docker</executable>
+          <executable>${docker.command}</executable>
           <arguments>
             <argument>build</argument>
             <argument>--load</argument>

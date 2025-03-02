@@ -17,6 +17,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/events"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/rest"
@@ -108,7 +109,10 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			log.Info("Coherence resource not found. Ignoring request since object must be deleted.")
 			return ctrl.Result{}, nil
 		}
-		// Error reading the current deployment state from k8s.
+		// else... error reading the current deployment state from k8s.
+		msg := fmt.Sprintf("failed to find Coherence resource, %s", err.Error())
+		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed, msg)
+		// returning an error will requeue the event so we will try again ToDo: probably need som backoff here
 		return reconcile.Result{}, errors.Wrap(err, "getting Coherence resource")
 	}
 
@@ -121,7 +125,10 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// Run finalization logic.
 			// If the finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
+			in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonDeleted, "running finalizers")
 			if err := in.finalizeDeployment(ctx, deployment); err != nil {
+				msg := fmt.Sprintf("failed to finalize Coherence resource, %s", err.Error())
+				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
 				log.Error(err, "Failed to remove finalizer")
 				return ctrl.Result{Requeue: true}, nil
 			}
@@ -134,12 +141,14 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 					log.Info("Failed to remove the finalizer from the Coherence resource, it looks like it had already been deleted")
 					return ctrl.Result{}, nil
 				}
+				msg := fmt.Sprintf("failed to remove finalizers from Coherence resource, %s", err.Error())
+				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
 				return ctrl.Result{}, errors.Wrap(err, "trying to remove finalizer from Coherence resource")
 			}
 		} else {
 			log.Info("Coherence resource deleted at " + deleteTime.String() + ", finalizer already removed")
 		}
-
+		// nothing else to do
 		return ctrl.Result{}, nil
 	}
 
@@ -165,6 +174,14 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
 		// Coherence resource was added when the Operator was uninstalled)
 		if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
+			var msg string
+			if err != nil {
+				msg = fmt.Sprintf("failed to add finalizers to Coherence resource, %s", err.Error())
+				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed, msg)
+			} else {
+				in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, "added finalizer")
+			}
+			// we need to requeue as we have updated the Coherence resource
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
@@ -173,6 +190,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	if deployment.Status.Phase == "" {
 		err := in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
 		if err != nil {
+			// failed to set the status
 			return reconcile.Result{}, err
 		}
 	}
@@ -189,9 +207,14 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		patch.Spec.Replicas = &replicas
 		_, err = in.ThreeWayPatch(ctx, deployment.Name, deployment, deployment, patch)
 		if err != nil {
-			log.Info("Added default replicas to Coherence resource, re-queuing request", "Replicas", strconv.Itoa(int(replicas)))
-			return reconcile.Result{}, err
+			in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+				fmt.Sprintf("failed to add default replicas to Coherence resource, %s", err.Error()))
+			return reconcile.Result{}, errors.Wrap(err, "failed to add default replicas to Coherence resource")
 		}
+		msg := "Added default replicas to Coherence resource, re-queuing request"
+		log.Info(msg, "Replicas", strconv.Itoa(int(replicas)))
+		in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, msg)
+		return reconcile.Result{}, err
 	}
 
 	// ensure that the Operator configuration Secret exists
@@ -204,6 +227,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
 	if err != nil {
 		err = errors.Wrap(err, "obtaining desired state store")
+		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+			fmt.Sprintf("failed to obtain state store: %s", err.Error()))
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
@@ -211,7 +236,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	storeHash, _ := storage.GetHash()
 	var desiredResources coh.Resources
 
-	desiredResources, err = checkCoherenceHash(deployment, storage, log)
+	desiredResources, err = getDesiredResources(deployment, storage, log)
 	if err != nil {
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
@@ -237,8 +262,18 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// Ensure the version annotation is present (it should have been added by the web-hook, so this should be a no-op).
 	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
-	if applied, err := in.ensureVersionAnnotationApplied(ctx, deployment); applied || err != nil {
-		return ctrl.Result{Requeue: true}, err
+	applied, err := in.ensureVersionAnnotationApplied(ctx, deployment)
+	if err != nil {
+		// We failed to update the Coherence resource
+		in.GetEventRecorder().Eventf(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+			fmt.Sprintf("failed to ensure version annotation applied: %s", err.Error()))
+		return ctrl.Result{}, err
+	}
+	if applied {
+		// We updated the Coherence resource, so requeue the event
+		in.GetEventRecorder().Eventf(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated,
+			"applied version annotation")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	// process the secondary resources in the order they should be created
@@ -305,6 +340,7 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.Cli
 	return ctrl.NewControllerManagedBy(mgr).
 		For(template).
 		Named("coherence").
+		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(in)
 }
 
@@ -438,8 +474,9 @@ func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Co
 		} else {
 			// Do service suspension...
 			p := probe.CoherenceProbe{
-				Client: in.GetClient(),
-				Config: in.GetManager().GetConfig(),
+				Client:        in.GetClient(),
+				Config:        in.GetManager().GetConfig(),
+				EventRecorder: events.NewOwnedEventRecorder(c, in.GetEventRecorder()),
 			}
 			if p.SuspendServices(ctx, c, sts) == probe.ServiceSuspendFailed {
 				return fmt.Errorf("failed to suspend services")

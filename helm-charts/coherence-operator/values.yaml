@@ -15,7 +15,7 @@ defaultCoherenceImage:
   name: "${COHERENCE_IMAGE_NAME}"
   tag: "${COHERENCE_IMAGE_TAG}"
 
-# watchNamespaces is the comma delimited list of namespaces that the operator should
+# watchNamespaces is the comma-delimited list of namespaces that the operator should
 # manage Coherence resources in. The default is to manage all namespaces.
 watchNamespaces: ""
 

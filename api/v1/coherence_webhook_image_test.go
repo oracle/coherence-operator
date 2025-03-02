@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,6 +7,7 @@
 package v1_test
 
 import (
+	"context"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -19,7 +20,7 @@ func TestCoherenceWithNoImageNames(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.Coherence{}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -33,7 +34,7 @@ func TestCoherenceCreateWithValidImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -47,7 +48,7 @@ func TestCoherenceCreateWithInvalidImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -61,7 +62,7 @@ func TestCoherenceCreateWithImageNameWithTrailingSpace(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -77,7 +78,7 @@ func TestCoherenceCreateWithValidOperatorImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -93,7 +94,7 @@ func TestCoherenceCreateWithInvalidOperatorImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -107,7 +108,7 @@ func TestCoherenceUpdateWithInvalidImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateUpdate(&c)
+	_, err := c.ValidateUpdate(context.Background(), &c, &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -126,7 +127,7 @@ func TestCoherenceCreateWithValidInitContainerImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -145,7 +146,7 @@ func TestCoherenceCreateWithInvalidInitContainerImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -164,7 +165,7 @@ func TestCoherenceCreateWithValidSidecarImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -183,7 +184,7 @@ func TestCoherenceCreateWithInvalidSidecarImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -191,7 +192,7 @@ func TestJobWithNoImageNames(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.CoherenceJob{}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -205,7 +206,7 @@ func TestJobCreateWithInvalidImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -219,7 +220,7 @@ func TestJobCreateWithValidImageDigest(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -233,7 +234,7 @@ func TestJobCreateWithInvalidImageDigest(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateCreate()
+	_, err := c.ValidateCreate(context.Background(), &c)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -247,6 +248,6 @@ func TestJobUpdateWithInvalidImageName(t *testing.T) {
 			},
 		},
 	}
-	_, err := c.ValidateUpdate(&c)
+	_, err := c.ValidateUpdate(context.Background(), &c, &c)
 	g.Expect(err).To(HaveOccurred())
 }
