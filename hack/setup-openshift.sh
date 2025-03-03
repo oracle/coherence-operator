@@ -6,12 +6,10 @@
 
 #!/usr/bin/env bash
 
-# --------------------------------------------------------------------
-# This script exports various environment variables so that
-# Make targets will be executed using Podman.
-# --------------------------------------------------------------------
-
+export OPERATOR_IMAGE_REGISTRY=iad.ocir.io/odx-stateservice/test
 export DOCKER_CMD=podman
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
-export JIB_EXECUTABLE=$(which podman)
 export MY_DOCKER_HOST=${DOCKER_HOST}
+export JIB_EXECUTABLE=$(which podman)
+export USE_PODMAN=true
+export LOCAL_BUILDAH=true

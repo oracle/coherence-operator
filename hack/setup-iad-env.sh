@@ -7,4 +7,3 @@
 #!/usr/bin/env bash
 
 export OPERATOR_IMAGE_REGISTRY=iad.ocir.io/odx-stateservice/test
-docker login iad.ocir.io

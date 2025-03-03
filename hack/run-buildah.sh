@@ -69,16 +69,16 @@ else
     NO_DOCKER_DAEMON=false
   fi
 
-  docker rm -f buildah || true
+  $DOCKER_CMD rm -f buildah || true
 
   if [ "${BUILDAH_VOLUME}" == "" ]
   then
     export BUILDAH_VOLUME=buildah-containers-volume
   fi
   
-  if ! docker volume inspect "${BUILDAH_VOLUME}";
+  if ! $DOCKER_CMD volume inspect "${BUILDAH_VOLUME}";
   then
-    docker volume create "${BUILDAH_VOLUME}"
+    $DOCKER_CMD volume create "${BUILDAH_VOLUME}"
   fi
   if [ "${MY_DOCKER_HOST}" == "" ]
   then
@@ -99,7 +99,7 @@ else
     fi
   fi
 
-  docker run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
+  $DOCKER_CMD run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
       -v ${DOCKER_HOST}:${DOCKER_HOST}  \
       --privileged --network host \
       -e VERSION="${VERSION}" \

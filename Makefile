@@ -1641,6 +1641,22 @@ just-deploy: ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 
+DEPLOY_DOCKER_CONFIG_JSON ?=
+
+.PHONY: jk
+jk:
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default > jk.yaml
+else
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
+		--from-file=.dockerconfigjson=$(DEPLOY_DOCKER_CONFIG_JSON) \
+		--type=kubernetes.io/dockerconfigjson
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci > jk.yaml
+endif
+
+
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
@@ -1736,10 +1752,13 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/temp.yaml
 	mkdir -p $(BUILD_MANIFESTS)/crd-small
 	$(KUSTOMIZE) build config/crd-small > $(BUILD_MANIFESTS)/crd-small/temp.yaml
+	cp -R config/components/ $(BUILD_MANIFESTS)/components
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
+	cp -R config/namespace/ $(BUILD_MANIFESTS)/namespace
+	cp -R config/overlays/ $(BUILD_MANIFESTS)/overlays
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
-	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
+	rm -rf $(BUILD_MANIFESTS)/overlays/ci || true
 	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
@@ -1755,6 +1774,7 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	rm $(BUILD_MANIFESTS)/crd-small/temp.yaml
 	mv $(BUILD_MANIFESTS)/crd-small/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd-small/coherence.oracle.com_coherence.yaml
 	mv $(BUILD_MANIFESTS)/crd-small/coherencejob.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd-small/coherencejob.oracle.com_coherence.yaml
+	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -2343,6 +2363,7 @@ push-operator-image: $(BUILD_TARGETS)/build-operator
 	&& export VERSION=$(VERSION) \
 	&& export REVISION=$(GITCOMMIT) \
 	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& export DOCKER_CMD=$(DOCKER_CMD) \
 	&& $(CURRDIR)/hack/run-buildah.sh PUSH
 
 

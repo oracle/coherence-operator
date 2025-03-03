@@ -5,4 +5,4 @@ resources:
   - ../../default
 
 components:
-  - ../../components/restricted
+  - ../../components/pull-secrets
