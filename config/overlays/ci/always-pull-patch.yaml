@@ -1,4 +1,4 @@
 - op: add
-  path: /spec/template/spec/containers/imagePullPolicy
+  path: /spec/template/spec/containers/0/imagePullPolicy
   value:
     Always

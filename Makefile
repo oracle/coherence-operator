@@ -1820,7 +1820,7 @@ reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
 reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
 reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
 reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
-reset-namespace: delete-namespace create-namespace      ## Reset the test namespace
+reset-namespace: delete-namespace create-namespace ensure-pull-secret     ## Reset the test namespace
 ifneq ($(DOCKER_SERVER),)
 	@echo "Creating pull secrets for $(DOCKER_SERVER)"
 	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
