@@ -1646,21 +1646,23 @@ ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-	$(call deployOperator)
-	sleep 5
-
-.PHONY: just-deploy
-just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(call deployOperator)
-
-define deployOperator
 ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
 endif
-endef
+	sleep 5
+
+
+.PHONY: just-deploy
+just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+else
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+endif
+
 
 .PHONY: ensure-pull-secret
 ensure-pull-secret:
