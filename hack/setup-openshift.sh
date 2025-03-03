@@ -13,3 +13,4 @@ export MY_DOCKER_HOST=${DOCKER_HOST}
 export JIB_EXECUTABLE=$(which podman)
 export USE_PODMAN=true
 export LOCAL_BUILDAH=true
+export DEPLOY_DOCKER_CONFIG_JSON=$XDG_RUNTIME_DIR/containers/auth.json

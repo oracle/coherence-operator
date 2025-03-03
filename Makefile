@@ -1636,17 +1636,21 @@ endif
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 	sleep 5
 
+# If this variable is set it should be the path name to the
+# container registry auth file, for example with Docker
+#   $HOME/.docker/config.json
+# Or with Podman
+#   $XDG_RUNTIME_DIR/containers/auth.json
+# Or to some other file in the correct format
+#
+# When set, the file will be used to create a pull secret named
+# coherence-operator-pull-secret in the test namespace and the
+# the Kustomize deployment will be config/overlays/ci directory
+# to patch the ServiceAccount to use the secret
 DEPLOY_DOCKER_CONFIG_JSON ?=
 
 .PHONY: just-deploy
 just-deploy: ## Deploy the Coherence Operator without rebuilding anything
-	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
-
-DEPLOY_DOCKER_CONFIG_JSON ?=
-
-.PHONY: jk
-jk:
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
