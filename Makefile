@@ -1624,18 +1624,6 @@ deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and w
 # The Operator is deployed HA by default
 OPERATOR_HA ?= true
 
-.PHONY: deploy
-deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize   ## Deploy the Coherence Operator
-ifneq (,$(WATCH_NAMESPACE))
-	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
-endif
-ifeq (false,$(OPERATOR_HA))
-	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
-endif
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
-	sleep 5
-
 # If this variable is set it should be the path name to the
 # container registry auth file, for example with Docker
 #   $HOME/.docker/config.json
@@ -1649,17 +1637,39 @@ endif
 # to patch the ServiceAccount to use the secret
 DEPLOY_DOCKER_CONFIG_JSON ?=
 
+.PHONY: deploy
+deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize ensure-pull-secret  ## Deploy the Coherence Operator
+ifneq (,$(WATCH_NAMESPACE))
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
+endif
+ifeq (false,$(OPERATOR_HA))
+	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
+endif
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
+	$(call deployOperator)
+	sleep 5
+
 .PHONY: just-deploy
-just-deploy: ## Deploy the Coherence Operator without rebuilding anything
+just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(call deployOperator)
+
+define deployOperator
 ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+endif
+endef
+
+.PHONY: ensure-pull-secret
+ensure-pull-secret:
+ifneq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
 		--from-file=.dockerconfigjson=$(DEPLOY_DOCKER_CONFIG_JSON) \
 		--type=kubernetes.io/dockerconfigjson
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+	kubectl -n $(OPERATOR_NAMESPACE) patch serviceaccount default -p '{"imagePullSecrets": [{"name": "coherence-operator-pull-secret"}]}'
 endif
 
 
@@ -1737,6 +1747,7 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## U
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
 	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	@echo "Undeploy Coherence Operator completed"
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true

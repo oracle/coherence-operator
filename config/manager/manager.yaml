@@ -35,8 +35,6 @@ spec:
         alpha.image.policy.openshift.io/resolve-names: '*'
     spec:
       serviceAccountName: service-account
-      imagePullSecrets:
-        - name: pull-secret
       terminationGracePeriodSeconds: 10
       securityContext:
         runAsNonRoot: true

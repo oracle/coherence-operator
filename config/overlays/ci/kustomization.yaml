@@ -6,3 +6,9 @@ resources:
 
 components:
   - ../../components/pull-secrets
+
+patches:
+  - path: always-pull-patch.yaml
+    target:
+      kind: Deployment
+      name: controller-manager
