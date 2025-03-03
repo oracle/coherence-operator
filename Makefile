@@ -1636,6 +1636,8 @@ endif
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 	sleep 5
 
+DEPLOY_DOCKER_CONFIG_JSON ?=
+
 .PHONY: just-deploy
 just-deploy: ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
@@ -1647,13 +1649,13 @@ DEPLOY_DOCKER_CONFIG_JSON ?=
 jk:
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default > jk.yaml
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
 		--from-file=.dockerconfigjson=$(DEPLOY_DOCKER_CONFIG_JSON) \
 		--type=kubernetes.io/dockerconfigjson
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci > jk.yaml
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
 endif
 
 
