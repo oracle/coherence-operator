@@ -1029,6 +1029,9 @@ registry-stop:
 # ======================================================================================================================
 ##@ OpenShift related tasks
 
+PREFLIGHT_REGISTRY_AUTH_DIR  ?= $(DEPLOY_REGISTRY_CONFIG_DIR)
+PREFLIGHT_REGISTRY_AUTH_JSON ?= $(DEPLOY_REGISTRY_CONFIG_JSON)
+
 .PHONY: preflight
 preflight: ## Run the OpenShift preflight tests against the Operator Image in a container
 	mkdir -p $(BUILD_PREFLIGHT) || true
@@ -1042,8 +1045,8 @@ preflight: ## Run the OpenShift preflight tests against the Operator Image in a 
 	  --env PFLT_LOGFILE=/artifacts/preflight.log \
 	  -v $(BUILD_PREFLIGHT):/artifacts \
 	  -v $(HOME)/.kube/:/kubeconfig:ro \
-	  -v $(SCRIPTS_DIR):/dockerconfig:ro \
-	  quay.io/opdev/preflight:stable check container --insecure $(OPERATOR_IMAGE)
+	  -v $(PREFLIGHT_REGISTRY_AUTH_DIR):/dockerconfig:ro \
+	  quay.io/opdev/preflight:stable check container --docker-config /dockerconfig/$(PREFLIGHT_REGISTRY_AUTH_JSON) --insecure $(OPERATOR_IMAGE)
 
 .PHONY: preflight-oc
 preflight-oc: $(BUILD_PREFLIGHT)/preflight.yaml preflight-oc-cleanup ## Run the OpenShift preflight tests as a K8s Job against the Operator Image
@@ -1635,7 +1638,9 @@ OPERATOR_HA ?= true
 # coherence-operator-pull-secret in the test namespace and the
 # the Kustomize deployment will be config/overlays/ci directory
 # to patch the ServiceAccount to use the secret
-DEPLOY_DOCKER_CONFIG_JSON ?=
+DEPLOY_REGISTRY_CONFIG_DIR  ?= $(HOME)/.docker
+DEPLOY_REGISTRY_CONFIG_JSON ?= config.json
+DEPLOY_REGISTRY_CONFIG_PATH ?= $(DEPLOY_REGISTRY_CONFIG_DIR)/$(DEPLOY_REGISTRY_CONFIG_JSON)
 
 .PHONY: deploy
 deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize ensure-pull-secret  ## Deploy the Coherence Operator
@@ -1646,7 +1651,7 @@ ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
+ifeq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
@@ -1657,7 +1662,7 @@ endif
 .PHONY: just-deploy
 just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-ifeq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
+ifeq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
@@ -1666,10 +1671,10 @@ endif
 
 .PHONY: ensure-pull-secret
 ensure-pull-secret:
-ifneq ("$(DEPLOY_DOCKER_CONFIG_JSON)","")
+ifneq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
-		--from-file=.dockerconfigjson=$(DEPLOY_DOCKER_CONFIG_JSON) \
+		--from-file=.dockerconfigjson=$(DEPLOY_REGISTRY_CONFIG_PATH) \
 		--type=kubernetes.io/dockerconfigjson
 	kubectl -n $(OPERATOR_NAMESPACE) patch serviceaccount default -p '{"imagePullSecrets": [{"name": "coherence-operator-pull-secret"}]}'
 endif
