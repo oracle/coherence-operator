@@ -112,7 +112,8 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_IMAGE_REGISTRY ?= ghcr.io/oracle
+GITHUB_REGISTRY         := ghcr.io/oracle
+OPERATOR_IMAGE_REGISTRY ?= $(GITHUB_REGISTRY)
 OPERATOR_BASE_IMAGE     ?= scratch
 OPERATOR_IMAGE_NAME     := coherence-operator
 OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
@@ -1651,7 +1652,7 @@ ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-ifeq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
+ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(GITHUB_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
@@ -1662,7 +1663,7 @@ endif
 .PHONY: just-deploy
 just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-ifeq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
+ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(GITHUB_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
