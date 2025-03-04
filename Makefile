@@ -1168,7 +1168,7 @@ e2e-local-test: export VERSION := $(VERSION)
 e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets gotestsum undeploy install-crds  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-local-test: $(BUILD_TARGETS)/build-operator undeploy reset-namespace create-ssl-secrets gotestsum install-crds ensure-pull-secret  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
