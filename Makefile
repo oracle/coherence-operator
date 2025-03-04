@@ -562,7 +562,11 @@ build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator ima
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
-build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image ## Build all of the test images
+build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image build-helidon-test-images build-spring-test-images ## Build all of the test images
+
+
+.PHONY: build-helidon-test-images
+build-helidon-test-images: $(BUILD_TARGETS)/java ## Build the Helidon test images
 #   Helidon 4
 	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
@@ -580,6 +584,9 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) \
 		$(MAVEN_BUILD_OPTS)
+
+.PHONY: build-spring-test-images
+build-spring-test-images: $(BUILD_TARGETS)/java ## Build the Spring test images
 #   Spring Boot 3.x JIB
 	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
@@ -1630,18 +1637,26 @@ OPERATOR_HA ?= true
 
 # If this variable is set it should be the path name to the
 # container registry auth file, for example with Docker
-#   $HOME/.docker/config.json
+#   DEPLOY_REGISTRY_CONFIG_DIR=$HOME/.docker
+#   DEPLOY_REGISTRY_CONFIG_JSON=config.json
 # Or with Podman
-#   $XDG_RUNTIME_DIR/containers/auth.json
+#   DEPLOY_REGISTRY_CONFIG_DIR=$XDG_RUNTIME_DIR/containers
+#   DEPLOY_REGISTRY_CONFIG_JSON=auth.json
 # Or to some other file in the correct format
 #
 # When set, the file will be used to create a pull secret named
 # coherence-operator-pull-secret in the test namespace and the
 # the Kustomize deployment will be config/overlays/ci directory
 # to patch the ServiceAccount to use the secret
-DEPLOY_REGISTRY_CONFIG_DIR  ?= $(HOME)/.docker
-DEPLOY_REGISTRY_CONFIG_JSON ?= config.json
-DEPLOY_REGISTRY_CONFIG_PATH ?= $(DEPLOY_REGISTRY_CONFIG_DIR)/$(DEPLOY_REGISTRY_CONFIG_JSON)
+DEPLOY_REGISTRY_CONFIG_DIR  ?=
+DEPLOY_REGISTRY_CONFIG_JSON ?=
+
+DEPLOY_REGISTRY_CONFIG_PATH :=
+ifneq (,$(DEPLOY_REGISTRY_CONFIG_DIR))
+ifneq (,$(DEPLOY_REGISTRY_CONFIG_JSON))
+	DEPLOY_REGISTRY_CONFIG_PATH := $(DEPLOY_REGISTRY_CONFIG_DIR)/$(DEPLOY_REGISTRY_CONFIG_JSON)
+endif
+endif
 
 .PHONY: deploy
 deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize ensure-pull-secret  ## Deploy the Coherence Operator
@@ -2367,16 +2382,6 @@ test-examples: build-examples
 # Push the Operator Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 PUSH_ARGS ?=
-
-#.PHONY: push-operator-image
-#push-operator-image: $(BUILD_TARGETS)/build-operator
-#	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
-#	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
-#	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
-#	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
-#		--amend $(OPERATOR_IMAGE_AMD) \
-#		--amend $(OPERATOR_IMAGE_ARM)
-#	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_IMAGE)
 
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
