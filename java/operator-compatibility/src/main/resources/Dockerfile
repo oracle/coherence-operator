@@ -3,7 +3,7 @@ FROM ${coherence.compatibility.coherence.image}
 USER root
 COPY target/classes/build.sh build.sh
 COPY target/operator-compatibility-*.jar /app/libs/operator-compatibility.jar
-RUN ["java", "-XX:UseSVE=0", "-cp", "/app/libs/operator-compatibility.jar", "com.oracle.coherence.k8s.testing.Setup"]
+RUN ["java", "-cp", "/app/libs/operator-compatibility.jar", "com.oracle.coherence.k8s.testing.Setup"]
 
 FROM ${coherence.test.base.image}
 
