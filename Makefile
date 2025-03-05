@@ -2533,7 +2533,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image bundle-push tanzu-repo
+push-release-images: push-operator-image bundle-push catalog-build catalog-push tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
