@@ -53,13 +53,13 @@ for the Coherence container and from these constructs a Java command line that i
 <markup
 lang="bash"
 
->java -cp `/app/resources:/app/classes:/app/libs/*` \
+>java --class-path `/app/resources:/app/classes:/app/libs/*` \
     &lt;JVM args&gt; \
     &lt;System Properties&gt; \
-    com.tangosol.net.DefaultCacheServer</markup>
+    com.tangosol.net.Coherence</markup>
 
 <p>The <code>runner</code> will work out the JVM&#8217;s classpath, args and system properties to add to the command line
-and execute the main class <code>com.tangosol.net.DefaultCacheServer</code>.
+and execute the main class <code>com.tangosol.net.Coherence</code>.
 All these are configurable in the <code>Coherence</code> resource spec.</p>
 
 </div>

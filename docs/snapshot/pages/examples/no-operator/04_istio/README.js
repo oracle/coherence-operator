@@ -315,7 +315,7 @@ using the Bootstrap API introduced in 22.06.</p>
 <markup
 lang="bash"
 
->java -cp coherence.jar com.tangosol.net.Coherence</markup>
+>java --class-path coherence.jar com.tangosol.net.Coherence</markup>
 
 <p>Start Coherence in code:</p>
 

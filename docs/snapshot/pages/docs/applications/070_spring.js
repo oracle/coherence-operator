@@ -161,14 +161,14 @@ spec:
 <markup
 lang="bash"
 
->java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.PropertiesLauncher</markup>
+>java --class-path /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.PropertiesLauncher</markup>
 
 <p><strong>Spring Boot 3.x</strong></p>
 
 <markup
 lang="bash"
 
->java -cp /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.launch.PropertiesLauncher</markup>
+>java --class-path /app/libs/catalogue-1.0.0.jar org.springframework.boot.loader.launch.PropertiesLauncher</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">The Operator does not run the fat jar using the <code>java -jar</code> command because it needs to add various other

@@ -663,6 +663,32 @@ function createRoutes(){
             component: loadPage('docs-management-025_coherence_cli', '/docs/management/025_coherence_cli', {})
         },
         {
+            path: '/docs/management/026_queryplus',
+            meta: {
+                h1: 'The Coherence Query Plus',
+                title: 'The Coherence Query Plus',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-management-026_queryplus', '/docs/management/026_queryplus', {})
+        },
+        {
+            path: '/docs/management/027_jshell',
+            meta: {
+                h1: 'Using JShell',
+                title: 'Using JShell',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-management-027_jshell', '/docs/management/027_jshell', {})
+        },
+        {
             path: '/docs/management/040_ssl',
             meta: {
                 h1: 'SSL with Management over REST',
@@ -1415,6 +1441,8 @@ function createNav(){
                 { href: '/docs/management/010_overview', title: 'Overview' },
                 { href: '/docs/management/020_management_over_rest', title: 'Management over REST' },
                 { href: '/docs/management/025_coherence_cli', title: 'The Coherence CLI' },
+                { href: '/docs/management/026_queryplus', title: 'The Coherence Query Plus' },
+                { href: '/docs/management/027_jshell', title: 'Using JShell' },
                 { href: '/docs/management/040_ssl', title: 'SSL with Management over REST' },
                 { href: '/docs/management/100_tmb_test', title: 'Coherence Network Testing' }
             ]

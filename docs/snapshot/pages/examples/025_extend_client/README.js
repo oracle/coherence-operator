@@ -9,7 +9,7 @@ There are two scenarios, the client could also be in kubernetes, or the client c
 There are different ways to configure the client in these scenarios.</p>
 
 <p>These examples are not going to cover all the possible use-cases for Extend, the examples are specifically about different ways to connect a client to a Coherence cluster running inside kubernetes.
-Extend is extensively documented in the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/develop-remote-clients/getting-started-coherenceextend.html">official Coherence documentation</a>.</p>
+Extend is extensively documented in the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/develop-remote-clients/getting-started-coherenceextend.html">official Coherence documentation</a>.</p>
 
 
 <h3 id="_prerequisites">Prerequisites</h3>
