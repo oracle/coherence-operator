@@ -8,5 +8,5 @@ resources:
 
 images:
 - name: controller
-  newName: iad.ocir.io/odx-stateservice/test/coherence-operator
+  newName: ghcr.io/thegridman/coherence-operator
   newTag: 3.4.3

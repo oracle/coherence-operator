@@ -24,6 +24,7 @@ build/
 _output/
 bin/
 bundle/
+catalog/
 temp/
 
 # OpenShift pre-flight

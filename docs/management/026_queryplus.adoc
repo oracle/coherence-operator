@@ -1,0 +1,118 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2023, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= The Coherence Query Plus
+
+== The Coherence Query Plus
+
+The Coherence Query Plus utility is a console application that allows simple SQL like queries
+to be made against caches, see the
+https://{commercial-docs-base-url}/develop-applications/using-coherence-query-language.html[Using Coherence Query Language]
+section of the Coherence documentation.
+
+=== Using Query Plus in Pods
+
+Most official Coherence images are distroless images, so they do not have a shell that can be used to
+create a command line session and execute commands.
+The Operator works around this to support a few selected commands by injecting its `runner` utility.
+The Operator installs the `runner` at the location `/coherence-operator/utils/runner`.
+
+The `runner` utility is a simple CLI that executes commands, one of those is `queryplus` which will
+start a Java process running Query Plus.
+
+[CAUTION]
+====
+The Query Plus JVM will join the cluster as a storage disabled member alongside the JVM running in the
+Coherence container in the Pod.
+The Query Plus session will have all the same configuration parameters as the Coherence container.
+
+For this reason, great care must be taken with the commands that are executed so that the cluster does not become unstable.
+====
+
+=== Start a Query Plus Session
+
+The yaml below will create a simple three member cluster.
+
+[source]
+.minimal.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+    replicas: 3
+----
+
+The cluster name is `storage` and there will be three Pods created, `storage-0`, `storage-1` and `storage-2`.
+
+A Query Plus session can be run by exec'ing into one of the Pods to execute the runner with the argument `queryplus`.
+
+[source,bash]
+----
+kubectl exec -it storage-0 -c coherence -- /coherence-operator/runner queryplus
+----
+
+[NOTE]
+====
+The `kubectl exec` command must include the `-it` options so that `kubectl` creates an interactive terminal session.
+====
+
+After executing the above command, the `CohQL>` prompt will be displayed ready to accept input.
+Using the Query Plus utility is documented in the
+https://{commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-1CBE48A8-1009-4656-868D-663AA85CB021[Using the CohQL Command-Line Tool]
+section of the Coherence documentation
+
+
+=== Run Query Plus With Command Line Arguments
+
+Instead of running an interactive Query Plus session, arguments can be passed into Query Plus as part of the exec command.
+Query Plus will execute the commands and exit.
+
+The command line for this is slightly complicated because there are two CLI programs involved in the full command line,
+first `kubectl` and second the Operator's runner.
+In each case the `--` command line separator needs to be used so that each CLI knows the everything after a `--`
+is to be passed to the next process.
+
+For example a simple string key and value could be inserted into a cache named "test" with the following
+CohQL statement `insert into "test" key "one" value "value-one"`.
+This statement can be executed in a Pod with the following command
+
+[source,bash]
+----
+kubectl exec storage-0 -c coherence -- /coherence-operator/runner queryplus -- -c -l 'insert into test key "one" value "value-one"'
+----
+
+In the above example the first `--` tels `kubectl` that all the remaining arguments are to be passed
+as arguments to the exec session. The second `--` tells the Operator runner that all the remaining arguments
+are to be passed to Query Plus.
+
+After running the above command the cache `test` will contain an entry with the key `"one"` and value `"value-one"`.
+If the statement `select * from test` is executed the value in the cache will be displayed.
+
+[source,bash]
+----
+kubectl exec storage-0 -c coherence -- /coherence-operator/runner queryplus -- -c -l 'select * from test'
+----
+
+The last few lines of the console output will display the results of executing the statement:
+[source]
+----
+Results
+"value-one"
+----
+
+
+
+
+
+
+
+
+
+

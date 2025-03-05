@@ -10,7 +10,6 @@ import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 const (
@@ -26,7 +25,9 @@ func jShellCommand(v *viper.Viper) *cobra.Command {
 		Long:  "Starts a Coherence interactive JShell console",
 		Args:  cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd, jShell)
+			return run(cmd, func(details *RunDetails, cmd *cobra.Command) {
+				jShell(details, args, v)
+			})
 		},
 	}
 	addEnvVarFlag(cmd)
@@ -36,16 +37,21 @@ func jShellCommand(v *viper.Viper) *cobra.Command {
 }
 
 // Configure the runner to run a Coherence JShell console
-func jShell(details *RunDetails, _ *cobra.Command) {
-	details.Command = CommandQueryPlus
-	details.AppType = AppTypeJava
-	details.MainClass = "jdk.internal.jshell.tool.JShellToolProvider"
-	if len(os.Args) > 2 {
-		details.MainArgs = os.Args[2:]
-	}
+func jShell(details *RunDetails, args []string, v *viper.Viper) {
+	details.AppType = AppTypeJShell
+	details.Command = CommandJShell
 	details.addArg("-Dcoherence.distributed.localstorage=false")
 	details.addArg("-Dcoherence.localport.adjust=true")
-	details.addArg("-Dcoherence.management.http.enabled=false")
+	details.addArg("-Dcoherence.management.http=none")
+	details.addArg("-Dcoherence.management.http.port=0")
 	details.addArg("-Dcoherence.metrics.http.enabled=false")
+	details.addArg("-Dcoherence.metrics.http.port=0")
+	details.setenv(v1.EnvVarJvmMemoryNativeTracking, "off")
+	details.setenv(v1.EnvVarJvmUseContainerLimits, "false")
+	details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+	details.addArg("-Dcoherence.health.http.port=0")
+	details.addArg("-Dcoherence.grpc.enabled=false")
 	details.setenv(v1.EnvVarCohRole, "jshell")
+	details.setenv(v1.EnvVarCohHealthPort, "0")
+	details.MainArgs = args
 }

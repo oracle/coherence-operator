@@ -161,8 +161,18 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
+	expectedArgs = ReplaceArg(expectedArgs, "-XX:NativeMemoryTracking=summary", "-XX:NativeMemoryTracking=off")
+	expectedArgs = ReplaceArg(expectedArgs, "-Dcoherence.health.http.port=6676", "-Dcoherence.health.http.port=0")
+	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.k8s.operator.health.port=6676")
 	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
-		"-Dcoherence.management.http.enabled=false", "-Dcoherence.metrics.http.enabled=false")
+		"-Dcoherence.metrics.http.enabled=false",
+		"-Dcoherence.management.http=none",
+		"-Dcoherence.management.http.port=0",
+		"-Dcoherence.metrics.http.port=0",
+		"-Dcoherence.k8s.operator.health.enabled=false",
+		"-Dcoherence.health.http.port=0",
+		"-Dcoherence.grpc.enabled=false",
+		"-Dcoherence.k8s.operator.health.port=0")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -195,8 +205,18 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
+	expectedArgs = ReplaceArg(expectedArgs, "-XX:NativeMemoryTracking=summary", "-XX:NativeMemoryTracking=off")
+	expectedArgs = ReplaceArg(expectedArgs, "-Dcoherence.health.http.port=6676", "-Dcoherence.health.http.port=0")
+	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.k8s.operator.health.port=6676")
 	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
-		"-Dcoherence.management.http.enabled=false", "-Dcoherence.metrics.http.enabled=false",
+		"-Dcoherence.metrics.http.enabled=false",
+		"-Dcoherence.management.http=none",
+		"-Dcoherence.management.http.port=0",
+		"-Dcoherence.metrics.http.port=0",
+		"-Dcoherence.k8s.operator.health.enabled=false",
+		"-Dcoherence.grpc.enabled=false",
+		"-Dcoherence.k8s.operator.health.port=0",
+		"-Dcoherence.health.http.port=0",
 		"foo", "bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
@@ -282,15 +302,24 @@ func TestSpringBootBuildpacks(t *testing.T) {
 	data, err := os.ReadFile(fileName)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
+	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
+		cp = cp + ":/coherence-operator/utils/config"
+	}
+
 	actualOpts := strings.Split(string(data), "\n")
-	expectedOpts := AppendCommonExpectedArgs([]string{"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config"})
+	expectedOpts := AppendCommonExpectedArgs([]string{"-Dloader.path=" + cp})
 	g.Expect(actualOpts).To(ConsistOf(expectedOpts))
 }
 
 func GetMinimalExpectedSpringBootArgs(main string) []string {
+	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
+	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
+		cp = cp + ",/coherence-operator/utils/config"
+	}
 	args := []string{
 		GetJavaArg(),
-		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
+		"-Dloader.path=" + cp,
 	}
 	args = append(AppendCommonExpectedArgs(args), main)
 	return args
@@ -301,11 +330,15 @@ func GetMinimalExpectedSpringBootFatJarArgs(jar, main string) []string {
 }
 
 func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, springMain, main string) []string {
+	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
+	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
+		cp = cp + ",/coherence-operator/utils/config"
+	}
 	args := []string{
 		GetJavaArg(),
-		"-cp",
+		"--class-path",
 		jar,
-		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
+		"-Dloader.path=" + cp,
 	}
 
 	if main != "" {
@@ -316,11 +349,15 @@ func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, springMain, main string
 }
 
 func GetMinimalExpectedSpringBootFatJarArgsForRole(jar, main, role string) []string {
+	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
+	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
+		cp = cp + ",/coherence-operator/utils/config"
+	}
 	args := []string{
 		GetJavaArg(),
-		"-cp",
+		"--class-path",
 		jar,
-		"-Dloader.path=/coherence-operator/utils/lib/coherence-operator.jar,/coherence-operator/utils/config",
+		"-Dloader.path=" + cp,
 		"-Dcoherence.distributed.localstorage=false",
 	}
 

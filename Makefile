@@ -471,7 +471,9 @@ clean: ## Cleans the build
 	-rm -rf $(BUILD_BIN) || true
 	-rm -rf artifacts || true
 	-rm -rf bundle || true
+	-rm -rf catalog || true
 	-rm bundle.Dockerfile || true
+	-rm catalog.Dockerfile || true
 	rm config/crd/bases/*.yaml || true
 	rm -rf config/crd-small || true
 	rm pkg/data/zz_generated_*.go || true
@@ -848,6 +850,7 @@ copyright:  ## Check copyright headers
 	  -X preflight.log \
 	  -X PROJECT \
 	  -X .sh \
+	  -X .svg \
 	  -X tanzu/package/package.yml \
 	  -X tanzu/package/values.yml \
 	  -X temp/ \
@@ -959,32 +962,29 @@ $(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 	@{ \
 	set -e ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.51.0/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
 	chmod +x $(OPM) ;\
 	}
 
-# A comma-separated list of bundle images
-# These images MUST exist in a registry and be pull-able.
-BUNDLE_IMAGE_LIST ?= $(BUNDLE_IMAGE)
-
 # The image tag given to the resulting catalog image
-CATALOG_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog:$(VERSION)
-
-# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMAGE_LIST to that image.
-ifneq ($(origin CATALOG_BASE_IMG), undefined)
-FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
-endif
+CATALOG_IMAGE_NAME := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog
+CATALOG_IMAGE      := $(CATALOG_IMAGE_NAME):latest
 
 # Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm ## Build a catalog image.
-	mkdir -p $(BUILD_OUTPUT)/catalog
-	$(OPM) index add --out-dockerfile $(BUILD_OUTPUT)/catalog/index.Dockerfile \
-		--container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) \
-		--bundles $(BUNDLE_IMAGE_LIST) $(FROM_INDEX_OPT)
-	rm -rf index_build_tmp*
+catalog-build: opm ## Build a catalog image (the bundle image must have been pushed first).
+	rm -rf catalog || true
+	mkdir -p catalog
+	rm catalog.Dockerfile || true
+	$(OPM) generate dockerfile catalog
+	$(OPM) init coherence-operator --default-channel=stable --description=./README.md --icon=./hack/logo.svg --output yaml > catalog/operator.yaml
+	$(OPM) render $(BUNDLE_IMAGE) --output=yaml >> catalog/operator.yaml
+	cat ./hack/catalog-template.yaml >> catalog/operator.yaml
+	@echo $(VERSION) >> catalog/operator.yaml
+	$(OPM) validate catalog
+	$(DOCKER_CMD) build --load -f catalog.Dockerfile -t $(CATALOG_IMAGE) .
 
 # Push the catalog image.
 .PHONY: catalog-push
@@ -994,6 +994,45 @@ catalog-push: catalog-build ## Push a catalog image.
 .PHONY: scorecard
 scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard tests.
 	$(OPERATOR_SDK) scorecard --verbose ./bundle
+
+.PHONY: install-olm
+install-olm: ensure-sdk ## Install the Operator Lifecycle Manage into the K8s cluster
+	$(OPERATOR_SDK) olm install
+
+.PHONY: uninstall-olm
+uninstall-olm: ensure-sdk ## Uninstall the Operator Lifecycle Manage from the K8s cluster
+	$(OPERATOR_SDK) olm uninstall || true
+
+# Catalog image must be pushed first
+.PHONY: olm-deploy-catalog
+olm-deploy-catalog: ## Deploy the Operator Catalog into OLM
+	mkdir -p $(BUILD_OUTPUT)/catalog || true
+	cp $(SCRIPTS_DIR)/operator-catalog-source.yaml $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	$(SED) -e 's^IMAGE_NAME_PLACEHOLDER^$(CATALOG_IMAGE)^g' $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	kubectl apply -f $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	kubectl -n olm get catalogsource
+
+.PHONY: wait-for-olm-deploy
+wait-for-olm-deploy: export POD=$(shell kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog -o name)
+wait-for-olm-deploy: ## Wait for the Operator Catalog to be deployed into OLM
+	echo "Operator Catalog Source Pods:"
+	kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog
+	echo "Waiting for Operator Catalog Source to be ready. Pod: $(POD)"
+	kubectl -n olm wait --for condition=ready --timeout 480s $(POD)
+
+.PHONY: olm-deploy
+olm-deploy: ## Deploy the Operator into the coherence namespace using OLM
+	kubectl create ns coherence || true
+	kubectl -n coherence apply -f $(SCRIPTS_DIR)/operator-group.yaml
+	kubectl -n coherence apply -f $(SCRIPTS_DIR)/operator-subscription.yaml
+	sleep 10
+	kubectl -n coherence get ip
+	kubectl -n coherence get csv
+	kubectl -n coherence wait --for condition=available  deployment/coherence-operator-controller-manager -timeout 480s
+
+.PHONY: olm-undeploy
+olm-undeploy: ## Undeploy the Operator that was installed with OLM
+	kubectl -n coherence delete csv coherence-operator.v$(VERSION)
 
 # ======================================================================================================================
 # Targets to run a local container registry
@@ -2494,7 +2533,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image bundle-push catalog-push tanzu-repo
+push-release-images: push-operator-image bundle-push tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus

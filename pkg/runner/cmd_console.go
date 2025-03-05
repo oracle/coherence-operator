@@ -50,8 +50,15 @@ func console(details *RunDetails, args []string, v *viper.Viper) {
 	details.Command = CommandConsole
 	details.addArg("-Dcoherence.distributed.localstorage=false")
 	details.addArg("-Dcoherence.localport.adjust=true")
-	details.addArg("-Dcoherence.management.http.enabled=false")
+	details.addArg("-Dcoherence.management.http=none")
+	details.addArg("-Dcoherence.management.http.port=0")
 	details.addArg("-Dcoherence.metrics.http.enabled=false")
+	details.addArg("-Dcoherence.metrics.http.port=0")
+	details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+	details.addArg("-Dcoherence.health.http.port=0")
+	details.addArg("-Dcoherence.grpc.enabled=false")
+	details.setenv(v1.EnvVarJvmMemoryNativeTracking, "off")
 	details.setenv(v1.EnvVarCohRole, "console")
+	details.setenv(v1.EnvVarCohHealthPort, "0")
 	details.MainArgs = args
 }

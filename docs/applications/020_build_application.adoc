@@ -55,13 +55,13 @@ for the Coherence container and from these constructs a Java command line that i
 The default command might look something like this:
 [source,bash]
 ----
-java -cp `/app/resources:/app/classes:/app/libs/*` \
+java --class-path `/app/resources:/app/classes:/app/libs/*` \
     <JVM args> \
     <System Properties> \
-    com.tangosol.net.DefaultCacheServer
+    com.tangosol.net.Coherence
 ----
 The `runner` will work out the JVM's classpath, args and system properties to add to the command line
-and execute the main class `com.tangosol.net.DefaultCacheServer`.
+and execute the main class `com.tangosol.net.Coherence`.
 All these are configurable in the `Coherence` resource spec.
 
 === Optional `CLASSPATH` Environment Variable
