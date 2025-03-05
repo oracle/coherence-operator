@@ -310,7 +310,7 @@ using the Bootstrap API introduced in 22.06.
 Start Coherence using `com.tangosol.net.Coherence` as the main class.
 [source,bash]
 ----
-java -cp coherence.jar com.tangosol.net.Coherence
+java --class-path coherence.jar com.tangosol.net.Coherence
 ----
 
 Start Coherence in code:

@@ -56,6 +56,8 @@
         <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>
 
+        <docker.command>docker</docker.command>
+
         <test.certs.location>../build/_output/certs</test.certs.location>
 
         <!-- library dependency versions -->

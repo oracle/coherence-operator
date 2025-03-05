@@ -3,10 +3,10 @@ kind: Kustomization
 
 resources:
 - webhook-secret.yaml
-- manager.yaml
 - service.yaml
+- manager.yaml
 
 images:
 - name: controller
-  newName: ghcr.io/oracle/coherence-operator
+  newName: ghcr.io/thegridman/coherence-operator
   newTag: 3.4.3

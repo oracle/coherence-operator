@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,6 +7,7 @@
 package v1_test
 
 import (
+	"context"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -22,7 +23,8 @@ func TestJobDefaultReplicasIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*c.Spec.Replicas).To(Equal(coh.DefaultJobReplicas))
 }
@@ -31,7 +33,8 @@ func TestJobAddVersionAnnotation(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Annotations).NotTo(BeNil())
 	g.Expect(c.Annotations[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
 	g.Expect(c.Spec).NotTo(BeNil())
@@ -42,7 +45,8 @@ func TestJobAddVersionAnnotation(t *testing.T) {
 func TestJobShouldAddFinalizer(t *testing.T) {
 	g := NewGomegaWithT(t)
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(0))
 }
@@ -55,7 +59,8 @@ func TestJobShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
 			Finalizers: []string{coh.CoherenceFinalizer},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(1))
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
@@ -69,7 +74,8 @@ func TestJobShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
 			Finalizers: []string{"foo", "bar"},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(2))
 	g.Expect(finalizers).To(ContainElement("foo"))
@@ -87,7 +93,8 @@ func TestJobDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
 			},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*c.Spec.Replicas).To(Equal(replicas))
 }
@@ -96,7 +103,8 @@ func TestJobCoherenceLocalPortIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(coh.DefaultUnicastPort))
 }
@@ -115,7 +123,8 @@ func TestJobCoherenceLocalPortIsNotOverridden(t *testing.T) {
 			},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(port))
 }
@@ -125,7 +134,8 @@ func TestJobCoherenceLocalPortIsNotSetOnUpdate(t *testing.T) {
 
 	c := coh.CoherenceJob{}
 	c.Status.Phase = coh.ConditionTypeReady
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(c.Spec.Coherence.LocalPort).To(BeNil())
 	g.Expect(c.Spec.Coherence.LocalPortAdjust).To(BeNil())
@@ -136,7 +146,8 @@ func TestJobCoherenceLocalPortAdjustIsSet(t *testing.T) {
 
 	lpa := intstr.FromInt32(coh.DefaultUnicastPortAdjust)
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceResourceSpec.Coherence.LocalPortAdjust).To(Equal(lpa))
 }
@@ -154,7 +165,8 @@ func TestJobCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
 			},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
 }
@@ -164,7 +176,8 @@ func TestJobCoherenceLocalPortAdjustIsNotSetOnUpdate(t *testing.T) {
 
 	c := coh.CoherenceJob{}
 	c.Status.Phase = coh.ConditionTypeReady
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(c.Spec.Coherence.LocalPortAdjust).To(BeNil())
 }
@@ -175,7 +188,8 @@ func TestJobCoherenceImageIsSet(t *testing.T) {
 	viper.Set(operator.FlagCoherenceImage, "foo")
 
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.Image).To(Equal("foo"))
 }
@@ -193,7 +207,8 @@ func TestJobCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 		},
 	}
 
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.Image).To(Equal(image))
 }
@@ -204,7 +219,8 @@ func TestJobUtilsImageIsSet(t *testing.T) {
 	viper.Set(operator.FlagOperatorImage, "foo")
 
 	c := coh.CoherenceJob{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
 	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal("foo"))
@@ -225,7 +241,8 @@ func TestJobUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 		},
 	}
 
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).To(BeNil())
 	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
 	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal(image))
@@ -270,7 +287,7 @@ func TestJobPersistenceModeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -314,7 +331,7 @@ func TestJobPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -358,7 +375,7 @@ func TestJobPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -411,7 +428,7 @@ func TestJobPersistenceVolumeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -422,7 +439,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateCreate(context.Background(), current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -437,7 +454,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateCreate(context.Background(), current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -452,7 +469,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateCreate(context.Background(), current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -468,7 +485,7 @@ func TestJobValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateCreate(context.Background(), current)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -483,7 +500,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -502,7 +519,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -521,7 +538,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -541,7 +558,7 @@ func TestJobValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		Spec: coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), prev, current)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -558,7 +575,7 @@ func TestJobValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -585,7 +602,7 @@ func TestJobValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateCreate(context.Background(), current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -617,7 +634,7 @@ func TestJobValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateCreate(context.Background(), current)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -649,7 +666,7 @@ func TestJobValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -686,6 +703,6 @@ func TestJobValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		Spec:       coh.CoherenceJobResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), prev, current)
 	g.Expect(err).To(HaveOccurred())
 }

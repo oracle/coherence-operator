@@ -46,6 +46,10 @@ const (
 	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
 	// ConsoleMain is the Coherence console main class
 	ConsoleMain = "com.tangosol.net.CacheFactory"
+	// QueryPlusMain is the main class to run Coherence Query Plus
+	QueryPlusMain = "com.tangosol.coherence.dslquery.QueryPlus"
+	// JShellMain is the main class to run a JShell console
+	JShellMain = "jdk.internal.jshell.tool.JShellToolProvider"
 
 	// AppTypeNone is the argument to specify no application type.
 	AppTypeNone = ""
@@ -61,6 +65,8 @@ const (
 	AppTypeSpring3 = "spring3"
 	// AppTypeOperator is the argument to specify running an Operator command.
 	AppTypeOperator = "operator"
+	// AppTypeJShell is the argument to specify a JShell application.
+	AppTypeJShell = "jshell"
 
 	// defaultConfig is the root name of the default configuration file
 	defaultConfig = ".coherence-runner"
@@ -345,7 +351,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 	// Add the Operator Utils jar to the classpath
 	details.addClasspath(details.UtilsDir + "/lib/coherence-operator.jar")
-	details.addClasspath(details.UtilsDir + "/config")
+	details.addClasspathIfExists(details.UtilsDir + "/config")
 
 	// Configure Coherence persistence
 	mode := details.getenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
@@ -620,6 +626,9 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	case details.AppType == AppTypeCoherence:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
+	case details.AppType == AppTypeJShell:
+		app = "JShell"
+		cmd, err = createJShellCommand(details.getJShellExecutable(), details)
 	case details.AppType == AppTypeOperator:
 		app = "Operator"
 		cmd, err = createOperatorCommand(details)
@@ -640,6 +649,11 @@ func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	args := details.getCommand()
 	args = append(args, details.MainClass)
 	return _createJavaCommand(javaCmd, details, args)
+}
+
+func createJShellCommand(jshellCmd string, details *RunDetails) (*exec.Cmd, error) {
+	args := details.getCommandWithPrefix("-R", "-J")
+	return _createJavaCommand(jshellCmd, details, args)
 }
 
 func readFirstLineFromFile(path string) (string, error) {
@@ -992,7 +1006,7 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 
 		if jar, _ := details.lookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
 			// This is a fat jar Spring boot app so put the fat jar on the classpath
-			args = append(args, "-cp", jar)
+			args = append(args, "--class-path", jar)
 		}
 
 		if details.AppType == AppTypeSpring2 {
@@ -1004,7 +1018,7 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 		}
 	} else {
 		// We can use normal Java
-		args = append(args, "-cp", cp,
+		args = append(args, "--class-path", cp,
 			"-Dcoherence.operator.springboot.listener=false",
 			"com.oracle.coherence.k8s.CoherenceVersion", v)
 	}

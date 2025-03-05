@@ -1,0 +1,6 @@
+---
+schema: olm.channel
+package: coherence-operator
+name: stable
+entries:
+  - name: coherence-operator.v

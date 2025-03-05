@@ -37,7 +37,7 @@ FROM gcr.io/distroless/java11-debian11
 # Health checks will only work with Coherence 22.06 and later
 HEALTHCHECK  --start-period=10s --interval=30s \
     CMD ["java", \
-    "-cp", "/app/libs/coherence.jar", \
+    "--class-path", "/app/libs/coherence.jar", \
     "com.tangosol.util.HealthCheckClient", \
     "http://127.0.0.1:6676/ready", \
     "||", "exit", "1"]
@@ -53,7 +53,7 @@ EXPOSE 9612
 EXPOSE 6676
 
 # Set the entry point to be the Java command to run
-ENTRYPOINT ["java", "-cp", "/app/classes:/app/libs/*", "com.tangosol.net.Coherence"]
+ENTRYPOINT ["java", "--class-path", "/app/classes:/app/libs/*", "com.tangosol.net.Coherence"]
 
 # Set any environment variables
 # Set the health check port to a fixed value (corresponding to the command above)

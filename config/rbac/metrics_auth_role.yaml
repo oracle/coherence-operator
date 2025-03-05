@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-auth-role
+  labels:
+    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/version: "3.4.3"
+    app.kubernetes.io/part-of: coherence-operator
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create

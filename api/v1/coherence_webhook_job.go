@@ -7,6 +7,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,11 +34,16 @@ const JobMutatingWebHookPath = "/mutate-coherence-oracle-com-v1-coherencejob"
 
 // An anonymous var to ensure that the CoherenceJob struct implements webhook.Defaulter
 // there will be a compile time error here if this fails.
-var _ webhook.Defaulter = &CoherenceJob{}
+var _ webhook.CustomDefaulter = &CoherenceJob{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (in *CoherenceJob) Default() {
-	spec, _ := in.GetJobResourceSpec()
+func (in *CoherenceJob) Default(_ context.Context, obj runtime.Object) error {
+	coh, ok := obj.(*CoherenceJob)
+	if !ok {
+		return fmt.Errorf("expected a CoherenceJob instance but got a %T", obj)
+	}
+
+	spec, _ := coh.GetJobResourceSpec()
 	coherenceSpec := spec.Coherence
 	if spec.Coherence == nil {
 		coherenceSpec = &CoherenceSpec{}
@@ -66,13 +72,14 @@ func (in *CoherenceJob) Default() {
 		spec.SetReplicas(spec.GetReplicas())
 	}
 
-	SetCommonDefaults(in)
+	SetCommonDefaults(coh)
 
 	// apply a label with the hash of the spec - ths must be the last action here to make sure that
 	// any modifications to the spec field are included in the hash
-	if hash, applied := EnsureJobHashLabel(in); applied {
+	if hash, applied := EnsureJobHashLabel(coh); applied {
 		webhookLogger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
 	}
+	return nil
 }
 
 // The path in this annotation MUST match the const below
@@ -83,49 +90,62 @@ const JobValidatingWebHookPath = "/validate-coherence-oracle-com-v1-coherencejob
 
 // An anonymous var to ensure that the Coherence struct implements webhook.Validator
 // there will be a compile time error here if this fails.
-var _ webhook.Validator = &CoherenceJob{}
+var _ webhook.CustomValidator = &CoherenceJob{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (in *CoherenceJob) ValidateCreate() (admission.Warnings, error) {
+func (in *CoherenceJob) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+	coh, ok := obj.(*CoherenceJob)
+	if !ok {
+		return nil, fmt.Errorf("expected a CoherenceJob instance but got a %T", obj)
+	}
+
 	var err error
 	var warnings admission.Warnings
 
-	webhookLogger.Info("validate create", "name", in.Name)
-	if err = commonWebHook.validateReplicas(in); err != nil {
+	webhookLogger.Info("validate create", "name", coh.Name)
+	if err = commonWebHook.validateReplicas(coh); err != nil {
 		return warnings, err
 	}
-	if err = commonWebHook.validateImages(in); err != nil {
+	if err = commonWebHook.validateImages(coh); err != nil {
 		return warnings, err
 	}
-	if err = commonWebHook.validateNodePorts(in); err != nil {
+	if err = commonWebHook.validateNodePorts(coh); err != nil {
 		return warnings, err
 	}
 	return warnings, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (in *CoherenceJob) ValidateUpdate(previous runtime.Object) (admission.Warnings, error) {
-	webhookLogger.Info("validate update", "name", in.Name)
+func (in *CoherenceJob) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
+	cohNew, ok := newObj.(*CoherenceJob)
+	if !ok {
+		return nil, fmt.Errorf("expected a CoherenceJob instance for new value but got a %T", newObj)
+	}
+	cohPrev, ok := oldObj.(*CoherenceJob)
+	if !ok {
+		return nil, fmt.Errorf("expected a CoherenceJob instance for old value but got a %T", newObj)
+	}
+
+	webhookLogger.Info("validate update", "name", cohNew.Name)
 	var warnings admission.Warnings
 
-	if err := commonWebHook.validateReplicas(in); err != nil {
+	if err := commonWebHook.validateReplicas(cohNew); err != nil {
 		return warnings, err
 	}
-	if err := commonWebHook.validateImages(in); err != nil {
+	if err := commonWebHook.validateImages(cohNew); err != nil {
 		return warnings, err
 	}
-	prev := previous.(*CoherenceJob)
 
-	if err := commonWebHook.validatePersistence(in, prev); err != nil {
+	if err := commonWebHook.validatePersistence(cohNew, cohPrev); err != nil {
 		return warnings, err
 	}
-	if err := commonWebHook.validateNodePorts(in); err != nil {
+	if err := commonWebHook.validateNodePorts(cohNew); err != nil {
 		return warnings, err
 	}
 
 	var errorList field.ErrorList
-	job := in.Spec.CreateJob(in)
-	jobOld := prev.Spec.CreateJob(prev)
+	job := cohNew.Spec.CreateJob(cohNew)
+	jobOld := cohPrev.Spec.CreateJob(cohPrev)
 	errorList = ValidateJobUpdate(&job, &jobOld)
 
 	if len(errorList) > 0 {
@@ -136,7 +156,7 @@ func (in *CoherenceJob) ValidateUpdate(previous runtime.Object) (admission.Warni
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (in *CoherenceJob) ValidateDelete() (admission.Warnings, error) {
+func (in *CoherenceJob) ValidateDelete(context.Context, runtime.Object) (admission.Warnings, error) {
 	// we do not need to validate deletions
 	return nil, nil
 }

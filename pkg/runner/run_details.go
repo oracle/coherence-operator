@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -210,12 +210,26 @@ func (in *RunDetails) isEnvTrueOrBlank(name string) bool {
 }
 
 func (in *RunDetails) getCommand() []string {
+	return in.getCommandWithPrefix("", "")
+}
+
+func (in *RunDetails) getCommandWithPrefix(propPrefix, jvmPrefix string) []string {
 	var cmd []string
 	cp := in.getClasspath()
 	if cp != "" {
-		cmd = append(cmd, "-cp", cp)
+		cmd = append(cmd, "--class-path", cp)
 	}
-	cmd = append(cmd, in.Args...)
+	if propPrefix == "" && jvmPrefix == "" {
+		cmd = append(cmd, in.Args...)
+	} else {
+		for _, arg := range in.Args {
+			if strings.HasPrefix(arg, "-D") && propPrefix != "" {
+				cmd = append(cmd, propPrefix+arg)
+			} else if jvmPrefix != "" {
+				cmd = append(cmd, jvmPrefix+arg)
+			}
+		}
+	}
 	return cmd
 }
 
@@ -232,7 +246,7 @@ func (in *RunDetails) getSpringBootArgs() []string {
 
 	// Are we using a Spring Boot fat jar
 	if jar, _ := in.lookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
-		cmd = append(cmd, "-cp", jar)
+		cmd = append(cmd, "--class-path", jar)
 	}
 	cmd = append(cmd, in.Args...)
 
@@ -361,6 +375,13 @@ func (in *RunDetails) getJavaExecutable() string {
 		return in.JavaHome + "/bin/java"
 	}
 	return "java"
+}
+
+func (in *RunDetails) getJShellExecutable() string {
+	if in.JavaHome != "" {
+		return in.JavaHome + "/bin/jshell"
+	}
+	return "jshell"
 }
 
 // isBuildPacks determines whether to run the application with the Cloud Native Buildpack launcher

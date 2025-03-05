@@ -16,7 +16,7 @@ engine:
       coherence-image: "${coherence.image}"
       k8s-doc-link: "kubernetes.io/docs/reference/generated/kubernetes-api/${k8s-doc-version}"
       guides-dir: "${project.basedir}/../examples/guides"
-      commercial-docs-base-url: "docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206"
+      commercial-docs-base-url: "docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
       examples-source: "github.com/oracle/coherence-operator/tree/main/examples/"
 assets:
   - target: "/"

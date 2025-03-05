@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+#
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
 # --------------------------------------------------------------------------------
 # This script will build the Operator and run the K8s certification test suite.
 #
@@ -25,7 +31,19 @@
 export OPERATOR_NAMESPACE=coherence
 
 echo "Building Operator"
-if ! make build-all-images;
+if ! make build-operator;
+then
+  exit 1
+fi
+
+echo "Building Test imager"
+if ! make build-basic-test-image;
+then
+  exit 1
+fi
+
+echo "Building Compatibility Test imager"
+if ! make build-compatibility-image;
 then
   exit 1
 fi

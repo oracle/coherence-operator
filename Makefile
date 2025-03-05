@@ -112,7 +112,8 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_IMAGE_REGISTRY ?= ghcr.io/oracle
+GITHUB_REGISTRY         := ghcr.io/oracle
+OPERATOR_IMAGE_REGISTRY ?= $(GITHUB_REGISTRY)
 OPERATOR_BASE_IMAGE     ?= scratch
 OPERATOR_IMAGE_NAME     := coherence-operator
 OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
@@ -213,14 +214,15 @@ LOCAL_STORAGE_RESTART ?= false
 # This is required if building and testing in environments that need to pull or push
 # images to private registries. For example building and testing with k8s in OCI.
 # ----------------------------------------------------------------------------------------------------------------------
-DOCKER_CMD ?= docker
-DOCKER_SERVER ?=
-DOCKER_USERNAME ?=
-DOCKER_PASSWORD ?=
+DOCKER_CMD          ?= docker
+JIB_EXECUTABLE      ?= $(shell which docker)
+DOCKER_SERVER       ?=
+DOCKER_USERNAME     ?=
+DOCKER_PASSWORD     ?=
 OCR_DOCKER_USERNAME ?=
 OCR_DOCKER_PASSWORD ?=
-MAVEN_USER ?=
-MAVEN_PASSWORD ?=
+MAVEN_USER          ?=
+MAVEN_PASSWORD      ?=
 
 
 ifneq ("$(MAVEN_SETTINGS)","")
@@ -297,6 +299,7 @@ TOOLS_BIN         = $(TOOLS_DIRECTORY)/bin
 TOOLS_MANIFESTS   = $(TOOLS_DIRECTORY)/manifests
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
+ENVTEST           = $(TOOLS_BIN)/setup-envtest
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
@@ -468,7 +471,9 @@ clean: ## Cleans the build
 	-rm -rf $(BUILD_BIN) || true
 	-rm -rf artifacts || true
 	-rm -rf bundle || true
+	-rm -rf catalog || true
 	-rm bundle.Dockerfile || true
+	-rm catalog.Dockerfile || true
 	rm config/crd/bases/*.yaml || true
 	rm -rf config/crd-small || true
 	rm pkg/data/zz_generated_*.go || true
@@ -559,23 +564,35 @@ build-operator-images: $(BUILD_TARGETS)/build-operator ## Build all operator ima
 # Build the Operator Test images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-test-images
-build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image ## Build all of the test images
+build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-image build-helidon-test-images build-spring-test-images ## Build all of the test images
+
+
+.PHONY: build-helidon-test-images
+build-helidon-test-images: $(BUILD_TARGETS)/java ## Build the Helidon test images
 #   Helidon 4
 	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
 		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) \
 		$(MAVEN_BUILD_OPTS)
 #   Helidon 3
 	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
 		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) \
 		$(MAVEN_BUILD_OPTS)
 #   Helidon 2
 	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) \
 		$(MAVEN_BUILD_OPTS)
+
+.PHONY: build-spring-test-images
+build-spring-test-images: $(BUILD_TARGETS)/java ## Build the Spring test images
 #   Spring Boot 3.x JIB
-	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 3.x CNBP
 	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 3.x fat jar
@@ -586,7 +603,9 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
 	$(DOCKER_CMD) build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) --load java/operator-test-spring/target
 #   Spring Boot 2.x JIB
-	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 2.x CNBP
 	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 2.x fat jar
@@ -602,11 +621,15 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-basic-test-image
 build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test image
-	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
+	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
-	./mvnw -B -f java/operator-test-client package jib:dockerBuild -DskipTests -Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT) $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f java/operator-test-client package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT) $(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
@@ -660,7 +683,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
-	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml)
+	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
@@ -827,6 +850,7 @@ copyright:  ## Check copyright headers
 	  -X preflight.log \
 	  -X PROJECT \
 	  -X .sh \
+	  -X .svg \
 	  -X tanzu/package/package.yml \
 	  -X tanzu/package/values.yml \
 	  -X temp/ \
@@ -902,13 +926,14 @@ stop: ## kill any locally running operator process
 bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manifests $(MANIFEST_FILES) ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
-	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --verbose --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	@echo "" >> ./bundle/metadata/annotations.yaml
 	@echo "  # OpenShift annotations" >> ./bundle/metadata/annotations.yaml
 	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> ./bundle/metadata/annotations.yaml
 	@echo "" >> bundle.Dockerfile
 	@echo "# OpenShift labels" >> bundle.Dockerfile
 	@echo "LABEL com.redhat.openshift.versions=$(OPENSHIFT_MIN_VERSION)" >> bundle.Dockerfile
+	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate ./bundle
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.26
@@ -925,53 +950,89 @@ bundle-image: bundle  ## Build the OLM image
 	$(DOCKER_CMD) build --no-cache -f bundle.Dockerfile -t $(BUNDLE_IMAGE) --load .
 
 .PHONY: bundle-push
-bundle-push: ## Push the OLM bundle image.
+bundle-push: bundle-image ## Push the OLM bundle image.
 	$(DOCKER_CMD) push $(OPE) $(BUNDLE_IMAGE)
 
+OPM = $(TOOLS_BIN)/opm
+
 .PHONY: opm
-OPM = ./bin/opm
-opm: ## Download opm locally if necessary.
-ifeq (,$(wildcard $(OPM)))
-ifeq (,$(shell which opm 2>/dev/null))
+opm: $(TOOLS_BIN)/opm
+
+$(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 	@{ \
 	set -e ;\
-	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.15.1/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.51.0/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
 	chmod +x $(OPM) ;\
 	}
-else
-OPM = $(shell which opm)
-endif
-endif
-
-# A comma-separated list of bundle images
-# These images MUST exist in a registry and be pull-able.
-BUNDLE_IMAGE_LIST ?= $(BUNDLE_IMAGE)
 
 # The image tag given to the resulting catalog image
-CATALOG_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog:$(VERSION)
-
-# Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMAGE_LIST to that image.
-ifneq ($(origin CATALOG_BASE_IMG), undefined)
-FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
-endif
+CATALOG_IMAGE_NAME := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog
+CATALOG_IMAGE      := $(CATALOG_IMAGE_NAME):latest
 
 # Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool $(DOCKER_CMD) --mode semver --tag $(CATALOG_IMAGE) --bundles $(BUNDLE_IMAGE_LIST) $(FROM_INDEX_OPT)
+catalog-build: opm ## Build a catalog image (the bundle image must have been pushed first).
+	rm -rf catalog || true
+	mkdir -p catalog
+	rm catalog.Dockerfile || true
+	$(OPM) generate dockerfile catalog
+	$(OPM) init coherence-operator --default-channel=stable --description=./README.md --icon=./hack/logo.svg --output yaml > catalog/operator.yaml
+	$(OPM) render $(BUNDLE_IMAGE) --output=yaml >> catalog/operator.yaml
+	cat ./hack/catalog-template.yaml >> catalog/operator.yaml
+	@echo $(VERSION) >> catalog/operator.yaml
+	$(OPM) validate catalog
+	$(DOCKER_CMD) build --load -f catalog.Dockerfile -t $(CATALOG_IMAGE) .
 
 # Push the catalog image.
 .PHONY: catalog-push
-catalog-push: ## Push a catalog image.
+catalog-push: catalog-build ## Push a catalog image.
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(CATALOG_IMAGE)
 
 .PHONY: scorecard
 scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard tests.
-	$(OPERATOR_SDK) scorecard ./bundle
+	$(OPERATOR_SDK) scorecard --verbose ./bundle
+
+.PHONY: install-olm
+install-olm: ensure-sdk ## Install the Operator Lifecycle Manage into the K8s cluster
+	$(OPERATOR_SDK) olm install
+
+.PHONY: uninstall-olm
+uninstall-olm: ensure-sdk ## Uninstall the Operator Lifecycle Manage from the K8s cluster
+	$(OPERATOR_SDK) olm uninstall || true
+
+# Catalog image must be pushed first
+.PHONY: olm-deploy-catalog
+olm-deploy-catalog: ## Deploy the Operator Catalog into OLM
+	mkdir -p $(BUILD_OUTPUT)/catalog || true
+	cp $(SCRIPTS_DIR)/operator-catalog-source.yaml $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	$(SED) -e 's^IMAGE_NAME_PLACEHOLDER^$(CATALOG_IMAGE)^g' $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	kubectl apply -f $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	kubectl -n olm get catalogsource
+
+.PHONY: wait-for-olm-deploy
+wait-for-olm-deploy: export POD=$(shell kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog -o name)
+wait-for-olm-deploy: ## Wait for the Operator Catalog to be deployed into OLM
+	echo "Operator Catalog Source Pods:"
+	kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog
+	echo "Waiting for Operator Catalog Source to be ready. Pod: $(POD)"
+	kubectl -n olm wait --for condition=ready --timeout 480s $(POD)
+
+.PHONY: olm-deploy
+olm-deploy: ## Deploy the Operator into the coherence namespace using OLM
+	kubectl create ns coherence || true
+	kubectl -n coherence apply -f $(SCRIPTS_DIR)/operator-group.yaml
+	kubectl -n coherence apply -f $(SCRIPTS_DIR)/operator-subscription.yaml
+	sleep 10
+	kubectl -n coherence get ip
+	kubectl -n coherence get csv
+	kubectl -n coherence wait --for condition=available  deployment/coherence-operator-controller-manager -timeout 480s
+
+.PHONY: olm-undeploy
+olm-undeploy: ## Undeploy the Operator that was installed with OLM
+	kubectl -n coherence delete csv coherence-operator.v$(VERSION)
 
 # ======================================================================================================================
 # Targets to run a local container registry
@@ -1015,6 +1076,9 @@ registry-stop:
 # ======================================================================================================================
 ##@ OpenShift related tasks
 
+PREFLIGHT_REGISTRY_AUTH_DIR  ?= $(DEPLOY_REGISTRY_CONFIG_DIR)
+PREFLIGHT_REGISTRY_AUTH_JSON ?= $(DEPLOY_REGISTRY_CONFIG_JSON)
+
 .PHONY: preflight
 preflight: ## Run the OpenShift preflight tests against the Operator Image in a container
 	mkdir -p $(BUILD_PREFLIGHT) || true
@@ -1028,8 +1092,8 @@ preflight: ## Run the OpenShift preflight tests against the Operator Image in a 
 	  --env PFLT_LOGFILE=/artifacts/preflight.log \
 	  -v $(BUILD_PREFLIGHT):/artifacts \
 	  -v $(HOME)/.kube/:/kubeconfig:ro \
-	  -v $(SCRIPTS_DIR):/dockerconfig:ro \
-	  quay.io/opdev/preflight:stable check container --insecure $(OPERATOR_IMAGE)
+	  -v $(PREFLIGHT_REGISTRY_AUTH_DIR):/dockerconfig:ro \
+	  quay.io/opdev/preflight:stable check container --docker-config /dockerconfig/$(PREFLIGHT_REGISTRY_AUTH_JSON) --insecure $(OPERATOR_IMAGE)
 
 .PHONY: preflight-oc
 preflight-oc: $(BUILD_PREFLIGHT)/preflight.yaml preflight-oc-cleanup ## Run the OpenShift preflight tests as a K8s Job against the Operator Image
@@ -1046,9 +1110,6 @@ preflight-oc-cleanup: $(BUILD_PREFLIGHT)/preflight.yaml ## Clean up the OpenShif
 # This is usually obtained by running:
 #     echo -n bogus:$(oc whoami -t) | base64
 PREFLIGHT_REGISTRY_CRED ?=
-
-.PHONY: jk
-jk: $(BUILD_PREFLIGHT)/preflight.yaml
 
 # Generate the preflight job yaml
 $(BUILD_PREFLIGHT)/preflight.yaml: hack/preflight.yaml
@@ -1157,7 +1218,7 @@ e2e-local-test: export VERSION := $(VERSION)
 e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-local-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-local-test: $(BUILD_TARGETS)/build-operator undeploy reset-namespace create-ssl-secrets gotestsum install-crds ensure-pull-secret  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
@@ -1177,7 +1238,7 @@ e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional te
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets install-crds deploy-and-wait
+prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -1243,7 +1304,7 @@ e2e-k3d-test: export VERSION := $(VERSION)
 e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-k3d-test: reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
 
@@ -1266,7 +1327,7 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets install-crds gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
@@ -1282,7 +1343,7 @@ e2e-helm-test: export COHERENCE_IMAGE_REGISTRY := $(COHERENCE_IMAGE_REGISTRY)
 e2e-helm-test: export COHERENCE_IMAGE_NAME := $(COHERENCE_IMAGE_NAME)
 e2e-helm-test: export COHERENCE_IMAGE_TAG := $(COHERENCE_IMAGE_TAG)
 e2e-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace install-crds gotestsum  ## Run the Operator Helm chart end-to-end functional tests
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -1299,7 +1360,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets install-crds deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
+e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -1613,8 +1674,31 @@ deploy-and-wait: deploy wait-for-deploy   ## Deploy the Coherence Operator and w
 # The Operator is deployed HA by default
 OPERATOR_HA ?= true
 
+# If this variable is set it should be the path name to the
+# container registry auth file, for example with Docker
+#   DEPLOY_REGISTRY_CONFIG_DIR=$HOME/.docker
+#   DEPLOY_REGISTRY_CONFIG_JSON=config.json
+# Or with Podman
+#   DEPLOY_REGISTRY_CONFIG_DIR=$XDG_RUNTIME_DIR/containers
+#   DEPLOY_REGISTRY_CONFIG_JSON=auth.json
+# Or to some other file in the correct format
+#
+# When set, the file will be used to create a pull secret named
+# coherence-operator-pull-secret in the test namespace and the
+# the Kustomize deployment will be config/overlays/ci directory
+# to patch the ServiceAccount to use the secret
+DEPLOY_REGISTRY_CONFIG_DIR  ?=
+DEPLOY_REGISTRY_CONFIG_JSON ?=
+
+DEPLOY_REGISTRY_CONFIG_PATH :=
+ifneq (,$(DEPLOY_REGISTRY_CONFIG_DIR))
+ifneq (,$(DEPLOY_REGISTRY_CONFIG_JSON))
+	DEPLOY_REGISTRY_CONFIG_PATH := $(DEPLOY_REGISTRY_CONFIG_DIR)/$(DEPLOY_REGISTRY_CONFIG_JSON)
+endif
+endif
+
 .PHONY: deploy
-deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize   ## Deploy the Coherence Operator
+deploy: prepare-deploy create-namespace $(TOOLS_BIN)/kustomize ensure-pull-secret  ## Deploy the Coherence Operator
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
@@ -1622,13 +1706,34 @@ ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
+ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(GITHUB_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+else
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+endif
 	sleep 5
 
+
 .PHONY: just-deploy
-just-deploy: ## Deploy the Coherence Operator without rebuilding anything
+just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(GITHUB_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+else
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+endif
+
+
+.PHONY: ensure-pull-secret
+ensure-pull-secret:
+ifneq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
+	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
+		--from-file=.dockerconfigjson=$(DEPLOY_REGISTRY_CONFIG_PATH) \
+		--type=kubernetes.io/dockerconfigjson
+	kubectl -n $(OPERATOR_NAMESPACE) patch serviceaccount default -p '{"imagePullSecrets": [{"name": "coherence-operator-pull-secret"}]}'
+endif
+
 
 .PHONY: prepare-deploy
 prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
@@ -1704,7 +1809,11 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## U
 	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
 	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
 	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
+	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	@echo "Undeploy Coherence Operator completed"
+	@echo "Uninstalling CRDs - executing deletion"
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true
+	@echo "Uninstall CRDs completed"
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1722,17 +1831,20 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/temp.yaml
 	mkdir -p $(BUILD_MANIFESTS)/crd-small
 	$(KUSTOMIZE) build config/crd-small > $(BUILD_MANIFESTS)/crd-small/temp.yaml
+	cp -R config/components/ $(BUILD_MANIFESTS)/components
 	cp -R config/default/ $(BUILD_MANIFESTS)/default
 	cp -R config/manager/ $(BUILD_MANIFESTS)/manager
+	cp -R config/namespace/ $(BUILD_MANIFESTS)/namespace
+	cp -R config/overlays/ $(BUILD_MANIFESTS)/overlays
 	cp -R config/rbac/ $(BUILD_MANIFESTS)/rbac
-	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
+	rm -rf $(BUILD_MANIFESTS)/overlays/ci || true
 	$(call prepare_deploy,$(OPERATOR_IMAGE),"coherence")
 	cp config/namespace/namespace.yaml $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default >> $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)/coherence-operator.yaml
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/restricted >> $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
 	$(SED) -e 's/name: coherence-operator-env-vars-.*/name: coherence-operator-env-vars/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
-	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)//coherence-operator-restricted.yaml
+	$(SED) -e 's/ClusterRole/Role/g' $(BUILD_OUTPUT)/coherence-operator-restricted.yaml
 	cd $(BUILD_MANIFESTS)/crd && $(TOOLS_BIN)/yq --no-doc -s '.metadata.name + ".yaml"' temp.yaml
 	rm $(BUILD_MANIFESTS)/crd/temp.yaml
 	mv $(BUILD_MANIFESTS)/crd/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd/coherence.oracle.com_coherence.yaml
@@ -1741,6 +1853,7 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 	rm $(BUILD_MANIFESTS)/crd-small/temp.yaml
 	mv $(BUILD_MANIFESTS)/crd-small/coherence.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd-small/coherence.oracle.com_coherence.yaml
 	mv $(BUILD_MANIFESTS)/crd-small/coherencejob.coherence.oracle.com.yaml $(BUILD_MANIFESTS)/crd-small/coherencejob.oracle.com_coherence.yaml
+	tar -C $(BUILD_OUTPUT) -czf $(BUILD_MANIFESTS_PKG) manifests/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1767,7 +1880,7 @@ reset-namespace: export DOCKER_USERNAME := $(DOCKER_USERNAME)
 reset-namespace: export DOCKER_PASSWORD := $(DOCKER_PASSWORD)
 reset-namespace: export OCR_DOCKER_USERNAME := $(OCR_DOCKER_USERNAME)
 reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
-reset-namespace: delete-namespace create-namespace      ## Reset the test namespace
+reset-namespace: delete-namespace create-namespace ensure-pull-secret     ## Reset the test namespace
 ifneq ($(DOCKER_SERVER),)
 	@echo "Creating pull secrets for $(DOCKER_SERVER)"
 	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
@@ -2293,7 +2406,9 @@ gotestsum: ## Download gotestsum locally if necessary.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	./mvnw -B -f ./examples package jib:dockerBuild -DskipTests $(MAVEN_BUILD_OPTS)
+	./mvnw -B -f ./examples package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+ 		$(MAVEN_BUILD_OPTS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
@@ -2309,13 +2424,17 @@ PUSH_ARGS ?=
 
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_AMD)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(OPERATOR_IMAGE_ARM)
-	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
-	$(DOCKER_CMD) manifest create $(PUSH_ARGS) $(OPERATOR_IMAGE) \
-		--amend $(OPERATOR_IMAGE_AMD) \
-		--amend $(OPERATOR_IMAGE_ARM)
-	$(DOCKER_CMD) manifest push $(PUSH_ARGS) $(OPERATOR_IMAGE)
+	chmod +x $(CURRDIR)/hack/run-buildah.sh
+	export OPERATOR_IMAGE=$(OPERATOR_IMAGE) \
+	&& export OPERATOR_IMAGE_AMD=$(OPERATOR_IMAGE_AMD) \
+	&& export OPERATOR_IMAGE_ARM=$(OPERATOR_IMAGE_ARM) \
+	&& export OPERATOR_IMAGE_REGISTRY=$(OPERATOR_IMAGE_REGISTRY) \
+	&& export VERSION=$(VERSION) \
+	&& export REVISION=$(GITCOMMIT) \
+	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& export DOCKER_CMD=$(DOCKER_CMD) \
+	&& $(CURRDIR)/hack/run-buildah.sh PUSH
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
@@ -2367,9 +2486,11 @@ push-ttl-test-images:
 .PHONY: build-compatibility-image
 build-compatibility-image: $(BUILD_TARGETS)/java
 	./mvnw -B -f java/operator-compatibility package -DskipTests \
+		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
 	./mvnw -B -f java/operator-compatibility exec:exec \
+		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
 	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
 
@@ -2409,10 +2530,10 @@ push-ttl-operator-images:
 push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Push all of the Docker images that are released
+# Push all of the images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image tanzu-repo
+push-release-images: push-operator-image bundle-push catalog-build catalog-push tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus

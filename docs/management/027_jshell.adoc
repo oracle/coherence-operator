@@ -1,0 +1,97 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2023, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Using JShell
+
+== Using JShell
+
+JShell is a Java utility that allows Java code to be executed in a console.
+Whilst it is simple to exec into a Pod and run JShell, the Coherence Operator will run JShell
+configured with the same class path and system properties as the running Coherence container.
+This makes it simpler to invoke JShell commands knowing that everything required to
+access the running Coherence JVM is present.
+
+=== Using JShell in Pods
+
+The Operator installs a simple CLI named `runner` at the location `/coherence-operator/utils/runner`.
+One of the commands the runner can execute is `jshell` which will start a JShell process.
+
+[CAUTION]
+====
+JShell can be a useful debugging tool, but running JShell in a production cluster is not recommended.
+
+The JShell JVM will join the cluster as a storage disabled member alongside the JVM running in the
+Coherence container in the Pod.
+The JShell session will have all the same configuration parameters as the Coherence container.
+
+For this reason, great care must be taken with the commands that are executed so that the cluster does not become unstable.
+====
+
+=== Start a JShell Session
+
+The `kubectl exec` command can be used to create an interactive session in a Pod using the Coherence Operator runner
+to start a JShell session.
+
+*Example*
+
+The yaml below will create a simple three member cluster.
+
+[source]
+.minimal.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+    replicas: 3
+----
+
+The cluster name is `storage` and there will be three Pods created, `storage-0`, `storage-1` and `storage-2`.
+
+A Query Plus session can be run by exec'ing into one of the Pods to execute the runner with the argument `jshell`.
+
+[source,bash]
+----
+kubectl exec -it storage-0 -c coherence -- /coherence-operator/runner jshell
+----
+
+After executing the above command, the `jshell>` prompt will be displayed ready to accept input.
+
+[NOTE]
+====
+The `kubectl exec` command must include the `-it` options so that `kubectl` creates an interactive terminal session.
+====
+
+=== Starting Coherence
+
+The JShell session only starts the JShell REPL and Coherence is not started in the JShell process.
+As the JShell process has all the same configuration except it is configured to be storage disabled.
+As the Coherence container in the Pod any of the normal ways to bootstrap Coherence can be used.
+Any configuration changes, for example setting system properties, can be done before Coherence is started.
+
+For example:
+
+[source,java]
+----
+jshell> import com.tangosol.net.*;
+
+jshell> Coherence c = Coherence.clusterMember().start().join();
+
+jshell> Session s = c.getSession();
+s ==> com.tangosol.internal.net.ConfigurableCacheFactorySession@3d0f8e03
+
+jshell> NamedCache<String, String> cache = s.getCache("test");
+cache ==> com.tangosol.internal.net.SessionNamedCache@91213130
+
+jshell> cache.size();
+$5 ==> 0
+
+jshell>
+----
+

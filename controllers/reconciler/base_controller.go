@@ -48,6 +48,10 @@ const (
 	EventReasonFailed string = "Failed"
 	// EventReasonDeleted is the reason description for a deleted event.
 	EventReasonDeleted string = "Deleted"
+	// EventReasonReconciling is the reason description for an reconciling event.
+	EventReasonReconciling string = "Reconciling"
+	// EventReasonScaling is the reason description for an scaling event.
+	EventReasonScaling string = "Scaling"
 )
 
 var (

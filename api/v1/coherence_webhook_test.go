@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -7,6 +7,7 @@
 package v1_test
 
 import (
+	"context"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -23,7 +24,8 @@ func TestDefaultReplicasIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.CoherenceResourceSpec.Replicas).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
 }
@@ -32,7 +34,8 @@ func TestAddVersionAnnotation(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	an := c.GetAnnotations()
 	g.Expect(an).NotTo(BeNil())
 	g.Expect(an[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
@@ -42,7 +45,8 @@ func TestAddVersionAnnotation(t *testing.T) {
 func TestShouldAddFinalizer(t *testing.T) {
 	g := NewGomegaWithT(t)
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(1))
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
@@ -56,7 +60,8 @@ func TestShouldNotAddFinalizerAgainIfPresent(t *testing.T) {
 			Finalizers: []string{coh.CoherenceFinalizer},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(1))
 	g.Expect(finalizers).To(ContainElement(coh.CoherenceFinalizer))
@@ -70,7 +75,8 @@ func TestShouldNotRemoveFinalizersAlreadyPresent(t *testing.T) {
 			Finalizers: []string{"foo", "bar"},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	finalizers := c.GetFinalizers()
 	g.Expect(len(finalizers)).To(Equal(3))
 	g.Expect(finalizers).To(ContainElement("foo"))
@@ -93,7 +99,8 @@ func TestNoNotAddFinalizerToDeletedResource(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	c.Default()
+	err := c.Default(context.Background(), c)
+	g.Expect(err).NotTo(HaveOccurred())
 	finalizers := c.GetFinalizers()
 	g.Expect(finalizers).To(BeNil())
 }
@@ -109,7 +116,8 @@ func TestDefaultReplicasIsNotOverriddenWhenAlreadySet(t *testing.T) {
 			},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*c.Spec.Replicas).To(Equal(replicas))
 }
@@ -118,7 +126,8 @@ func TestCoherenceLocalPortIsSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(coh.DefaultUnicastPort))
 }
@@ -137,7 +146,8 @@ func TestCoherenceLocalPortIsNotOverridden(t *testing.T) {
 			},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPort).To(Equal(port))
 }
@@ -147,7 +157,8 @@ func TestCoherenceLocalPortIsNotSetOnUpdate(t *testing.T) {
 
 	c := coh.Coherence{}
 	c.Status.Phase = coh.ConditionTypeReady
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Coherence).To(BeNil())
 }
 
@@ -156,7 +167,8 @@ func TestCoherenceLocalPortAdjustIsSet(t *testing.T) {
 
 	lpa := intstr.FromInt32(coh.DefaultUnicastPortAdjust)
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
 }
@@ -174,7 +186,8 @@ func TestCoherenceLocalPortAdjustIsNotOverridden(t *testing.T) {
 			},
 		},
 	}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Coherence).NotTo(BeNil())
 	g.Expect(*c.Spec.Coherence.LocalPortAdjust).To(Equal(lpa))
 }
@@ -184,7 +197,8 @@ func TestCoherenceLocalPortAdjustIsNotSetOnUpdate(t *testing.T) {
 
 	c := coh.Coherence{}
 	c.Status.Phase = coh.ConditionTypeReady
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Coherence).To(BeNil())
 }
 
@@ -194,7 +208,8 @@ func TestCoherenceImageIsSet(t *testing.T) {
 	viper.Set(operator.FlagCoherenceImage, "foo")
 
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.Image).To(Equal("foo"))
 }
@@ -212,7 +227,8 @@ func TestCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 		},
 	}
 
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.Image).To(Equal(image))
 }
@@ -223,7 +239,8 @@ func TestUtilsImageIsSet(t *testing.T) {
 	viper.Set(operator.FlagOperatorImage, "foo")
 
 	c := coh.Coherence{}
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
 	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal("foo"))
@@ -244,7 +261,8 @@ func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 		},
 	}
 
-	c.Default()
+	err := c.Default(context.Background(), &c)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
 	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
 	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal(image))
@@ -289,7 +307,7 @@ func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -333,7 +351,7 @@ func TestPersistenceModeChangeAllowedIfReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -377,7 +395,7 @@ func TestPersistenceModeChangeAllowedIfPreviousReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -430,7 +448,7 @@ func TestPersistenceVolumeChangeNotAllowed(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -441,7 +459,7 @@ func TestValidateCreateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateUpdate(context.Background(), current, current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -456,7 +474,7 @@ func TestValidateCreateReplicasWhenReplicasIsPositive(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateUpdate(context.Background(), current, current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -471,7 +489,7 @@ func TestValidateCreateReplicasWhenReplicasIsZero(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateUpdate(context.Background(), current, current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -487,7 +505,7 @@ func TestValidateCreateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateUpdate(context.Background(), current, current)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -502,7 +520,7 @@ func TestValidateUpdateReplicasWhenReplicasIsNil(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -521,7 +539,7 @@ func TestValidateUpdateReplicasWhenReplicasIsPositive(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -540,7 +558,7 @@ func TestValidateUpdateReplicasWhenReplicasIsZero(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -560,7 +578,7 @@ func TestValidateUpdateReplicasWhenReplicasIsInvalid(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -577,7 +595,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNil(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -596,7 +614,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsNilAndEmpty(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -620,7 +638,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsAdded(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -644,7 +662,7 @@ func TestValidateVolumeClaimUpdateWhenVolumeClaimsRemoved(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -671,7 +689,7 @@ func TestValidateNodePortsOnCreateWithValidPorts(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateUpdate(context.Background(), current, current)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -703,7 +721,7 @@ func TestValidateNodePortsOnCreateWithInvalidPort(t *testing.T) {
 		},
 	}
 
-	_, err := current.ValidateCreate()
+	_, err := current.ValidateUpdate(context.Background(), current, current)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -735,7 +753,7 @@ func TestValidateNodePortsOnUpdateWithValidPorts(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), current, prev)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -772,6 +790,6 @@ func TestValidateNodePortsOnUpdateWithInvalidPort(t *testing.T) {
 		Spec:       coh.CoherenceStatefulSetResourceSpec{},
 	}
 
-	_, err := current.ValidateUpdate(prev)
+	_, err := current.ValidateUpdate(context.Background(), prev, current)
 	g.Expect(err).To(HaveOccurred())
 }

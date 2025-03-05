@@ -8,6 +8,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -28,6 +31,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -68,6 +74,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -99,6 +108,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -127,6 +139,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -159,6 +174,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -267,6 +285,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -297,6 +318,9 @@ metadata:
   name: leader-election-role
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
@@ -347,6 +371,9 @@ metadata:
   name: leader-election-rolebinding
   labels:
     control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/part-of: coherence-operator
 {{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}

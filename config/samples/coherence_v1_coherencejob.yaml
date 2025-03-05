@@ -1,0 +1,6 @@
+apiVersion: coherence.oracle.com/v1
+kind: CoherenceJob
+metadata:
+  name: coherence-job-sample
+spec:
+  replicas: 1

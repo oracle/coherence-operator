@@ -8,19 +8,10 @@
 
 # --------------------------------------------------------------------
 # This script exports various environment variables so that
-# Make targets will be executed using Podman and OpenShift.
+# Make targets will be executed using Podman.
 # --------------------------------------------------------------------
 
 export DOCKER_CMD=podman
-export PUSH_ARGS=--tls-verify=false
-export REGISTRY=$(oc get route/default-route -n openshift-image-registry -o=jsonpath='{.spec.host}')
-export OPERATOR_IMAGE_REGISTRY=${REGISTRY}/oracle
-export PREFLIGHT_REGISTRY_CRED=$(echo -n bogus:$(oc whoami -t) | base64)
-
-podman login -u bogus -p $(oc whoami -t) --tls-verify=false ${REGISTRY}
-podman login -u bogus -p $(oc whoami -t) --tls-verify=false ${OPERATOR_IMAGE_REGISTRY}
-
-#oc new-project oracle || true
-#oc -n oracle create is coherence-operator || true
-# Allow anyone to pull oracle images
-#oc adm policy add-role-to-group system:image-puller system:authenticated --namespace=oracle
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export JIB_EXECUTABLE=$(which podman)
+export MY_DOCKER_HOST=${DOCKER_HOST}

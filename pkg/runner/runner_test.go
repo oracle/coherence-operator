@@ -111,11 +111,12 @@ func GetMinimalExpectedArgs() []string {
 	cp := fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar",
 		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
 
-	args := []string{
-		GetJavaArg(),
-		"-cp",
-		cp + ":/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
+	cp = cp + ":/coherence-operator/utils/lib/coherence-operator.jar"
+	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
+		cp = cp + ":/coherence-operator/utils/config"
 	}
+
+	args := []string{GetJavaArg(), "--class-path", cp}
 
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
@@ -131,11 +132,11 @@ func GetMinimalExpectedArgsWithoutCP() []string {
 }
 
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
-	args := []string{
-		GetJavaArg(),
-		"-cp",
-		"/coherence-operator/utils/lib/coherence-operator.jar:/coherence-operator/utils/config",
+	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
+	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
+		cp = cp + ":/coherence-operator/utils/config"
 	}
+	args := []string{GetJavaArg(), "--class-path", cp}
 
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",

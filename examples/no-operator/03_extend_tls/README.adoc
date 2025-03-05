@@ -225,7 +225,7 @@ spec:
           command:
             - java
           args:
-            - -cp
+            - "--class-path"
             - "@/app/jib-classpath-file"
             - -Xms1800m
             - -Xmx1800m
