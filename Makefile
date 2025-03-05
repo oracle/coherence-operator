@@ -940,6 +940,11 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=operatorhubv2 --optional-values=k8s-version=1.26
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=capabilities --optional-values=k8s-version=1.26
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=categories --optional-values=k8s-version=1.26
+	rm -rf $(BUILD_OUTPUT)/bundle || true
+	mkdir -p $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION) || true
+	cp -R bundle/ $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)/
+	rm $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)/ci.yaml
+	tar -C $(BUILD_OUTPUT)/bundle -czf $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz .
 	rm -rf bundle_tmp*
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2533,7 +2538,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image bundle-push catalog-build catalog-push tanzu-repo
+push-release-images: push-operator-image bundle-push catalog-push tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus
