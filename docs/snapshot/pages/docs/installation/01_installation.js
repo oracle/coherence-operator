@@ -8,7 +8,7 @@
 <v-card-text>
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
-<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>ghcr.io/oracle/coherence-operator:3.4.3</code> that can
+<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>ghcr.io/oracle/coherence-operator:3.5.0</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -196,7 +196,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator:3.4.3</code> - The Operator image.</p>
+<p><code>ghcr.io/oracle/coherence-operator:3.5.0</code> - The Operator image.</p>
 
 </li>
 </ul>
@@ -263,7 +263,7 @@ apply the manifests from the Operator release.</p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>As of v3.4.3 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+<p ><p>As of v3.5.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.</p>
 </p>
@@ -274,7 +274,7 @@ the installation has all the RBAC permissions required to install all the resour
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.3/coherence-operator.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator.yaml</markup>
 
 <p>This will create a namespace called <code>coherence</code> and install the CRDs and the Operator into the namespace,
 along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources. The <code>coherence</code> namespace can be changed by
@@ -336,7 +336,7 @@ the Operator into a single namespace without any cluster roles.</p>
 </ul>
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>As of v3.4.3 of the Operator the <code>coherence-operator-restricted.yaml</code> also installs the two CRDs that the Operator uses.
+<p ><p>As of v3.5.0 of the Operator the <code>coherence-operator-restricted.yaml</code> also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.</p>
 </p>
@@ -347,7 +347,7 @@ the installation has all the RBAC permissions required to install all the resour
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.3/coherence-operator-restricted.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-restricted.yaml</markup>
 
 <div class="admonition important">
 <p class="admonition-textlabel">Important</p>
@@ -369,8 +369,8 @@ This may be required where the Operator is running with restricted permissions a
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.3/coherence.oracle.com_coherence_small.yaml
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.4.3/coherencejob.oracle.com_coherence_small.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence.oracle.com_coherence_small.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherencejob.oracle.com_coherence_small.yaml</markup>
 
 <p>The small versions of the CRDs are identical to the full versions but hav a cut down OpenAPI spec with a lot of comments
 removed so that the CRDs are small enough to be installed with <code>kubectl apply</code></p>
@@ -449,15 +449,15 @@ lang="bash"
 
 <h3 id="helm-operator-image">Set the Operator Image</h3>
 <div class="section">
-<p>The Helm chart uses a default Operator image from <code>ghcr.io/oracle/coherence-operator:3.4.3</code>.
+<p>The Helm chart uses a default Operator image from <code>ghcr.io/oracle/coherence-operator:3.5.0</code>.
 If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
 Either set the individual <code>image.registry</code>, <code>image.name</code> and <code>image.tag</code> values, or set the whole image name by setting the <code>image</code> value.</p>
 
 <p>For example, if the Operator image has been deployed into a private registry named <code>foo.com</code> but
-with the same image name <code>coherence-operator</code> and tag <code>3.4.3</code> as the default image,
+with the same image name <code>coherence-operator</code> and tag <code>3.5.0</code> as the default image,
 then just the <code>image.registry</code> needs to be specified.</p>
 
-<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.4.3</code>.</p>
+<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.5.0</code>.</p>
 
 <markup
 lang="bash"
@@ -912,20 +912,20 @@ lang="bash"
 <div class="section">
 <p>If you want to use yaml directly to install the operator, with something like <code>kubectl</code>, you can use the manifest files
 published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.4.3/coherence-operator-manifests.tar.gz">3.4.3 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz">3.5.0 Manifests</a></p>
 
 <p>These manifest files are for use with a tool called Kustomize, which is built into <code>kubectl</code>
 see the documentation here: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/</a></p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>As of v3.4.3 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+<p ><p>As of v3.5.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.</p>
 </p>
 </div>
 <p>Download the
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.4.3/coherence-operator-manifests.tar.gz">3.4.3 Manifests</a>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz">3.5.0 Manifests</a>
 from the release page and unpack the file, which should produce a directory called <code>manifests</code> with a structure like this:</p>
 
 <markup
@@ -985,7 +985,7 @@ that you are using for the Operator, for example if you have the images in a cus
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.4.3</markup>
+>cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.5.0</markup>
 
 <p>Change the name of the Operator image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image</p>
@@ -993,7 +993,7 @@ that you are using for the Operator utilities image</p>
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.4.3</markup>
+>cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.5.0</markup>
 
 <p>Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
 does not need to change.</p>
@@ -1072,11 +1072,11 @@ using a standalone Carvel <a id="" title="" target="_blank" href="https://carvel
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-package:3.4.3</code> - the Coherence Operator package</p>
+<p><code>ghcr.io/oracle/coherence-operator-package:3.5.0</code> - the Coherence Operator package</p>
 
 </li>
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-repo:3.4.3</code> - the Coherence Operator repository</p>
+<p><code>ghcr.io/oracle/coherence-operator-repo:3.5.0</code> - the Coherence Operator repository</p>
 
 </li>
 </ul>
@@ -1090,7 +1090,7 @@ This can be done using the Tanzu CLI.</p>
 lang="bash"
 
 >tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.4.3 \
+    --url ghcr.io/oracle/coherence-operator-repo:3.5.0 \
     --namespace coherence \
     --create-namespace</markup>
 
@@ -1122,7 +1122,7 @@ lang="bash"
 lang="bash"
 
 >NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
-coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.4.3</markup>
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.5.0</markup>
 
 </div>
 
@@ -1135,7 +1135,7 @@ lang="bash"
 
 >tanzu package install coherence \
     --package-name coherence-operator.oracle.github.com \
-    --version 3.4.3 \
+    --version 3.5.0 \
     --namespace coherence</markup>
 
 <p>The Tanzu CLI will display the various steps it is going through to install the package and if all goes well, finally display <code>Added installed package 'coherence'</code>
@@ -1152,7 +1152,7 @@ lang="bash"
 lang="bash"
 
 >NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
-coherence  coherence-operator.oracle.github.com  3.4.3            Reconcile succeeded</markup>
+coherence  coherence-operator.oracle.github.com  3.5.0            Reconcile succeeded</markup>
 
 <p>The Operator is now installed and ready to mage Coherence clusters.</p>
 
