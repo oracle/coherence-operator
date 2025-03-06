@@ -43,7 +43,7 @@ metadata:
 spec:
   containers:
   - name: net-test
-    image: ghcr.io/oracle/coherence-operator:3.4.3
+    image: ghcr.io/oracle/coherence-operator:3.5.0
     ports:
     - containerPort: 9612
       name: metrics
