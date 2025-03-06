@@ -13,6 +13,8 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  REGISTRY_USERNAME: ${{ secrets.IMAGE_REGISTRY_USER }}
+  REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_TOKEN }}
 
 jobs:
   build:
