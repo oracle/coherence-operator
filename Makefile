@@ -942,8 +942,8 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=categories --optional-values=k8s-version=1.26
 	rm -rf $(BUILD_OUTPUT)/bundle || true
 	mkdir -p $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION) || true
-	cp -R bundle/ $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)/
-	rm $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)/ci.yaml
+	cp -R ./bundle/. $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)
+	rm $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)/ci.yaml || true
 	tar -C $(BUILD_OUTPUT)/bundle -czf $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz .
 	rm -rf bundle_tmp*
 
