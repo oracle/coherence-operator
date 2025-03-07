@@ -223,7 +223,7 @@ metadata:
   name: storage
 spec:
   replicas: 3
-  image: ghcr.io/oracle/coherence-ce:22.06.10
+  image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
   labels:
     app: storage      <span class="conum" data-value="1" />
     version: 1.0.0    <span class="conum" data-value="2" />
@@ -332,7 +332,7 @@ kind: CoherenceJob
 metadata:
   name: client
 spec:
-  image: ghcr.io/oracle/coherence-ce:22.06.10  <span class="conum" data-value="1" />
+  image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1  <span class="conum" data-value="1" />
   restartPolicy: Never
   cluster: storage  <span class="conum" data-value="2" />
   coherence:

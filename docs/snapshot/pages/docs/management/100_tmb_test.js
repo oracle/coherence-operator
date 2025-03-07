@@ -50,7 +50,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: ghcr.io/oracle/coherence-ce:22.06.10  <span class="conum" data-value="1" />
+      image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1  <span class="conum" data-value="1" />
       ports:
         - name: mbus
           containerPort: 8000
@@ -100,7 +100,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: coherence
-      image: ghcr.io/oracle/coherence-ce:22.06.10
+      image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
       command:
         - java                         <span class="conum" data-value="1" />
         - -cp

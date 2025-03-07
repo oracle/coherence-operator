@@ -228,7 +228,7 @@ spec:
     spec:
       containers:
         - name: coherence
-          image: ghcr.io/oracle/coherence-ce:22.06.7   <span class="conum" data-value="2" />
+          image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1   <span class="conum" data-value="2" />
           env:
             - name: COHERENCE_CLUSTER          <span class="conum" data-value="3" />
               value: "test-cluster"
@@ -426,7 +426,7 @@ lang="yaml"
 >    spec:
       containers:
         - name: coherence
-          image: ghcr.io/oracle/coherence-ce:22.06.7
+          image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
           env:
             - name: COHERENCE_EXTEND_PORT
               value: "20001"</markup>
@@ -454,7 +454,7 @@ lang="yaml"
 >    spec:
       containers:
         - name: coherence
-          image: ghcr.io/oracle/coherence-ce:22.06.7
+          image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
           env:
             - name: COHERENCE_GRPC_SERVER_PORT
               value: "1408"</markup>
@@ -502,12 +502,12 @@ Various utilities are copied from the Operator image into the base.</p>
 <markup
 
 title="Dockerfile"
->FROM ghcr.io/oracle/coherence-operator:3.5.0 AS Builder
+>FROM container-registry.oracle.com/middleware/coherence-operator:3.5.0 AS Builder
 
-FROM ghcr.io/oracle/coherence-ce:22.06.7
+FROM container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
 COPY --from=Builder /files /files
 COPY --from=Builder /files/lib/coherence-operator.jar /app/libs/coherence-operator.jar
-COPY coherence-java-client-22.06.7.jar /app/libs/coherence-java-client-22.06.7.jar
+COPY coherence-java-client-14.1.2-0-1.jar /app/libs/coherence-java-client-14.1.2-0-1.jar
 
 ENTRYPOINT ["files/runner"]
 CMD ["-h"]</markup>
@@ -518,8 +518,8 @@ Coherence gRPC client jar. We can download this with <code>curl</code> to the sa
 <markup
 lang="bash"
 
->curl -s https://repo1.maven.org/maven2/com/oracle/coherence/ce/coherence-java-client/22.06.7/coherence-java-client-22.06.7.jar \
-  -o coherence-java-client-22.06.7.jar</markup>
+>curl -s https://repo1.maven.org/maven2/com/oracle/coherence/ce/coherence-java-client/14.1.2-0-1/coherence-java-client-14.1.2-0-1.jar \
+  -o coherence-java-client-14.1.2-0-1.jar</markup>
 
 <p>Build the image with the following command:</p>
 

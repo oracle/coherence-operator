@@ -8,7 +8,7 @@
 <v-card-text>
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
-<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>ghcr.io/oracle/coherence-operator:3.5.0</code> that can
+<dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry <code>container-registry.oracle.com/middleware/coherence-operator:3.5.0</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -196,7 +196,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator:3.5.0</code> - The Operator image.</p>
+<p><code>container-registry.oracle.com/middleware/coherence-operator:3.5.0</code> - The Operator image.</p>
 
 </li>
 </ul>
@@ -204,7 +204,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-ce:14.1.2-0-1</code> - The default Coherence image.</p>
+<p><code>container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1</code> - The default Coherence image.</p>
 
 </li>
 </ul>
@@ -449,7 +449,7 @@ lang="bash"
 
 <h3 id="helm-operator-image">Set the Operator Image</h3>
 <div class="section">
-<p>The Helm chart uses a default Operator image from <code>ghcr.io/oracle/coherence-operator:3.5.0</code>.
+<p>The Helm chart uses a default Operator image from <code>container-registry.oracle.com/middleware/coherence-operator:3.5.0</code>.
 If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
 Either set the individual <code>image.registry</code>, <code>image.name</code> and <code>image.tag</code> values, or set the whole image name by setting the <code>image</code> value.</p>
 
@@ -1072,11 +1072,11 @@ using a standalone Carvel <a id="" title="" target="_blank" href="https://carvel
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-package:3.5.0</code> - the Coherence Operator package</p>
+<p><code>container-registry.oracle.com/middleware/coherence-operator-package:3.5.0</code> - the Coherence Operator package</p>
 
 </li>
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-repo:3.5.0</code> - the Coherence Operator repository</p>
+<p><code>container-registry.oracle.com/middleware/coherence-operator-repo:3.5.0</code> - the Coherence Operator repository</p>
 
 </li>
 </ul>
@@ -1090,7 +1090,7 @@ This can be done using the Tanzu CLI.</p>
 lang="bash"
 
 >tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.5.0 \
+    --url container-registry.oracle.com/middleware/coherence-operator-repo:3.5.0 \
     --namespace coherence \
     --create-namespace</markup>
 
@@ -1106,8 +1106,8 @@ lang="bash"
 <markup
 lang="bash"
 
->NAME            REPOSITORY                              TAG  STATUS               DETAILS
-coherence-repo  ghcr.io/oracle/coherence-operator-repo  1h   Reconcile succeeded</markup>
+>NAME            REPOSITORY                                                        TAG  STATUS               DETAILS
+coherence-repo  container-registry.oracle.com/middleware/coherence-operator-repo  1h   Reconcile succeeded</markup>
 
 <p>The available packages in the Coherence repository can also be displayed using the CLI</p>
 
