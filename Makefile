@@ -36,17 +36,33 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 KUBERNETES_DOC_VERSION=v1.30
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Operator image names
+# ----------------------------------------------------------------------------------------------------------------------
+ORACLE_REGISTRY         := container-registry.oracle.com/middleware
+GITHUB_REGISTRY         := ghcr.io/oracle
+OPERATOR_IMAGE_NAME     := coherence-operator
+OPERATOR_IMAGE_REGISTRY ?= $(ORACLE_REGISTRY)
+OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
+OPERATOR_IMAGE_AMD      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
+OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
+OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
+OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
+OPERATOR_BASE_IMAGE     ?= scratch
+
+# ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
 COHERENCE_VERSION_LTS ?= 14.1.2-0-1
 COHERENCE_CE_LATEST   ?= 24.09.2
+
 # The default Coherence image the Operator will run if no image is specified
-COHERENCE_IMAGE_REGISTRY ?= ghcr.io/oracle
+COHERENCE_IMAGE_REGISTRY ?= $(ORACLE_REGISTRY)
 COHERENCE_IMAGE_NAME     ?= coherence-ce
 COHERENCE_IMAGE_TAG      ?= $(COHERENCE_VERSION_LTS)
 COHERENCE_IMAGE          ?= $(COHERENCE_IMAGE_REGISTRY)/$(COHERENCE_IMAGE_NAME):$(COHERENCE_IMAGE_TAG)
+
 COHERENCE_GROUP_ID       ?= com.oracle.coherence.ce
 # The Java version that tests will be compiled to.
 # This should match the version required by the COHERENCE_IMAGE version
@@ -57,9 +73,9 @@ COHERENCE_TEST_BASE_IMAGE_21 ?= gcr.io/distroless/java21-debian12
 # This is the Coherence image that will be used in tests.
 # Changing this variable will allow test builds to be run against different Coherence versions
 # without altering the default image name.
-TEST_COHERENCE_IMAGE ?= $(COHERENCE_IMAGE)
+TEST_COHERENCE_IMAGE   ?= $(COHERENCE_IMAGE)
 TEST_COHERENCE_VERSION ?= $(COHERENCE_VERSION)
-TEST_COHERENCE_GID ?= com.oracle.coherence.ce
+TEST_COHERENCE_GID     ?= $(COHERENCE_GROUP_ID)
 
 # The minimum certified OpenShift version the Operator runs on
 OPENSHIFT_MIN_VERSION   := v4.15
@@ -110,24 +126,15 @@ MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon
 MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE_17) -Dcoherence.test.base.image.21=$(COHERENCE_TEST_BASE_IMAGE_21) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Operator image names
+# Test image names
 # ----------------------------------------------------------------------------------------------------------------------
-GITHUB_REGISTRY         := ghcr.io/oracle
-OPERATOR_IMAGE_REGISTRY ?= $(GITHUB_REGISTRY)
-OPERATOR_BASE_IMAGE     ?= scratch
-OPERATOR_IMAGE_NAME     := coherence-operator
-OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
-OPERATOR_IMAGE_AMD      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
-OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
-OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
-OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
-
-TEST_BASE_IMAGE         := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-test-base:$(VERSION)
+TEST_BASE_IMAGE           := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-test-base:$(VERSION)
 
 # Tanzu packages
-OPERATOR_PACKAGE_PREFIX   := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-package
+TANZU_REGISTRY            := $(GITHUB_REGISTRY)
+OPERATOR_PACKAGE_PREFIX   := $(TANZU_REGISTRY)/$(OPERATOR_IMAGE_NAME)-package
 OPERATOR_PACKAGE_IMAGE    := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
-OPERATOR_REPO_PREFIX      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-repo
+OPERATOR_REPO_PREFIX      := $(TANZU_REGISTRY)/$(OPERATOR_IMAGE_NAME)-repo
 OPERATOR_REPO_IMAGE       := $(OPERATOR_REPO_PREFIX):$(VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -922,29 +929,38 @@ stop: ## kill any locally running operator process
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate bundle manifests and metadata, then validate generated files.
 # ----------------------------------------------------------------------------------------------------------------------
+BUNDLE_DIRECTORY := ./bundle
+BUNDLE_BUILD     := $(BUILD_OUTPUT)/bundle
+
+.PHONY: bundle-clean
+bundle-clean:
+	rm -rf $(BUNDLE_DIRECTORY) || true
+	rm -rf $(BUNDLE_BUILD) || true
+	rm $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz
+
 .PHONY: bundle
 bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manifests $(MANIFEST_FILES) ## Generate OLM bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --verbose --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	@echo "" >> ./bundle/metadata/annotations.yaml
-	@echo "  # OpenShift annotations" >> ./bundle/metadata/annotations.yaml
-	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> ./bundle/metadata/annotations.yaml
+	@echo "" >> $(BUNDLE_DIRECTORY)/metadata/annotations.yaml
+	@echo "  # OpenShift annotations" >> $(BUNDLE_DIRECTORY)/metadata/annotations.yaml
+	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> $(BUNDLE_DIRECTORY)/metadata/annotations.yaml
 	@echo "" >> bundle.Dockerfile
 	@echo "# OpenShift labels" >> bundle.Dockerfile
 	@echo "LABEL com.redhat.openshift.versions=$(OPENSHIFT_MIN_VERSION)" >> bundle.Dockerfile
 	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
-	$(OPERATOR_SDK) bundle validate ./bundle
-	$(OPERATOR_SDK) bundle validate ./bundle --select-optional suite=operatorframework --optional-values=k8s-version=1.26
-	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=operatorhubv2 --optional-values=k8s-version=1.26
-	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=capabilities --optional-values=k8s-version=1.26
-	$(OPERATOR_SDK) bundle validate ./bundle --select-optional name=categories --optional-values=k8s-version=1.26
-	rm -rf $(BUILD_OUTPUT)/bundle || true
-	mkdir -p $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION) || true
-	cp -R ./bundle/. $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)
-	rm $(BUILD_OUTPUT)/bundle/coherence-operator/$(VERSION)/ci.yaml || true
-	tar -C $(BUILD_OUTPUT)/bundle -czf $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz .
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY)
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional suite=operatorframework --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=operatorhubv2 --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=capabilities --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=categories --optional-values=k8s-version=1.26
+	rm -rf $(BUNDLE_BUILD) || true
+	mkdir -p $(BUNDLE_BUILD)/coherence-operator/$(VERSION) || true
+	cp -R $(BUNDLE_DIRECTORY)/. $(BUNDLE_BUILD)/coherence-operator/$(VERSION)
+	rm $(BUNDLE_BUILD)/coherence-operator/$(VERSION)/ci.yaml || true
+	tar -C $(BUNDLE_BUILD) -czf $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz .
 	rm -rf bundle_tmp*
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -998,7 +1014,7 @@ catalog-push: catalog-build ## Push a catalog image.
 
 .PHONY: scorecard
 scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard tests.
-	$(OPERATOR_SDK) scorecard --verbose ./bundle
+	$(OPERATOR_SDK) scorecard --verbose $(BUNDLE_DIRECTORY)
 
 .PHONY: install-olm
 install-olm: ensure-sdk ## Install the Operator Lifecycle Manage into the K8s cluster
@@ -1711,7 +1727,7 @@ ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
 	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(GITHUB_REGISTRY)")
+ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(ORACLE_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
@@ -1722,7 +1738,7 @@ endif
 .PHONY: just-deploy
 just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(GITHUB_REGISTRY)")
+ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(ORACLE_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
 else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
@@ -2427,13 +2443,24 @@ test-examples: build-examples
 # ----------------------------------------------------------------------------------------------------------------------
 PUSH_ARGS ?=
 
+# The registry we release (push) the operator images to, which can be different to the registry
+# used to build and test the operator.
+OPERATOR_RELEASE_REGISTRY ?= $(OPERATOR_IMAGE_REGISTRY)
+OPERATOR_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
+OPERATOR_RELEASE_ARM      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
+OPERATOR_RELEASE_AMD      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
+
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
+ifneq ("$(OPERATOR_RELEASE_REGISTRY)","$(OPERATOR_IMAGE_REGISTRY)")
+	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_ARM) $(OPERATOR_RELEASE_ARM)
+	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_AMD) $(OPERATOR_RELEASE_AMD)
+endif
 	chmod +x $(CURRDIR)/hack/run-buildah.sh
-	export OPERATOR_IMAGE=$(OPERATOR_IMAGE) \
-	&& export OPERATOR_IMAGE_AMD=$(OPERATOR_IMAGE_AMD) \
-	&& export OPERATOR_IMAGE_ARM=$(OPERATOR_IMAGE_ARM) \
-	&& export OPERATOR_IMAGE_REGISTRY=$(OPERATOR_IMAGE_REGISTRY) \
+	export OPERATOR_IMAGE=$(OPERATOR_RELEASE_IMAGE) \
+	&& export OPERATOR_IMAGE_AMD=$(OPERATOR_RELEASE_AMD) \
+	&& export OPERATOR_IMAGE_ARM=$(OPERATOR_RELEASE_ARM) \
+	&& export OPERATOR_IMAGE_REGISTRY=$(OPERATOR_RELEASE_REGISTRY) \
 	&& export VERSION=$(VERSION) \
 	&& export REVISION=$(GITCOMMIT) \
 	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
@@ -2538,7 +2565,7 @@ push-all-ttl-images:  push-ttl-operator-images push-ttl-test-images
 # Push all of the images that are released
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-release-images
-push-release-images: push-operator-image bundle-push catalog-push tanzu-repo
+push-release-images: push-operator-image bundle-clean bundle bundle-push catalog-push tanzu-repo
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus

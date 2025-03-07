@@ -50,8 +50,8 @@
 
         <coherence.test.base.image>gcr.io/distroless/java17-debian12</coherence.test.base.image>
         <coherence.test.base.image.21>gcr.io/distroless/java21-debian12</coherence.test.base.image.21>
-        <coherence.compatibility.coherence.image>ghcr.io/oracle/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
-        <coherence.compatibility.image.name>ghcr.io/oracle/${project.artifactId}:${project.version}
+        <coherence.compatibility.coherence.image>container-registry.oracle.com/middleware/coherence-ce:${coherence.version}</coherence.compatibility.coherence.image>
+        <coherence.compatibility.image.name>container-registry.oracle.com/middleware/${project.artifactId}:${project.version}
         </coherence.compatibility.image.name>
 
         <docker.command>docker</docker.command>

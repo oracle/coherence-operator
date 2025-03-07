@@ -84,13 +84,13 @@ func EnsureTestEnvVars() {
 
 	ensureEnvVar("K3D_OPERATOR_IMAGE", "k3d-myregistry.localhost:12345/oracle/coherence-operator:1.0.0")
 
-	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "ghcr.io/oracle/operator-test-compatibility:1.0.0")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_CLIENT", "ghcr.io/oracle/operator-test-client:1.0.0")
-	ensureEnvVar("TEST_APPLICATION_IMAGE", "ghcr.io/oracle/operator-test:1.0.0")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_HELIDON", "ghcr.io/oracle/operator-test-helidon:1.0.0")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING", "ghcr.io/oracle/operator-test-spring:1.0.0")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_FAT", "ghcr.io/oracle/operator-test-spring-fat:1.0.0")
-	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_CNBP", "ghcr.io/oracle/operator-test-spring-cnbp:1.0.0")
+	ensureEnvVar("TEST_COMPATIBILITY_IMAGE", "container-registry.oracle.com/middleware/operator-test-compatibility:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_CLIENT", "container-registry.oracle.com/middleware/operator-test-client:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE", "container-registry.oracle.com/middleware/operator-test:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_HELIDON", "container-registry.oracle.com/middleware/operator-test-helidon:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING", "container-registry.oracle.com/middleware/operator-test-spring:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_FAT", "container-registry.oracle.com/middleware/operator-test-spring-fat:1.0.0")
+	ensureEnvVar("TEST_APPLICATION_IMAGE_SPRING_CNBP", "container-registry.oracle.com/middleware/operator-test-spring-cnbp:1.0.0")
 }
 
 func ensureEnvVar(key, value string) {
@@ -114,7 +114,7 @@ func GetOperatorImageRegistry() string {
 	if s, found := os.LookupEnv(OperatorImageRegistryEnv); found {
 		return s
 	}
-	return "ghcr.io/oracle"
+	return "container-registry.oracle.com/middleware"
 }
 
 // GetOperatorImageName returns the name part of the Operator image.
@@ -135,7 +135,7 @@ func GetDefaultCoherenceImageRegistry() string {
 	if s, found := os.LookupEnv(CoherenceImageRegistryEnv); found {
 		return s
 	}
-	return "ghcr.io/oracle"
+	return "container-registry.oracle.com/middleware"
 }
 
 // GetDefaultCoherenceImageName returns the name part of the default Coherence image.
@@ -143,7 +143,7 @@ func GetDefaultCoherenceImageName() string {
 	if s, found := os.LookupEnv(CoherenceImageNameEnv); found {
 		return s
 	}
-	return "coherence"
+	return "coherence-ce"
 }
 
 // GetDefaultCoherenceImageTag returns the tag part of the default Coherence image.
