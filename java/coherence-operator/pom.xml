@@ -21,7 +21,7 @@
     <name>coherence-operator</name>
 
     <properties>
-        <docker.registry>ghcr.io/oracle</docker.registry>
+        <docker.registry>container-registry.oracle.com/middleware</docker.registry>
         <image.name>${docker.registry}/coherence-operator-test-base:${project.version}</image.name>
         <image.arch>amd64</image.arch>
         <base.image.name.amd>gcr.io/distroless/java17-debian12</base.image.name.amd>

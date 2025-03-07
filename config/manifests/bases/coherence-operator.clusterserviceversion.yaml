@@ -8,7 +8,7 @@ metadata:
     capabilities: Full Lifecycle
     categories: Database
     certified: "false"
-    containerImage: ghcr.io/oracle/coherence-operator:3.5.0
+    containerImage: container-registry.oracle.com/middleware/coherence-operator:3.5.0
     description: The Oracle Coherence Kubernetes Operator enables easy management
       of Coherence clusters in a Kubernetes environment.
     features.operators.openshift.io/cnf: "false"

@@ -8,7 +8,7 @@
 
 = Coherence Operator Installation
 
-The Coherence Operator is available as an image from the GitHub container registry `ghcr.io/oracle/coherence-operator:{operator-version}` that can
+The Coherence Operator is available as an image from the GitHub container registry `container-registry.oracle.com/middleware/coherence-operator:{operator-version}` that can
 easily be installed into a Kubernetes cluster.
 
 == Coherence Operator Installation
@@ -315,7 +315,7 @@ helm install  \
 [#helm-operator-image]
 === Set the Operator Image
 
-The Helm chart uses a default Operator image from `ghcr.io/oracle/coherence-operator:{operator-version}`.
+The Helm chart uses a default Operator image from `container-registry.oracle.com/middleware/coherence-operator:{operator-version}`.
 If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
 Either set the individual `image.registry`, `image.name` and `image.tag` values, or set the whole image name by setting the `image` value.
 
@@ -897,8 +897,8 @@ using a standalone Carvel https://carvel.dev/kapp-controller/[kapp-controller].
 
 The Coherence Operator release published two images required to deploy the Operator as a Tanzu package.
 
-* `ghcr.io/oracle/coherence-operator-package:{operator-version}` - the Coherence Operator package
-* `ghcr.io/oracle/coherence-operator-repo:{operator-version}` - the Coherence Operator repository
+* `container-registry.oracle.com/middleware/coherence-operator-package:{operator-version}` - the Coherence Operator package
+* `container-registry.oracle.com/middleware/coherence-operator-repo:{operator-version}` - the Coherence Operator repository
 
 === Install the Coherence Repository
 
@@ -908,7 +908,7 @@ This can be done using the Tanzu CLI.
 [source,bash]
 ----
 tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.5.0 \
+    --url container-registry.oracle.com/middleware/coherence-operator-repo:3.5.0 \
     --namespace coherence \
     --create-namespace
 ----
@@ -923,8 +923,8 @@ tanzu package repository list --namespace coherence
 which should display something like the following
 [source,bash]
 ----
-NAME            REPOSITORY                              TAG  STATUS               DETAILS
-coherence-repo  ghcr.io/oracle/coherence-operator-repo  1h   Reconcile succeeded
+NAME            REPOSITORY                                                        TAG  STATUS               DETAILS
+coherence-repo  container-registry.oracle.com/middleware/coherence-operator-repo  1h   Reconcile succeeded
 ----
 
 The available packages in the Coherence repository can also be displayed using the CLI

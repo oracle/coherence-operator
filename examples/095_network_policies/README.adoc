@@ -414,12 +414,12 @@ If Coherence Extend is being used, then first the Extend Proxy must be configure
 The default behaviour of Coherence is to bind the Extend proxy to an ephemeral port and clients use the Coherence
 NameService to look up the port to use.
 
-When using the default Coherence images, for example `ghcr.io/oracle/coherence-ce:22.06` the Extend proxy is already
+When using the default Coherence images, for example `container-registry.oracle.com/middleware/coherence-ce:22.06` the Extend proxy is already
 configured to run on a fixed port `20000`. When using this image, or any image that uses the default Coherence cache
 configuration file, this port can be changed by setting the `COHERENCE_EXTEND_PORT` environment variable.
 
 When using the Coherence Concurrent extensions over Extend, the Concurrent Extend proxy also needs to be configured with a fixed port.
-When using the default Coherence images, for example `ghcr.io/oracle/coherence-ce:22.06` the Concurrent Extend proxy is already
+When using the default Coherence images, for example `container-registry.oracle.com/middleware/coherence-ce:22.06` the Concurrent Extend proxy is already
 configured to run on a fixed port `20001`. When using this image, or any image that uses the default Coherence cache
 configuration file, this port can be changed by setting the `COHERENCE_CONCURRENT_EXTEND_PORT` environment variable.
 
@@ -491,7 +491,7 @@ This policy must be applied to the namespace _where the client Pods will be depl
 
 If Coherence gRPC is being used, then first the gRPC Proxy must be configured to use a fixed port.
 
-When using the default Coherence images, for example `ghcr.io/oracle/coherence-ce:22.06` the gRPC proxy is already
+When using the default Coherence images, for example `container-registry.oracle.com/middleware/coherence-ce:22.06` the gRPC proxy is already
 configured to run on a fixed port `1408`. The gRPC proxy port can be changed by setting the `COHERENCE_GRPC_PORT` environment variable.
 
 The ingress policy below will allow ingress into the Coherence Pods gRPC port.
