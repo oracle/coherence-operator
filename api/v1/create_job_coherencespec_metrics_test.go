@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -80,8 +80,8 @@ func TestCreateJobWithCoherenceMetricsEnabledTrue(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_METRICS_ENABLED", Value: "true"})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -102,8 +102,8 @@ func TestCreateJobWithCoherenceMetricsEnabledWithPort(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_METRICS_ENABLED", Value: "true"})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_METRICS_PORT", Value: "1234"})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: "1234"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -139,21 +139,21 @@ func TestCreateJobWithCoherenceMetricsWithSSLEnabledWithoutSecret(t *testing.T) 
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence,
-		corev1.EnvVar{Name: "COH_METRICS_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
+		corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -192,22 +192,22 @@ func TestCreateJobWithCoherenceMetricsWithSSLEnabledWithSecret(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence,
-		corev1.EnvVar{Name: "COH_METRICS_SSL_CERTS", Value: coh.VolumeMountPathMetricsCerts},
-		corev1.EnvVar{Name: "COH_METRICS_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
-		corev1.EnvVar{Name: "COH_METRICS_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_CERTS", Value: coh.VolumeMountPathMetricsCerts},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
+		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
 
 	// add the metrics ConfigMap volume mount
 	jobExpected.Spec.Template.Spec.Containers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{

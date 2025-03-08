@@ -269,7 +269,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 
 	envVars := []corev1.EnvVar{
 		{
-			Name:  "COH_CLUSTER_NAME",
+			Name:  "COHERENCE_CLUSTER",
 			Value: deployment.GetName(),
 		},
 		{
@@ -281,11 +281,11 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Value: fmt.Sprintf("%d", coh.DefaultUnicastPortAdjust),
 		},
 		{
-			Name:  "COH_HEALTH_PORT",
+			Name:  "COHERENCE_HEALTH_HTTP_PORT",
 			Value: fmt.Sprintf("%d", spec.GetHealthPort()),
 		},
 		{
-			Name: "COH_MACHINE_NAME",
+			Name: "COHERENCE_MACHINE",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "spec.nodeName",
@@ -293,7 +293,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name: "COH_MEMBER_NAME",
+			Name: "COHERENCE_MEMBER",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "metadata.name",
@@ -301,15 +301,15 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name:  "COH_METRICS_ENABLED",
+			Name:  "COHERENCE_METRICS_ENABLED",
 			Value: "false",
 		},
 		{
-			Name:  "COH_MGMT_ENABLED",
+			Name:  "COHERENCE_MANAGEMENT_ENABLED",
 			Value: "false",
 		},
 		{
-			Name: "COH_POD_UID",
+			Name: "COHERENCE_OPERATOR_POD_UID",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "metadata.uid",
@@ -317,23 +317,23 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name:  "COH_RACK_INFO_LOCATION",
+			Name:  "COHERENCE_OPERATOR_RACK_INFO_LOCATION",
 			Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
 		},
 		{
-			Name:  "COH_ROLE",
+			Name:  "COHERENCE_ROLE",
 			Value: deployment.GetRoleName(),
 		},
 		{
-			Name:  "COH_SITE_INFO_LOCATION",
+			Name:  "COHERENCE_OPERATOR_SITE_INFO_LOCATION",
 			Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
 		},
 		{
-			Name:  "COH_UTIL_DIR",
+			Name:  "COHERENCE_OPERATOR_UTIL_DIR",
 			Value: coh.VolumeMountPathUtils,
 		},
 		{
-			Name:  "COH_WKA",
+			Name:  "COHERENCE_WKA",
 			Value: deployment.GetWKA(),
 		},
 		{
@@ -345,7 +345,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Value: "true",
 		},
 		{
-			Name: "OPERATOR_HOST",
+			Name: "COHERENCE_OPERATOR_HOST",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
@@ -355,14 +355,14 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name:  "OPERATOR_REQUEST_TIMEOUT",
+			Name:  "COHERENCE_OPERATOR_REQUEST_TIMEOUT",
 			Value: "120",
 		},
 	}
 
 	if deployment.GetType() == coh.CoherenceTypeJob {
 		envVars = append(envVars, corev1.EnvVar{
-			Name:  "COH_STORAGE_ENABLED",
+			Name:  "COHERENCE_DISTRIBUTED_LOCALSTORAGE",
 			Value: "false",
 		})
 	}
@@ -424,11 +424,11 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		Command: []string{coh.RunnerInitCommand, coh.RunnerInit},
 		Env: []corev1.EnvVar{
 			{
-				Name:  "COH_CLUSTER_NAME",
+				Name:  "COHERENCE_CLUSTER",
 				Value: deployment.GetName(),
 			},
 			{
-				Name:  "COH_UTIL_DIR",
+				Name:  "COHERENCE_OPERATOR_UTIL_DIR",
 				Value: coh.VolumeMountPathUtils,
 			},
 		},
