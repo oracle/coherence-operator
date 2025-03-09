@@ -4,7 +4,7 @@ metadata:
   name: storage
 spec:
   env:
-    - name: COH_SKIP_SITE
+    - name: COHERENCE_OPERATOR_SKIP_SITE
       value: "true"
     - name: COHCTL_HOME
       value: /test/cli

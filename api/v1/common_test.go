@@ -318,7 +318,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		},
 		{
 			Name:  "COHERENCE_OPERATOR_RACK_INFO_LOCATION",
-			Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
+			Value: "http://$(COHERENCE_OPERATOR_HOST)/rack/$(COHERENCE_MACHINE)",
 		},
 		{
 			Name:  "COHERENCE_ROLE",
@@ -326,7 +326,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		},
 		{
 			Name:  "COHERENCE_OPERATOR_SITE_INFO_LOCATION",
-			Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
+			Value: "http://$(COHERENCE_OPERATOR_HOST)/site/$(COHERENCE_MACHINE)",
 		},
 		{
 			Name:  "COHERENCE_OPERATOR_UTIL_DIR",
