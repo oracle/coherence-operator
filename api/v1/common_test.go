@@ -446,10 +446,6 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		},
 	}
 
-	if operatorImage := spec.GetCoherenceOperatorImage(); operatorImage != nil {
-		initContainer.Image = *operatorImage
-	}
-
 	annotations := make(map[string]string)
 	annotations[coh.AnnotationIstioConfig] = coh.DefaultIstioConfigAnnotationValue
 

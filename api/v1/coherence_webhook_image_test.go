@@ -66,38 +66,6 @@ func TestCoherenceCreateWithImageNameWithTrailingSpace(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
-func TestCoherenceCreateWithValidOperatorImageName(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				CoherenceUtils: &coh.ImageSpec{
-					Image: stringPtr("test/coherence:1.0"),
-				},
-			},
-		},
-	}
-	_, err := c.ValidateCreate(context.Background(), &c)
-	g.Expect(err).NotTo(HaveOccurred())
-}
-
-func TestCoherenceCreateWithInvalidOperatorImageName(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				CoherenceUtils: &coh.ImageSpec{
-					Image: stringPtr("test/bad image name:1.0"),
-				},
-			},
-		},
-	}
-	_, err := c.ValidateCreate(context.Background(), &c)
-	g.Expect(err).To(HaveOccurred())
-}
-
 func TestCoherenceUpdateWithInvalidImageName(t *testing.T) {
 	g := NewGomegaWithT(t)
 

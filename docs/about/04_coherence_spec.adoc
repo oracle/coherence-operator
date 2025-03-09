@@ -68,6 +68,7 @@ m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | fals
 * <<CoherenceSpec,CoherenceSpec>>
 * <<CoherenceStatefulSetResourceSpec,CoherenceStatefulSetResourceSpec>>
 * <<CoherenceTracingSpec,CoherenceTracingSpec>>
+* <<CoherenceUtilsSpec,CoherenceUtilsSpec>>
 * <<CoherenceWKASpec,CoherenceWKASpec>>
 * <<ConfigMapVolumeSpec,ConfigMapVolumeSpec>>
 * <<GlobalSpec,GlobalSpec>>
@@ -332,7 +333,7 @@ m| containerSecurityContext | ContainerSecurityContext is the SecurityContext th
 m| shareProcessNamespace | Share a single process namespace between all the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
 m| hostIPC | Use the host's ipc namespace. Optional: Default to false. m| &#42;bool | false
 m| network | Configure various networks and DNS settings for Pods in this role. m| &#42;<<NetworkSpec,NetworkSpec>> | false
-m| coherenceUtils | The configuration for the Coherence operator image name m| &#42;<<ImageSpec,ImageSpec>> | false
+m| coherenceUtils | The configuration for the Coherence operator image name m| &#42;<<CoherenceUtilsSpec,CoherenceUtilsSpec>> | false
 m| serviceAccountName | The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec. m| string | false
 m| automountServiceAccountToken | Whether to auto-mount the Kubernetes API credentials for a service account m| &#42;bool | false
 m| operatorRequestTimeout | The timeout to apply to REST requests made back to the Operator from Coherence Pods. These requests are typically to obtain site and rack information for the Pod. m| &#42;int32 | false
@@ -470,6 +471,18 @@ A value of -1 disables tracing completely. +
 The Coherence default is -1 if not overridden. For values other than -1, numbers between 0 and 1 are acceptable. +
  +
 NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal numbers. See https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity for the different formats of number that may be entered. m| &#42;resource.Quantity | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== CoherenceUtilsSpec
+
+CoherenceUtilsSpec defines the settings for the Coherence Operator utilities image
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| imagePullPolicy | Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images m| &#42;https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy | false
 |===
 
 <<Table of Contents,Back to TOC>>
