@@ -755,9 +755,21 @@ type ImageSpec struct {
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
+// ----- ImageSpec struct ---------------------------------------------------
+
+// CoherenceUtilsSpec defines the settings for the Coherence Operator utilities image
+// +k8s:openapi-gen=true
+type CoherenceUtilsSpec struct {
+	// Image pull policy.
+	// One of Always, Never, IfNotPresent.
+	// More info: https://kubernetes.io/docs/concepts/containers/images#updating-images
+	// +optional
+	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+}
+
 // EnsureImage ensures that the image value is set.
 func (in *ImageSpec) EnsureImage(image *string) bool {
-	if in != nil && in.Image == nil {
+	if in != nil && (in.Image == nil || *in.Image != *image) {
 		in.Image = image
 		return true
 	}

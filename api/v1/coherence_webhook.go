@@ -123,8 +123,6 @@ func SetCommonDefaults(in CoherenceResource) {
 		// only set defaults for image names in new Coherence instances
 		coherenceImage := operator.GetDefaultCoherenceImage()
 		spec.EnsureCoherenceImage(&coherenceImage)
-		operatorImage := operator.GetDefaultOperatorImage()
-		spec.EnsureCoherenceOperatorImage(&operatorImage)
 
 		// Set the features supported by this version
 		in.AddAnnotation(AnnotationFeatureSuspend, "true")
@@ -276,13 +274,6 @@ func (in *CommonWebHook) validateImages(c CoherenceResource) error {
 			_, err = reference.Parse(*img)
 			if err != nil {
 				return errors.Errorf("invalid spec.image field, %s", err.Error())
-			}
-		}
-		img = spec.GetCoherenceOperatorImage()
-		if img != nil {
-			_, err = reference.Parse(*img)
-			if err != nil {
-				return errors.Errorf("invalid spec.coherenceUtils.image field, %s", err.Error())
 			}
 		}
 		for _, c := range spec.InitContainers {

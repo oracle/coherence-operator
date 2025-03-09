@@ -215,7 +215,7 @@ type CoherenceResourceSpec struct {
 	Network *NetworkSpec `json:"network,omitempty"`
 	// The configuration for the Coherence operator image name
 	// +optional
-	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
+	CoherenceUtils *CoherenceUtilsSpec `json:"coherenceUtils,omitempty"`
 	// The name to use for the service account to use when RBAC is enabled
 	// The role bindings must already have been created as this chart does not create them it just
 	// sets the serviceAccountName value in the Pod spec.
@@ -372,25 +372,6 @@ func (in *CoherenceResourceSpec) EnsureCoherenceImage(coherenceImage *string) bo
 		return true
 	}
 	return false
-}
-
-// GetCoherenceOperatorImage returns the name of the Operator image to use.
-func (in *CoherenceResourceSpec) GetCoherenceOperatorImage() *string {
-	if in != nil && in.CoherenceUtils != nil {
-		return in.CoherenceUtils.Image
-	}
-	return nil
-}
-
-// EnsureCoherenceOperatorImage ensures that the Coherence Operator image is set for the deployment.
-// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
-// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
-func (in *CoherenceResourceSpec) EnsureCoherenceOperatorImage(imageName *string) bool {
-	if in.CoherenceUtils == nil {
-		in.CoherenceUtils = &ImageSpec{}
-	}
-
-	return in.CoherenceUtils.EnsureImage(imageName)
 }
 
 // GetHealthPort returns the port that the health check endpoint will bind to.
@@ -1050,12 +1031,7 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 
 // CreateOperatorInitContainer creates the Operator init-container spec.
 func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment CoherenceResource) corev1.Container {
-	var image string
-	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
-		image = operator.GetDefaultOperatorImage()
-	} else {
-		image = *in.CoherenceUtils.Image
-	}
+	image := operator.GetDefaultOperatorImage()
 
 	vm := in.CreateCommonVolumeMounts()
 

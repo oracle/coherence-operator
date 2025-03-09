@@ -649,14 +649,6 @@ func (in *CommonReconciler) BlankCoherenceContainerFields(template *corev1.PodTe
 			// This is the Coherence Container
 			// blank out the container command field
 			c.Command = []string{}
-			// blank the WKA env var
-			for e := range c.Env {
-				ev := c.Env[e]
-				if ev.Name == coh.EnvVarCohWka {
-					ev.Value = ""
-					c.Env[e] = ev
-				}
-			}
 			// set the updated container back into the StatefulSet
 			template.Spec.Containers[i] = c
 		}
