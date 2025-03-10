@@ -21,7 +21,7 @@ public interface OperatorLogger {
     /**
      * The system property to use to set the health logging should use Java logger.
      */
-    String PROP_LOGGER = "coherence.k8s.operator.health.logger";
+    String PROP_LOGGER = "coherence.operator.health.logger";
 
     /**
      * The {@link #PROP_LOGGER} value to log to std-err.

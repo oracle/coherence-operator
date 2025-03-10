@@ -19,7 +19,7 @@ public class Main {
 
     private static final String DEFAULT_MAIN = "$DEFAULT$";
 
-    private static final String PROP_FORCE_EXIT = "coherence.k8s.operator.force.exit";
+    private static final String PROP_FORCE_EXIT = "coherence.operator.force.exit";
 
     private static boolean initialised = false;
 

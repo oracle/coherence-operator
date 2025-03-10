@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -307,7 +307,7 @@ func TestCoherenceAllowEndangered(t *testing.T) {
 	env := EnvVarsFromDeployment(d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.k8s.operator.statusha.allowendangered=foo,bar")
+	expectedArgs := append(GetMinimalExpectedArgs(), "-Dcoherence.operator.statusha.allowendangered=foo,bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())

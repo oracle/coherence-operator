@@ -163,16 +163,16 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
 	expectedArgs = ReplaceArg(expectedArgs, "-XX:NativeMemoryTracking=summary", "-XX:NativeMemoryTracking=off")
 	expectedArgs = ReplaceArg(expectedArgs, "-Dcoherence.health.http.port=6676", "-Dcoherence.health.http.port=0")
-	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.k8s.operator.health.port=6676")
+	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.operator.health.port=6676")
 	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
 		"-Dcoherence.metrics.http.enabled=false",
 		"-Dcoherence.management.http=none",
 		"-Dcoherence.management.http.port=0",
 		"-Dcoherence.metrics.http.port=0",
-		"-Dcoherence.k8s.operator.health.enabled=false",
+		"-Dcoherence.operator.health.enabled=false",
 		"-Dcoherence.health.http.port=0",
 		"-Dcoherence.grpc.enabled=false",
-		"-Dcoherence.k8s.operator.health.port=0")
+		"-Dcoherence.operator.health.port=0")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -207,15 +207,15 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
 	expectedArgs = ReplaceArg(expectedArgs, "-XX:NativeMemoryTracking=summary", "-XX:NativeMemoryTracking=off")
 	expectedArgs = ReplaceArg(expectedArgs, "-Dcoherence.health.http.port=6676", "-Dcoherence.health.http.port=0")
-	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.k8s.operator.health.port=6676")
+	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.operator.health.port=6676")
 	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
 		"-Dcoherence.metrics.http.enabled=false",
 		"-Dcoherence.management.http=none",
 		"-Dcoherence.management.http.port=0",
 		"-Dcoherence.metrics.http.port=0",
-		"-Dcoherence.k8s.operator.health.enabled=false",
+		"-Dcoherence.operator.health.enabled=false",
 		"-Dcoherence.grpc.enabled=false",
-		"-Dcoherence.k8s.operator.health.port=0",
+		"-Dcoherence.operator.health.port=0",
 		"-Dcoherence.health.http.port=0",
 		"foo", "bar")
 

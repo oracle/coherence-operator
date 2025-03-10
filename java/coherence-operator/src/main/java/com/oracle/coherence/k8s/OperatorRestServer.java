@@ -61,7 +61,7 @@ public class OperatorRestServer implements AutoCloseable {
     /**
      * The system property to use to set the health logging.
      */
-    public static final String PROP_HEALTH_LOG = "coherence.k8s.operator.health.logs";
+    public static final String PROP_HEALTH_LOG = "coherence.operator.health.logs";
 
     /**
      * A flag indicating whether debug logging is enabled.
@@ -71,92 +71,92 @@ public class OperatorRestServer implements AutoCloseable {
     /**
      * The system property to use to enable the health server.
      */
-    public static final String PROP_HEALTH_ENABLED = "coherence.k8s.operator.health.enabled";
+    public static final String PROP_HEALTH_ENABLED = "coherence.operator.health.enabled";
 
     /**
      * The system property to use to set the health port.
      */
-    public static final String PROP_HEALTH_PORT = "coherence.k8s.operator.health.port";
+    public static final String PROP_HEALTH_PORT = "coherence.operator.health.port";
 
     /**
      * The system property to use to determine whether to wait for DCS to start.
      */
-    public static final String PROP_WAIT_FOR_DCS = "coherence.k8s.operator.health.wait.dcs";
+    public static final String PROP_WAIT_FOR_DCS = "coherence.operator.health.wait.dcs";
 
     /**
      * The system property for the TLS keystore file name.
      */
-    public static final String PROP_TLS_KEYSTORE = "coherence.k8s.operator.health.tls.keystore.file";
+    public static final String PROP_TLS_KEYSTORE = "coherence.operator.health.tls.keystore.file";
 
     /**
      * The system property for the TLS keystore type.
      */
-    public static final String PROP_TLS_KEYSTORE_TYPE = "coherence.k8s.operator.health.tls.keystore.type";
+    public static final String PROP_TLS_KEYSTORE_TYPE = "coherence.operator.health.tls.keystore.type";
 
     /**
      * The system property for the TLS keystore algorithm.
      */
-    public static final String PROP_TLS_KEYSTORE_ALGORITHM = "coherence.k8s.operator.health.tls.keystore.algorithm";
+    public static final String PROP_TLS_KEYSTORE_ALGORITHM = "coherence.operator.health.tls.keystore.algorithm";
 
     /**
      * The system property for the TLS keystore password.
      */
-    public static final String PROP_TLS_KEYSTORE_PASSWORD = "coherence.k8s.operator.health.tls.keystore.password.plain";
+    public static final String PROP_TLS_KEYSTORE_PASSWORD = "coherence.operator.health.tls.keystore.password.plain";
 
     /**
      * The system property for the TLS keystore password file name.
      */
-    public static final String PROP_TLS_KEYSTORE_PASSWORD_FILE = "coherence.k8s.operator.health.tls.keystore.password.file";
+    public static final String PROP_TLS_KEYSTORE_PASSWORD_FILE = "coherence.operator.health.tls.keystore.password.file";
 
     /**
      * The system property for the TLS keystore key password.
      */
-    public static final String PROP_TLS_KEY_PASSWORD = "coherence.k8s.operator.health.tls.key.password.plain";
+    public static final String PROP_TLS_KEY_PASSWORD = "coherence.operator.health.tls.key.password.plain";
 
     /**
      * The system property for the TLS keystore key password file name.
      */
-    public static final String PROP_TLS_KEY_PASSWORD_FILE = "coherence.k8s.operator.health.tls.key.password.file";
+    public static final String PROP_TLS_KEY_PASSWORD_FILE = "coherence.operator.health.tls.key.password.file";
 
     /**
      * The system property for the TLS trust store file name.
      */
-    public static final String PROP_TLS_TRUSTSTORE = "coherence.k8s.operator.health.tls.truststore.file";
+    public static final String PROP_TLS_TRUSTSTORE = "coherence.operator.health.tls.truststore.file";
 
     /**
      * The system property for the TLS trust store type.
      */
-    public static final String PROP_TLS_TRUSTSTORE_TYPE = "coherence.k8s.operator.health.tls.truststore.type";
+    public static final String PROP_TLS_TRUSTSTORE_TYPE = "coherence.operator.health.tls.truststore.type";
 
     /**
      * The system property for the TLS trust store algorithm.
      */
-    public static final String PROP_TLS_TRUSTSTORE_ALGORITHM = "coherence.k8s.operator.health.tls.truststore.algorithm";
+    public static final String PROP_TLS_TRUSTSTORE_ALGORITHM = "coherence.operator.health.tls.truststore.algorithm";
 
     /**
      * The system property for the TLS trust store password.
      */
-    public static final String PROP_TLS_TRUSTSTORE_PASSWORD = "coherence.k8s.operator.health.tls.truststore.password.plain";
+    public static final String PROP_TLS_TRUSTSTORE_PASSWORD = "coherence.operator.health.tls.truststore.password.plain";
 
     /**
      * The system property for the TLS trust store password file name.
      */
-    public static final String PROP_TLS_TRUSTSTORE_PASSWORD_FILE = "coherence.k8s.operator.health.tls.truststore.password.file";
+    public static final String PROP_TLS_TRUSTSTORE_PASSWORD_FILE = "coherence.operator.health.tls.truststore.password.file";
 
     /**
      * The system property for the TLS protocol.
      */
-    public static final String PROP_TLS_PROTOCOL = "coherence.k8s.operator.health.tls.protocol";
+    public static final String PROP_TLS_PROTOCOL = "coherence.operator.health.tls.protocol";
 
     /**
      * The system property to indicate whether TLS is 2-way.
      */
-    public static final String PROP_TLS_TWO_WAY = "coherence.k8s.operator.health.tls.twoway";
+    public static final String PROP_TLS_TWO_WAY = "coherence.operator.health.tls.twoway";
 
     /**
      * The system property to enable or disable TLS.
      */
-    public static final String PROP_INSECURE = "coherence.k8s.operator.health.insecure";
+    public static final String PROP_INSECURE = "coherence.operator.health.insecure";
 
     /**
      * The path to the ready endpoint.
@@ -206,7 +206,7 @@ public class OperatorRestServer implements AutoCloseable {
     /**
      * System property to specify service names to be skipped in the StatusHA test.
      */
-    public static final String PROP_ALLOW_ENDANGERED = "coherence.k8s.operator.statusha.allowendangered";
+    public static final String PROP_ALLOW_ENDANGERED = "coherence.operator.statusha.allowendangered";
 
     // ----- data members ---------------------------------------------------
 

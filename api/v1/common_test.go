@@ -358,6 +358,14 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Name:  "COHERENCE_OPERATOR_REQUEST_TIMEOUT",
 			Value: "120",
 		},
+		{
+			Name:  "COHERENCE_TTL",
+			Value: "0",
+		},
+		{
+			Name:  "COHERENCE_IPMONITOR_PINGTIMEOUT",
+			Value: "0",
+		},
 	}
 
 	if deployment.GetType() == coh.CoherenceTypeJob {
@@ -611,6 +619,56 @@ func addEnvVarsToContainer(c *corev1.Container, envVars ...corev1.EnvVar) {
 			c.Env = append(c.Env, evAdd)
 		}
 	}
+}
+
+func removeEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...string) {
+	if sts != nil {
+		removeEnvVarsFromPodSpec(&sts.Spec.Template, containerName, envVars...)
+	}
+}
+
+func removeEnvVarsFromJob(job *batchv1.Job, containerName string, envVars ...string) {
+	if job != nil {
+		removeEnvVarsFromPodSpec(&job.Spec.Template, containerName, envVars...)
+	}
+}
+
+func removeEnvVarsFromPodSpec(template *corev1.PodTemplateSpec, containerName string, envVars ...string) {
+	for i, c := range template.Spec.InitContainers {
+		if c.Name == containerName {
+			removeEnvVarsFromContainer(&c, envVars...)
+			template.Spec.InitContainers[i] = c
+		}
+	}
+	for i, c := range template.Spec.Containers {
+		if c.Name == containerName {
+			removeEnvVarsFromContainer(&c, envVars...)
+			template.Spec.Containers[i] = c
+		}
+	}
+}
+
+func removeEnvVarsFromContainer(c *corev1.Container, envVars ...string) {
+	env := c.Env
+	if c.Env == nil || len(env) == 0 {
+		return
+	}
+
+	for _, name := range envVars {
+		for e, ev := range c.Env {
+			if ev.Name == name {
+				if e == 0 {
+					env = env[:1]
+				} else if (e + 1) == len(env) {
+					env = env[:e]
+				} else {
+					env = append(env[:e], env[e+1:]...)
+				}
+				break
+			}
+		}
+	}
+	c.Env = env
 }
 
 func addEnvVarsFrom(sts *appsv1.StatefulSet, containerName string, envVars ...corev1.EnvFromSource) {

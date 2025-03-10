@@ -20,7 +20,7 @@ public interface CoherenceOperatorMBean {
     /**
      * The System property that is used to set this members identity.
      */
-    String PROP_IDENTITY = "coherence.k8s.operator.identity";
+    String PROP_IDENTITY = "coherence.operator.identity";
 
     /**
      * The name of the Identity MBean attribute.

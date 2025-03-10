@@ -961,6 +961,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment CoherenceResource) 
 		corev1.EnvVar{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 		corev1.EnvVar{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
+		corev1.EnvVar{Name: EnvVarCoherenceTTL, Value: "0"},
 	)
 
 	ann := deployment.GetAnnotations()

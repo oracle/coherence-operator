@@ -62,7 +62,7 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
 		"-Dcoherence.override=k8s-coherence-override.xml",
-		"-Dcoherence.k8s.operator.health.enabled=false",
+		"-Dcoherence.operator.health.enabled=false",
 		"-Dcoherence.health.http.port=6676")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
@@ -158,15 +158,15 @@ func AppendCommonExpectedNonServerArgs(args []string, role string) []string {
 	return append(args,
 		"-Dcoherence.wka=test-wka..svc",
 		"-Dcoherence.cluster=test",
-		"-Dcoherence.k8s.operator.health.port=6676",
+		"-Dcoherence.operator.health.port=6676",
 		"-Dcoherence.management.http.port=30000",
 		"-Dcoherence.metrics.http.port=9612",
 		"-Dcoherence.distributed.persistence-mode=on-demand",
 		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
 		"-Dcoherence.ipmonitor.pingtimeout=0",
-		"-Dcoherence.k8s.operator.diagnostics.dir=/coherence-operator/jvm/unknown/unknown",
+		"-Dcoherence.operator.diagnostics.dir=/coherence-operator/jvm/unknown/unknown",
 		"-XX:HeapDumpPath=/coherence-operator/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
-		"-Dcoherence.k8s.operator.can.resume.services=true",
+		"-Dcoherence.operator.can.resume.services=true",
 		"-XX:+UseG1GC",
 		"-Dcoherence.ttl=0",
 		"-XX:+UnlockDiagnosticVMOptions",

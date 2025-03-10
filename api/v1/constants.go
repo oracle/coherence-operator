@@ -224,10 +224,12 @@ const (
 	EnvVarCohMetricsPrefix         = "COHERENCE_METRICS"
 	EnvVarCoherenceLocalPort       = "COHERENCE_LOCALPORT"
 	EnvVarCoherenceLocalPortAdjust = "COHERENCE_LOCALPORT_ADJUST"
+	EnvVarCoherenceTTL             = "COHERENCE_TTL"
+	EnvVarEnableIPMonitor          = "COHERENCE_ENABLE_IPMONITOR"
+	EnvVarIPMonitorPingTimeout     = "COHERENCE_IPMONITOR_PINGTIMEOUT"
 
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"
-	EnvVarEnableIPMonitor             = "COHERENCE_ENABLE_IPMONITOR"
 	EnvVarSuffixSSLEnabled            = "_SSL_ENABLED"
 	EnvVarSuffixSSLCerts              = "_SSL_CERTS"
 	EnvVarSuffixSSLKeyStore           = "_SSL_KEYSTORE"

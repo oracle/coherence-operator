@@ -466,6 +466,7 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: localPort})
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: localPortAdjust})
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarIPMonitorPingTimeout, Value: "0"})
 		return
 	}
 
@@ -508,6 +509,8 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	if in.EnableIPMonitor != nil && *in.EnableIPMonitor {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: "TRUE"})
+	} else {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarIPMonitorPingTimeout, Value: "0"})
 	}
 
 	in.Management.AddSSLVolumesForPod(podTemplate, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)

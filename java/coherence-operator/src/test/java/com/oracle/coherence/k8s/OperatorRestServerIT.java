@@ -343,7 +343,7 @@ public class OperatorRestServerIT {
                                                     DisplayName.of("storage"),
                                                     SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                     SystemProperty.of("coherence.distributed.persistence.base.dir", activeDir.getAbsolutePath()),
-                                                    SystemProperty.of("coherence.k8s.operator.health.logs", true),
+                                                    SystemProperty.of("coherence.operator.health.logs", true),
                                                     SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort1))) {
             try (JavaApplication app2 = platform.launch(JavaApplication.class,
                                                         ClassName.of(Main.class),
@@ -354,7 +354,7 @@ public class OperatorRestServerIT {
                                                         LocalHost.only(),
                                                         testLogs.builder(),
                                                         DisplayName.of("storage-disabled"),
-                                                        SystemProperty.of("coherence.k8s.operator.health.logs", true),
+                                                        SystemProperty.of("coherence.operator.health.logs", true),
                                                         SystemProperty.of(OperatorRestServer.PROP_HEALTH_PORT, httpPort2))) {
 
                 Eventually.assertDeferred(() -> this.isServiceOneRunning(app1), is(true));

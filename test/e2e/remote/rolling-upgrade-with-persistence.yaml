@@ -12,7 +12,7 @@ spec:
     periodSeconds: 10
   jvm:
     args:
-      - -Dcoherence.k8s.operator.health.logs=true
+      - -Dcoherence.operator.health.logs=true
   coherence:
     cacheConfig: test-cache-config.xml
     management:
