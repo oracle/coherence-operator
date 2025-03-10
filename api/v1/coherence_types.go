@@ -466,6 +466,7 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: localPort})
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: localPortAdjust})
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarIPMonitorPingTimeout, Value: "0"})
 		return
 	}
 
@@ -508,6 +509,8 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	if in.EnableIPMonitor != nil && *in.EnableIPMonitor {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: "TRUE"})
+	} else {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarIPMonitorPingTimeout, Value: "0"})
 	}
 
 	in.Management.AddSSLVolumesForPod(podTemplate, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
@@ -755,9 +758,21 @@ type ImageSpec struct {
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
+// ----- ImageSpec struct ---------------------------------------------------
+
+// CoherenceUtilsSpec defines the settings for the Coherence Operator utilities image
+// +k8s:openapi-gen=true
+type CoherenceUtilsSpec struct {
+	// Image pull policy.
+	// One of Always, Never, IfNotPresent.
+	// More info: https://kubernetes.io/docs/concepts/containers/images#updating-images
+	// +optional
+	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+}
+
 // EnsureImage ensures that the image value is set.
 func (in *ImageSpec) EnsureImage(image *string) bool {
-	if in != nil && in.Image == nil {
+	if in != nil && (in.Image == nil || *in.Image != *image) {
 		in.Image = image
 		return true
 	}

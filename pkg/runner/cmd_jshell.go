@@ -48,7 +48,7 @@ func jShell(details *RunDetails, args []string, v *viper.Viper) {
 	details.addArg("-Dcoherence.metrics.http.port=0")
 	details.setenv(v1.EnvVarJvmMemoryNativeTracking, "off")
 	details.setenv(v1.EnvVarJvmUseContainerLimits, "false")
-	details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+	details.addArg("-Dcoherence.operator.health.enabled=false")
 	details.addArg("-Dcoherence.health.http.port=0")
 	details.addArg("-Dcoherence.grpc.enabled=false")
 	details.setenv(v1.EnvVarCohRole, "jshell")

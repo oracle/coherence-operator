@@ -321,9 +321,9 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
 	details.addArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
 	details.addArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
-	details.addArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")
-	details.addArgFromEnvVar(v1.EnvVarCohForceExit, "-Dcoherence.k8s.operator.force.exit")
-	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.k8s.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+	details.addArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.operator.identity")
+	details.addArgFromEnvVar(v1.EnvVarCohForceExit, "-Dcoherence.operator.force.exit")
+	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
 	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
 
@@ -414,7 +414,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 	allowEndangered := details.Getenv(v1.EnvVarCohAllowEndangered)
 	if allowEndangered != "" {
-		details.addArg("-Dcoherence.k8s.operator.statusha.allowendangered=" + allowEndangered)
+		details.addArg("-Dcoherence.operator.statusha.allowendangered=" + allowEndangered)
 	}
 
 	// Get the K8s Pod UID
@@ -437,18 +437,18 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		}
 	}
 
-	details.addArg(fmt.Sprintf("-Dcoherence.k8s.operator.diagnostics.dir=%s", jvmDir))
+	details.addArg(fmt.Sprintf("-Dcoherence.operator.diagnostics.dir=%s", jvmDir))
 	details.addArg(fmt.Sprintf("-XX:HeapDumpPath=%s/heap-dumps/%s-%s.hprof", jvmDir, member, podUID))
 
 	// set the flag that allows the operator to resume suspended services on start-up
 	if !details.isEnvTrueOrBlank(v1.EnvVarOperatorAllowResume) {
-		details.addArg("-Dcoherence.k8s.operator.can.resume.services=false")
+		details.addArg("-Dcoherence.operator.can.resume.services=false")
 	} else {
-		details.addArg("-Dcoherence.k8s.operator.can.resume.services=true")
+		details.addArg("-Dcoherence.operator.can.resume.services=true")
 	}
 
 	if svc := details.Getenv(v1.EnvVarOperatorResumeServices); svc != "" {
-		details.addArg("-Dcoherence.k8s.operator.resume.services=base64:" + svc)
+		details.addArg("-Dcoherence.operator.resume.services=base64:" + svc)
 	}
 
 	gc := strings.ToLower(details.Getenv(v1.EnvVarJvmGcCollector))
@@ -1057,13 +1057,13 @@ func cohPost12214(details *RunDetails) {
 
 func cohPost2206(details *RunDetails) {
 	if details.UseOperatorHealth {
-		details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
+		details.addArg("-Dcoherence.operator.health.enabled=true")
 	} else {
 		useOperator := details.getenvOrDefault(v1.EnvVarUseOperatorHealthCheck, "false")
 		if strings.EqualFold("true", useOperator) {
-			details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
+			details.addArg("-Dcoherence.operator.health.enabled=true")
 		} else {
-			details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
+			details.addArg("-Dcoherence.operator.health.enabled=false")
 			details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
 		}
 	}

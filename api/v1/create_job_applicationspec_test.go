@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -45,7 +45,7 @@ func TestCreateJobWithApplicationMain(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_MAIN_CLASS", Value: mainClass})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_OPERATOR_MAIN_CLASS", Value: mainClass})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)

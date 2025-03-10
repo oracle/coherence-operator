@@ -49,12 +49,12 @@ public class CoherenceOperatorLifecycleListener
     /**
      * The system property to enable or disable the Operator resuming services.
      */
-    public static final String PROP_CAN_RESUME = "coherence.k8s.operator.can.resume.services";
+    public static final String PROP_CAN_RESUME = "coherence.operator.can.resume.services";
 
     /**
      * The system property to enable or disable the Operator resuming individual services.
      */
-    public static final String PROP_RESUME_SERVICES = "coherence.k8s.operator.resume.services";
+    public static final String PROP_RESUME_SERVICES = "coherence.operator.resume.services";
 
     /**
      * A flag that when {@code true}, allows the Operator to resume suspended services on start-up.
