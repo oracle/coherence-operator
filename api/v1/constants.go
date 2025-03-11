@@ -215,6 +215,7 @@ const (
 	EnvVarCnbpEnabled            = "COHERENCE_OPERATOR_CNBP_ENABLED"
 	EnvVarCnbpLauncher           = "COHERENCE_OPERATOR_CNBP_LAUNCHER"
 	EnvVarCohForceExit           = "COHERENCE_OPERATOR_FORCE_EXIT"
+	EnvVarCohCliProtocol         = "COHERENCE_OPERATOR_CLI_PROTOCOL"
 
 	EnvVarCoherenceHome            = "COHERENCE_HOME"
 	EnvVarCohClusterName           = "COHERENCE_CLUSTER"
@@ -240,6 +241,8 @@ const (
 	EnvVarCoherenceTTL             = "COHERENCE_TTL"
 	EnvVarEnableIPMonitor          = "COHERENCE_ENABLE_IPMONITOR"
 	EnvVarIPMonitorPingTimeout     = "COHERENCE_IPMONITOR_PINGTIMEOUT"
+
+	EnvVarCohCtlHome = "COHCTL_HOME"
 
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"

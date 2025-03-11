@@ -362,6 +362,10 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Value: "0",
 		},
 		{
+			Name:  "COHCTL_HOME",
+			Value: coh.VolumeMountPathUtils,
+		},
+		{
 			Name:  "COHERENCE_IPMONITOR_PINGTIMEOUT",
 			Value: "0",
 		},
