@@ -61,9 +61,7 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 
 	expectedCommand := GetJavaCommand()
 	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
-		"-Dcoherence.override=k8s-coherence-override.xml",
-		"-Dcoherence.operator.health.enabled=false",
-		"-Dcoherence.health.http.port=6676")
+		"-Dcoherence.override=k8s-coherence-override.xml")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -159,10 +157,12 @@ func AppendCommonExpectedNonServerArgs(args []string, role string) []string {
 		"-Dcoherence.wka=test-wka..svc",
 		"-Dcoherence.cluster=test",
 		"-Dcoherence.operator.health.port=6676",
+		"-Dcoherence.health.http.port=6676",
+		"-Dcoherence.operator.health.enabled=false",
 		"-Dcoherence.management.http.port=30000",
 		"-Dcoherence.metrics.http.port=9612",
 		"-Dcoherence.distributed.persistence-mode=on-demand",
-		"-Dcoherence.override=k8s-coherence-nossl-override.xml",
+		"-Dcoherence.override=k8s-coherence-override.xml",
 		"-Dcoherence.ipmonitor.pingtimeout=0",
 		"-Dcoherence.operator.diagnostics.dir=/coherence-operator/jvm/unknown/unknown",
 		"-XX:HeapDumpPath=/coherence-operator/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
