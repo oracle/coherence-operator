@@ -851,7 +851,10 @@ func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 
 	if in.Volume != nil || in.PersistentVolumeClaim != nil {
 		// Set the persistence location environment variable
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceDir, Value: VolumeMountPathPersistence})
+		if c.Name == ContainerNameCoherence {
+			// only do this for the Coherence container as it's env-vars are copied to the other containers
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceDir, Value: VolumeMountPathPersistence})
+		}
 		// Add the persistence volume mount
 		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
 			Name:      VolumeNamePersistence,
@@ -860,9 +863,12 @@ func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 	}
 
 	// Add the snapshot volume mount if required
-	if in != nil && in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
+	if in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
 		// Set the snapshot location environment variable
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotDir, Value: VolumeMountPathSnapshots})
+		if c.Name == ContainerNameCoherence {
+			// only do this for the Coherence container as it's env-vars are copied to the other containers
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotDir, Value: VolumeMountPathSnapshots})
+		}
 		// Add the snapshot volume mount
 		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
 			Name:      VolumeNameSnapshots,
@@ -1291,7 +1297,7 @@ func (in *NamedPortSpec) GetServicePort(d CoherenceResource) int32 {
 	switch {
 	case in == nil:
 		return 0
-	case in != nil && in.Service != nil && in.Service.Port != nil:
+	case in.Service != nil && in.Service.Port != nil:
 		return *in.Service.Port
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
 		// special case for well known port - metrics

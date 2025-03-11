@@ -80,8 +80,8 @@ func TestCreateJobWithCoherenceManagementEnabledTrue(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -102,8 +102,8 @@ func TestCreateJobWithCoherenceManagementEnabledWithPort(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: "1234"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: "1234"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -138,7 +138,7 @@ func TestCreateJobWithCoherenceManagementWithSSLEnabledWithoutSecret(t *testing.
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence,
+	addEnvVarsToAllJobContainers(jobExpected,
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_ENABLED", Value: "true"},
@@ -191,7 +191,7 @@ func TestCreateJobWithCoherenceManagementWithSSLEnabledWithSecret(t *testing.T) 
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence,
+	addEnvVarsToAllJobContainers(jobExpected,
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_CERTS", Value: coh.VolumeMountPathManagementCerts},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},

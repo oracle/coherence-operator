@@ -17,6 +17,8 @@ import (
 )
 
 func NewRunDetails(v *viper.Viper) *RunDetails {
+	var err error
+
 	skipSiteVar := v.GetString(v1.EnvVarCohSkipSite)
 	skipSite := strings.ToLower(skipSiteVar) != "true"
 
@@ -34,6 +36,16 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 	// add any Classpath items
 	details.addClasspath(v.GetString(v1.EnvVarJvmExtraClasspath))
 	details.addClasspath(v.GetString(v1.EnvVarJavaClasspath))
+
+	cpFile := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
+	if _, err = os.Stat(cpFile); err == nil {
+		details.ClassPathFile = cpFile
+	}
+
+	argFile := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
+	if _, err = os.Stat(argFile); err == nil {
+		details.JvmArgsFile = argFile
+	}
 
 	return details
 }
@@ -54,6 +66,8 @@ type RunDetails struct {
 	MainArgs          []string
 	BuildPacks        *bool
 	ExtraEnv          []string
+	ClassPathFile     string
+	JvmArgsFile       string
 	env               *viper.Viper
 }
 

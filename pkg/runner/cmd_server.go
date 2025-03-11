@@ -38,6 +38,32 @@ func serverCommand() *cobra.Command {
 
 // Configure the runner to run a Coherence Server
 func server(details *RunDetails, _ *cobra.Command) {
+	var err error
+
+	if details.ClassPathFile != "" {
+		fmt.Printf("**** INFO found class path file %s\n", details.ClassPathFile)
+		data, err := os.ReadFile(details.ClassPathFile)
+		if err != nil {
+			fmt.Printf("**** ERROR error reading %s %v\n", details.ClassPathFile, err)
+		} else {
+			fmt.Printf("**** INFO contents of %s\n------\n%s\n------\n", details.ClassPathFile, string(data))
+		}
+	} else {
+		fmt.Println("**** ERROR class path file does not exist")
+	}
+
+	if details.JvmArgsFile != "" {
+		fmt.Printf("**** INFO found %s\n", details.JvmArgsFile)
+		data, err := os.ReadFile(details.JvmArgsFile)
+		if err != nil {
+			fmt.Printf("**** ERROR error reading %s %v\n", details.JvmArgsFile, err)
+		} else {
+			fmt.Printf("**** INFO contents of %s\n------\n%s\n------\n", details.JvmArgsFile, string(data))
+		}
+	} else {
+		fmt.Println("**** ERROR JVM args does not exist")
+	}
+
 	details.Command = CommandServer
 	details.MainClass = ServerMain
 
@@ -99,6 +125,11 @@ func server(details *RunDetails, _ *cobra.Command) {
 		}
 	}
 
+	populateServerDetails(details)
+}
+
+// Configure the runner to run a Coherence Server
+func populateServerDetails(details *RunDetails) {
 	// Configure the Coherence member's role
 	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohRole, "-Dcoherence.role", "storage")
 	// Configure whether this member is storage enabled
@@ -126,6 +157,7 @@ func server(details *RunDetails, _ *cobra.Command) {
 		if details.CoherenceHome != "" {
 			// If management is enabled and the COHERENCE_HOME environment variable is set
 			// then $COHERENCE_HOME/lib/coherence-management.jar will be added to the classpath
+			// This is for legacy 14.1.1.0 and 12.2.1.4 images
 			details.addClasspath(details.CoherenceHome + "/lib/coherence-management.jar")
 		}
 	}
@@ -139,6 +171,7 @@ func server(details *RunDetails, _ *cobra.Command) {
 		if details.CoherenceHome != "" {
 			// If metrics is enabled and the COHERENCE_HOME environment variable is set
 			// then $COHERENCE_HOME/lib/coherence-metrics.jar will be added to the classpath
+			// This is for legacy 14.1.1.0 and 12.2.1.4 images
 			details.addClasspath(details.CoherenceHome + "/lib/coherence-metrics.jar")
 		}
 	}

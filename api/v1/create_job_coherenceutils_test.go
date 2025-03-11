@@ -41,6 +41,7 @@ func TestCreateJobWithCoherenceUtilsWithImagePullPolicy(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 	// Set the expected Operator image pull policy
 	jobExpected.Spec.Template.Spec.InitContainers[0].ImagePullPolicy = policy
+	jobExpected.Spec.Template.Spec.InitContainers[1].ImagePullPolicy = policy
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)

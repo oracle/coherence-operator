@@ -71,7 +71,7 @@ func TestCreateStatefulSetWithRackLabel(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	url := fmt.Sprintf("%s?nodeLabel=%s", coh.OperatorRackURL, "coherence.oracle.com/test")
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohRack, Value: url})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohRack, Value: url})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -87,7 +87,7 @@ func TestCreateStatefulSetWithSiteLabel(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	url := fmt.Sprintf("%s?nodeLabel=%s", coh.OperatorSiteURL, "coherence.oracle.com/test")
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSite, Value: url})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohSite, Value: url})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -107,7 +107,7 @@ func TestCreateStatefulSetWithEnvVars(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// add the expected environment variables
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, ev...)
+	addEnvVarsToAll(stsExpected, ev...)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -300,6 +300,7 @@ func TestCreateStatefulSetWithInitContainerResources(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.InitContainers[0].Resources = res
+	stsExpected.Spec.Template.Spec.InitContainers[1].Resources = res
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -441,6 +442,7 @@ func TestCreateStatefulSetWithContainerSecurityContext(t *testing.T) {
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Add the expected security context to both the init-container and the Coherence container
 	stsExpected.Spec.Template.Spec.InitContainers[0].SecurityContext = &ctx
+	stsExpected.Spec.Template.Spec.InitContainers[1].SecurityContext = &ctx
 	stsExpected.Spec.Template.Spec.Containers[0].SecurityContext = &ctx
 
 	// assert that the StatefulSet is as expected

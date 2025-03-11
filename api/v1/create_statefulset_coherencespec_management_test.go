@@ -80,8 +80,8 @@ func TestCreateStatefulSetWithCoherenceManagementEnabledTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -102,8 +102,8 @@ func TestCreateStatefulSetWithCoherenceManagementEnabledWithPort(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: "1234"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: "1234"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -138,7 +138,7 @@ func TestCreateStatefulSetWithCoherenceManagementWithSSLEnabledWithoutSecret(t *
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence,
+	addEnvVarsToAll(stsExpected,
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_ENABLED", Value: "true"},
@@ -191,7 +191,7 @@ func TestCreateStatefulSetWithCoherenceManagementWithSSLEnabledWithSecret(t *tes
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence,
+	addEnvVarsToAll(stsExpected,
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_CERTS", Value: coh.VolumeMountPathManagementCerts},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"},
 		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},

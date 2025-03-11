@@ -80,8 +80,8 @@ func TestCreateStatefulSetWithCoherenceMetricsEnabledTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -102,8 +102,8 @@ func TestCreateStatefulSetWithCoherenceMetricsEnabledWithPort(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: "1234"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: "1234"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -138,7 +138,7 @@ func TestCreateStatefulSetWithCoherenceMetricsWithSSLEnabledWithoutSecret(t *tes
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence,
+	addEnvVarsToAll(stsExpected,
 		corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"},
 		corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)},
 		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_ENABLED", Value: "true"},
@@ -191,7 +191,7 @@ func TestCreateStatefulSetWithCoherenceMetricsWithSSLEnabledWithSecret(t *testin
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence,
+	addEnvVarsToAll(stsExpected,
 		corev1.EnvVar{Name: "COHERENCE_METRICS_SSL_CERTS", Value: coh.VolumeMountPathMetricsCerts},
 		corev1.EnvVar{Name: "COHERENCE_METRICS_ENABLED", Value: "true"},
 		corev1.EnvVar{Name: "COHERENCE_METRICS_PORT", Value: strconv.FormatInt(int64(coh.DefaultMetricsPort), 10)},

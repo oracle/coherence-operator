@@ -25,7 +25,7 @@ func TestCreateJobWithApplicationType(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarAppType, Value: "foo"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarAppType, Value: "foo"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -45,7 +45,7 @@ func TestCreateJobWithApplicationMain(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_OPERATOR_MAIN_CLASS", Value: mainClass})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "COHERENCE_OPERATOR_MAIN_CLASS", Value: mainClass})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -64,7 +64,7 @@ func TestCreateJobWithApplicationMainArgs(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -100,7 +100,7 @@ func TestCreateJobWithWorkingDirectory(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohAppDir, Value: dir})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohAppDir, Value: dir})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)

@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -129,6 +130,7 @@ func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 
 	rootCmd.AddCommand(initCommand(env))
+	rootCmd.AddCommand(configCommand(env))
 	rootCmd.AddCommand(serverCommand())
 	rootCmd.AddCommand(consoleCommand(v))
 	rootCmd.AddCommand(queryPlusCommand(v))
@@ -311,8 +313,8 @@ func fromContext(ctx context.Context) *Execution {
 	return &Execution{}
 }
 
-// create the process to execute.
-func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
+// configure the command details.
+func configureCommand(details *RunDetails) error {
 	var err error
 
 	// Set standard system properties
@@ -350,8 +352,8 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	}
 
 	// Add the Operator Utils jar to the classpath
-	details.addClasspath(details.UtilsDir + "/lib/coherence-operator.jar")
-	details.addClasspathIfExists(details.UtilsDir + "/config")
+	details.addClasspath(details.UtilsDir + v1.OperatorJarFileSuffix)
+	details.addClasspathIfExists(details.UtilsDir + v1.OperatorConfigDirSuffix)
 
 	// Configure Coherence persistence
 	mode := details.getenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
@@ -427,13 +429,13 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	jvmDir := v1.VolumeMountPathJVM + "/" + member + "/" + podUID
 	if _, err = os.Stat(v1.VolumeMountPathJVM); err == nil {
 		if err = os.MkdirAll(jvmDir, os.ModePerm); err != nil {
-			return "", nil, err
+			return err
 		}
 		if err = os.MkdirAll(jvmDir+"/jfr", os.ModePerm); err != nil {
-			return "", nil, err
+			return err
 		}
 		if err = os.MkdirAll(jvmDir+"/heap-dumps", os.ModePerm); err != nil {
-			return "", nil, err
+			return err
 		}
 	}
 
@@ -601,6 +603,12 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		details.addArgs(strings.Split(gcArgs, " ")...)
 	}
 
+	// sort the args added up to this point,
+	// anything following are customer added args and must come last
+	sort.SliceStable(details.Args, func(i, j int) bool {
+		return details.Args[i] < details.Args[j]
+	})
+
 	jvmArgs := details.Getenv(v1.EnvVarJvmArgs)
 	if jvmArgs != "" {
 		details.addArgs(strings.Split(jvmArgs, " ")...)
@@ -611,8 +619,20 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		details.addArgs(extraJvmArgs...)
 	}
 
+	return nil
+}
+
+// create the process to execute.
+func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
+	var err error
 	var cmd *exec.Cmd
 	var app string
+
+	err = configureCommand(details)
+	if err != nil {
+		return "", nil, err
+	}
+
 	switch {
 	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
 		app = "Java"

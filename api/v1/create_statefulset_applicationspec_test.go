@@ -25,7 +25,7 @@ func TestCreateStatefulSetWithApplicationType(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Add the expected environment variables
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarAppType, Value: "foo"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarAppType, Value: "foo"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -45,7 +45,7 @@ func TestCreateStatefulSetWithApplicationMain(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Add the expected environment variables
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COHERENCE_OPERATOR_MAIN_CLASS", Value: mainClass})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_OPERATOR_MAIN_CLASS", Value: mainClass})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -64,7 +64,7 @@ func TestCreateStatefulSetWithApplicationMainArgs(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Add the expected environment variables
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -100,7 +100,7 @@ func TestCreateStatefulSetWithWorkingDirectory(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohAppDir, Value: dir})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohAppDir, Value: dir})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

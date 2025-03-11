@@ -183,7 +183,6 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	assertEnvironmentVariablesForJob(t, jobActual, expected)
-	assertEnvironmentVariablesForJob(t, jobActual, expected)
 
 	diffs := deep.Equal(*jobActual, *expected)
 	msg := "Jobs not equal:"
@@ -418,7 +417,6 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 				ReadOnly:  false,
 			},
 		},
-		Env: envVars,
 	}
 
 	if cohImage := spec.GetCoherenceImage(); cohImage != nil {
@@ -430,16 +428,6 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		Name:    coh.ContainerNameOperatorInit,
 		Image:   testOperatorImage,
 		Command: []string{coh.RunnerInitCommand, coh.RunnerInit},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "COHERENCE_CLUSTER",
-				Value: deployment.GetName(),
-			},
-			{
-				Name:  "COHERENCE_OPERATOR_UTIL_DIR",
-				Value: coh.VolumeMountPathUtils,
-			},
-		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
 				Name:      coh.VolumeNameJVM,
@@ -454,6 +442,29 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		},
 	}
 
+	// The Operator JVM Args Init-Container
+	argsContainer := corev1.Container{
+		Name:    coh.ContainerNameOperatorArgs,
+		Image:   testCoherenceImage,
+		Command: []string{coh.RunnerCommand, coh.RunnerConfig},
+		VolumeMounts: []corev1.VolumeMount{
+			{
+				Name:      coh.VolumeNameJVM,
+				MountPath: coh.VolumeMountPathJVM,
+				ReadOnly:  false,
+			},
+			{
+				Name:      coh.VolumeNameUtils,
+				MountPath: coh.VolumeMountPathUtils,
+				ReadOnly:  false,
+			},
+		},
+	}
+
+	cohContainer.Env = append(cohContainer.Env, envVars...)
+	initContainer.Env = append(initContainer.Env, envVars...)
+	argsContainer.Env = append(argsContainer.Env, envVars...)
+
 	annotations := make(map[string]string)
 	annotations[coh.AnnotationIstioConfig] = coh.DefaultIstioConfigAnnotationValue
 
@@ -463,7 +474,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
-			InitContainers: []corev1.Container{initContainer},
+			InitContainers: []corev1.Container{initContainer, argsContainer},
 			Containers:     []corev1.Container{cohContainer},
 			Volumes: []corev1.Volume{
 				{
@@ -576,10 +587,22 @@ func sortPortsForPodTemplate(template *corev1.PodTemplateSpec) {
 	}
 }
 
+func addEnvVarsToAll(sts *appsv1.StatefulSet, envVars ...corev1.EnvVar) {
+	addEnvVars(sts, coh.ContainerNameCoherence, envVars...)
+	addEnvVars(sts, coh.ContainerNameOperatorInit, envVars...)
+	addEnvVars(sts, coh.ContainerNameOperatorArgs, envVars...)
+}
+
 func addEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...corev1.EnvVar) {
 	if sts != nil {
 		addEnvVarsToPodSpec(&sts.Spec.Template, containerName, envVars...)
 	}
+}
+
+func addEnvVarsToAllJobContainers(job *batchv1.Job, envVars ...corev1.EnvVar) {
+	addEnvVarsToJob(job, coh.ContainerNameCoherence, envVars...)
+	addEnvVarsToJob(job, coh.ContainerNameOperatorInit, envVars...)
+	addEnvVarsToJob(job, coh.ContainerNameOperatorArgs, envVars...)
 }
 
 func addEnvVarsToJob(job *batchv1.Job, containerName string, envVars ...corev1.EnvVar) {
@@ -621,10 +644,22 @@ func addEnvVarsToContainer(c *corev1.Container, envVars ...corev1.EnvVar) {
 	}
 }
 
+func removeEnvVarsFromAll(sts *appsv1.StatefulSet, envVars ...string) {
+	removeEnvVars(sts, coh.ContainerNameCoherence, envVars...)
+	removeEnvVars(sts, coh.ContainerNameOperatorInit, envVars...)
+	removeEnvVars(sts, coh.ContainerNameOperatorArgs, envVars...)
+}
+
 func removeEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...string) {
 	if sts != nil {
 		removeEnvVarsFromPodSpec(&sts.Spec.Template, containerName, envVars...)
 	}
+}
+
+func removeEnvVarsFromAllJobContainers(job *batchv1.Job, envVars ...string) {
+	removeEnvVarsFromJob(job, coh.ContainerNameCoherence, envVars...)
+	removeEnvVarsFromJob(job, coh.ContainerNameOperatorInit, envVars...)
+	removeEnvVarsFromJob(job, coh.ContainerNameOperatorArgs, envVars...)
 }
 
 func removeEnvVarsFromJob(job *batchv1.Job, containerName string, envVars ...string) {

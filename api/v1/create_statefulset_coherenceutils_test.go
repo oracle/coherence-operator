@@ -41,6 +41,7 @@ func TestCreateStatefulSetWithCoherenceUtilsWithImagePullPolicy(t *testing.T) {
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Set the expected Operator image pull policy
 	stsExpected.Spec.Template.Spec.InitContainers[0].ImagePullPolicy = policy
+	stsExpected.Spec.Template.Spec.InitContainers[1].ImagePullPolicy = policy
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

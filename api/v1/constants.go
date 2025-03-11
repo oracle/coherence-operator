@@ -78,6 +78,8 @@ const (
 	ContainerNameCoherence = "coherence"
 	// ContainerNameOperatorInit is the Operator init-container name
 	ContainerNameOperatorInit = "coherence-k8s-utils"
+	// ContainerNameOperatorArgs is the Operator JVM args init-container name
+	ContainerNameOperatorArgs = "coherence-k8s-jvm-args"
 
 	// VolumeNamePersistence is the name of the persistence volume
 	VolumeNamePersistence = "persistence-volume"
@@ -115,8 +117,10 @@ const (
 
 	// RunnerInitCommand is the start command for the Operator init-container
 	RunnerInitCommand = "/files/runner"
-	// RunnerInit is the command line argument for the Operator init-container
+	// RunnerInit is the command line argument for the Operator intialize init-container
 	RunnerInit = "init"
+	// RunnerConfig is the command line argument for the Operator config init-container
+	RunnerConfig = "config"
 
 	// ServiceMonitorKind is the Prometheus ServiceMonitor resource API Kind
 	ServiceMonitorKind = "ServiceMonitor"
@@ -170,6 +174,15 @@ const (
 	OperatorSiteURL = "http://$(COHERENCE_OPERATOR_HOST)/site/$(COHERENCE_MACHINE)"
 	// OperatorRackURL is the default Operator rack query URL
 	OperatorRackURL = "http://$(COHERENCE_OPERATOR_HOST)/rack/$(COHERENCE_MACHINE)"
+
+	// OperatorJvmArgsFile is the name of the file in the utils directory containing the JVM arguments
+	OperatorJvmArgsFile = "coherence-jvm-args.txt"
+	// OperatorClasspathFile is the name of the file in the utils directory containing the JVM class path
+	OperatorClasspathFile = "coherence-class-path.txt"
+	// OperatorJarFileSuffix is the suffix to append to the utils directory to locate the Operator jar file.
+	OperatorJarFileSuffix = "/lib/coherence-operator.jar"
+	// OperatorConfigDirSuffix is the suffix to append to the utils directory to locate the Operator config directory.
+	OperatorConfigDirSuffix = "/config"
 
 	// DefaultReadinessPath is the default readiness endpoint path
 	DefaultReadinessPath = "/ready"
