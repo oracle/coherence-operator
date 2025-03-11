@@ -26,7 +26,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -318,6 +317,7 @@ func configureCommand(details *RunDetails) error {
 	var err error
 
 	// Set standard system properties
+	details.addArg("-Dcoherence.ttl=0")
 	details.addArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
 	details.addArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
 	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
@@ -579,8 +579,6 @@ func configureCommand(details *RunDetails) error {
 		}
 	}
 
-	details.addArg("-Dcoherence.ttl=0")
-
 	details.addArg(fmt.Sprintf("-XX:ErrorFile=%s/hs-err-%s-%s.log", jvmDir, member, podUID))
 
 	if details.isEnvTrueOrBlank(v1.EnvVarJvmOomHeapDump) {
@@ -602,12 +600,6 @@ func configureCommand(details *RunDetails) error {
 	if gcArgs != "" {
 		details.addArgs(strings.Split(gcArgs, " ")...)
 	}
-
-	// sort the args added up to this point,
-	// anything following are customer added args and must come last
-	sort.SliceStable(details.Args, func(i, j int) bool {
-		return details.Args[i] < details.Args[j]
-	})
 
 	jvmArgs := details.Getenv(v1.EnvVarJvmArgs)
 	if jvmArgs != "" {
@@ -1055,14 +1047,16 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 		log.Info("Executed Coherence version check, version is greater than or equal to expected", "version", v)
 		return true
 	}
-	if _, ok := err.(*exec.ExitError); ok {
-		// The program has exited with an exit code != 0
-		log.Info("Executed Coherence version check, version is lower than expected", "version", v)
-		return false
+	if exitError, ok := err.(*exec.ExitError); ok {
+		// The program has exited with an exit code == 99 which means the version is lower than requested
+		if exitError.ExitCode() == 99 {
+			log.Info("Executed Coherence version check, version is lower than expected", "version", v)
+			return false
+		}
 	}
-	// command exited with some other error
-	log.Error(err, "Coherence version check failed")
-	return false
+	// command exited with some other error, assume the version is good
+	log.Error(err, "Coherence version check failed, assuming version is valid", "version", v)
+	return true
 }
 
 func cohPre12214(details *RunDetails) {

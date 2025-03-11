@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
@@ -326,7 +325,6 @@ func (in *RunDetails) addJarsToClasspath(dir string) {
 			return nil
 		})
 
-		sort.Strings(jars)
 		for _, jar := range jars {
 			in.addClasspath(jar)
 		}
