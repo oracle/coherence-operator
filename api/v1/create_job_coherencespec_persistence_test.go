@@ -466,7 +466,7 @@ func createResourcesForJob(spec coh.CoherenceResourceSpec) (*batchv1.Job, *coh.C
 	// Add the expected environment variables
 	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorArgs, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorConfig, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{

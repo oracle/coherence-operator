@@ -685,11 +685,13 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 		cohContainer.Ports = append(cohContainer.Ports, p.CreatePort(deployment))
 	}
 
+	initContainer := in.CreateOperatorInitContainer(deployment)
+	configInitContainer := in.CreateOperatorConfigInitContainer(deployment)
+
 	// append any additional VolumeMounts
 	cohContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
-
-	initContainer := in.CreateOperatorInitContainer(deployment)
-	jvmArgsInitContainer := in.CreateOperatorJvmArgsInitContainer(deployment)
+	initContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
+	configInitContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
 
 	podTemplate := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -721,7 +723,7 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 	}
 
 	// The order of this append is very important, the jvmArgs must come second
-	podTemplate.Spec.InitContainers = append(podTemplate.Spec.InitContainers, initContainer, jvmArgsInitContainer)
+	podTemplate.Spec.InitContainers = append(podTemplate.Spec.InitContainers, initContainer, configInitContainer)
 	podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, cohContainer)
 
 	// Add any network settings
@@ -1043,8 +1045,8 @@ func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment Coherenc
 	return in.createInitContainer(deployment, ContainerNameOperatorInit, image, []string{RunnerInitCommand, RunnerInit})
 }
 
-// CreateOperatorJvmArgsInitContainer creates the JVM args file init-container spec.
-func (in *CoherenceResourceSpec) CreateOperatorJvmArgsInitContainer(deployment CoherenceResource) corev1.Container {
+// CreateOperatorConfigInitContainer creates the JVM args file init-container spec.
+func (in *CoherenceResourceSpec) CreateOperatorConfigInitContainer(deployment CoherenceResource) corev1.Container {
 	var image string
 
 	if in.Image == nil {
@@ -1052,7 +1054,7 @@ func (in *CoherenceResourceSpec) CreateOperatorJvmArgsInitContainer(deployment C
 	} else {
 		image = *in.Image
 	}
-	return in.createInitContainer(deployment, ContainerNameOperatorArgs, image, []string{RunnerCommand, RunnerConfig})
+	return in.createInitContainer(deployment, ContainerNameOperatorConfig, image, []string{RunnerCommand, RunnerConfig})
 }
 
 // CreateOperatorInitContainer creates the Operator init-container spec.

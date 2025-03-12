@@ -78,8 +78,8 @@ const (
 	ContainerNameCoherence = "coherence"
 	// ContainerNameOperatorInit is the Operator init-container name
 	ContainerNameOperatorInit = "coherence-k8s-utils"
-	// ContainerNameOperatorArgs is the Operator JVM args init-container name
-	ContainerNameOperatorArgs = "coherence-k8s-jvm-args"
+	// ContainerNameOperatorConfig is the Operator config files init-container name
+	ContainerNameOperatorConfig = "coherence-k8s-config"
 
 	// VolumeNamePersistence is the name of the persistence volume
 	VolumeNamePersistence = "persistence-volume"

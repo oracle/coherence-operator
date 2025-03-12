@@ -134,7 +134,8 @@ func createCliConfig(details *RunDetails) error {
 	buffer.WriteString("ignoreinvalidcerts: false\n")
 	buffer.WriteString("requesttimeout: 30\n")
 	if err := os.WriteFile(fileName, buffer.Bytes(), os.ModePerm); err != nil {
-		return errors.Wrap(err, "failed to write coherence CLI config file "+fileName)
+		fmt.Printf("Failed to write coherence CLI config file at %s cause: %v", fileName, err)
+		return nil
 	}
 
 	fmt.Printf("Created CLI config file %s\n", fileName)
