@@ -96,12 +96,13 @@ func createArgsFile(details *RunDetails) error {
 }
 
 func createCliConfig(details *RunDetails) error {
-	fileName := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, "cohctl.yaml")
+	home := details.getenvOrDefault(v1.EnvVarCohCtlHome, details.UtilsDir)
+	fileName := fmt.Sprintf("%s%c%s", home, os.PathSeparator, "cohctl.yaml")
 
 	cluster := details.Getenv(v1.EnvVarCohClusterName)
 	port := details.Getenv(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohPortSuffix)
 	if port == "" {
-		port = string(v1.DefaultManagementPort)
+		port = fmt.Sprintf("%d", v1.DefaultManagementPort)
 	}
 	protocol := details.Getenv(v1.EnvVarCohCliProtocol)
 	if protocol == "" {
@@ -112,7 +113,7 @@ func createCliConfig(details *RunDetails) error {
 	buffer.WriteString("clusters:\n")
 	buffer.WriteString("    - name: default\n")
 	buffer.WriteString("      discoverytype: manual\n")
-	buffer.WriteString("      connectiontype: " + protocol)
+	buffer.WriteString("      connectiontype: " + protocol + "\n")
 	buffer.WriteString("      connectionurl: " + protocol + "://127.0.0.1:" + port + "/management/coherence/cluster\n")
 	buffer.WriteString("      nameservicediscovery: \"\"\n")
 	buffer.WriteString("      clusterversion: \"\"\n")

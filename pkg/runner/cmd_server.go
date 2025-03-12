@@ -64,6 +64,19 @@ func server(details *RunDetails, _ *cobra.Command) {
 		fmt.Println("**** ERROR JVM args does not exist")
 	}
 
+	home := details.getenvOrDefault(v1.EnvVarCohCtlHome, details.UtilsDir)
+	cliCfg := fmt.Sprintf("%s%c%s", home, os.PathSeparator, "cohctl.yaml")
+	if _, err = os.Stat(cliCfg); err != nil {
+		fmt.Printf("**** ERROR error CLI config does not exist %s %v\n", cliCfg, err)
+	} else {
+		data, err := os.ReadFile(cliCfg)
+		if err != nil {
+			fmt.Printf("**** ERROR error reading CLI config %s %v\n", cliCfg, err)
+		} else {
+			fmt.Printf("**** INFO contents of CLI config %s\n------\n%s\n------\n", cliCfg, string(data))
+		}
+	}
+
 	details.Command = CommandServer
 	details.MainClass = ServerMain
 
