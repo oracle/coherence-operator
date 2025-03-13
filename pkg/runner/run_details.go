@@ -60,14 +60,19 @@ type RunDetails struct {
 	UseOperatorHealth bool
 	AppType           string
 	Classpath         string
-	Args              []string
 	MainClass         string
+	InnerMainClass    string
 	MainArgs          []string
 	BuildPacks        *bool
 	ExtraEnv          []string
 	ClassPathFile     string
 	JvmArgsFile       string
+	args              []string
 	env               *viper.Viper
+}
+
+func (in *RunDetails) GetArgs() []string {
+	return in.args
 }
 
 // IsSpringBoot returns true if this is a Spring Boot application
@@ -233,9 +238,9 @@ func (in *RunDetails) getCommandWithPrefix(propPrefix, jvmPrefix string) []strin
 		cmd = append(cmd, "--class-path", cp)
 	}
 	if propPrefix == "" && jvmPrefix == "" {
-		cmd = append(cmd, in.Args...)
+		cmd = append(cmd, in.args...)
 	} else {
-		for _, arg := range in.Args {
+		for _, arg := range in.args {
 			if strings.HasPrefix(arg, "-D") && propPrefix != "" {
 				cmd = append(cmd, propPrefix+arg)
 			} else if jvmPrefix != "" {
@@ -252,43 +257,12 @@ func (in *RunDetails) getSpringBootCommand() []string {
 
 func (in *RunDetails) getSpringBootArgs() []string {
 	var cmd []string
-	cp := strings.ReplaceAll(in.getClasspath(), ":", ",")
-	if cp != "" {
-		cmd = append(cmd, "-Dloader.path="+cp)
-	}
-
 	// Are we using a Spring Boot fat jar
 	if jar, _ := in.lookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
 		cmd = append(cmd, "--class-path", jar)
 	}
-	cmd = append(cmd, in.Args...)
-
-	return cmd
+	return append(cmd, in.args...)
 }
-
-/*
-func (in *RunDetails) getGraalCommand() []string {
-	cmd := in.getCommand()
-	for i, c := range cmd {
-		switch {
-		case c == "-cp":
-			cmd[i] = "--vm.cp"
-		case strings.HasPrefix(c, "-D"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-XX"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-Xms"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-Xmx"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-Xss"):
-			cmd[i] = "--vm." + c[1:]
-		}
-	}
-
-	return cmd
-}
-*/
 
 func (in *RunDetails) addArgs(args ...string) {
 	for _, a := range args {
@@ -298,7 +272,7 @@ func (in *RunDetails) addArgs(args ...string) {
 
 func (in *RunDetails) addArg(arg string) {
 	if arg != "" {
-		in.Args = append(in.Args, in.ExpandEnv(arg))
+		in.args = append(in.args, in.ExpandEnv(arg))
 	}
 }
 
@@ -367,7 +341,7 @@ func (in *RunDetails) addArgFromEnvVar(name, property string) {
 	value := in.Getenv(name)
 	if value != "" {
 		s := fmt.Sprintf("%s=%s", property, value)
-		in.Args = append(in.Args, s)
+		in.args = append(in.args, s)
 	}
 }
 
@@ -379,7 +353,7 @@ func (in *RunDetails) setSystemPropertyFromEnvVarOrDefault(name, property, dflt 
 	} else {
 		s = fmt.Sprintf("%s=%s", property, dflt)
 	}
-	in.Args = append(in.Args, s)
+	in.args = append(in.args, s)
 }
 
 func (in *RunDetails) getJavaExecutable() string {

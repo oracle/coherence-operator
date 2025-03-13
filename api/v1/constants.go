@@ -179,6 +179,10 @@ const (
 	OperatorJvmArgsFile = "coherence-jvm-args.txt"
 	// OperatorClasspathFile is the name of the file in the utils directory containing the JVM class path
 	OperatorClasspathFile = "coherence-class-path.txt"
+	// OperatorMainClassFile is the name of the file in the utils directory containing the main class name
+	OperatorMainClassFile = "coherence-main-class.txt"
+	// OperatorSpringBootArgsFile is the name of the file in the utils directory containing the SpringBoot JVM args
+	OperatorSpringBootArgsFile = "coherence-spring-args.txt"
 	// OperatorJarFileSuffix is the suffix to append to the utils directory to locate the Operator jar file.
 	OperatorJarFileSuffix = "/lib/coherence-operator.jar"
 	// OperatorConfigDirSuffix is the suffix to append to the utils directory to locate the Operator config directory.
@@ -262,6 +266,7 @@ const (
 	EnvVarSuffixSSLRequireClientCert  = "_SSL_REQUIRE_CLIENT_CERT"
 
 	EnvVarJavaHome                = "JAVA_HOME"
+	EnvVarJdkOptions              = "JDK_JAVA_OPTIONS"
 	EnvVarJavaClasspath           = "CLASSPATH"
 	EnvVarJvmClasspathJib         = "JVM_USE_JIB_CLASSPATH"
 	EnvVarJvmExtraClasspath       = "JVM_EXTRA_CLASSPATH"
@@ -289,6 +294,30 @@ const (
 	EnvVarJvmMemoryNativeTracking = "JVM_NATIVE_MEMORY_TRACKING"
 	EnvVarJvmOomExit              = "JVM_OOM_EXIT"
 	EnvVarJvmOomHeapDump          = "JVM_OOM_HEAP_DUMP"
+
+	// AppTypeNone is the argument to specify no application type.
+	AppTypeNone = ""
+	// AppTypeJava is the argument to specify a Java application.
+	AppTypeJava = "java"
+	// AppTypeCoherence is the argument to specify a Coherence application.
+	AppTypeCoherence = "coherence"
+	// AppTypeHelidon is the argument to specify a Helidon application.
+	AppTypeHelidon = "helidon"
+	// AppTypeSpring2 is the argument to specify an exploded Spring Boot 2.x application.
+	AppTypeSpring2 = "spring"
+	// AppTypeSpring3 is the argument to specify an exploded Spring Boot 3.x application.
+	AppTypeSpring3 = "spring3"
+
+	// DefaultMain is an indicator to run the default main class.
+	DefaultMain = "$DEFAULT$"
+	// HelidonMain is the default Helidon main class name.
+	HelidonMain = "io.helidon.microprofile.cdi.Main"
+	// ServerMain is the default server main class name.
+	ServerMain = "com.oracle.coherence.k8s.Main"
+	// SpringBootMain2 is the default Spring Boot 2.x main class name.
+	SpringBootMain2 = "org.springframework.boot.loader.PropertiesLauncher"
+	// SpringBootMain3 is the default Spring Boot 3.x main class name.
+	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
 )
 
 var (

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
@@ -26,11 +27,10 @@ func TestMinimalDeployment(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "test"},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -38,8 +38,8 @@ func TestMinimalDeployment(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
 func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
@@ -56,12 +56,13 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.override="),
-		"-Dcoherence.override=k8s-coherence-override.xml")
+	//expectedArgs := append(GetExpectedArgsFileContentWithoutPrefix("-Dcoherence.override="), "-Dcoherence.override=k8s-coherence-override.xml")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -70,11 +71,7 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func GetMinimalExpectedArgsWithoutPrefix(prefix string) []string {
-	return RemoveArgWithPrefix(GetMinimalExpectedArgs(), prefix)
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
 func ReplaceArg(args []string, toReplace, replaceWith string) []string {
@@ -105,25 +102,49 @@ func GetJavaArg() string {
 	return javaCmd
 }
 
-func GetMinimalExpectedArgs() []string {
-	cp := fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar",
-		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
+func GetMinimalExpectedArgs(t *testing.T) []string {
+	return GetMinimalExpectedArgsWithWorkingDir(t, TestAppDir)
+}
 
-	cp = cp + ":/coherence-operator/utils/lib/coherence-operator.jar"
-	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ":/coherence-operator/utils/config"
+func GetMinimalExpectedArgsWithWorkingDir(t *testing.T, wd string) []string {
+	cp := ""
+	if wd == TestAppDir {
+		cp = fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar:",
+			TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
+	}
+
+	utils := ensureTestUtilsDir(t)
+	jar := fmt.Sprintf("%s/lib/coherence-operator.jar", utils)
+	cfg := fmt.Sprintf(":%s/config", utils)
+	cp = cp + jar
+	if _, err := os.Stat(cfg); err == nil {
+		cp = cp + ":" + cfg
 	}
 
 	args := []string{GetJavaArg(), "--class-path", cp}
-
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
 		"$DEFAULT$")
 }
 
+func GetExpectedArgsWithoutPrefix(t *testing.T, prefix ...string) []string {
+	args := GetMinimalExpectedArgs(t)
+	for _, p := range prefix {
+		args = RemoveArgWithPrefix(args, p)
+	}
+	return args
+}
+
+func GetMinimalExpectedArgsWith(t *testing.T, args ...string) []string {
+	return append(GetMinimalExpectedArgs(t), args...)
+}
+
+func GetMinimalExpectedArgsWithMainClass(t *testing.T, clz string) []string {
+	return append(RemoveArg(GetMinimalExpectedArgs(t), coh.DefaultMain), clz)
+}
+
 func GetMinimalExpectedArgsWithoutCP() []string {
-	args := make([]string, 0)
-	args = append(args, GetJavaArg())
+	args := []string{GetJavaArg()}
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
 		"$DEFAULT$")
@@ -139,6 +160,36 @@ func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
 		"$DEFAULT$")
+}
+
+func GetExpectedClasspathWithUtilsDir(utils string) string {
+	cp := fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar",
+		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
+	return cp + ":" + GetOperatorClasspathWithUtilsDir(utils)
+}
+
+func GetOperatorClasspathWithUtilsDir(utils string) string {
+	cp := utils + "/lib/coherence-operator.jar"
+	cfg := utils + "/config"
+	if _, err := os.Stat(cfg); err == nil {
+		cp = cp + ":" + cfg
+	}
+	return cp
+}
+
+func GetExpectedArgsFileContent() []string {
+	return GetExpectedArgsFileContentWith()
+}
+
+func GetExpectedArgsFileContentWith(args ...string) []string {
+	var expected []string
+	expected = AppendCommonExpectedArgs(expected)
+	expected = append(expected, args...)
+	return expected
+}
+
+func GetExpectedArgsFileContentWithoutPrefix(prefix string) []string {
+	return RemoveArgWithPrefix(GetExpectedArgsFileContent(), prefix)
 }
 
 func AppendCommonExpectedArgs(args []string) []string {
@@ -210,14 +261,20 @@ func GetJavaCommand() string {
 	return "java"
 }
 
-func EnvVarsFromDeployment(d *coh.Coherence) map[string]string {
-	return EnvVarsFromDeploymentWithSkipSite(d, true)
+func EnvVarsFromDeployment(t *testing.T, d *coh.Coherence) map[string]string {
+	return EnvVarsForContainerWithSkipSite(t, d, coh.ContainerNameCoherence, true)
 }
 
-func EnvVarsFromDeploymentWithSkipSite(d *coh.Coherence, skipSite bool) map[string]string {
+func EnvVarsFromDeploymentWithSkipSite(t *testing.T, d *coh.Coherence, skipSite bool) map[string]string {
+	return EnvVarsForContainerWithSkipSite(t, d, coh.ContainerNameCoherence, skipSite)
+}
+
+func EnvVarsForConfigContainerWithSkipSite(t *testing.T, d *coh.Coherence, skipSite bool) map[string]string {
+	return EnvVarsForContainerWithSkipSite(t, d, coh.ContainerNameOperatorConfig, skipSite)
+}
+
+func EnvVarsForContainerWithSkipSite(t *testing.T, d *coh.Coherence, containerName string, skipSite bool) map[string]string {
 	envVars := make(map[string]string)
-	envVars[coh.EnvVarCohAppDir] = TestAppDir
-	envVars[coh.EnvVarCohSkipSite] = fmt.Sprintf("%t", skipSite)
 
 	if d.Spec.JVM == nil {
 		d.Spec.JVM = &coh.JVMSpec{}
@@ -225,12 +282,102 @@ func EnvVarsFromDeploymentWithSkipSite(d *coh.Coherence, skipSite bool) map[stri
 
 	res := d.Spec.CreateStatefulSetResource(d)
 	sts := res.Spec.(*appsv1.StatefulSet)
-	c := coh.FindContainer(coh.ContainerNameCoherence, sts)
+	c := coh.FindContainer(containerName, sts)
+	if c == nil {
+		c = coh.FindInitContainer(containerName, sts)
+	}
+	if c == nil {
+		return nil
+	}
+
 	for _, ev := range c.Env {
 		if ev.ValueFrom == nil {
 			envVars[ev.Name] = ev.Value
 		}
 	}
 
+	if d.Spec.Application != nil && d.Spec.Application.WorkingDir != nil && *d.Spec.Application.WorkingDir != "" {
+		envVars[coh.EnvVarCohAppDir] = *d.Spec.Application.WorkingDir
+	} else {
+		envVars[coh.EnvVarCohAppDir] = TestAppDir
+	}
+
+	dir := ensureTestUtilsDir(t)
+	envVars[coh.EnvVarCohUtilDir] = dir
+	envVars[coh.EnvVarCohCtlHome] = dir
+	envVars[coh.EnvVarCohSkipSite] = fmt.Sprintf("%t", skipSite)
+
 	return envVars
+}
+
+func ensureTestUtilsDir(t *testing.T) string {
+	g := NewGomegaWithT(t)
+	dir, err := helper.EnsureLogsDir(t.Name())
+	g.Expect(err).NotTo(HaveOccurred())
+	return dir
+}
+
+func verifyConfigFilesWithArgs(t *testing.T, d *coh.Coherence, expectedArgs []string) {
+	verifyConfigFilesWithArgsWithSkipSite(t, d, expectedArgs, true)
+}
+
+func verifyConfigFilesWithArgsWithSkipSite(t *testing.T, d *coh.Coherence, expectedArgs []string, skipSite bool) {
+	dir := ensureTestUtilsDir(t)
+	expectedCP := GetExpectedClasspathWithUtilsDir(dir)
+	verifyConfigFilesWithArgsAndClasspathWithSkipSite(t, d, expectedArgs, expectedCP, skipSite)
+}
+
+func verifyConfigFilesWithArgsAndClasspath(t *testing.T, d *coh.Coherence, expectedArgs []string, expectedCP string) {
+	verifyConfigFilesWithArgsAndClasspathWithSkipSite(t, d, expectedArgs, expectedCP, true)
+}
+
+func verifyConfigFilesWithArgsAndClasspathWithSkipSite(t *testing.T, d *coh.Coherence, expectedArgs []string, expectedCP string, skipSite bool) {
+	cfgEnv := EnvVarsForConfigContainerWithSkipSite(t, d, skipSite)
+	verifyConfigFilesWithArgsAndClasspathUsingEnv(t, cfgEnv, expectedArgs, expectedCP)
+}
+
+func verifyConfigFilesWithArgsAndClasspathUsingEnv(t *testing.T, cfgEnv map[string]string, expectedArgs []string, expectedCP string) {
+	var err error
+
+	g := NewGomegaWithT(t)
+	dir := ensureTestUtilsDir(t)
+	cfgEnv[coh.EnvVarCohUtilDir] = dir
+	cfgEnv[coh.EnvVarCohCtlHome] = dir
+
+	_, err = ExecuteWithArgsAndNewViper(cfgEnv, []string{coh.RunnerConfig})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cpName := fmt.Sprintf("%s/%s", dir, coh.OperatorClasspathFile)
+	_, err = os.Stat(cpName)
+	g.Expect(err).NotTo(HaveOccurred())
+	dataCP, err := os.ReadFile(cpName)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dataCP).NotTo(BeNil())
+	cp := string(dataCP)
+	g.Expect(cp).To(Equal(expectedCP))
+
+	argsName := fmt.Sprintf("%s/%s", dir, coh.OperatorJvmArgsFile)
+	_, err = os.Stat(argsName)
+	g.Expect(err).NotTo(HaveOccurred())
+	dataArgs, err := os.ReadFile(argsName)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dataArgs).NotTo(BeNil())
+
+	args := filterNonEmptyStringArray(strings.Split(string(dataArgs), "\n"))
+
+	g.Expect(args).To(ConsistOf(expectedArgs))
+}
+
+func filterNonEmptyStringArray(ss []string) (ret []string) {
+	test := func(s string) bool { return s != "" }
+	return filterStringArray(ss, test)
+}
+
+func filterStringArray(ss []string, test func(string) bool) (ret []string) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
 }

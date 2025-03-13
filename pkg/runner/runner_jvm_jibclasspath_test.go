@@ -17,7 +17,12 @@ import (
 	"testing"
 )
 
-func TestJibClasspath(t *testing.T) {
+const (
+	JibClassPath = "jib/classpath/*:jib/libs/*"
+	JibMainClass = "com.test.JibMainClass"
+)
+
+func TestJibClasspathWhenNoJibFilePresent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.Coherence{
@@ -31,11 +36,10 @@ func TestJibClasspath(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -43,11 +47,11 @@ func TestJibClasspath(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
-func TestJibClasspathFile(t *testing.T) {
+func TestJibClasspathFileWhenJibFilePresent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d := &coh.Coherence{
@@ -61,13 +65,14 @@ func TestJibClasspathFile(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
 	f := createJibClasspathFile()
 	defer os.Remove(f.Name())
-	expectedArgs := GetMinimalExpectedArgsWithAppClasspathFile()
+
+	expectedCp := JibClassPath + ":" + GetOperatorClasspathWithUtilsDir(ensureTestUtilsDir(t))
+	verifyConfigFilesWithArgsAndClasspath(t, d, GetExpectedArgsFileContent(), expectedCp)
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -75,8 +80,10 @@ func TestJibClasspathFile(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+
+	expected := append(GetMinimalExpectedArgsWithoutCP(), "--class-path", expectedCp)
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
 func TestJibMainClassFile(t *testing.T) {
@@ -93,13 +100,13 @@ func TestJibMainClassFile(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
 	f := createJibMainClassFile()
 	defer os.Remove(f.Name())
-	expectedArgs := GetMinimalExpectedArgsWithAppMainClassFile()
+
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -107,8 +114,8 @@ func TestJibMainClassFile(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, JibMainClass)))
 }
 
 func TestJibClasspathFileAndMainClassFile(t *testing.T) {
@@ -125,15 +132,16 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
 	f1 := createJibClasspathFile()
 	defer os.Remove(f1.Name())
 	f2 := createJibMainClassFile()
 	defer os.Remove(f2.Name())
-	expectedArgs := GetMinimalExpectedArgsWithAppClasspathFileAndMainClassFile()
+
+	expectedCp := JibClassPath + ":" + GetOperatorClasspathWithUtilsDir(ensureTestUtilsDir(t))
+	verifyConfigFilesWithArgsAndClasspath(t, d, GetExpectedArgsFileContent(), expectedCp)
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -141,8 +149,11 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := append(GetMinimalExpectedArgsWithoutCP(), "--class-path", expectedCp)
+	expected = ReplaceArg(expected, coh.DefaultMain, JibMainClass)
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
+	//	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.tangosol.net.DefaultCacheServer")))
 }
 
 func createJibClasspathFile() *os.File {
@@ -152,7 +163,7 @@ func createJibClasspathFile() *os.File {
 		os.Exit(1)
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("%s/classpath/*:%s/libs/*", TestAppDir, TestAppDir))
+	_, err = f.WriteString(JibClassPath)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -173,7 +184,7 @@ func createJibMainClassFile() *os.File {
 		os.Exit(1)
 	}
 
-	_, err = f.WriteString("com.tangosol.net.DefaultCacheServer")
+	_, err = f.WriteString(JibMainClass)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)

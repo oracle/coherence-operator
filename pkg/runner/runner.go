@@ -221,7 +221,11 @@ func Execute() (Execution, error) {
 
 // ExecuteWithArgsAndNewViper runs the runner with a given environment and argument overrides.
 func ExecuteWithArgsAndNewViper(env map[string]string, args []string) (Execution, error) {
-	return ExecuteWithArgsAndViper(env, args, viper.New())
+	v := viper.New()
+	for key, value := range env {
+		v.SetDefault(key, value)
+	}
+	return ExecuteWithArgsAndViper(env, args, v)
 }
 
 // ExecuteWithArgsAndViper runs the runner with a given environment and argument overrides.
@@ -338,6 +342,12 @@ func configureCommand(details *RunDetails) error {
 		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
 		cpFile := filepath.Join(appDir, "jib-classpath-file")
 		fi, e := os.Stat(cpFile)
+		if e != nil && appDir != "/app" {
+			// try in /app
+			cpFile = "/app/jib-classpath-file"
+			fi, e = os.Stat(cpFile)
+		}
+
 		if e == nil && (fi.Size() != 0) {
 			clsPath, _ := readFirstLineFromFile(cpFile)
 			if len(clsPath) != 0 {
@@ -381,14 +391,8 @@ func configureCommand(details *RunDetails) error {
 		details.addArg("-Dcoherence.ipmonitor.pingtimeout=0")
 	}
 
-	// Do the Coherence version specific configuration
-	if ok := checkCoherenceVersion("12.2.1.4.0", details); ok {
-		// is at least 12.2.1.4
-		cohPost12214(details)
-	} else {
-		// is at pre-12.2.1.4
-		cohPre12214(details)
-	}
+	details.addArg("-Dcoherence.override=k8s-coherence-override.xml")
+	details.addArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
 
 	post2206 := checkCoherenceVersion("14.1.1.2206.0", details)
 	if post2206 {
@@ -620,11 +624,6 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	var cmd *exec.Cmd
 	var app string
 
-	err = configureCommand(details)
-	if err != nil {
-		return "", nil, err
-	}
-
 	switch {
 	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
 		app = "Java"
@@ -833,7 +832,7 @@ func configureSiteAndRack(details *RunDetails) {
 				details.addArg("-Dcoherence.site=" + site)
 			}
 		} else {
-			log.Info("Coherence site property not set as "+v1.EnvVarCoherenceSite+" environment variable is set", "Site", site)
+			details.addArg("-Dcoherence.site=" + site)
 		}
 	}
 
@@ -878,7 +877,7 @@ func configureSiteAndRack(details *RunDetails) {
 				details.addArg("-Dcoherence.rack=" + rack)
 			}
 		} else {
-			log.Info("Coherence rack property not set as "+v1.EnvVarCoherenceRack+" environment variable is set", "Rack", rack)
+			details.addArg("-Dcoherence.rack=" + rack)
 		}
 	}
 }
@@ -1055,18 +1054,8 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 		}
 	}
 	// command exited with some other error, assume the version is good
-	log.Error(err, "Coherence version check failed, assuming version is valid", "version", v)
+	log.Info("Coherence version check failed, assuming version is valid", "version", v, "error", err.Error())
 	return true
-}
-
-func cohPre12214(details *RunDetails) {
-	details.addArg("-Dcoherence.override=k8s-coherence-nossl-override.xml")
-	details.addArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
-}
-
-func cohPost12214(details *RunDetails) {
-	details.addArg("-Dcoherence.override=k8s-coherence-override.xml")
-	details.addArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
 }
 
 func cohPost2206(details *RunDetails) {

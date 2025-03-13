@@ -210,10 +210,7 @@ type ApplicationSpec struct {
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
-	// The application folder in the custom artifacts Docker image containing
-	// application artifacts.
-	// This will effectively become the working directory of the Coherence container.
-	// If not set the application directory default value is "/app".
+	// WorkingDir sets the working directory of the Coherence container.
 	// +optional
 	WorkingDir *string `json:"workingDir,omitempty"`
 	// Optional settings that may be configured if using a Cloud Native Buildpack Image.
@@ -243,6 +240,7 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 	}
 	if in.WorkingDir != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
+		c.WorkingDir = *in.WorkingDir
 	}
 	if len(in.Args) > 0 {
 		args := strings.Join(in.Args, " ")

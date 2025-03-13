@@ -63,6 +63,7 @@ func TestCreateJobWithApplicationMainArgs(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = append(jobExpected.Spec.Template.Spec.Containers[0].Command, "arg1", "arg2")
 	// Add the expected environment variables
 	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
 
@@ -100,6 +101,7 @@ func TestCreateJobWithWorkingDirectory(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].WorkingDir = dir
 	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohAppDir, Value: dir})
 
 	// assert that the Job is as expected

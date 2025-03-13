@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -685,13 +686,16 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 		cohContainer.Ports = append(cohContainer.Ports, p.CreatePort(deployment))
 	}
 
+	// Create the Operator init-container
 	initContainer := in.CreateOperatorInitContainer(deployment)
+
+	// Create the Operator config files init-container
 	configInitContainer := in.CreateOperatorConfigInitContainer(deployment)
 
 	// append any additional VolumeMounts
 	cohContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
-	initContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
-	configInitContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
+	initContainer.VolumeMounts = append(initContainer.VolumeMounts, in.VolumeMounts...)
+	configInitContainer.VolumeMounts = append(configInitContainer.VolumeMounts, in.VolumeMounts...)
 
 	podTemplate := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -760,6 +764,26 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 	return podTemplate
 }
 
+func (in *CoherenceResourceSpec) GetApplicationType() string {
+	if in != nil && in.Application != nil && in.Application.Type != nil {
+		return strings.ToLower(*in.Application.Type)
+	}
+	return AppTypeNone
+}
+
+// IsSpringBoot returns true if this is a Spring Boot application
+func (in *CoherenceResourceSpec) IsSpringBoot() bool {
+	app := in.GetApplicationType()
+	return app == AppTypeSpring2 || app == AppTypeSpring3
+}
+
+func (in *CoherenceResourceSpec) GetApplicationMainClass() string {
+	if in != nil && in.Application != nil && in.Application.Main != nil {
+		return *in.Application.Main
+	}
+	return DefaultMain
+}
+
 func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
 	var secrets []corev1.LocalObjectReference
 
@@ -794,17 +818,9 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 	vm := in.CreateCommonVolumeMounts()
 	lp, _ := in.Coherence.GetLocalPorts()
 
-	cmd := []string{RunnerCommand}
-	if in.Application != nil && in.Application.Type != nil && *in.Application.Type == "operator" {
-		cmd = append(cmd, in.Application.Args...)
-	} else {
-		cmd = append(cmd, "server")
-	}
-
 	c := corev1.Container{
-		Name:    ContainerNameCoherence,
-		Image:   cohImage,
-		Command: cmd,
+		Name:  ContainerNameCoherence,
+		Image: cohImage,
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          PortNameCoherence,
@@ -867,6 +883,25 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 	}
 
 	c.Lifecycle = in.Lifecycle
+
+	cmd := []string{"java"}
+
+	if in.IsSpringBoot() {
+		cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
+		cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
+	} else {
+		cmd = append(cmd, "--class-path", fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorClasspathFile))
+		cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
+	}
+
+	cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
+
+	if in.Application != nil {
+		cmd = append(cmd, in.Application.Args...)
+	}
+
+	// set the command line into the container
+	c.Command = cmd
 
 	return c
 }
@@ -1054,7 +1089,9 @@ func (in *CoherenceResourceSpec) CreateOperatorConfigInitContainer(deployment Co
 	} else {
 		image = *in.Image
 	}
-	return in.createInitContainer(deployment, ContainerNameOperatorConfig, image, []string{RunnerCommand, RunnerConfig})
+
+	c := in.createInitContainer(deployment, ContainerNameOperatorConfig, image, []string{RunnerCommand, RunnerConfig})
+	return c
 }
 
 // CreateOperatorInitContainer creates the Operator init-container spec.

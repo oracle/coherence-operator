@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -245,6 +245,8 @@ func TestCreateJobWithExtraContainerAndVolume(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 	jobExpected.Spec.Template.Spec.Volumes = append(jobExpected.Spec.Template.Spec.Volumes, vol)
 	jobExpected.Spec.Template.Spec.Containers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.Containers[0].VolumeMounts, mount)
+	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, mount)
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, mount)
 
 	// Create expected container
 	conExpected := corev1.Container{

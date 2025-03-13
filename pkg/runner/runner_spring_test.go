@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -30,11 +29,13 @@ func TestSpringBootApplication(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootArgs(SpringBootMain2)
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -42,8 +43,8 @@ func TestSpringBootApplication(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2)))
 }
 
 func TestSpringBoot3Application(t *testing.T) {
@@ -60,11 +61,13 @@ func TestSpringBoot3Application(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootArgs(SpringBootMain3)
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -72,8 +75,8 @@ func TestSpringBoot3Application(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedSpringBootArgs(t, SpringBootMain3)))
 }
 
 func TestSpringBootFatJarApplication(t *testing.T) {
@@ -92,11 +95,13 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar, SpringBootMain2)
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -104,8 +109,9 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2), "--class-path", "/apps/lib/foo.jar")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
 func TestSpringBoot3FatJarApplication(t *testing.T) {
@@ -124,11 +130,13 @@ func TestSpringBoot3FatJarApplication(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootFatJarArgs(jar, SpringBootMain3)
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -136,8 +144,9 @@ func TestSpringBoot3FatJarApplication(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain3), "--class-path", "/apps/lib/foo.jar")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
 func TestSpringBootFatJarConsole(t *testing.T) {
@@ -156,23 +165,13 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 		},
 	}
 
-	args := []string{"console", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
-	expectedArgs = ReplaceArg(expectedArgs, "-XX:NativeMemoryTracking=summary", "-XX:NativeMemoryTracking=off")
-	expectedArgs = ReplaceArg(expectedArgs, "-Dcoherence.health.http.port=6676", "-Dcoherence.health.http.port=0")
-	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.operator.health.port=6676")
-	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
-		"-Dcoherence.metrics.http.enabled=false",
-		"-Dcoherence.management.http=none",
-		"-Dcoherence.management.http.port=0",
-		"-Dcoherence.metrics.http.port=0",
-		"-Dcoherence.operator.health.enabled=false",
-		"-Dcoherence.health.http.port=0",
-		"-Dcoherence.grpc.enabled=false",
-		"-Dcoherence.operator.health.port=0")
+	args := []string{"console", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -180,7 +179,22 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2), "--class-path", jar)
+	expectedArgs = append(expectedArgs, "-Dcoherence.role=console",
+		"-Dloader.main=com.tangosol.net.CacheFactory",
+		"-Dcoherence.distributed.localstorage=false",
+		"-Dcoherence.localport.adjust=true",
+		"-Dcoherence.management.http=none",
+		"-Dcoherence.management.http.port=0",
+		"-Dcoherence.metrics.http.enabled=false",
+		"-Dcoherence.metrics.http.port=0",
+		"-Dcoherence.operator.health.enabled=false",
+		"-Dcoherence.health.http.port=0",
+		"-Dcoherence.grpc.enabled=false",
+		"-XX:NativeMemoryTracking=off")
+
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
@@ -200,24 +214,13 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 		},
 	}
 
-	args := []string{"console", "--dry-run", "--", "foo", "bar"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedSpringBootFatJarArgsForRole(jar, ConsoleMain, "")
-	expectedArgs = ReplaceArg(expectedArgs, "-XX:NativeMemoryTracking=summary", "-XX:NativeMemoryTracking=off")
-	expectedArgs = ReplaceArg(expectedArgs, "-Dcoherence.health.http.port=6676", "-Dcoherence.health.http.port=0")
-	expectedArgs = RemoveArg(expectedArgs, "-Dcoherence.operator.health.port=6676")
-	expectedArgs = append(expectedArgs, "-Dcoherence.localport.adjust=true",
-		"-Dcoherence.metrics.http.enabled=false",
-		"-Dcoherence.management.http=none",
-		"-Dcoherence.management.http.port=0",
-		"-Dcoherence.metrics.http.port=0",
-		"-Dcoherence.operator.health.enabled=false",
-		"-Dcoherence.grpc.enabled=false",
-		"-Dcoherence.operator.health.port=0",
-		"-Dcoherence.health.http.port=0",
-		"foo", "bar")
+	args := []string{"console", "--dry-run", "--", "foo", "bar"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -225,7 +228,23 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2), "--class-path", jar)
+	expectedArgs = append(expectedArgs, "-Dcoherence.role=console",
+		"-Dloader.main=com.tangosol.net.CacheFactory",
+		"-Dcoherence.distributed.localstorage=false",
+		"-Dcoherence.localport.adjust=true",
+		"-Dcoherence.management.http=none",
+		"-Dcoherence.management.http.port=0",
+		"-Dcoherence.metrics.http.enabled=false",
+		"-Dcoherence.metrics.http.port=0",
+		"-Dcoherence.operator.health.enabled=false",
+		"-Dcoherence.health.http.port=0",
+		"-Dcoherence.grpc.enabled=false",
+		"-XX:NativeMemoryTracking=off",
+		"foo", "bar")
+
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
@@ -246,11 +265,13 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedSpringBootFatJarArgs(jar, SpringBootMain2), "-Dloader.main=foo.Bar")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -258,7 +279,11 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2),
+		"--class-path", jar, "-Dloader.main=foo.Bar")
+
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }
 
@@ -279,10 +304,13 @@ func TestSpringBootBuildpacks(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	wd := ensureTestUtilsDir(t)
+	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedFileArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
-	expectedCommand := getBuildpackLauncher()
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -290,39 +318,27 @@ func TestSpringBootBuildpacks(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(""))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
+	g.Expect(e.OsCmd.Path).To(Equal(getBuildpackLauncher()))
 
 	g.Expect(len(e.OsCmd.Args)).To(Equal(4))
 	g.Expect(e.OsCmd.Args[0]).To(Equal(coh.DefaultCnbpLauncher))
 	g.Expect(e.OsCmd.Args[1]).To(Equal("java"))
 	g.Expect(e.OsCmd.Args[3]).To(Equal(SpringBootMain2))
-
-	g.Expect(e.OsCmd.Args[2]).To(HavePrefix("@"))
-	fileName := e.OsCmd.Args[2][1:]
-	data, err := os.ReadFile(fileName)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
-	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ":/coherence-operator/utils/config"
-	}
-
-	actualOpts := strings.Split(string(data), "\n")
-	expectedOpts := AppendCommonExpectedArgs([]string{"-Dloader.path=" + cp})
-	g.Expect(actualOpts).To(ConsistOf(expectedOpts))
 }
 
-func GetMinimalExpectedSpringBootArgs(main string) []string {
-	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
-	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ",/coherence-operator/utils/config"
+func GetMinimalExpectedSpringBootArgs(t *testing.T, main string) []string {
+	utils := ensureTestUtilsDir(t)
+
+	cp := utils + "/lib/coherence-operator.jar"
+	cfg := utils + "config"
+	if _, err := os.Stat(cfg); err == nil {
+		cp = cp + "," + cfg
 	}
 	args := []string{
 		GetJavaArg(),
 		"-Dloader.path=" + cp,
 	}
-	args = append(AppendCommonExpectedArgs(args), main)
-	return args
+	return append(AppendCommonExpectedArgs(args), main)
 }
 
 func GetMinimalExpectedSpringBootFatJarArgs(jar, main string) []string {
@@ -330,40 +346,15 @@ func GetMinimalExpectedSpringBootFatJarArgs(jar, main string) []string {
 }
 
 func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, springMain, main string) []string {
-	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
-	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ",/coherence-operator/utils/config"
-	}
 	args := []string{
 		GetJavaArg(),
 		"--class-path",
 		jar,
-		"-Dloader.path=" + cp,
 	}
-
-	if main != "" {
-		args = append(args, "-Dloader.main="+main)
-	}
-
-	return append(AppendCommonExpectedArgs(args), springMain)
+	return append(args, springMain)
 }
 
-func GetMinimalExpectedSpringBootFatJarArgsForRole(jar, main, role string) []string {
-	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
-	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ",/coherence-operator/utils/config"
-	}
-	args := []string{
-		GetJavaArg(),
-		"--class-path",
-		jar,
-		"-Dloader.path=" + cp,
-		"-Dcoherence.distributed.localstorage=false",
-	}
-
-	if main != "" {
-		args = append(args, "-Dloader.main="+main)
-	}
-
+func GetMinimalExpectedSpringBootFatJarArgsForRole(t *testing.T, jar, main, role string) []string {
+	args := GetMinimalExpectedSpringBootArgs(t, main)
 	return append(AppendCommonExpectedNonServerArgs(args, role), SpringBootMain2)
 }

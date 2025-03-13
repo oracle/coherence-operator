@@ -63,6 +63,7 @@ func TestCreateStatefulSetWithApplicationMainArgs(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].Command = append(stsExpected.Spec.Template.Spec.Containers[0].Command, "arg1", "arg2")
 	// Add the expected environment variables
 	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
 
@@ -100,6 +101,7 @@ func TestCreateStatefulSetWithWorkingDirectory(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].WorkingDir = dir
 	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohAppDir, Value: dir})
 
 	// assert that the StatefulSet is as expected

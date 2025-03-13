@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -28,11 +28,13 @@ func TestApplicationTypeNone(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
+	//expectedArgs := GetMinimalExpectedArgs(t)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -41,7 +43,7 @@ func TestApplicationTypeNone(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
 func TestApplicationTypeNoneWithMain(t *testing.T) {
@@ -59,11 +61,13 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DefaultMain, "com.foo.Bar")
+	//expectedArgs := ReplaceArg(GetMinimalExpectedArgs(t), DefaultMain, "com.foo.Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -72,7 +76,7 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.foo.Bar")))
 }
 
 func TestApplicationTypeCoherence(t *testing.T) {
@@ -89,11 +93,13 @@ func TestApplicationTypeCoherence(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
+	//expectedArgs := GetMinimalExpectedArgs(t)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -102,7 +108,7 @@ func TestApplicationTypeCoherence(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
 func TestApplicationTypeCoherenceWithMain(t *testing.T) {
@@ -120,11 +126,12 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DefaultMain, "com.foo.Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -133,7 +140,7 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.foo.Bar")))
 }
 
 func TestApplicationTypeJava(t *testing.T) {
@@ -150,11 +157,13 @@ func TestApplicationTypeJava(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
+	//expectedArgs := GetMinimalExpectedArgs(t)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -163,7 +172,7 @@ func TestApplicationTypeJava(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
 func TestApplicationTypeJavaWithMain(t *testing.T) {
@@ -181,11 +190,12 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DefaultMain, "com.foo.Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -194,7 +204,7 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.foo.Bar")))
 }
 
 func TestApplicationTypeHelidon(t *testing.T) {
@@ -211,11 +221,12 @@ func TestApplicationTypeHelidon(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DefaultMain, HelidonMain)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -224,7 +235,7 @@ func TestApplicationTypeHelidon(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "io.helidon.microprofile.cdi.Main")))
 }
 
 func TestApplicationTypeHelidonWithMain(t *testing.T) {
@@ -242,11 +253,12 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), DefaultMain, "com.foo.Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(e).NotTo(BeNil())
@@ -255,5 +267,5 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.foo.Bar")))
 }

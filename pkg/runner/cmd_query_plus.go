@@ -7,10 +7,8 @@
 package runner
 
 import (
-	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 const (
@@ -39,16 +37,17 @@ func queryPlusCommand(v *viper.Viper) *cobra.Command {
 
 // Configure the runner to run a Coherence Query Plus console
 func queryPlus(details *RunDetails, args []string, v *viper.Viper) {
-	app := strings.ToLower(v.GetString(v1.EnvVarAppType))
-	if app == AppTypeSpring2 {
-		details.AppType = AppTypeSpring2
-		details.MainClass = SpringBootMain2
+	details.Command = CommandQueryPlus
+	loadConfigFiles(details)
+
+	if details.IsSpringBoot() {
 		details.addArg("-Dloader.main=" + QueryPlusMain)
 	} else {
 		details.AppType = AppTypeJava
 		details.MainClass = QueryPlusMain
 	}
-	details.Command = CommandQueryPlus
+
+	details.addArg("-Dcoherence.role=console")
 	details.addArg("-Dcoherence.distributed.localstorage=false")
 	details.addArg("-Dcoherence.localport.adjust=true")
 	details.addArg("-Dcoherence.management.http=none")
@@ -58,8 +57,6 @@ func queryPlus(details *RunDetails, args []string, v *viper.Viper) {
 	details.addArg("-Dcoherence.operator.health.enabled=false")
 	details.addArg("-Dcoherence.health.http.port=0")
 	details.addArg("-Dcoherence.grpc.enabled=false")
-	details.setenv(v1.EnvVarJvmMemoryNativeTracking, "off")
-	details.setenv(v1.EnvVarCohRole, "queryPlus")
-	details.setenv(v1.EnvVarCohHealthPort, "0")
+	details.addArg("-XX:NativeMemoryTracking=summary")
 	details.MainArgs = args
 }

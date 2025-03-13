@@ -7,7 +7,6 @@
 package runner
 
 import (
-	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,18 +39,18 @@ func jShellCommand(v *viper.Viper) *cobra.Command {
 func jShell(details *RunDetails, args []string, v *viper.Viper) {
 	details.AppType = AppTypeJShell
 	details.Command = CommandJShell
+	loadConfigFiles(details)
+
+	details.addArg("-Dcoherence.role=jshell")
 	details.addArg("-Dcoherence.distributed.localstorage=false")
 	details.addArg("-Dcoherence.localport.adjust=true")
 	details.addArg("-Dcoherence.management.http=none")
 	details.addArg("-Dcoherence.management.http.port=0")
 	details.addArg("-Dcoherence.metrics.http.enabled=false")
 	details.addArg("-Dcoherence.metrics.http.port=0")
-	details.setenv(v1.EnvVarJvmMemoryNativeTracking, "off")
-	details.setenv(v1.EnvVarJvmUseContainerLimits, "false")
 	details.addArg("-Dcoherence.operator.health.enabled=false")
 	details.addArg("-Dcoherence.health.http.port=0")
 	details.addArg("-Dcoherence.grpc.enabled=false")
-	details.setenv(v1.EnvVarCohRole, "jshell")
-	details.setenv(v1.EnvVarCohHealthPort, "0")
+	details.addArg("-XX:NativeMemoryTracking=summary")
 	details.MainArgs = args
 }
