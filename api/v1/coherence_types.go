@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -206,7 +207,18 @@ type ApplicationSpec struct {
 	// runnable, for example if the application type is "node" the main may be a Javascript file.
 	// +optional
 	Main *string `json:"main,omitempty"`
-	// Args is the optional arguments to pass to the main class.
+	// Entrypoint array that will override the "java" entry point configured by the Operator or
+	// and any container entry point. This is an advanced use case, specifying an incorrect value here can
+	// cause the container not to start.
+	// Variable references $(VAR_NAME) are expanded using the container's environment. If a variable
+	// cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced
+	// to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. "$$(VAR_NAME)" will
+	// produce the string literal "$(VAR_NAME)". Escaped references will never be expanded, regardless
+	// of whether the variable exists or not. Cannot be updated.
+	// +optional
+	// +listType=atomic
+	EntryPoint []string `json:"entryPoint,omitempty"`
+	// Args is the optional arguments to pass to the main class or the container entry point.
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
@@ -224,43 +236,138 @@ type ApplicationSpec struct {
 	// For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"
 	// +optional
 	SpringBootFatJar *string `json:"springBootFatJar,omitempty"`
+	// UseImageEntryPoint is a flag to indicate that the Coherence container in the Pods
+	// should just execute the image entry point and not configure a custom command line.
+	// If this flag is set to true any arguments in the Args field are passed as container arguments
+	// to the entry point.
+	// +optional
+	UseImageEntryPoint *bool `json:"useImageEntryPoint,omitempty"`
+	// UseJdkJavaOptions is a flag to indicate that the JDK_JAVA_OPTIONS environment variable
+	// should be set in the Coherence container to contain the JVM arguments configured by
+	// the Operator.
+	// Setting JDK_JAVA_OPTIONS defaults to true and only applies if UseImageEntryPoint is set to true.
+	// +optional
+	UseJdkJavaOptions *bool `json:"useJdkJavaOptions,omitempty"`
 }
 
 // UpdateCoherenceContainer updates the Coherence container with the relevant settings.
 func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
-	if in == nil {
-		return
-	}
+	useImageEntryPoint := false
+	useJdkJavaOptions := true
 
-	if in.Type != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppType, Value: *in.Type})
-	}
-	if in.Main != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainClass, Value: *in.Main})
-	}
-	if in.WorkingDir != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
-		c.WorkingDir = *in.WorkingDir
-	}
-	if len(in.Args) > 0 {
-		args := strings.Join(in.Args, " ")
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
-	}
-	if in.CloudNativeBuildPack != nil {
-		if in.CloudNativeBuildPack.Enabled != nil {
-			if *in.CloudNativeBuildPack.Enabled {
-				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "true"})
-			} else {
-				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "false"})
+	if in != nil {
+		if len(in.EntryPoint) > 0 {
+			c.Command = in.EntryPoint
+		}
+
+		if in.Type != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppType, Value: *in.Type})
+		}
+		if in.Main != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainClass, Value: *in.Main})
+		}
+		if in.WorkingDir != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
+			c.WorkingDir = *in.WorkingDir
+		}
+		if len(in.Args) > 0 {
+			args := strings.Join(in.Args, " ")
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
+		}
+		if in.CloudNativeBuildPack != nil {
+			if in.CloudNativeBuildPack.Enabled != nil {
+				if *in.CloudNativeBuildPack.Enabled {
+					c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "true"})
+					useImageEntryPoint = true
+				} else {
+					c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "false"})
+				}
+			}
+			if in.CloudNativeBuildPack.Launcher != nil {
+				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpLauncher, Value: *in.CloudNativeBuildPack.Launcher})
 			}
 		}
-		if in.CloudNativeBuildPack.Launcher != nil {
-			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpLauncher, Value: *in.CloudNativeBuildPack.Launcher})
+		if in.SpringBootFatJar != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarSpringBootFatJar, Value: *in.SpringBootFatJar})
 		}
+		useImageEntryPoint = useImageEntryPoint || (in.UseImageEntryPoint != nil && *in.UseImageEntryPoint)
+		useJdkJavaOptions = useImageEntryPoint && (in.UseJdkJavaOptions == nil || *in.UseJdkJavaOptions)
 	}
-	if in.SpringBootFatJar != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarSpringBootFatJar, Value: *in.SpringBootFatJar})
+
+	if useImageEntryPoint {
+		// we are configured to use the image's entry point
+		// in cannot be nil if we get here
+		if useJdkJavaOptions {
+			// find any existing JDK_JAVA_OPTION env var so we do not loose its value
+			jdkOpts := ""
+			jdkOptsIdx := -1
+			for i, ev := range c.Env {
+				if ev.Name == EnvVarJdkOptions {
+					jdkOpts = ev.Value
+					jdkOptsIdx = i
+					break
+				}
+			}
+
+			if in.IsSpringBoot() {
+				jdkOpts = jdkOpts + " " + fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile)
+				jdkOpts = jdkOpts + " " + fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile)
+			} else {
+				jdkOpts = jdkOpts + " " + fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile)
+			}
+
+			jdkOptsEV := corev1.EnvVar{
+				Name:  EnvVarJdkOptions,
+				Value: strings.TrimSpace(jdkOpts),
+			}
+			if jdkOptsIdx >= 0 {
+				c.Env[jdkOptsIdx] = jdkOptsEV
+			} else {
+				c.Env = append(c.Env, jdkOptsEV)
+			}
+		}
+
+		// Use the application args as container args
+		c.Args = in.Args
+	} else {
+		args := []string{"--class-path",
+			fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorClasspathFile)}
+
+		if in.IsSpringBoot() {
+			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
+			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
+		} else {
+			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
+			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
+		}
+
+		if in != nil {
+			args = append(args, in.Args...)
+		}
+
+		if c.Command == nil {
+			// if not already set, use "java" as the container entry point
+			c.Command = []string{"java"}
+		}
+		c.Args = args
 	}
+}
+
+// IsSpringBoot returns true if this is a Spring Boot application
+func (in *ApplicationSpec) IsSpringBoot() bool {
+	if in == nil {
+		return false
+	}
+	app := in.GetApplicationType()
+	return app == AppTypeSpring2 || app == AppTypeSpring3
+}
+
+// GetApplicationType returns the configured application type
+func (in *ApplicationSpec) GetApplicationType() string {
+	if in != nil && in.Type != nil {
+		return strings.ToLower(*in.Type)
+	}
+	return AppTypeNone
 }
 
 // ----- CloudNativeBuildPackSpec struct ------------------------------------

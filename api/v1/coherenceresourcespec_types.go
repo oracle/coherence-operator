@@ -16,7 +16,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -680,6 +679,17 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 	}
 
 	cohContainer := in.CreateCoherenceContainer(deployment)
+	// Save any existing JDK_JAVA_OPTIONS env var from the Coherence container
+	// before the Application spec has a chance to change it
+	var jdkOptEnv *corev1.EnvVar
+	for _, ev := range cohContainer.Env {
+		if ev.Name == EnvVarJdkOptions {
+			jdkOptEnv = &ev
+			break
+		}
+	}
+	// Update the Coherence container with the application settings
+	in.Application.UpdateCoherenceContainer(&cohContainer)
 
 	// Add additional ports
 	for _, p := range in.Ports {
@@ -758,30 +768,31 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 		sv.AddVolumes(&podTemplate)
 	}
 
-	// FINALLY - Set the init-container environment variables to match the Coherence container
+	// Set the init-container environment variables to match the Coherence container
 	podTemplate.Spec.InitContainers[0].Env = append(podTemplate.Spec.InitContainers[0].Env, podTemplate.Spec.Containers[0].Env...)
 	podTemplate.Spec.InitContainers[1].Env = append(podTemplate.Spec.InitContainers[1].Env, podTemplate.Spec.Containers[0].Env...)
+	// The Application spec may have applied the JDK_JAVA_OPTIONS env var to the Coherence container
+	// so we need to remove it from the init-containers
+	in.replaceEnvVar(&podTemplate.Spec.InitContainers[0], EnvVarJdkOptions, jdkOptEnv)
+	in.replaceEnvVar(&podTemplate.Spec.InitContainers[1], EnvVarJdkOptions, jdkOptEnv)
+
 	return podTemplate
 }
 
-func (in *CoherenceResourceSpec) GetApplicationType() string {
-	if in != nil && in.Application != nil && in.Application.Type != nil {
-		return strings.ToLower(*in.Application.Type)
+func (in *CoherenceResourceSpec) replaceEnvVar(c *corev1.Container, name string, ev *corev1.EnvVar) {
+	env := c.Env
+	for i, e := range env {
+		if e.Name == name {
+			if ev == nil {
+				c.Env = env[:i]
+				c.Env = append(c.Env, env[i+1:]...)
+			} else {
+				c.Env[i] = *ev
+				c.Env[i].Name = name
+			}
+			break
+		}
 	}
-	return AppTypeNone
-}
-
-// IsSpringBoot returns true if this is a Spring Boot application
-func (in *CoherenceResourceSpec) IsSpringBoot() bool {
-	app := in.GetApplicationType()
-	return app == AppTypeSpring2 || app == AppTypeSpring3
-}
-
-func (in *CoherenceResourceSpec) GetApplicationMainClass() string {
-	if in != nil && in.Application != nil && in.Application.Main != nil {
-		return *in.Application.Main
-	}
-	return DefaultMain
 }
 
 func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
@@ -864,8 +875,6 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 		})
 	}
 
-	in.Application.UpdateCoherenceContainer(&c)
-
 	if in.Resources != nil {
 		// set the container resources if specified
 		c.Resources = *in.Resources
@@ -884,25 +893,6 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 
 	c.Lifecycle = in.Lifecycle
 
-	cmd := []string{"java"}
-
-	if in.IsSpringBoot() {
-		cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
-		cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
-	} else {
-		cmd = append(cmd, "--class-path", fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorClasspathFile))
-		cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
-	}
-
-	cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
-
-	if in.Application != nil {
-		cmd = append(cmd, in.Application.Args...)
-	}
-
-	// set the command line into the container
-	c.Command = cmd
-
 	return c
 }
 
@@ -919,24 +909,24 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment CoherenceResource) [
 	env := []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "spec.nodeName",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "spec.nodeName",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohMemberName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.name",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohPodUID, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.uid",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.uid",
 			},
+		},
 		},
 		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
 	}
@@ -1091,6 +1081,11 @@ func (in *CoherenceResourceSpec) CreateOperatorConfigInitContainer(deployment Co
 	}
 
 	c := in.createInitContainer(deployment, ContainerNameOperatorConfig, image, []string{RunnerCommand, RunnerConfig})
+
+	if in.Application != nil && in.Application.WorkingDir != nil {
+		c.WorkingDir = *in.Application.WorkingDir
+	}
+
 	return c
 }
 

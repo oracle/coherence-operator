@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"os"
@@ -36,11 +37,11 @@ func serverCommand() *cobra.Command {
 }
 
 // Configure the runner to run a Coherence Server
-func server(details *RunDetails, _ *cobra.Command) {
+func server(details *run_details.RunDetails, _ *cobra.Command) {
 	details.Command = CommandServer
 	loadConfigFiles(details)
 
-	ma, found := details.lookupEnv(v1.EnvVarAppMainArgs)
+	ma, found := details.LookupEnv(v1.EnvVarAppMainArgs)
 	if found {
 		if ma != "" {
 			for _, arg := range strings.Split(ma, " ") {
@@ -50,7 +51,7 @@ func server(details *RunDetails, _ *cobra.Command) {
 	}
 }
 
-func loadConfigFiles(details *RunDetails) {
+func loadConfigFiles(details *run_details.RunDetails) {
 	var err error
 
 	if err = loadClassPathFile(details); err != nil {
@@ -72,7 +73,7 @@ func loadConfigFiles(details *RunDetails) {
 	}
 }
 
-func loadClassPathFile(details *RunDetails) error {
+func loadClassPathFile(details *run_details.RunDetails) error {
 	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
 	data, err := os.ReadFile(file)
 	if err != nil {
@@ -82,18 +83,18 @@ func loadClassPathFile(details *RunDetails) error {
 	return nil
 }
 
-func loadJvmArgsFile(details *RunDetails) error {
+func loadJvmArgsFile(details *run_details.RunDetails) error {
 	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
 	lines, err := readLines(file)
 	if err != nil {
 		return errors.Wrapf(err, "error reading %s", file)
 	}
-	details.addArgs(lines...)
+	details.AddArgs(lines...)
 	return nil
 }
 
-func loadMainClassFile(details *RunDetails) error {
-	dir := details.getenvOrDefault(v1.EnvVarCohUtilDir, details.UtilsDir)
+func loadMainClassFile(details *run_details.RunDetails) error {
+	dir := details.GetenvOrDefault(v1.EnvVarCohUtilDir, details.UtilsDir)
 	file := fmt.Sprintf(v1.FileNamePattern, dir, os.PathSeparator, v1.OperatorMainClassFile)
 	lines, err := readLines(file)
 	if err != nil {
@@ -108,13 +109,13 @@ func loadMainClassFile(details *RunDetails) error {
 	return nil
 }
 
-func loadSpringBootArgsFile(details *RunDetails) error {
+func loadSpringBootArgsFile(details *run_details.RunDetails) error {
 	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
 	lines, err := readLines(file)
 	if err != nil {
 		return errors.Wrapf(err, "error reading %s", file)
 	}
-	details.addArgs(lines...)
+	details.AddArgs(lines...)
 	return nil
 }
 

@@ -8,6 +8,7 @@ package runner
 
 import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -25,7 +26,7 @@ func queryPlusCommand(v *viper.Viper) *cobra.Command {
 		Long:  "Starts a Coherence interactive QueryPlus console",
 		Args:  cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd, func(details *RunDetails, cmd *cobra.Command) {
+			return run(cmd, func(details *run_details.RunDetails, cmd *cobra.Command) {
 				queryPlus(details, args, v)
 			})
 		},
@@ -37,27 +38,27 @@ func queryPlusCommand(v *viper.Viper) *cobra.Command {
 }
 
 // Configure the runner to run a Coherence Query Plus console
-func queryPlus(details *RunDetails, args []string, v *viper.Viper) {
+func queryPlus(details *run_details.RunDetails, args []string, v *viper.Viper) {
 	details.Command = CommandQueryPlus
 	loadConfigFiles(details)
 
 	if details.IsSpringBoot() {
-		details.addArg("-Dloader.main=" + v1.QueryPlusMain)
+		details.AddArg("-Dloader.main=" + v1.QueryPlusMain)
 	} else {
 		details.AppType = v1.AppTypeJava
 		details.MainClass = v1.QueryPlusMain
 	}
 
-	details.addArg("-Dcoherence.role=console")
-	details.addArg("-Dcoherence.distributed.localstorage=false")
-	details.addArg("-Dcoherence.localport.adjust=true")
-	details.addArg("-Dcoherence.management.http=none")
-	details.addArg("-Dcoherence.management.http.port=0")
-	details.addArg("-Dcoherence.metrics.http.enabled=false")
-	details.addArg("-Dcoherence.metrics.http.port=0")
-	details.addArg("-Dcoherence.operator.health.enabled=false")
-	details.addArg("-Dcoherence.health.http.port=0")
-	details.addArg("-Dcoherence.grpc.enabled=false")
-	details.addArg("-XX:NativeMemoryTracking=summary")
+	details.AddArg("-Dcoherence.role=console")
+	details.AddArg("-Dcoherence.distributed.localstorage=false")
+	details.AddArg("-Dcoherence.localport.adjust=true")
+	details.AddArg("-Dcoherence.management.http=none")
+	details.AddArg("-Dcoherence.management.http.port=0")
+	details.AddArg("-Dcoherence.metrics.http.enabled=false")
+	details.AddArg("-Dcoherence.metrics.http.port=0")
+	details.AddArg("-Dcoherence.operator.health.enabled=false")
+	details.AddArg("-Dcoherence.health.http.port=0")
+	details.AddArg("-Dcoherence.grpc.enabled=false")
+	details.AddDiagnosticOption("-XX:NativeMemoryTracking=off")
 	details.MainArgs = args
 }

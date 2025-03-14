@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -45,7 +46,7 @@ func configCommand(env map[string]string) *cobra.Command {
 }
 
 // createsFiles will create the various config files
-func createsFiles(details *RunDetails, _ *cobra.Command) (bool, error) {
+func createsFiles(details *run_details.RunDetails, _ *cobra.Command) (bool, error) {
 	populateMainClass(details)
 	populateServerDetails(details)
 	err := configureCommand(details)
@@ -71,10 +72,26 @@ func createsFiles(details *RunDetails, _ *cobra.Command) (bool, error) {
 }
 
 // createClassPathFile will create the class path files for a Coherence Pod - typically this is run from an init-container
-func createClassPathFile(details *RunDetails) error {
+func createClassPathFile(details *run_details.RunDetails) error {
+	var classpath string
+	var err error
+	if details.IsSpringBoot() {
+		if jar, _ := details.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
+			classpath = jar
+		} else {
+			// no fat jar, so use the current directory
+			wd, err := os.Getwd()
+			if err != nil {
+				return errors.Wrap(err, "failed to get the current working directory")
+			}
+			classpath = fmt.Sprintf(v1.FileNamePattern, wd, os.PathSeparator, "*")
+			classpath = classpath + ":" + wd
+		}
+	} else {
+		classpath = details.GetClasspath()
+	}
 	cpFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
-	classpath := details.getClasspath()
-	err := os.WriteFile(cpFile, []byte(classpath), os.ModePerm)
+	err = os.WriteFile(cpFile, []byte(classpath), os.ModePerm)
 	if err != nil {
 		return errors.Wrap(err, "failed to write coherence classpath file")
 	}
@@ -83,8 +100,8 @@ func createClassPathFile(details *RunDetails) error {
 }
 
 // createArgsFile will create the JVM args files for a Coherence Pod - typically this is run from an init-container
-func createArgsFile(details *RunDetails) error {
-	args := details.GetArgs()
+func createArgsFile(details *run_details.RunDetails) error {
+	args := details.GetAllArgs()
 	argFileName := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
 
 	var buffer bytes.Buffer
@@ -100,9 +117,9 @@ func createArgsFile(details *RunDetails) error {
 }
 
 // createSpringBootFile will create the SpringBoot JVM args files for a Coherence Pod - typically this is run from an init-container
-func createSpringBootFile(details *RunDetails) error {
+func createSpringBootFile(details *run_details.RunDetails) error {
 	argsFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
-	cp := strings.ReplaceAll(details.getClasspath(), ":", ",")
+	cp := strings.ReplaceAll(details.GetClasspath(), ":", ",")
 
 	var args string
 	if details.InnerMainClass == "" || details.InnerMainClass == v1.DefaultMain {
@@ -120,7 +137,7 @@ func createSpringBootFile(details *RunDetails) error {
 }
 
 // createMainClassFile will create the file containing the main class name for a Coherence Pod - typically this is run from an init-container
-func createMainClassFile(details *RunDetails) error {
+func createMainClassFile(details *run_details.RunDetails) error {
 	fileName := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorMainClassFile)
 
 	var s string
@@ -137,8 +154,8 @@ func createMainClassFile(details *RunDetails) error {
 	return nil
 }
 
-func createCliConfig(details *RunDetails) error {
-	home := details.getenvOrDefault(v1.EnvVarCohCtlHome, details.UtilsDir)
+func createCliConfig(details *run_details.RunDetails) error {
+	home := details.GetenvOrDefault(v1.EnvVarCohCtlHome, details.UtilsDir)
 	fileName := fmt.Sprintf(v1.FileNamePattern, home, os.PathSeparator, "cohctl.yaml")
 
 	cluster := details.Getenv(v1.EnvVarCohClusterName)
@@ -185,16 +202,16 @@ func createCliConfig(details *RunDetails) error {
 }
 
 // Configure the main class
-func populateMainClass(details *RunDetails) {
+func populateMainClass(details *run_details.RunDetails) {
 	details.MainClass = v1.ServerMain
 
 	// If the main class environment variable is set then use that
 	// otherwise run Coherence DefaultMain.
-	mc, found := details.lookupEnv(v1.EnvVarAppMainClass)
+	mc, found := details.LookupEnv(v1.EnvVarAppMainClass)
 
 	if !found || mc == "" {
 		// no custom mani set so check for a JIB main class file
-		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
+		appDir := details.GetenvOrDefault(v1.EnvVarCohAppDir, "/app")
 		jibMainClassFileName := filepath.Join(appDir, "jib-main-class-file")
 		fi, err := os.Stat(jibMainClassFileName)
 		if err != nil && appDir != "/app" {
@@ -248,11 +265,11 @@ func populateMainClass(details *RunDetails) {
 }
 
 // Configure the runner to run a Coherence Server
-func populateServerDetails(details *RunDetails) {
+func populateServerDetails(details *run_details.RunDetails) {
 	// Configure the Coherence member's role
-	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohRole, "-Dcoherence.role", "storage")
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohRole, "-Dcoherence.role", "storage")
 	// Configure whether this member is storage enabled
-	details.addArgFromEnvVar(v1.EnvVarCohStorage, "-Dcoherence.distributed.localstorage")
+	details.AddArgFromEnvVar(v1.EnvVarCohStorage, "-Dcoherence.distributed.localstorage")
 
 	// Configure Coherence Tracing
 	ratio := details.Getenv(v1.EnvVarCohTracingRatio)
@@ -260,7 +277,7 @@ func populateServerDetails(details *RunDetails) {
 		q, err := resource.ParseQuantity(ratio)
 		if err == nil {
 			d := q.AsDec()
-			details.addArg("-Dcoherence.tracing.ratio=" + d.String())
+			details.AddArg("-Dcoherence.tracing.ratio=" + d.String())
 		} else {
 			fmt.Printf("ERROR: Coherence tracing ratio \"%s\" is invalid - %s\n", ratio, err.Error())
 			os.Exit(1)
@@ -268,30 +285,30 @@ func populateServerDetails(details *RunDetails) {
 	}
 
 	// Configure whether Coherence management is enabled
-	hasMgmt := details.isEnvTrue(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
+	hasMgmt := details.IsEnvTrue(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
 	log.Info("Coherence Management over REST", "enabled", strconv.FormatBool(hasMgmt), "envVar", v1.EnvVarCohMgmtPrefix+v1.EnvVarCohEnabledSuffix)
 	if hasMgmt {
 		fmt.Println("INFO: Configuring Coherence Management over REST")
-		details.addArg("-Dcoherence.management.http=all")
+		details.AddArg("-Dcoherence.management.http=all")
 		if details.CoherenceHome != "" {
 			// If management is enabled and the COHERENCE_HOME environment variable is set
 			// then $COHERENCE_HOME/lib/coherence-management.jar will be added to the classpath
 			// This is for legacy 14.1.1.0 and 12.2.1.4 images
-			details.addClasspath(details.CoherenceHome + "/lib/coherence-management.jar")
+			details.AddClasspath(details.CoherenceHome + "/lib/coherence-management.jar")
 		}
 	}
 
 	// Configure whether Coherence metrics is enabled
-	hasMetrics := details.isEnvTrue(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
+	hasMetrics := details.IsEnvTrue(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
 	log.Info("Coherence Metrics", "enabled", strconv.FormatBool(hasMetrics), "envVar", v1.EnvVarCohMetricsPrefix+v1.EnvVarCohEnabledSuffix)
 	if hasMetrics {
-		details.addArg("-Dcoherence.metrics.http.enabled=true")
+		details.AddArg("-Dcoherence.metrics.http.enabled=true")
 		fmt.Println("INFO: Configuring Coherence Metrics")
 		if details.CoherenceHome != "" {
 			// If metrics is enabled and the COHERENCE_HOME environment variable is set
 			// then $COHERENCE_HOME/lib/coherence-metrics.jar will be added to the classpath
 			// This is for legacy 14.1.1.0 and 12.2.1.4 images
-			details.addClasspath(details.CoherenceHome + "/lib/coherence-metrics.jar")
+			details.AddClasspath(details.CoherenceHome + "/lib/coherence-metrics.jar")
 		}
 	}
 
@@ -304,25 +321,25 @@ func populateServerDetails(details *RunDetails) {
 			stat, err := os.Stat(dm)
 			if err == nil && stat.IsDir() {
 				// dependency modules directory exists
-				details.addClasspath(dm + "/*")
+				details.AddClasspath(dm + "/*")
 			}
 		}
 	}
 
-	if details.isEnvTrueOrBlank(v1.EnvVarJvmShowSettings) {
-		details.addArg("-XshowSettings:all")
-		details.addArg("-XX:+PrintCommandLineFlags")
-		details.addArg("-XX:+PrintFlagsFinal")
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmShowSettings) {
+		details.AddDiagnosticOption("-XshowSettings:all")
+		details.AddDiagnosticOption("-XX:+PrintCommandLineFlags")
+		details.AddDiagnosticOption("-XX:+PrintFlagsFinal")
 	}
 
 	// Add GC logging parameters if required
-	if details.isEnvTrue(v1.EnvVarJvmGcLogging) {
-		details.addArg("-verbose:gc")
-		details.addArg("-XX:+PrintGCDetails")
-		details.addArg("-XX:+PrintGCTimeStamps")
-		details.addArg("-XX:+PrintHeapAtGC")
-		details.addArg("-XX:+PrintTenuringDistribution")
-		details.addArg("-XX:+PrintGCApplicationStoppedTime")
-		details.addArg("-XX:+PrintGCApplicationConcurrentTime")
+	if details.IsEnvTrue(v1.EnvVarJvmGcLogging) {
+		details.AddMemoryOption("-verbose:gc")
+		details.AddMemoryOption("-XX:+PrintGCDetails")
+		details.AddMemoryOption("-XX:+PrintGCTimeStamps")
+		details.AddMemoryOption("-XX:+PrintHeapAtGC")
+		details.AddMemoryOption("-XX:+PrintTenuringDistribution")
+		details.AddMemoryOption("-XX:+PrintGCApplicationStoppedTime")
+		details.AddMemoryOption("-XX:+PrintGCApplicationConcurrentTime")
 	}
 }

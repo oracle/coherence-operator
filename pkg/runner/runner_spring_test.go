@@ -29,8 +29,9 @@ func TestSpringBootApplication(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	wd, err := os.Getwd()
+	g.Expect(err).To(BeNil())
+	expectedCP := wd + "/*:" + wd
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -61,8 +62,9 @@ func TestSpringBoot3Application(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	wd, err := os.Getwd()
+	g.Expect(err).To(BeNil())
+	expectedCP := wd + "/*:" + wd
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -95,8 +97,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedCP := jar
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -130,8 +131,7 @@ func TestSpringBoot3FatJarApplication(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedCP := jar
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -165,8 +165,7 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedCP := jar
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -214,8 +213,7 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedCP := jar
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -265,8 +263,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		},
 	}
 
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
+	expectedCP := jar
 	expectedFileArgs := GetExpectedArgsFileContent()
 	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
 
@@ -285,45 +282,6 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		"--class-path", jar, "-Dloader.main=foo.Bar")
 
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
-}
-
-func TestSpringBootBuildpacks(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				Application: &coh.ApplicationSpec{
-					Type: ptr.To(coh.AppTypeSpring2),
-					CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
-						Enabled: ptr.To(true),
-					},
-				},
-			},
-		},
-	}
-
-	wd := ensureTestUtilsDir(t)
-	expectedCP := GetOperatorClasspathWithUtilsDir(wd)
-	expectedFileArgs := GetExpectedArgsFileContent()
-	verifyConfigFilesWithArgsAndClasspath(t, d, expectedFileArgs, expectedCP)
-
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(t, d)
-
-	e, err := ExecuteWithArgsAndNewViper(env, args)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(e).NotTo(BeNil())
-	g.Expect(e.OsCmd).NotTo(BeNil())
-
-	g.Expect(e.OsCmd.Dir).To(Equal(""))
-	g.Expect(e.OsCmd.Path).To(Equal(getBuildpackLauncher()))
-
-	g.Expect(len(e.OsCmd.Args)).To(Equal(4))
-	g.Expect(e.OsCmd.Args[0]).To(Equal(coh.DefaultCnbpLauncher))
-	g.Expect(e.OsCmd.Args[1]).To(Equal("java"))
-	g.Expect(e.OsCmd.Args[3]).To(Equal(coh.SpringBootMain2))
 }
 
 func GetMinimalExpectedSpringBootArgs(t *testing.T, main string) []string {

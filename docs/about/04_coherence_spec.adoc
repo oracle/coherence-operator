@@ -141,6 +141,8 @@ m| args | Args is the optional arguments to pass to the main class. m| []string 
 m| workingDir | WorkingDir sets the working directory of the Coherence container. m| &#42;string | false
 m| cloudNativeBuildPack | Optional settings that may be configured if using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/ m| &#42;<<CloudNativeBuildPackSpec,CloudNativeBuildPackSpec>> | false
 m| springBootFatJar | SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar" m| &#42;string | false
+m| useImageEntryPoint | UseImageEntryPoint is a flag to indicate that the Coherence container in the Pods should just execute the image entry point and not configure a custom command line. If this flag is set to true any arguments in the Args field are passed as container arguments to the entry point. m| &#42;bool | false
+m| useJdkJavaOptions | UseJdkJavaOptions is a flag to indicate that the JDK_JAVA_OPTIONS environment variable should be set in the Coherence container to contain the JVM arguments configured by the Operator. Setting JDK_JAVA_OPTIONS defaults to true and only applies if UseImageEntryPoint is set to true. m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>
