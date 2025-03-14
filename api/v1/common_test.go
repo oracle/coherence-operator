@@ -29,6 +29,10 @@ import (
 const (
 	testCoherenceImage = "oracle/coherence-ce:1.2.3"
 	testOperatorImage  = "oracle/operator:1.2.3"
+
+	actualFilePattern   = coh.FileNamePattern + "-Actual.json"
+	expectedFilePattern = coh.FileNamePattern + "-Expected.json"
+	diffFilePattern     = coh.FileNamePattern + "-Diff.txt"
 )
 
 // Returns a pointer to an int32
@@ -118,13 +122,13 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	// Dump the json for the actual StatefulSet for debugging failures
 	jsonActual, err := json.MarshalIndent(stsActual, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(actualFilePattern, dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Dump the json for the expected StatefulSet for debugging failures
 	jsonExpected, err := json.MarshalIndent(stsExpected, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(expectedFilePattern, dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	assertEnvironmentVariables(t, stsActual, stsExpected)
@@ -134,7 +138,7 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	msg := "StatefulSets not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
-		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		err = os.WriteFile(fmt.Sprintf(diffFilePattern, dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
 		g.Expect(err).NotTo(HaveOccurred())
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
@@ -173,13 +177,13 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 	// Dump the json for the actual StatefulSet for debugging failures
 	jsonActual, err := json.MarshalIndent(jobActual, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, jobActual.Name), jsonActual, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(actualFilePattern, dir, os.PathSeparator, jobActual.Name), jsonActual, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Dump the json for the expected StatefulSet for debugging failures
 	jsonExpected, err := json.MarshalIndent(expected, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, jobActual.Name), jsonExpected, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(expectedFilePattern, dir, os.PathSeparator, jobActual.Name), jsonExpected, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	assertEnvironmentVariablesForJob(t, jobActual, expected)
@@ -188,7 +192,7 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 	msg := "Jobs not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
-		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, jobActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		err = os.WriteFile(fmt.Sprintf(diffFilePattern, dir, os.PathSeparator, jobActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
 		g.Expect(err).NotTo(HaveOccurred())
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff

@@ -7,6 +7,7 @@
 package runner
 
 import (
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,10 +41,10 @@ func console(details *RunDetails, args []string, v *viper.Viper) {
 	loadConfigFiles(details)
 
 	if details.IsSpringBoot() {
-		details.addArg("-Dloader.main=" + ConsoleMain)
+		details.addArg("-Dloader.main=" + v1.ConsoleMain)
 	} else {
-		details.AppType = AppTypeJava
-		details.MainClass = ConsoleMain
+		details.AppType = v1.AppTypeJava
+		details.MainClass = v1.ConsoleMain
 	}
 
 	details.addArg("-Dcoherence.role=console")

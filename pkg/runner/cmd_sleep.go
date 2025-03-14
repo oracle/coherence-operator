@@ -39,12 +39,12 @@ func sleepCommand(v *viper.Viper) *cobra.Command {
 
 func sleep(details *RunDetails, args []string, v *viper.Viper) {
 	app := strings.ToLower(v.GetString(v1.EnvVarAppType))
-	if app == AppTypeSpring2 {
-		details.AppType = AppTypeSpring2
-		details.MainClass = SpringBootMain2
+	if app == v1.AppTypeSpring2 {
+		details.AppType = v1.AppTypeSpring2
+		details.MainClass = v1.SpringBootMain2
 		details.addArg("-Dloader.main=com.oracle.coherence.k8s.Sleep")
 	} else {
-		details.AppType = AppTypeJava
+		details.AppType = v1.AppTypeJava
 		details.MainClass = "com.oracle.coherence.k8s.Sleep"
 	}
 	details.Command = CommandSleep

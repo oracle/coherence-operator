@@ -72,7 +72,7 @@ func createsFiles(details *RunDetails, _ *cobra.Command) (bool, error) {
 
 // createClassPathFile will create the class path files for a Coherence Pod - typically this is run from an init-container
 func createClassPathFile(details *RunDetails) error {
-	cpFile := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
+	cpFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
 	classpath := details.getClasspath()
 	err := os.WriteFile(cpFile, []byte(classpath), os.ModePerm)
 	if err != nil {
@@ -85,7 +85,7 @@ func createClassPathFile(details *RunDetails) error {
 // createArgsFile will create the JVM args files for a Coherence Pod - typically this is run from an init-container
 func createArgsFile(details *RunDetails) error {
 	args := details.GetArgs()
-	argFileName := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
+	argFileName := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
 
 	var buffer bytes.Buffer
 	for _, arg := range args {
@@ -101,7 +101,7 @@ func createArgsFile(details *RunDetails) error {
 
 // createSpringBootFile will create the SpringBoot JVM args files for a Coherence Pod - typically this is run from an init-container
 func createSpringBootFile(details *RunDetails) error {
-	argsFile := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
+	argsFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
 	cp := strings.ReplaceAll(details.getClasspath(), ":", ",")
 
 	var args string
@@ -121,7 +121,7 @@ func createSpringBootFile(details *RunDetails) error {
 
 // createMainClassFile will create the file containing the main class name for a Coherence Pod - typically this is run from an init-container
 func createMainClassFile(details *RunDetails) error {
-	fileName := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorMainClassFile)
+	fileName := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorMainClassFile)
 
 	var s string
 	if details.InnerMainClass == "" || details.IsSpringBoot() {
@@ -139,7 +139,7 @@ func createMainClassFile(details *RunDetails) error {
 
 func createCliConfig(details *RunDetails) error {
 	home := details.getenvOrDefault(v1.EnvVarCohCtlHome, details.UtilsDir)
-	fileName := fmt.Sprintf("%s%c%s", home, os.PathSeparator, "cohctl.yaml")
+	fileName := fmt.Sprintf(v1.FileNamePattern, home, os.PathSeparator, "cohctl.yaml")
 
 	cluster := details.Getenv(v1.EnvVarCohClusterName)
 	port := details.Getenv(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohPortSuffix)
@@ -186,7 +186,7 @@ func createCliConfig(details *RunDetails) error {
 
 // Configure the main class
 func populateMainClass(details *RunDetails) {
-	details.MainClass = ServerMain
+	details.MainClass = v1.ServerMain
 
 	// If the main class environment variable is set then use that
 	// otherwise run Coherence DefaultMain.
@@ -217,33 +217,33 @@ func populateMainClass(details *RunDetails) {
 	case found && !isSpring:
 		// we have a main class specified, and we're not a Spring Boot app
 		details.InnerMainClass = mc
-	case found && details.AppType == AppTypeSpring2:
+	case found && details.AppType == v1.AppTypeSpring2:
 		// we have a main class and the app is Spring Boot 2.x
 		// the main is PropertiesLauncher,
-		details.MainClass = SpringBootMain2
+		details.MainClass = v1.SpringBootMain2
 		// the specified main class is set as a Spring loader property
 		details.InnerMainClass = mc
-	case found && details.AppType == AppTypeSpring3:
+	case found && details.AppType == v1.AppTypeSpring3:
 		// we have a main class and the app is Spring Boot 3.x
 		// the main is PropertiesLauncher,
-		details.MainClass = SpringBootMain3
+		details.MainClass = v1.SpringBootMain3
 		// the specified main class is set as a Spring loader property
 		details.InnerMainClass = mc
-	case !found && details.AppType == AppTypeSpring2:
+	case !found && details.AppType == v1.AppTypeSpring2:
 		// the app type is Spring Boot 2.x so main is PropertiesLauncher
-		details.MainClass = SpringBootMain2
-	case !found && details.AppType == AppTypeSpring3:
+		details.MainClass = v1.SpringBootMain2
+	case !found && details.AppType == v1.AppTypeSpring3:
 		// the app type is Spring Boot 3.x so main is PropertiesLauncher
-		details.MainClass = SpringBootMain3
-	case !found && details.AppType == AppTypeCoherence:
+		details.MainClass = v1.SpringBootMain3
+	case !found && details.AppType == v1.AppTypeCoherence:
 		// the app type is Coherence so main is DefaultMain
-		details.InnerMainClass = DefaultMain
-	case !found && details.AppType == AppTypeHelidon:
+		details.InnerMainClass = v1.DefaultMain
+	case !found && details.AppType == v1.AppTypeHelidon:
 		// the app type is Helidon so main is the Helidon CDI starter
-		details.InnerMainClass = HelidonMain
+		details.InnerMainClass = v1.HelidonMain
 	default:
 		// no main or app type specified, use DefaultMain
-		details.InnerMainClass = DefaultMain
+		details.InnerMainClass = v1.DefaultMain
 	}
 }
 

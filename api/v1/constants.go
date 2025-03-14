@@ -188,6 +188,11 @@ const (
 	// OperatorConfigDirSuffix is the suffix to append to the utils directory to locate the Operator config directory.
 	OperatorConfigDirSuffix = "/config"
 
+	// FileNamePattern is a formatting pattern for a directory separator and file name
+	FileNamePattern = "%s%c%s"
+	// ArgumentFileNamePattern is a formatting pattern for a JDK argument fle name: directory separator and file name
+	ArgumentFileNamePattern = "@" + FileNamePattern
+
 	// DefaultReadinessPath is the default readiness endpoint path
 	DefaultReadinessPath = "/ready"
 	// DefaultLivenessPath is the default liveness endpoint path
@@ -307,6 +312,10 @@ const (
 	AppTypeSpring2 = "spring"
 	// AppTypeSpring3 is the argument to specify an exploded Spring Boot 3.x application.
 	AppTypeSpring3 = "spring3"
+	// AppTypeOperator is the argument to specify running an Operator command.
+	AppTypeOperator = "operator"
+	// AppTypeJShell is the argument to specify a JShell application.
+	AppTypeJShell = "jshell"
 
 	// DefaultMain is an indicator to run the default main class.
 	DefaultMain = "$DEFAULT$"
@@ -318,6 +327,10 @@ const (
 	SpringBootMain2 = "org.springframework.boot.loader.PropertiesLauncher"
 	// SpringBootMain3 is the default Spring Boot 3.x main class name.
 	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
+	// ConsoleMain is the Coherence console main class
+	ConsoleMain = "com.tangosol.net.CacheFactory"
+	// QueryPlusMain is the main class to run Coherence Query Plus
+	QueryPlusMain = "com.tangosol.coherence.dslquery.QueryPlus"
 )
 
 var (

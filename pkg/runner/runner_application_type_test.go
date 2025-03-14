@@ -22,7 +22,7 @@ func TestApplicationTypeNone(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeNone),
+					Type: ptr.To(coh.AppTypeNone),
 				},
 			},
 		},
@@ -54,7 +54,7 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeNone),
+					Type: ptr.To(coh.AppTypeNone),
 					Main: ptr.To("com.foo.Bar"),
 				},
 			},
@@ -87,7 +87,7 @@ func TestApplicationTypeCoherence(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeCoherence),
+					Type: ptr.To(coh.AppTypeCoherence),
 				},
 			},
 		},
@@ -119,7 +119,7 @@ func TestApplicationTypeCoherenceWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeCoherence),
+					Type: ptr.To(coh.AppTypeCoherence),
 					Main: ptr.To("com.foo.Bar"),
 				},
 			},
@@ -151,7 +151,7 @@ func TestApplicationTypeJava(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeJava),
+					Type: ptr.To(v1.AppTypeJava),
 				},
 			},
 		},
@@ -183,7 +183,7 @@ func TestApplicationTypeJavaWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeJava),
+					Type: ptr.To(coh.AppTypeJava),
 					Main: ptr.To("com.foo.Bar"),
 				},
 			},
@@ -215,7 +215,7 @@ func TestApplicationTypeHelidon(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeHelidon),
+					Type: ptr.To(coh.AppTypeHelidon),
 				},
 			},
 		},
@@ -246,7 +246,7 @@ func TestApplicationTypeHelidonWithMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeHelidon),
+					Type: ptr.To(coh.AppTypeHelidon),
 					Main: ptr.To("com.foo.Bar"),
 				},
 			},

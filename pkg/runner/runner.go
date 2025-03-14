@@ -34,40 +34,6 @@ import (
 // The code that actually starts the process in the Coherence container.
 
 const (
-	// DefaultMain is an indicator to run the default main class.
-	DefaultMain = "$DEFAULT$"
-	// HelidonMain is the default Helidon main class name.
-	HelidonMain = "io.helidon.microprofile.cdi.Main"
-	// ServerMain is the default server main class name.
-	ServerMain = "com.oracle.coherence.k8s.Main"
-	// SpringBootMain2 is the default Spring Boot 2.x main class name.
-	SpringBootMain2 = "org.springframework.boot.loader.PropertiesLauncher"
-	// SpringBootMain3 is the default Spring Boot 3.x main class name.
-	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
-	// ConsoleMain is the Coherence console main class
-	ConsoleMain = "com.tangosol.net.CacheFactory"
-	// QueryPlusMain is the main class to run Coherence Query Plus
-	QueryPlusMain = "com.tangosol.coherence.dslquery.QueryPlus"
-	// JShellMain is the main class to run a JShell console
-	JShellMain = "jdk.internal.jshell.tool.JShellToolProvider"
-
-	// AppTypeNone is the argument to specify no application type.
-	AppTypeNone = ""
-	// AppTypeJava is the argument to specify a Java application.
-	AppTypeJava = "java"
-	// AppTypeCoherence is the argument to specify a Coherence application.
-	AppTypeCoherence = "coherence"
-	// AppTypeHelidon is the argument to specify a Helidon application.
-	AppTypeHelidon = "helidon"
-	// AppTypeSpring2 is the argument to specify an exploded Spring Boot 2.x application.
-	AppTypeSpring2 = "spring"
-	// AppTypeSpring3 is the argument to specify an exploded Spring Boot 3.x application.
-	AppTypeSpring3 = "spring3"
-	// AppTypeOperator is the argument to specify running an Operator command.
-	AppTypeOperator = "operator"
-	// AppTypeJShell is the argument to specify a JShell application.
-	AppTypeJShell = "jshell"
-
 	// defaultConfig is the root name of the default configuration file
 	defaultConfig = ".coherence-runner"
 )
@@ -625,22 +591,22 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	var app string
 
 	switch {
-	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
+	case details.AppType == v1.AppTypeNone || details.AppType == v1.AppTypeJava:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
 	case details.IsSpringBoot():
 		app = "SpringBoot"
 		cmd, err = createSpringBootCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeHelidon:
+	case details.AppType == v1.AppTypeHelidon:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeCoherence:
+	case details.AppType == v1.AppTypeCoherence:
 		app = "Java"
 		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeJShell:
+	case details.AppType == v1.AppTypeJShell:
 		app = "JShell"
 		cmd, err = createJShellCommand(details.getJShellExecutable(), details)
-	case details.AppType == AppTypeOperator:
+	case details.AppType == v1.AppTypeOperator:
 		app = "Operator"
 		cmd, err = createOperatorCommand(details)
 	default:
@@ -688,10 +654,10 @@ func readFirstLineFromFile(path string) (string, error) {
 
 func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
 	if details.isBuildPacks() {
-		if details.AppType == AppTypeSpring2 {
-			return _createBuildPackCommand(details, SpringBootMain2, details.getSpringBootArgs())
+		if details.AppType == v1.AppTypeSpring2 {
+			return _createBuildPackCommand(details, v1.SpringBootMain2, details.getSpringBootArgs())
 		}
-		return _createBuildPackCommand(details, SpringBootMain3, details.getSpringBootArgs())
+		return _createBuildPackCommand(details, v1.SpringBootMain3, details.getSpringBootArgs())
 	}
 	args := details.getSpringBootCommand()
 	return _createJavaCommand(javaCmd, details, args)
@@ -1020,12 +986,12 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 			args = append(args, "--class-path", jar)
 		}
 
-		if details.AppType == AppTypeSpring2 {
+		if details.AppType == v1.AppTypeSpring2 {
 			// we are running SpringBoot 2.x
-			args = append(args, SpringBootMain2, v)
+			args = append(args, v1.SpringBootMain2, v)
 		} else {
 			// we are running SpringBoot 3.x
-			args = append(args, SpringBootMain3, v)
+			args = append(args, v1.SpringBootMain3, v)
 		}
 	} else {
 		// We can use normal Java

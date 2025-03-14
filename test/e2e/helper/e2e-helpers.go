@@ -907,6 +907,9 @@ func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 	pathSep := string(os.PathSeparator)
 	name := logs + pathSep + directory
 	err = os.MkdirAll(name, os.ModePerm)
+	if err != nil {
+		ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " due to " + err.Error())
+	}
 
 	for _, container := range pod.Spec.InitContainers {
 		DumpContainerLogs(ctx, container, pod, name)
@@ -917,27 +920,23 @@ func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 }
 
 // DumpContainerLogs dumps the logs for a container
-func DumpContainerLogs(ctx TestContext, container corev1.Container, pod *corev1.Pod, name string) {
+func DumpContainerLogs(ctx TestContext, container corev1.Container, pod *corev1.Pod, directory string) {
 	var err error
 	pathSep := string(os.PathSeparator)
 	res := ctx.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
 	s, err := res.Stream(ctx.Context)
 	if err == nil {
-		if err == nil {
-			suffix := 0
-			logName := fmt.Sprintf("%s%s%s(%s).log", name, pathSep, pod.Name, container.Name)
+		suffix := 0
+		logName := fmt.Sprintf("%s%s%s(%s).log", directory, pathSep, pod.Name, container.Name)
+		_, err = os.Stat(logName)
+		for err == nil {
+			suffix++
+			logName = fmt.Sprintf("%s%s%s(%s)-%d.log", directory, pathSep, pod.Name, container.Name, suffix)
 			_, err = os.Stat(logName)
-			for err == nil {
-				suffix++
-				logName = fmt.Sprintf("%s%s%s(%s)-%d.log", name, pathSep, pod.Name, container.Name, suffix)
-				_, err = os.Stat(logName)
-			}
-			out, err := os.Create(logName)
-			if err == nil {
-				if _, err = io.Copy(out, s); err != nil {
-					ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
-				}
-			} else {
+		}
+		out, err := os.Create(logName)
+		if err == nil {
+			if _, err = io.Copy(out, s); err != nil {
 				ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 			}
 		} else {

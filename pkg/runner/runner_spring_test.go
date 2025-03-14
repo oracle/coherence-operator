@@ -23,7 +23,7 @@ func TestSpringBootApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeSpring2),
+					Type: ptr.To(coh.AppTypeSpring2),
 				},
 			},
 		},
@@ -44,7 +44,7 @@ func TestSpringBootApplication(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2)))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2)))
 }
 
 func TestSpringBoot3Application(t *testing.T) {
@@ -55,7 +55,7 @@ func TestSpringBoot3Application(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeSpring3),
+					Type: ptr.To(coh.AppTypeSpring3),
 				},
 			},
 		},
@@ -76,7 +76,7 @@ func TestSpringBoot3Application(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedSpringBootArgs(t, SpringBootMain3)))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain3)))
 }
 
 func TestSpringBootFatJarApplication(t *testing.T) {
@@ -88,7 +88,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring2),
+					Type:             ptr.To(coh.AppTypeSpring2),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -110,7 +110,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	expected := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2), "--class-path", "/apps/lib/foo.jar")
+	expected := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), "--class-path", "/apps/lib/foo.jar")
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
@@ -123,7 +123,7 @@ func TestSpringBoot3FatJarApplication(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring3),
+					Type:             ptr.To(coh.AppTypeSpring3),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -145,7 +145,7 @@ func TestSpringBoot3FatJarApplication(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	expected := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain3), "--class-path", "/apps/lib/foo.jar")
+	expected := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain3), "--class-path", "/apps/lib/foo.jar")
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
@@ -158,7 +158,7 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring2),
+					Type:             ptr.To(coh.AppTypeSpring2),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -181,7 +181,7 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
-	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2), "--class-path", jar)
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), "--class-path", jar)
 	expectedArgs = append(expectedArgs, "-Dcoherence.role=console",
 		"-Dloader.main=com.tangosol.net.CacheFactory",
 		"-Dcoherence.distributed.localstorage=false",
@@ -207,7 +207,7 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring2),
+					Type:             ptr.To(coh.AppTypeSpring2),
 					SpringBootFatJar: &jar,
 				},
 			},
@@ -230,7 +230,7 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
-	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2), "--class-path", jar)
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), "--class-path", jar)
 	expectedArgs = append(expectedArgs, "-Dcoherence.role=console",
 		"-Dloader.main=com.tangosol.net.CacheFactory",
 		"-Dcoherence.distributed.localstorage=false",
@@ -257,7 +257,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type:             ptr.To(AppTypeSpring2),
+					Type:             ptr.To(coh.AppTypeSpring2),
 					SpringBootFatJar: &jar,
 					Main:             ptr.To("foo.Bar"),
 				},
@@ -281,7 +281,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
-	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, SpringBootMain2),
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2),
 		"--class-path", jar, "-Dloader.main=foo.Bar")
 
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
@@ -295,7 +295,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(AppTypeSpring2),
+					Type: ptr.To(coh.AppTypeSpring2),
 					CloudNativeBuildPack: &coh.CloudNativeBuildPackSpec{
 						Enabled: ptr.To(true),
 					},
@@ -323,7 +323,7 @@ func TestSpringBootBuildpacks(t *testing.T) {
 	g.Expect(len(e.OsCmd.Args)).To(Equal(4))
 	g.Expect(e.OsCmd.Args[0]).To(Equal(coh.DefaultCnbpLauncher))
 	g.Expect(e.OsCmd.Args[1]).To(Equal("java"))
-	g.Expect(e.OsCmd.Args[3]).To(Equal(SpringBootMain2))
+	g.Expect(e.OsCmd.Args[3]).To(Equal(coh.SpringBootMain2))
 }
 
 func GetMinimalExpectedSpringBootArgs(t *testing.T, main string) []string {
@@ -339,22 +339,4 @@ func GetMinimalExpectedSpringBootArgs(t *testing.T, main string) []string {
 		"-Dloader.path=" + cp,
 	}
 	return append(AppendCommonExpectedArgs(args), main)
-}
-
-func GetMinimalExpectedSpringBootFatJarArgs(jar, main string) []string {
-	return GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, main, "")
-}
-
-func GetMinimalExpectedSpringBootFatJarArgsWithMain(jar, springMain, main string) []string {
-	args := []string{
-		GetJavaArg(),
-		"--class-path",
-		jar,
-	}
-	return append(args, springMain)
-}
-
-func GetMinimalExpectedSpringBootFatJarArgsForRole(t *testing.T, jar, main, role string) []string {
-	args := GetMinimalExpectedSpringBootArgs(t, main)
-	return append(AppendCommonExpectedNonServerArgs(args, role), SpringBootMain2)
 }

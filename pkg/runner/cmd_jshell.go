@@ -7,6 +7,7 @@
 package runner
 
 import (
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,7 +38,7 @@ func jShellCommand(v *viper.Viper) *cobra.Command {
 
 // Configure the runner to run a Coherence JShell console
 func jShell(details *RunDetails, args []string, v *viper.Viper) {
-	details.AppType = AppTypeJShell
+	details.AppType = v1.AppTypeJShell
 	details.Command = CommandJShell
 	loadConfigFiles(details)
 

@@ -7,6 +7,7 @@
 package runner
 
 import (
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -41,10 +42,10 @@ func queryPlus(details *RunDetails, args []string, v *viper.Viper) {
 	loadConfigFiles(details)
 
 	if details.IsSpringBoot() {
-		details.addArg("-Dloader.main=" + QueryPlusMain)
+		details.addArg("-Dloader.main=" + v1.QueryPlusMain)
 	} else {
-		details.AppType = AppTypeJava
-		details.MainClass = QueryPlusMain
+		details.AppType = v1.AppTypeJava
+		details.MainClass = v1.QueryPlusMain
 	}
 
 	details.addArg("-Dcoherence.role=console")

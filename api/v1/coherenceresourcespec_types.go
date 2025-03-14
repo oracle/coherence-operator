@@ -887,14 +887,14 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 	cmd := []string{"java"}
 
 	if in.IsSpringBoot() {
-		cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
-		cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
+		cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
+		cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
 	} else {
-		cmd = append(cmd, "--class-path", fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorClasspathFile))
-		cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
+		cmd = append(cmd, "--class-path", fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorClasspathFile))
+		cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
 	}
 
-	cmd = append(cmd, fmt.Sprintf("@%s%c%s", VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
+	cmd = append(cmd, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
 
 	if in.Application != nil {
 		cmd = append(cmd, in.Application.Args...)

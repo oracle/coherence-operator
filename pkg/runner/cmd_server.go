@@ -73,7 +73,7 @@ func loadConfigFiles(details *RunDetails) {
 }
 
 func loadClassPathFile(details *RunDetails) error {
-	file := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
+	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
 	data, err := os.ReadFile(file)
 	if err != nil {
 		return errors.Wrapf(err, "error reading %s", file)
@@ -83,7 +83,7 @@ func loadClassPathFile(details *RunDetails) error {
 }
 
 func loadJvmArgsFile(details *RunDetails) error {
-	file := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
+	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
 	lines, err := readLines(file)
 	if err != nil {
 		return errors.Wrapf(err, "error reading %s", file)
@@ -94,7 +94,7 @@ func loadJvmArgsFile(details *RunDetails) error {
 
 func loadMainClassFile(details *RunDetails) error {
 	dir := details.getenvOrDefault(v1.EnvVarCohUtilDir, details.UtilsDir)
-	file := fmt.Sprintf("%s%c%s", dir, os.PathSeparator, v1.OperatorMainClassFile)
+	file := fmt.Sprintf(v1.FileNamePattern, dir, os.PathSeparator, v1.OperatorMainClassFile)
 	lines, err := readLines(file)
 	if err != nil {
 		return errors.Wrapf(err, "error reading %s", file)
@@ -109,7 +109,7 @@ func loadMainClassFile(details *RunDetails) error {
 }
 
 func loadSpringBootArgsFile(details *RunDetails) error {
-	file := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
+	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
 	lines, err := readLines(file)
 	if err != nil {
 		return errors.Wrapf(err, "error reading %s", file)

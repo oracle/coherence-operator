@@ -28,7 +28,7 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 		JavaHome:      v.GetString(v1.EnvVarJavaHome),
 		AppType:       strings.ToLower(v.GetString(v1.EnvVarAppType)),
 		Dir:           v.GetString(v1.EnvVarCohAppDir),
-		MainClass:     DefaultMain,
+		MainClass:     v1.DefaultMain,
 		GetSite:       skipSite,
 	}
 
@@ -36,12 +36,12 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 	details.addClasspath(v.GetString(v1.EnvVarJvmExtraClasspath))
 	details.addClasspath(v.GetString(v1.EnvVarJavaClasspath))
 
-	cpFile := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
+	cpFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
 	if _, err = os.Stat(cpFile); err == nil {
 		details.ClassPathFile = cpFile
 	}
 
-	argFile := fmt.Sprintf("%s%c%s", details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
+	argFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
 	if _, err = os.Stat(argFile); err == nil {
 		details.JvmArgsFile = argFile
 	}
@@ -80,7 +80,7 @@ func (in *RunDetails) IsSpringBoot() bool {
 	if in.env == nil {
 		return false
 	}
-	return in.AppType == AppTypeSpring2 || in.AppType == AppTypeSpring3
+	return in.AppType == v1.AppTypeSpring2 || in.AppType == v1.AppTypeSpring3
 }
 
 // Getenv returns the value for the specified environment variable, or empty string if not set.
