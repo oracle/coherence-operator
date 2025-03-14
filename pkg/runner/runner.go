@@ -781,7 +781,7 @@ func configureSiteAndRack(details *run_details.RunDetails) {
 		}
 
 		if site != "" {
-			details.AddSystemPropertyArg(v1.EnvVarCoherenceSite, site)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceSite, site)
 		}
 	} else {
 		expanded := details.ExpandEnv(site)
@@ -789,10 +789,10 @@ func configureSiteAndRack(details *run_details.RunDetails) {
 			log.Info("Coherence site property set from expanded "+v1.EnvVarCoherenceSite+" environment variable", v1.EnvVarCoherenceSite, site, "Site", expanded)
 			site = expanded
 			if strings.TrimSpace(site) != "" {
-				details.AddSystemPropertyArg(v1.EnvVarCoherenceSite, site)
+				details.AddSystemPropertyArg(v1.SysPropCoherenceSite, site)
 			}
 		} else {
-			details.AddSystemPropertyArg(v1.EnvVarCoherenceSite, site)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceSite, site)
 		}
 	}
 
