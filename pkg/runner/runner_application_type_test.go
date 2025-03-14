@@ -151,7 +151,7 @@ func TestApplicationTypeJava(t *testing.T) {
 		Spec: coh.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: coh.CoherenceResourceSpec{
 				Application: &coh.ApplicationSpec{
-					Type: ptr.To(v1.AppTypeJava),
+					Type: ptr.To(coh.AppTypeJava),
 				},
 			},
 		},
