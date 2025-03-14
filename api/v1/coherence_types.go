@@ -787,6 +787,14 @@ type JVMSpec struct {
 	// The default value fif not specified is true.
 	// +optional
 	UseJibClasspath *bool `json:"useJibClasspath,omitempty"`
+	// Java8 is a flag to indicate that a Coherence container is
+	// running on Java 8 and must use the legacy Operator container
+	// entry point. This would only apply to applications using
+	// older Coherence 12.2.1-4-* or 14.1.1-0-* versions.
+	// The default value for this field is false, if this field is not set to
+	// true when Java 8 is used the container will fail to start.
+	// +optional
+	Java8 *bool `json:"java8,omitempty"`
 }
 
 // UpdatePodTemplate updates the StatefulSet with any JVM specific settings
@@ -819,6 +827,11 @@ func (in *JVMSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 
 		if in.Gc != nil {
 			gc = in.Gc
+		}
+
+		if in.Java8 != nil && *in.Java8 {
+			podTemplate.Spec.Containers[0].Command = []string{RunnerCommand, "server"}
+			podTemplate.Spec.Containers[0].Args = []string{}
 		}
 	}
 
