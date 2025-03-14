@@ -336,6 +336,7 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 		if in.IsSpringBoot() {
 			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
 			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
+			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
 		} else {
 			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
 			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
