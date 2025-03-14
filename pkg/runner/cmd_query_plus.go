@@ -43,22 +43,22 @@ func queryPlus(details *run_details.RunDetails, args []string, v *viper.Viper) {
 	loadConfigFiles(details)
 
 	if details.IsSpringBoot() {
-		details.AddArg("-Dloader.main=" + v1.QueryPlusMain)
+		details.AddSystemPropertyArg(v1.SysPropSpringLoaderMain, v1.QueryPlusMain)
 	} else {
 		details.AppType = v1.AppTypeJava
 		details.MainClass = v1.QueryPlusMain
 	}
 
-	details.AddArg("-Dcoherence.role=console")
-	details.AddArg("-Dcoherence.distributed.localstorage=false")
-	details.AddArg("-Dcoherence.localport.adjust=true")
-	details.AddArg("-Dcoherence.management.http=none")
-	details.AddArg("-Dcoherence.management.http.port=0")
-	details.AddArg("-Dcoherence.metrics.http.enabled=false")
-	details.AddArg("-Dcoherence.metrics.http.port=0")
-	details.AddArg("-Dcoherence.operator.health.enabled=false")
-	details.AddArg("-Dcoherence.health.http.port=0")
-	details.AddArg("-Dcoherence.grpc.enabled=false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceRole, CommandQueryPlus)
+	details.AddSystemPropertyArg(v1.SysPropCoherenceDistributedLocalStorage, "false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceLocalPortAdjust, "true")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceManagementHttp, "none")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceManagementHttpPort, "0")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceMetricsHttpEnabled, "false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceMetricsHttpPort, "0")
+	details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceHealthHttpPort, "0")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceGrpcEnabled, "false")
 	details.AddDiagnosticOption("-XX:NativeMemoryTracking=off")
 	details.MainArgs = args
 }

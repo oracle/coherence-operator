@@ -43,24 +43,26 @@ func sleep(details *run_details.RunDetails, args []string, v *viper.Viper) {
 	if app == v1.AppTypeSpring2 {
 		details.AppType = v1.AppTypeSpring2
 		details.MainClass = v1.SpringBootMain2
-		details.AddArg("-Dloader.main=com.oracle.coherence.k8s.Sleep")
+		details.AddSystemPropertyArg(v1.SysPropSpringLoaderMain, v1.SleepMain)
 	} else {
 		details.AppType = v1.AppTypeJava
-		details.MainClass = "com.oracle.coherence.k8s.Sleep"
+		details.MainClass = v1.SleepMain
 	}
 	details.Command = CommandSleep
 	details.MainArgs = args
 	details.UseOperatorHealth = true
-	details.AddArg("-Dcoherence.distributed.localstorage=false")
-	details.AddArg("-Dcoherence.localport.adjust=true")
-	details.AddArg("-Dcoherence.management.http=none")
-	details.AddArg("-Dcoherence.management.http.port=0")
-	details.AddArg("-Dcoherence.metrics.http.enabled=false")
-	details.AddArg("-Dcoherence.metrics.http.port=0")
-	details.AddArg("-Dcoherence.operator.health.enabled=false")
-	details.AddArg("-Dcoherence.grpc.enabled=false")
+
+	details.AddSystemPropertyArg(v1.SysPropCoherenceRole, CommandSleep)
+	details.AddSystemPropertyArg(v1.SysPropCoherenceDistributedLocalStorage, "false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceLocalPortAdjust, "true")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceManagementHttp, "none")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceManagementHttpPort, "0")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceMetricsHttpEnabled, "false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceMetricsHttpPort, "0")
+	details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "false")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceHealthHttpPort, "0")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceGrpcEnabled, "false")
+
 	details.Setenv(v1.EnvVarJvmMemoryNativeTracking, "off")
-	details.Setenv(v1.EnvVarCohRole, "sleep")
-	details.Setenv(v1.EnvVarCohHealthPort, "0")
 	details.MainArgs = args
 }

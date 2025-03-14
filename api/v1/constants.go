@@ -300,6 +300,45 @@ const (
 	EnvVarJvmOomExit              = "JVM_OOM_EXIT"
 	EnvVarJvmOomHeapDump          = "JVM_OOM_HEAP_DUMP"
 
+	SystemPropertyPattern = "-D%s=%s"
+
+	SysPropCoherenceCacheConfig             = "coherence.cacheconfig"
+	SysPropCoherenceCluster                 = "coherence.cluster"
+	SysPropCoherenceDistributedLocalStorage = "coherence.distributed.localstorage"
+	SysPropCoherenceGrpcEnabled             = "coherence.grpc.enabled"
+	SysPropCoherenceHealthHttpPort          = "coherence.health.http.port"
+	SysPropCoherenceIpMonitor               = "coherence.ipmonitor.pingtimeout"
+	SysPropCoherenceLocalPortAdjust         = "coherence.localport.adjust"
+	SysPropCoherenceLogLevel                = "coherence.log.level"
+	SysPropCoherenceMachine                 = "coherence.machine"
+	SysPropCoherenceManagementHttp          = "coherence.management.http"
+	SysPropCoherenceManagementHttpPort      = "coherence.management.http.port"
+	SysPropCoherenceMember                  = "coherence.member"
+	SysPropCoherenceMetricsHttpEnabled      = "coherence.metrics.http.enabled"
+	SysPropCoherenceMetricsHttpPort         = "coherence.metrics.http.port"
+	SysPropCoherenceOverride                = "coherence.override"
+	SysPropCoherencePersistenceBaseDir      = "coherence.distributed.persistence.base.dir"
+	SysPropCoherencePersistenceMode         = "coherence.distributed.persistence-mode"
+	SysPropCoherencePersistenceSnapshotDir  = "coherence.distributed.persistence.snapshot.dir"
+	SysPropCoherenceRole                    = "coherence.role"
+	SysPropCoherenceRack                    = "coherence.rack"
+	SysPropCoherenceSite                    = "coherence.site"
+	SysPropCoherenceTracingRatio            = "coherence.tracing.ratio"
+	SysPropCoherenceTTL                     = "coherence.ttl"
+	SysPropCoherenceWKA                     = "coherence.wka"
+
+	SysPropOperatorForceExit     = "coherence.operator.force.exit"
+	SysPropOperatorHealthEnabled = "coherence.operator.health.enabled"
+	SysPropOperatorHealthPort    = "coherence.operator.health.port"
+	SysPropOperatorIdentity      = "coherence.operator.identity"
+	SysPropOperatorOverride      = "coherence.k8s.override"
+
+	SysPropSpringLoaderMain = "loader.main"
+	SysPropSpringLoaderPath = "loader.path"
+
+	JvmOptUnlockDiagnosticVMOptions = "-XX:+UnlockDiagnosticVMOptions"
+	JvmOptNativeMemoryTracking      = "-XX:NativeMemoryTracking"
+
 	// AppTypeNone is the argument to specify no application type.
 	AppTypeNone = ""
 	// AppTypeJava is the argument to specify a Java application.
@@ -331,6 +370,8 @@ const (
 	ConsoleMain = "com.tangosol.net.CacheFactory"
 	// QueryPlusMain is the main class to run Coherence Query Plus
 	QueryPlusMain = "com.tangosol.coherence.dslquery.QueryPlus"
+	// SleepMain is the main class to run Operator sleep command
+	SleepMain = "com.oracle.coherence.k8s.Sleep"
 )
 
 var (

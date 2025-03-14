@@ -288,19 +288,19 @@ func configureCommand(details *run_details.RunDetails) error {
 	var err error
 
 	// Set standard system properties
-	details.AddArg("-Dcoherence.ttl=0")
-	details.AddArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
-	details.AddArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
-	details.AddArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
-	details.AddArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
-	details.AddArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
-	details.AddArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.operator.identity")
-	details.AddArgFromEnvVar(v1.EnvVarCohForceExit, "-Dcoherence.operator.force.exit")
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
+	details.AddSystemPropertyArg(v1.SysPropCoherenceTTL, "0")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohWka, v1.SysPropCoherenceWKA)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohMachineName, v1.SysPropCoherenceMachine)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohMemberName, v1.SysPropCoherenceMember)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohClusterName, v1.SysPropCoherenceCluster)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohCacheConfig, v1.SysPropCoherenceCacheConfig)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohIdentity, v1.SysPropOperatorIdentity)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohForceExit, v1.SysPropOperatorForceExit)
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, v1.SysPropOperatorHealthPort, fmt.Sprintf("%d", v1.DefaultHealthPort))
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, v1.SysPropCoherenceManagementHttpPort, fmt.Sprintf("%d", v1.DefaultManagementPort))
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, v1.SysPropCoherenceMetricsHttpPort, fmt.Sprintf("%d", v1.DefaultMetricsPort))
 
-	details.AddVMOption("-XX:+UnlockDiagnosticVMOptions")
+	details.AddVMOption(v1.JvmOptUnlockDiagnosticVMOptions)
 
 	// Configure the classpath to support images created with the JIB Maven plugin
 	// This is enabled by default unless the image is a buildpacks image, or we
@@ -334,32 +334,32 @@ func configureCommand(details *run_details.RunDetails) error {
 
 	// Configure Coherence persistence
 	mode := details.GetenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
-	details.AddArg("-Dcoherence.distributed.persistence-mode=" + mode)
+	details.AddSystemPropertyArg(v1.SysPropCoherencePersistenceMode, mode)
 
 	persistence := details.Getenv(v1.EnvVarCohPersistenceDir)
 	if persistence != "" {
-		details.AddArg("-Dcoherence.distributed.persistence.base.dir=" + persistence)
+		details.AddSystemPropertyArg(v1.SysPropCoherencePersistenceBaseDir, persistence)
 	}
 
 	snapshots := details.Getenv(v1.EnvVarCohSnapshotDir)
 	if snapshots != "" {
-		details.AddArg("-Dcoherence.distributed.persistence.snapshot.dir=" + snapshots)
+		details.AddSystemPropertyArg(v1.SysPropCoherencePersistenceSnapshotDir, snapshots)
 	}
 
 	// Set the Coherence site and rack values
 	configureSiteAndRack(details)
 
 	// Set the Coherence log level
-	details.AddArgFromEnvVar(v1.EnvVarCohLogLevel, "-Dcoherence.log.level")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohLogLevel, v1.SysPropCoherenceLogLevel)
 
 	// Disable IPMonitor
 	ipMon := details.Getenv(v1.EnvVarEnableIPMonitor)
 	if ipMon != "TRUE" {
-		details.AddArg("-Dcoherence.ipmonitor.pingtimeout=0")
+		details.AddSystemPropertyArg(v1.SysPropCoherenceIpMonitor, "0")
 	}
 
-	details.AddArg("-Dcoherence.override=k8s-coherence-override.xml")
-	details.AddArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
+	details.AddSystemPropertyArg(v1.SysPropCoherenceOverride, "k8s-coherence-override.xml")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohOverride, v1.SysPropOperatorOverride)
 
 	post2206 := checkCoherenceVersion("14.1.1.2206.0", details)
 	if post2206 {
@@ -781,7 +781,7 @@ func configureSiteAndRack(details *run_details.RunDetails) {
 		}
 
 		if site != "" {
-			details.AddArg("-Dcoherence.site=" + site)
+			details.AddSystemPropertyArg(v1.EnvVarCoherenceSite, site)
 		}
 	} else {
 		expanded := details.ExpandEnv(site)
@@ -789,10 +789,10 @@ func configureSiteAndRack(details *run_details.RunDetails) {
 			log.Info("Coherence site property set from expanded "+v1.EnvVarCoherenceSite+" environment variable", v1.EnvVarCoherenceSite, site, "Site", expanded)
 			site = expanded
 			if strings.TrimSpace(site) != "" {
-				details.AddArg("-Dcoherence.site=" + site)
+				details.AddSystemPropertyArg(v1.EnvVarCoherenceSite, site)
 			}
 		} else {
-			details.AddArg("-Dcoherence.site=" + site)
+			details.AddSystemPropertyArg(v1.EnvVarCoherenceSite, site)
 		}
 	}
 
@@ -819,9 +819,9 @@ func configureSiteAndRack(details *run_details.RunDetails) {
 		}
 
 		if rack != "" {
-			details.AddArg("-Dcoherence.rack=" + rack)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceRack, rack)
 		} else if site != "" {
-			details.AddArg("-Dcoherence.rack=" + site)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceRack, site)
 		}
 	} else {
 		expanded := details.ExpandEnv(rack)
@@ -834,10 +834,10 @@ func configureSiteAndRack(details *run_details.RunDetails) {
 				rack = site
 			}
 			if strings.TrimSpace(rack) != "" {
-				details.AddArg("-Dcoherence.rack=" + rack)
+				details.AddSystemPropertyArg(v1.SysPropCoherenceRack, rack)
 			}
 		} else {
-			details.AddArg("-Dcoherence.rack=" + rack)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceRack, rack)
 		}
 	}
 }
@@ -1024,10 +1024,10 @@ func cohPost2206(details *run_details.RunDetails) {
 	} else {
 		useOperator := details.GetenvOrDefault(v1.EnvVarUseOperatorHealthCheck, "false")
 		if strings.EqualFold("true", useOperator) {
-			details.AddArg("-Dcoherence.operator.health.enabled=true")
+			details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "true")
 		} else {
-			details.AddArg("-Dcoherence.operator.health.enabled=false")
-			details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+			details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "false")
+			details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, v1.SysPropCoherenceHealthHttpPort, fmt.Sprintf("%d", v1.DefaultHealthPort))
 		}
 	}
 }

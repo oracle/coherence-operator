@@ -303,6 +303,13 @@ func (in *RunDetails) AddArg(arg string) {
 	}
 }
 
+func (in *RunDetails) AddSystemPropertyArg(propName, value string) {
+	if propName != "" {
+		arg := fmt.Sprintf(v1.SystemPropertyPattern, propName, value)
+		in.args = append(in.args, in.ExpandEnv(arg))
+	}
+}
+
 func (in *RunDetails) AddVMOption(arg string) {
 	if arg != "" {
 		in.vmOptions = append(in.vmOptions, in.ExpandEnv(arg))
@@ -390,15 +397,20 @@ func (in *RunDetails) AddArgFromEnvVar(name, property string) {
 	}
 }
 
+func (in *RunDetails) AddSystemPropertyFromEnvVar(name, property string) {
+	value := in.Getenv(name)
+	if value != "" {
+		in.AddSystemPropertyArg(property, value)
+	}
+}
+
 func (in *RunDetails) SetSystemPropertyFromEnvVarOrDefault(name, property, dflt string) {
 	value := in.Getenv(name)
-	var s string
 	if value != "" {
-		s = fmt.Sprintf("%s=%s", property, value)
+		in.AddSystemPropertyArg(property, value)
 	} else {
-		s = fmt.Sprintf("%s=%s", property, dflt)
+		in.AddSystemPropertyArg(property, dflt)
 	}
-	in.AddArg(s)
 }
 
 func (in *RunDetails) GetJavaExecutable() string {

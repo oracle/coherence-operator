@@ -123,9 +123,10 @@ func createSpringBootFile(details *run_details.RunDetails) error {
 
 	var args string
 	if details.InnerMainClass == "" || details.InnerMainClass == v1.DefaultMain {
-		args = fmt.Sprintf("-Dloader.path=%s", cp)
+		args = fmt.Sprintf(v1.SystemPropertyPattern, v1.SysPropSpringLoaderPath, cp)
 	} else {
-		args = fmt.Sprintf("-Dloader.path=%s\n-Dloader.main=%s", cp, details.InnerMainClass)
+		args = fmt.Sprintf(v1.SystemPropertyPattern, v1.SysPropSpringLoaderPath, cp)
+		args = args + "\n" + fmt.Sprintf(v1.SystemPropertyPattern, v1.SysPropSpringLoaderMain, details.InnerMainClass)
 	}
 
 	err := os.WriteFile(argsFile, []byte(args), os.ModePerm)
@@ -267,9 +268,9 @@ func populateMainClass(details *run_details.RunDetails) {
 // Configure the runner to run a Coherence Server
 func populateServerDetails(details *run_details.RunDetails) {
 	// Configure the Coherence member's role
-	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohRole, "-Dcoherence.role", "storage")
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohRole, v1.SysPropCoherenceRole, "storage")
 	// Configure whether this member is storage enabled
-	details.AddArgFromEnvVar(v1.EnvVarCohStorage, "-Dcoherence.distributed.localstorage")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohStorage, v1.SysPropCoherenceDistributedLocalStorage)
 
 	// Configure Coherence Tracing
 	ratio := details.Getenv(v1.EnvVarCohTracingRatio)
@@ -277,7 +278,7 @@ func populateServerDetails(details *run_details.RunDetails) {
 		q, err := resource.ParseQuantity(ratio)
 		if err == nil {
 			d := q.AsDec()
-			details.AddArg("-Dcoherence.tracing.ratio=" + d.String())
+			details.AddSystemPropertyArg(v1.SysPropCoherenceTracingRatio, d.String())
 		} else {
 			fmt.Printf("ERROR: Coherence tracing ratio \"%s\" is invalid - %s\n", ratio, err.Error())
 			os.Exit(1)
@@ -289,7 +290,7 @@ func populateServerDetails(details *run_details.RunDetails) {
 	log.Info("Coherence Management over REST", "enabled", strconv.FormatBool(hasMgmt), "envVar", v1.EnvVarCohMgmtPrefix+v1.EnvVarCohEnabledSuffix)
 	if hasMgmt {
 		fmt.Println("INFO: Configuring Coherence Management over REST")
-		details.AddArg("-Dcoherence.management.http=all")
+		details.AddSystemPropertyArg(v1.SysPropCoherenceManagementHttp, "all")
 		if details.CoherenceHome != "" {
 			// If management is enabled and the COHERENCE_HOME environment variable is set
 			// then $COHERENCE_HOME/lib/coherence-management.jar will be added to the classpath
@@ -302,7 +303,7 @@ func populateServerDetails(details *run_details.RunDetails) {
 	hasMetrics := details.IsEnvTrue(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
 	log.Info("Coherence Metrics", "enabled", strconv.FormatBool(hasMetrics), "envVar", v1.EnvVarCohMetricsPrefix+v1.EnvVarCohEnabledSuffix)
 	if hasMetrics {
-		details.AddArg("-Dcoherence.metrics.http.enabled=true")
+		details.AddSystemPropertyArg(v1.SysPropCoherenceMetricsHttpEnabled, "true")
 		fmt.Println("INFO: Configuring Coherence Metrics")
 		if details.CoherenceHome != "" {
 			// If metrics is enabled and the COHERENCE_HOME environment variable is set
