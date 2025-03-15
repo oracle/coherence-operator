@@ -706,11 +706,12 @@ func removeEnvVarsFromContainer(c *corev1.Container, envVars ...string) {
 	for _, name := range envVars {
 		for e, ev := range c.Env {
 			if ev.Name == name {
-				if e == 0 {
+				switch {
+				case e == 0:
 					env = env[:1]
-				} else if (e + 1) == len(env) {
+				case (e + 1) == len(env):
 					env = env[:e]
-				} else {
+				default:
 					env = append(env[:e], env[e+1:]...)
 				}
 				break

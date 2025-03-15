@@ -379,10 +379,10 @@ func (in *RunDetails) GetClasspath() string {
 	if in.CoherenceHome != "" {
 		if _, err := os.Stat(in.CoherenceHome); err == nil {
 			if _, err := os.Stat(in.CoherenceHome + "/conf"); err == nil {
-				cp = cp + ":" + in.CoherenceHome + "/conf"
+				cp += ":" + in.CoherenceHome + "/conf"
 			}
 			if _, err := os.Stat(in.CoherenceHome + "/lib/coherence.jar"); err == nil {
-				cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
+				cp += ":" + in.CoherenceHome + "/lib/coherence.jar"
 			}
 		}
 	}

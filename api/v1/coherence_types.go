@@ -594,11 +594,9 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	if in.StorageEnabled != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: BoolPtrToString(in.StorageEnabled)})
-	} else {
+	} else if deployment.GetType() == CoherenceTypeJob {
 		// StorageEnabled is nil, so if this is a CoherenceJob default to false
-		if deployment.GetType() == CoherenceTypeJob {
-			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
-		}
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
 	}
 
 	if in.SkipVersionCheck != nil {
@@ -2876,14 +2874,16 @@ func (in *Resource) IsPresent() bool {
 	return in.Spec != nil
 }
 
+var errCannotConvert = errors.New("cannot convert to runtime.Object")
+
 // As converts the Spec to the specified value.
 // This is done by serializing the Spec to json and deserializing into the specified object.
 func (in *Resource) As(o runtime.Object) error {
 	if in == nil {
-		return fmt.Errorf("cannot convert to runtime.Object - resource is nil")
+		return errors.Wrap(errCannotConvert, "resource is nil")
 	}
 	if in.Spec == nil {
-		return fmt.Errorf("cannot convert resource - spec is nil")
+		return errors.Wrap(errCannotConvert, "spec is nil")
 	}
 
 	data, err := json.Marshal(in.Spec)

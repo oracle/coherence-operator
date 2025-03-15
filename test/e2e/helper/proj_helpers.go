@@ -353,7 +353,7 @@ func NewCoherenceFromYamlWithSuffix(namespace, file, suffix string) ([]coh.Coher
 	res, err := createCoherenceFromYaml(namespace, file)
 	if err == nil && suffix != "" {
 		for _, c := range res {
-			c.Name = c.Name + suffix
+			c.Name += suffix
 		}
 	}
 	return res, err

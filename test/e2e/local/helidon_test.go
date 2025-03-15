@@ -46,6 +46,9 @@ func AssertHelidonEndpoint(t *testing.T, pods []corev1.Pod) {
 	url := fmt.Sprintf("http://127.0.0.1:%d/ready", ports["web"])
 
 	resp, err := client.Get(url)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 }

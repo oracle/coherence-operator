@@ -290,7 +290,7 @@ func GetMinimalExpectedSpringBootArgs(t *testing.T, main string) []string {
 	cp := utils + "/lib/coherence-operator.jar"
 	cfg := utils + "config"
 	if _, err := os.Stat(cfg); err == nil {
-		cp = cp + "," + cfg
+		cp += "," + cfg
 	}
 	args := []string{
 		GetJavaArg(),

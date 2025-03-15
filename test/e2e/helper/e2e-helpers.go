@@ -174,7 +174,7 @@ func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retr
 		} else {
 			ready = job.Status.Succeeded
 			if job.Status.Ready != nil {
-				ready = ready + job.Status.Active
+				ready += job.Status.Active
 			}
 		}
 
@@ -1720,20 +1720,12 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 
 	// Assert that a StatefulSet or Job of the correct number or replicas is created for each roleSpec in the cluster
 	for _, d := range deployments {
-		//if d.IsRunAsJob() {
-		//	ctx.Logf("Waiting for Job for deployment %s", d.Name)
-		//	// Wait for the Job for the roleSpec to be ready - wait five minutes max
-		//	_, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
-		//	g.Expect(err).NotTo(HaveOccurred())
-		//	ctx.Logf("Have Job for deployment %s", d.Name)
-		//} else {
 		ctx.Logf("Waiting for StatefulSet for deployment %s", d.Name)
 		// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
 		sts, err := WaitForStatefulSet(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
 		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
-		//}
 	}
 
 	// Assert that the finalizer has been added to all the deployments that do not have AllowUnsafeDelete=false

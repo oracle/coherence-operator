@@ -62,7 +62,6 @@ func TestMinimalServerSkipCoherenceVersionCheck(t *testing.T) {
 	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	//expectedArgs := append(GetExpectedArgsFileContentWithoutPrefix("-Dcoherence.override="), "-Dcoherence.override=k8s-coherence-override.xml")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -116,9 +115,9 @@ func GetMinimalExpectedArgsWithWorkingDir(t *testing.T, wd string) []string {
 	utils := ensureTestUtilsDir(t)
 	jar := fmt.Sprintf("%s/lib/coherence-operator.jar", utils)
 	cfg := fmt.Sprintf(":%s/config", utils)
-	cp = cp + jar
+	cp += jar
 	if _, err := os.Stat(cfg); err == nil {
-		cp = cp + ":" + cfg
+		cp += ":" + cfg
 	}
 
 	args := []string{GetJavaArg(), "-cp", cp}
@@ -153,7 +152,7 @@ func GetMinimalExpectedArgsWithoutCP() []string {
 func GetMinimalExpectedArgsWithoutAppClasspath() []string {
 	cp := "/coherence-operator/utils/lib/coherence-operator.jar"
 	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ":/coherence-operator/utils/config"
+		cp += ":/coherence-operator/utils/config"
 	}
 	args := []string{GetJavaArg(), "--class-path", cp}
 
@@ -172,7 +171,7 @@ func GetOperatorClasspathWithUtilsDir(utils string) string {
 	cp := utils + "/lib/coherence-operator.jar"
 	cfg := utils + "/config"
 	if _, err := os.Stat(cfg); err == nil {
-		cp = cp + ":" + cfg
+		cp += ":" + cfg
 	}
 	return cp
 }

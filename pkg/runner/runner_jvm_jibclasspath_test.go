@@ -201,9 +201,9 @@ func createJibMainClassFile() *os.File {
 func GetMinimalExpectedArgsWithAppClasspathFile() []string {
 	fileName := fmt.Sprintf("%s/jib-classpath-file", TestAppDir)
 	cp := readFirstLine(fileName)
-	cp = cp + ":/coherence-operator/utils/lib/coherence-operator.jar"
+	cp += ":/coherence-operator/utils/lib/coherence-operator.jar"
 	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ":/coherence-operator/utils/config"
+		cp += ":/coherence-operator/utils/config"
 	}
 
 	args := []string{GetJavaArg(), "--class-path", cp}
@@ -217,9 +217,9 @@ func GetMinimalExpectedArgsWithAppMainClassFile() []string {
 	cp := fmt.Sprintf("%s/resources:%s/classes:%s/classpath/bar2.JAR:%s/classpath/foo2.jar:%s/libs/bar1.JAR:%s/libs/foo1.jar",
 		TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir, TestAppDir)
 
-	cp = cp + ":/coherence-operator/utils/lib/coherence-operator.jar"
+	cp += ":/coherence-operator/utils/lib/coherence-operator.jar"
 	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ":/coherence-operator/utils/config"
+		cp += ":/coherence-operator/utils/config"
 	}
 
 	args := []string{GetJavaArg(), "--class-path", cp}
@@ -234,9 +234,9 @@ func GetMinimalExpectedArgsWithAppMainClassFile() []string {
 func GetMinimalExpectedArgsWithAppClasspathFileAndMainClassFile() []string {
 	fileName := fmt.Sprintf("%s/jib-classpath-file", TestAppDir)
 	cp := readFirstLine(fileName)
-	cp = cp + ":/coherence-operator/utils/lib/coherence-operator.jar"
+	cp += ":/coherence-operator/utils/lib/coherence-operator.jar"
 	if _, err := os.Stat("/coherence-operator/utils/config"); err == nil {
-		cp = cp + ":/coherence-operator/utils/config"
+		cp += ":/coherence-operator/utils/config"
 	}
 
 	args := []string{GetJavaArg(), "--class-path", cp}

@@ -34,7 +34,6 @@ func TestApplicationTypeNone(t *testing.T) {
 	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	//expectedArgs := GetMinimalExpectedArgs(t)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -67,7 +66,6 @@ func TestApplicationTypeNoneWithMain(t *testing.T) {
 	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	//expectedArgs := ReplaceArg(GetMinimalExpectedArgs(t), DefaultMain, "com.foo.Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -99,7 +97,6 @@ func TestApplicationTypeCoherence(t *testing.T) {
 	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	//expectedArgs := GetMinimalExpectedArgs(t)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -163,7 +160,6 @@ func TestApplicationTypeJava(t *testing.T) {
 	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	//expectedArgs := GetMinimalExpectedArgs(t)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
