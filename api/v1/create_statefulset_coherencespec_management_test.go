@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -80,8 +80,8 @@ func TestCreateStatefulSetWithCoherenceManagementEnabledTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_MGMT_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_MGMT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -102,8 +102,8 @@ func TestCreateStatefulSetWithCoherenceManagementEnabledWithPort(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_MGMT_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "COH_MGMT_PORT", Value: "1234"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: "1234"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -138,22 +138,22 @@ func TestCreateStatefulSetWithCoherenceManagementWithSSLEnabledWithoutSecret(t *
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence,
-		corev1.EnvVar{Name: "COH_MGMT_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_MGMT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
+	addEnvVarsToAll(stsExpected,
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -191,23 +191,23 @@ func TestCreateStatefulSetWithCoherenceManagementWithSSLEnabledWithSecret(t *tes
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence,
-		corev1.EnvVar{Name: "COH_MGMT_SSL_CERTS", Value: coh.VolumeMountPathManagementCerts},
-		corev1.EnvVar{Name: "COH_MGMT_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_MGMT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_ENABLED", Value: "true"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
-		corev1.EnvVar{Name: "COH_MGMT_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
+	addEnvVarsToAll(stsExpected,
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_CERTS", Value: coh.VolumeMountPathManagementCerts},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_PORT", Value: strconv.FormatInt(int64(coh.DefaultManagementPort), 10)},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_ENABLED", Value: "true"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE", Value: "ssl-keystore.jks"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_PASSWORD_FILE", Value: "ssl-key-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEY_PASSWORD_FILE", Value: "ssl-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_TYPE", Value: "ssl-key-type"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_ALGORITHM", Value: "ssl-key-algo"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_KEYSTORE_PROVIDER", Value: "ssl-key-provider"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE", Value: "ssl-trust.jks"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_PASSWORD_FILE", Value: "ssl-trust-pass.txt"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_TYPE", Value: "ssl-trust-type"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_ALGORITHM", Value: "ssl-trust-algo"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_TRUSTSTORE_PROVIDER", Value: "ssl-trust-provider"},
+		corev1.EnvVar{Name: "COHERENCE_MANAGEMENT_SSL_REQUIRE_CLIENT_CERT", Value: "true"})
 
 	// add the management ConfigMap volume mount
 	stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{

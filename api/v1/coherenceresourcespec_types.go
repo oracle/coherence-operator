@@ -215,7 +215,7 @@ type CoherenceResourceSpec struct {
 	Network *NetworkSpec `json:"network,omitempty"`
 	// The configuration for the Coherence operator image name
 	// +optional
-	CoherenceUtils *ImageSpec `json:"coherenceUtils,omitempty"`
+	CoherenceUtils *CoherenceUtilsSpec `json:"coherenceUtils,omitempty"`
 	// The name to use for the service account to use when RBAC is enabled
 	// The role bindings must already have been created as this chart does not create them it just
 	// sets the serviceAccountName value in the Pod spec.
@@ -372,25 +372,6 @@ func (in *CoherenceResourceSpec) EnsureCoherenceImage(coherenceImage *string) bo
 		return true
 	}
 	return false
-}
-
-// GetCoherenceOperatorImage returns the name of the Operator image to use.
-func (in *CoherenceResourceSpec) GetCoherenceOperatorImage() *string {
-	if in != nil && in.CoherenceUtils != nil {
-		return in.CoherenceUtils.Image
-	}
-	return nil
-}
-
-// EnsureCoherenceOperatorImage ensures that the Coherence Operator image is set for the deployment.
-// This ensures that the image is fixed to either that specified in the cluster spec or to the current default
-// and means that the Helm controller does not upgrade the images if the Operator is upgraded.
-func (in *CoherenceResourceSpec) EnsureCoherenceOperatorImage(imageName *string) bool {
-	if in.CoherenceUtils == nil {
-		in.CoherenceUtils = &ImageSpec{}
-	}
-
-	return in.CoherenceUtils.EnsureImage(imageName)
 }
 
 // GetHealthPort returns the port that the health check endpoint will bind to.
@@ -698,14 +679,33 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 	}
 
 	cohContainer := in.CreateCoherenceContainer(deployment)
+	// Save any existing JDK_JAVA_OPTIONS env var from the Coherence container
+	// before the Application spec has a chance to change it
+	var jdkOptEnv *corev1.EnvVar
+	for _, ev := range cohContainer.Env {
+		if ev.Name == EnvVarJdkOptions {
+			jdkOptEnv = &ev
+			break
+		}
+	}
+	// Update the Coherence container with the application settings
+	in.Application.UpdateCoherenceContainer(&cohContainer)
 
 	// Add additional ports
 	for _, p := range in.Ports {
 		cohContainer.Ports = append(cohContainer.Ports, p.CreatePort(deployment))
 	}
 
+	// Create the Operator init-container
+	initContainer := in.CreateOperatorInitContainer(deployment)
+
+	// Create the Operator config files init-container
+	configInitContainer := in.CreateOperatorConfigInitContainer(deployment)
+
 	// append any additional VolumeMounts
 	cohContainer.VolumeMounts = append(cohContainer.VolumeMounts, in.VolumeMounts...)
+	initContainer.VolumeMounts = append(initContainer.VolumeMounts, in.VolumeMounts...)
+	configInitContainer.VolumeMounts = append(configInitContainer.VolumeMounts, in.VolumeMounts...)
 
 	podTemplate := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -730,15 +730,15 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 			ShareProcessNamespace:        in.ShareProcessNamespace,
 			Tolerations:                  in.Tolerations,
 			TopologySpreadConstraints:    in.EnsureTopologySpreadConstraints(deployment),
-			InitContainers: []corev1.Container{
-				in.CreateOperatorInitContainer(deployment),
-			},
-			Containers: []corev1.Container{cohContainer},
 			Volumes: []corev1.Volume{
 				{Name: VolumeNameUtils, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			},
 		},
 	}
+
+	// The order of this append is very important, the jvmArgs must come second
+	podTemplate.Spec.InitContainers = append(podTemplate.Spec.InitContainers, initContainer, configInitContainer)
+	podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, cohContainer)
 
 	// Add any network settings
 	in.Network.UpdatePodTemplate(&podTemplate)
@@ -768,7 +768,31 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 		sv.AddVolumes(&podTemplate)
 	}
 
+	// Set the init-container environment variables to match the Coherence container
+	podTemplate.Spec.InitContainers[0].Env = append(podTemplate.Spec.InitContainers[0].Env, podTemplate.Spec.Containers[0].Env...)
+	podTemplate.Spec.InitContainers[1].Env = append(podTemplate.Spec.InitContainers[1].Env, podTemplate.Spec.Containers[0].Env...)
+	// The Application spec may have applied the JDK_JAVA_OPTIONS env var to the Coherence container
+	// so we need to remove it from the init-containers
+	in.replaceEnvVar(&podTemplate.Spec.InitContainers[0], EnvVarJdkOptions, jdkOptEnv)
+	in.replaceEnvVar(&podTemplate.Spec.InitContainers[1], EnvVarJdkOptions, jdkOptEnv)
+
 	return podTemplate
+}
+
+func (in *CoherenceResourceSpec) replaceEnvVar(c *corev1.Container, name string, ev *corev1.EnvVar) {
+	env := c.Env
+	for i, e := range env {
+		if e.Name == name {
+			if ev == nil {
+				c.Env = env[:i]
+				c.Env = append(c.Env, env[i+1:]...)
+			} else {
+				c.Env[i] = *ev
+				c.Env[i].Name = name
+			}
+			break
+		}
+	}
 }
 
 func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectReference {
@@ -805,17 +829,9 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 	vm := in.CreateCommonVolumeMounts()
 	lp, _ := in.Coherence.GetLocalPorts()
 
-	cmd := []string{RunnerCommand}
-	if in.Application != nil && in.Application.Type != nil && *in.Application.Type == "operator" {
-		cmd = append(cmd, in.Application.Args...)
-	} else {
-		cmd = append(cmd, "server")
-	}
-
 	c := corev1.Container{
-		Name:    ContainerNameCoherence,
-		Image:   cohImage,
-		Command: cmd,
+		Name:  ContainerNameCoherence,
+		Image: cohImage,
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          PortNameCoherence,
@@ -858,8 +874,6 @@ func (in *CoherenceResourceSpec) CreateCoherenceContainer(deployment CoherenceRe
 			Value: "true",
 		})
 	}
-
-	in.Application.UpdateCoherenceContainer(&c)
 
 	if in.Resources != nil {
 		// set the container resources if specified
@@ -980,6 +994,8 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment CoherenceResource) 
 		corev1.EnvVar{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
 		corev1.EnvVar{Name: EnvVarOperatorTimeout, Value: Int32PtrToStringWithDefault(in.OperatorRequestTimeout, 120)},
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
+		corev1.EnvVar{Name: EnvVarCoherenceTTL, Value: "0"},
+		corev1.EnvVar{Name: EnvVarCohCtlHome, Value: VolumeMountPathUtils},
 	)
 
 	ann := deployment.GetAnnotations()
@@ -1050,29 +1066,38 @@ func (in *CoherenceResourceSpec) UpdateDefaultLivenessProbeAction(probe *corev1.
 
 // CreateOperatorInitContainer creates the Operator init-container spec.
 func (in *CoherenceResourceSpec) CreateOperatorInitContainer(deployment CoherenceResource) corev1.Container {
+	image := operator.GetDefaultOperatorImage()
+	return in.createInitContainer(deployment, ContainerNameOperatorInit, image, []string{RunnerInitCommand, RunnerInit})
+}
+
+// CreateOperatorConfigInitContainer creates the JVM args file init-container spec.
+func (in *CoherenceResourceSpec) CreateOperatorConfigInitContainer(deployment CoherenceResource) corev1.Container {
 	var image string
-	if in.CoherenceUtils == nil || in.CoherenceUtils.Image == nil {
-		image = operator.GetDefaultOperatorImage()
+
+	if in.Image == nil {
+		image = operator.GetDefaultCoherenceImage()
 	} else {
-		image = *in.CoherenceUtils.Image
+		image = *in.Image
 	}
+
+	c := in.createInitContainer(deployment, ContainerNameOperatorConfig, image, []string{RunnerCommand, RunnerConfig})
+
+	if in.Application != nil && in.Application.WorkingDir != nil {
+		c.WorkingDir = *in.Application.WorkingDir
+	}
+
+	return c
+}
+
+// CreateOperatorInitContainer creates the Operator init-container spec.
+func (in *CoherenceResourceSpec) createInitContainer(deployment CoherenceResource, name, image string, cmd []string) corev1.Container {
 
 	vm := in.CreateCommonVolumeMounts()
 
-	env := []corev1.EnvVar{
-		{Name: EnvVarCohUtilDir, Value: VolumeMountPathUtils},
-	}
-
-	clusterName := deployment.GetCoherenceClusterName()
-	if clusterName != "" {
-		env = append(env, corev1.EnvVar{Name: EnvVarCohClusterName, Value: clusterName})
-	}
-
 	c := corev1.Container{
-		Name:            ContainerNameOperatorInit,
+		Name:            name,
 		Image:           image,
-		Command:         []string{RunnerInitCommand, RunnerInit},
-		Env:             env,
+		Command:         cmd,
 		SecurityContext: in.ContainerSecurityContext,
 		VolumeMounts:    vm,
 	}

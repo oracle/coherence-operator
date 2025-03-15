@@ -296,32 +296,6 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	v.AutomaticEnv()
 }
 
-func ValidateFlags(v *viper.Viper) error {
-	var err error
-	certValidity := v.GetDuration(FlagCACertValidity)
-	certRotateBefore := v.GetDuration(FlagCACertRotateBefore)
-	if certRotateBefore > certValidity {
-		return fmt.Errorf("%s must be larger than %s", FlagCACertValidity, FlagCACertRotateBefore)
-	}
-
-	certType := v.GetString(FlagCertType)
-	if certType != CertTypeSelfSigned && certType != CertTypeCertManager && certType != CertTypeManual {
-		return fmt.Errorf("%s parameter is invalid", FlagCertType)
-	}
-
-	_, err = GetGlobalAnnotations(v)
-	if err != nil {
-		return err
-	}
-
-	_, err = GetGlobalLabels(v)
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
 func SetViper(v *viper.Viper) {
 	currentViper = v
 }

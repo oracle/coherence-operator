@@ -34,6 +34,8 @@ const (
 	TestClusterNamespaceEnv = "CLUSTER_NAMESPACE"
 	// TestClientNamespaceEnv is environment variable holding the name of the client test k8s namespace.
 	TestClientNamespaceEnv = "OPERATOR_NAMESPACE_CLIENT"
+	// TestIsJava8Env is environment variable holding the flag to indicate the test Coherence image uses Java 8.
+	TestIsJava8Env = "OPERATOR_COHERENCE_JAVA_8"
 	// PrometheusNamespaceEnv is environment variable holding the name of the Prometheus k8s namespace.
 	PrometheusNamespaceEnv = "PROMETHEUS_NAMESPACE"
 	// OperatorImageRegistryEnv is environment variable holding the registry of the Operator image.
@@ -180,6 +182,12 @@ func GetTestClusterNamespace() string {
 		ns = defaultClusterNamespace
 	}
 	return ns
+}
+
+// GetTestCoherenceIsJava8 returns the name of the test cluster namespace.
+func GetTestCoherenceIsJava8() bool {
+	s := os.Getenv(TestIsJava8Env)
+	return strings.ToLower(s) == "true"
 }
 
 // GetBuildOutputDirectory returns the build output directory
@@ -345,7 +353,7 @@ func NewCoherenceFromYamlWithSuffix(namespace, file, suffix string) ([]coh.Coher
 	res, err := createCoherenceFromYaml(namespace, file)
 	if err == nil && suffix != "" {
 		for _, c := range res {
-			c.Name = c.Name + suffix
+			c.Name += suffix
 		}
 	}
 	return res, err

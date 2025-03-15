@@ -132,7 +132,6 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 
 	// Check whether the deployment has a replica count specified
 	// Ideally we'd do this with a validating/defaulting web-hook but maybe in a later version.
-	//spec = deployment.GetSpec()
 	if spec.Replicas == nil {
 		// No replica count, so we patch the deployment to have the default replicas value.
 		// The reason we do this, is because the kubectl scale command will fail if the replicas

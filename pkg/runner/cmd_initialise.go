@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,6 +9,7 @@ package runner
 import (
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -61,7 +62,7 @@ func initCommand(env map[string]string) *cobra.Command {
 }
 
 // initialise will initialise a Coherence Pod - typically this is run from an init-container
-func initialise(details *RunDetails, cmd *cobra.Command) (bool, error) {
+func initialise(details *run_details.RunDetails, cmd *cobra.Command) (bool, error) {
 	return initialiseWithEnv(cmd, details.Getenv)
 }
 

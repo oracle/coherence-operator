@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -26,6 +26,9 @@ func TestRestStatusQueryWithInvalidPath(t *testing.T) {
 
 	println("Connecting with: ", url)
 	resp, err := client.Get(url)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -41,6 +44,9 @@ func TestRestStatusQueryForUnknownDeployment(t *testing.T) {
 
 	println("Connecting with: ", url)
 	resp, err := client.Get(url)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 }
@@ -65,6 +71,9 @@ func TestRestStatusQueryForDeployment(t *testing.T) {
 
 	t.Logf("Testing status query URL is %s", url)
 	resp, err := client.Get(url)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	t.Logf("Received status response: %v err %v", resp, err)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))

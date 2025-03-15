@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -81,6 +81,9 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 		}
 		time.Sleep(5 * time.Second)
 	}
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -148,6 +151,9 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 			break
 		}
 		time.Sleep(5 * time.Second)
+	}
+	if resp != nil {
+		defer resp.Body.Close()
 	}
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))

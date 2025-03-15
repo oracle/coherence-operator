@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -147,6 +147,10 @@ func query(cl *http.Client, url string, v interface{}) (int, error) {
 		time.Sleep(1 * time.Second)
 	}
 
+	if response != nil {
+		defer response.Body.Close()
+	}
+
 	if err != nil {
 		var status = http.StatusInternalServerError
 		if response != nil {
@@ -155,10 +159,11 @@ func query(cl *http.Client, url string, v interface{}) (int, error) {
 		return status, err
 	}
 
-	if response.StatusCode == http.StatusOK {
-		data, _ := io.ReadAll(response.Body)
-
-		err = json.Unmarshal(data, v)
+	if response != nil {
+		if response.StatusCode == http.StatusOK {
+			data, _ := io.ReadAll(response.Body)
+			err = json.Unmarshal(data, v)
+		}
 	}
 
 	return response.StatusCode, err

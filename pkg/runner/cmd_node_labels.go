@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,6 +9,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +101,7 @@ func executeNodeQuery(cmd *cobra.Command) error {
 	}
 
 	for label, value := range node.Labels {
-		fileName := fmt.Sprintf("%s%c%s", dir, sep, label)
+		fileName := fmt.Sprintf(v1.FileNamePattern, dir, sep, label)
 		fileDir := filepath.Dir(fileName)
 
 		err = os.MkdirAll(fileDir, 0755)

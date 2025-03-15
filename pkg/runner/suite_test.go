@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"os"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 )
 
@@ -83,6 +84,8 @@ func TestMain(m *testing.M) {
 		fmt.Print(err)
 		os.Exit(1)
 	}
+
+	log = ctrl.Log.WithName("runner")
 
 	exitCode := m.Run()
 

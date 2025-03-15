@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -215,6 +215,9 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 		req, err = http.NewRequest(httpMethod, url, nil)
 		if err == nil {
 			resp, err = client.Do(req)
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
 			if err == nil {
 				break
 			}
@@ -240,6 +243,9 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 			return false, err
 		}
 		resp, err = client.Do(req)
+		if resp != nil {
+			defer resp.Body.Close()
+		}
 		if err != nil {
 			fmt.Printf("Error in send idle check request: %v\n", url)
 			return false, err

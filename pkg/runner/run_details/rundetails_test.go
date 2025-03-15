@@ -1,15 +1,20 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
-package runner
+package run_details
 
 import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/viper"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
+)
+
+var (
+	testLog = ctrl.Log.WithName("test")
 )
 
 func TestRunDetailsGetenvWhenMissing(t *testing.T) {
@@ -25,15 +30,15 @@ func TestRunDetailsGetenvWhenPresent(t *testing.T) {
 	v := viper.New()
 	v.Set("foo", "bar")
 
-	r := NewRunDetails(v)
+	r := NewRunDetails(v, testLog)
 	g.Expect(r.Getenv("foo")).To(Equal("bar"))
 }
 
 func TestRunDetailsGetenvWithPrefixWhenMissing(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
-	g.Expect(r.getenvWithPrefix("foo", "_test")).To(Equal(""))
+	r := NewRunDetails(viper.New(), testLog)
+	g.Expect(r.GetenvWithPrefix("foo", "_test")).To(Equal(""))
 }
 
 func TestRunDetailsGetenvWithPrefixWhenPresent(t *testing.T) {
@@ -42,15 +47,15 @@ func TestRunDetailsGetenvWithPrefixWhenPresent(t *testing.T) {
 	v := viper.New()
 	v.Set("foo_test", "bar")
 
-	r := NewRunDetails(v)
-	g.Expect(r.getenvWithPrefix("foo", "_test")).To(Equal("bar"))
+	r := NewRunDetails(v, testLog)
+	g.Expect(r.GetenvWithPrefix("foo", "_test")).To(Equal("bar"))
 }
 
 func TestRunDetailsAddClasspath(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
-	r.addClasspath("foo")
+	r := NewRunDetails(viper.New(), testLog)
+	r.AddClasspath("foo")
 	g.Expect(r.Classpath).To(Equal("foo"))
 }
 
@@ -60,88 +65,88 @@ func TestRunDetailsAddClasspathWithExpansion(t *testing.T) {
 	v := viper.New()
 	v.Set("FOO", "foo-value")
 
-	r := NewRunDetails(v)
+	r := NewRunDetails(v, testLog)
 
-	r.addClasspath("${FOO}")
+	r.AddClasspath("${FOO}")
 	g.Expect(r.Classpath).To(Equal("foo-value"))
 }
 
 func TestRunDetailsAddClasspathMultipleTimes(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
-	r.addClasspath("foo")
-	r.addClasspath("bar")
+	r := NewRunDetails(viper.New(), testLog)
+	r.AddClasspath("foo")
+	r.AddClasspath("bar")
 	g.Expect(r.Classpath).To(Equal("foo:bar"))
 }
 
 func TestRunDetailsAddClasspathEmptyString(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
-	r.addClasspath("foo")
-	r.addClasspath("")
+	r := NewRunDetails(viper.New(), testLog)
+	r.AddClasspath("foo")
+	r.AddClasspath("")
 	g.Expect(r.Classpath).To(Equal("foo"))
 }
 
 func TestRunDetailsAddToFrontClasspath(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
+	r := NewRunDetails(viper.New(), testLog)
 	r.Classpath = "foo"
 
-	r.addToFrontOfClasspath("bar")
+	r.AddToFrontOfClasspath("bar")
 	g.Expect(r.Classpath).To(Equal("bar:foo"))
 }
 
 func TestRunDetailsAddToFrontClasspathMultipleTimes(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
+	r := NewRunDetails(viper.New(), testLog)
 	r.Classpath = "foo"
-	r.addToFrontOfClasspath("bar1")
-	r.addToFrontOfClasspath("bar2")
+	r.AddToFrontOfClasspath("bar1")
+	r.AddToFrontOfClasspath("bar2")
 	g.Expect(r.Classpath).To(Equal("bar2:bar1:foo"))
 }
 
 func TestRunDetailsAddToFrontOfClasspathEmptyString(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
+	r := NewRunDetails(viper.New(), testLog)
 	r.Classpath = "foo"
-	r.addToFrontOfClasspath("")
+	r.AddToFrontOfClasspath("")
 	g.Expect(r.Classpath).To(Equal("foo"))
 }
 
 func TestRunDetailsGetClasspath(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
-	r.addClasspath("foo")
-	g.Expect(r.getClasspath()).To(Equal("foo"))
+	r := NewRunDetails(viper.New(), testLog)
+	r.AddClasspath("foo")
+	g.Expect(r.GetClasspath()).To(Equal("foo"))
 }
 
 func TestRunDetailsGetJavaEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
-	g.Expect(r.getJavaExecutable()).To(Equal("java"))
+	r := NewRunDetails(viper.New(), testLog)
+	g.Expect(r.GetJavaExecutable()).To(Equal("java"))
 }
 
 func TestRunDetailsGetJavaWhenJavaHomeSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
+	r := NewRunDetails(viper.New(), testLog)
 	r.JavaHome = "/local/bin/jdk11"
-	g.Expect(r.getJavaExecutable()).To(Equal("/local/bin/jdk11/bin/java"))
+	g.Expect(r.GetJavaExecutable()).To(Equal("/local/bin/jdk11/bin/java"))
 }
 
 func TestRunDetailsGetCommandWhenEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	r := NewRunDetails(viper.New())
+	r := NewRunDetails(viper.New(), testLog)
 	var expected []string
-	g.Expect(r.getCommand()).To(Equal(expected))
+	g.Expect(r.GetCommand()).To(Equal(expected))
 }
 
 func TestExpandEnv(t *testing.T) {
@@ -152,7 +157,7 @@ func TestExpandEnv(t *testing.T) {
 	env["B"] = "value-b"
 	env["C"] = "value-c"
 
-	r := NewRunDetails(viper.New())
+	r := NewRunDetails(viper.New(), testLog)
 	result := r.Expand("$(A) ${B} $C", func(s string) string {
 		return env[s]
 	})

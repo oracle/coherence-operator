@@ -7,7 +7,7 @@ spec:
     version: one
   jvm:
     args:
-      - -Dcoherence.k8s.operator.health.logs=true
+      - -Dcoherence.operator.health.logs=true
     memory:
       heapSize: 256m
       

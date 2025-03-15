@@ -4,19 +4,21 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package runner
+package run_details
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
-func NewRunDetails(v *viper.Viper) *RunDetails {
+func NewRunDetails(v *viper.Viper, log logr.Logger) *RunDetails {
+	var err error
+
 	skipSiteVar := v.GetString(v1.EnvVarCohSkipSite)
 	skipSite := strings.ToLower(skipSiteVar) != "true"
 
@@ -27,13 +29,24 @@ func NewRunDetails(v *viper.Viper) *RunDetails {
 		JavaHome:      v.GetString(v1.EnvVarJavaHome),
 		AppType:       strings.ToLower(v.GetString(v1.EnvVarAppType)),
 		Dir:           v.GetString(v1.EnvVarCohAppDir),
-		MainClass:     DefaultMain,
+		MainClass:     v1.DefaultMain,
 		GetSite:       skipSite,
+		log:           log,
 	}
 
 	// add any Classpath items
-	details.addClasspath(v.GetString(v1.EnvVarJvmExtraClasspath))
-	details.addClasspath(v.GetString(v1.EnvVarJavaClasspath))
+	details.AddClasspath(v.GetString(v1.EnvVarJvmExtraClasspath))
+	details.AddClasspath(v.GetString(v1.EnvVarJavaClasspath))
+
+	cpFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
+	if _, err = os.Stat(cpFile); err == nil {
+		details.ClassPathFile = cpFile
+	}
+
+	argFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
+	if _, err = os.Stat(argFile); err == nil {
+		details.JvmArgsFile = argFile
+	}
 
 	return details
 }
@@ -49,12 +62,44 @@ type RunDetails struct {
 	UseOperatorHealth bool
 	AppType           string
 	Classpath         string
-	Args              []string
 	MainClass         string
+	InnerMainClass    string
 	MainArgs          []string
 	BuildPacks        *bool
 	ExtraEnv          []string
+	ClassPathFile     string
+	JvmArgsFile       string
+	args              []string
+	vmOptions         []string
+	memoryArgs        []string
+	diagnosticArgs    []string
 	env               *viper.Viper
+	log               logr.Logger
+}
+
+func (in *RunDetails) GetAllArgs() []string {
+	var args []string
+	args = append(args, in.vmOptions...)
+	args = append(args, in.memoryArgs...)
+	args = append(args, in.diagnosticArgs...)
+	args = append(args, in.args...)
+	return args
+}
+
+func (in *RunDetails) GetArguments() []string {
+	return in.args
+}
+
+func (in *RunDetails) GetMemoryOptions() []string {
+	return in.memoryArgs
+}
+
+func (in *RunDetails) GetDiagnosticOptions() []string {
+	return in.diagnosticArgs
+}
+
+func (in *RunDetails) GetVMOptions() []string {
+	return in.vmOptions
 }
 
 // IsSpringBoot returns true if this is a Spring Boot application
@@ -62,7 +107,7 @@ func (in *RunDetails) IsSpringBoot() bool {
 	if in.env == nil {
 		return false
 	}
-	return in.AppType == AppTypeSpring2 || in.AppType == AppTypeSpring3
+	return in.AppType == v1.AppTypeSpring2 || in.AppType == v1.AppTypeSpring3
 }
 
 // Getenv returns the value for the specified environment variable, or empty string if not set.
@@ -92,7 +137,7 @@ func (in *RunDetails) Expand(s string, mapping func(string) string) string {
 				buf = make([]byte, 0, 2*len(s))
 			}
 			buf = append(buf, s[i:j]...)
-			name, w := in.getShellName(s[j+1:])
+			name, w := in.GetShellName(s[j+1:])
 			switch {
 			case name == "" && w > 0:
 				// Encountered invalid syntax; eat the
@@ -115,10 +160,10 @@ func (in *RunDetails) Expand(s string, mapping func(string) string) string {
 	return string(buf) + s[i:]
 }
 
-// getShellName returns the name that begins the string and the number of bytes
+// GetShellName returns the name that begins the string and the number of bytes
 // consumed to extract it. If the name is enclosed in {}, it's part of a ${}
 // expansion and two more bytes are needed than the length of the name.
-func (in *RunDetails) getShellName(s string) (string, int) {
+func (in *RunDetails) GetShellName(s string) (string, int) {
 	switch {
 	case s[0] == '{':
 		if len(s) > 2 && in.isShellSpecialVar(s[1]) && s[2] == '}' {
@@ -174,55 +219,55 @@ func (in *RunDetails) isAlphaNum(c uint8) bool {
 	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
 }
 
-func (in *RunDetails) getenvOrDefault(name string, defaultValue string) string {
+func (in *RunDetails) GetenvOrDefault(name string, defaultValue string) string {
 	if in.env != nil && in.env.IsSet(name) {
 		return in.env.GetString(name)
 	}
 	return defaultValue
 }
 
-func (in *RunDetails) lookupEnv(name string) (string, bool) {
+func (in *RunDetails) LookupEnv(name string) (string, bool) {
 	if in.env != nil && in.env.IsSet(name) {
 		return in.env.GetString(name), true
 	}
 	return "", false
 }
 
-func (in *RunDetails) getenvWithPrefix(prefix, name string) string {
+func (in *RunDetails) GetenvWithPrefix(prefix, name string) string {
 	return in.Getenv(prefix + name)
 }
 
-func (in *RunDetails) setenv(key, value string) {
+func (in *RunDetails) Setenv(key, value string) {
 	if in.env == nil {
 		in.env = viper.New()
 	}
 	in.env.Set(key, value)
 }
 
-func (in *RunDetails) isEnvTrue(name string) bool {
+func (in *RunDetails) IsEnvTrue(name string) bool {
 	value := in.Getenv(name)
 	return strings.ToLower(value) == "true"
 }
 
-func (in *RunDetails) isEnvTrueOrBlank(name string) bool {
+func (in *RunDetails) IsEnvTrueOrBlank(name string) bool {
 	value := in.Getenv(name)
 	return value == "" || strings.ToLower(value) == "true"
 }
 
-func (in *RunDetails) getCommand() []string {
-	return in.getCommandWithPrefix("", "")
+func (in *RunDetails) GetCommand() []string {
+	return in.GetCommandWithPrefix("", "")
 }
 
-func (in *RunDetails) getCommandWithPrefix(propPrefix, jvmPrefix string) []string {
+func (in *RunDetails) GetCommandWithPrefix(propPrefix, jvmPrefix string) []string {
 	var cmd []string
-	cp := in.getClasspath()
+	cp := in.GetClasspath()
 	if cp != "" {
-		cmd = append(cmd, "--class-path", cp)
+		cmd = append(cmd, v1.JvmOptClassPath, cp)
 	}
 	if propPrefix == "" && jvmPrefix == "" {
-		cmd = append(cmd, in.Args...)
+		cmd = append(cmd, in.GetAllArgs()...)
 	} else {
-		for _, arg := range in.Args {
+		for _, arg := range in.GetAllArgs() {
 			if strings.HasPrefix(arg, "-D") && propPrefix != "" {
 				cmd = append(cmd, propPrefix+arg)
 			} else if jvmPrefix != "" {
@@ -233,63 +278,57 @@ func (in *RunDetails) getCommandWithPrefix(propPrefix, jvmPrefix string) []strin
 	return cmd
 }
 
-func (in *RunDetails) getSpringBootCommand() []string {
-	return append(in.getSpringBootArgs(), in.MainClass)
+func (in *RunDetails) GetSpringBootCommand() []string {
+	return append(in.GetSpringBootArgs(), in.MainClass)
 }
 
-func (in *RunDetails) getSpringBootArgs() []string {
+func (in *RunDetails) GetSpringBootArgs() []string {
 	var cmd []string
-	cp := strings.ReplaceAll(in.getClasspath(), ":", ",")
-	if cp != "" {
-		cmd = append(cmd, "-Dloader.path="+cp)
-	}
-
 	// Are we using a Spring Boot fat jar
-	if jar, _ := in.lookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
-		cmd = append(cmd, "--class-path", jar)
+	if jar, _ := in.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
+		cmd = append(cmd, v1.JvmOptClassPath, jar)
 	}
-	cmd = append(cmd, in.Args...)
-
-	return cmd
+	return append(cmd, in.GetAllArgs()...)
 }
 
-/*
-func (in *RunDetails) getGraalCommand() []string {
-	cmd := in.getCommand()
-	for i, c := range cmd {
-		switch {
-		case c == "-cp":
-			cmd[i] = "--vm.cp"
-		case strings.HasPrefix(c, "-D"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-XX"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-Xms"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-Xmx"):
-			cmd[i] = "--vm." + c[1:]
-		case strings.HasPrefix(c, "-Xss"):
-			cmd[i] = "--vm." + c[1:]
-		}
-	}
-
-	return cmd
-}
-*/
-
-func (in *RunDetails) addArgs(args ...string) {
+func (in *RunDetails) AddArgs(args ...string) {
 	for _, a := range args {
-		in.addArg(a)
+		in.AddArg(a)
 	}
 }
 
-func (in *RunDetails) addArg(arg string) {
+func (in *RunDetails) AddArg(arg string) {
 	if arg != "" {
-		in.Args = append(in.Args, in.ExpandEnv(arg))
+		in.args = append(in.args, in.ExpandEnv(arg))
 	}
 }
 
-func (in *RunDetails) addToFrontOfClasspath(path string) {
+func (in *RunDetails) AddSystemPropertyArg(propName, value string) {
+	if propName != "" {
+		arg := fmt.Sprintf(v1.SystemPropertyPattern, propName, value)
+		in.args = append(in.args, in.ExpandEnv(arg))
+	}
+}
+
+func (in *RunDetails) AddVMOption(arg string) {
+	if arg != "" {
+		in.vmOptions = append(in.vmOptions, in.ExpandEnv(arg))
+	}
+}
+
+func (in *RunDetails) AddMemoryOption(arg string) {
+	if arg != "" {
+		in.memoryArgs = append(in.memoryArgs, in.ExpandEnv(arg))
+	}
+}
+
+func (in *RunDetails) AddDiagnosticOption(arg string) {
+	if arg != "" {
+		in.diagnosticArgs = append(in.diagnosticArgs, in.ExpandEnv(arg))
+	}
+}
+
+func (in *RunDetails) AddToFrontOfClasspath(path string) {
 	if path != "" {
 		if in.Classpath == "" {
 			in.Classpath = in.ExpandEnv(path)
@@ -300,7 +339,7 @@ func (in *RunDetails) addToFrontOfClasspath(path string) {
 }
 
 // addJarsToClasspath adds all jars in the specified directory to the classpath
-func (in *RunDetails) addJarsToClasspath(dir string) {
+func (in *RunDetails) AddJarsToClasspath(dir string) {
 	path := in.ExpandEnv(dir)
 	if _, err := os.Stat(path); err == nil {
 		var jars []string
@@ -312,20 +351,19 @@ func (in *RunDetails) addJarsToClasspath(dir string) {
 			return nil
 		})
 
-		sort.Strings(jars)
 		for _, jar := range jars {
-			in.addClasspath(jar)
+			in.AddClasspath(jar)
 		}
 	}
 }
 
-func (in *RunDetails) addClasspathIfExists(path string) {
+func (in *RunDetails) AddClasspathIfExists(path string) {
 	if _, err := os.Stat(path); err == nil {
-		in.addClasspath(path)
+		in.AddClasspath(path)
 	}
 }
 
-func (in *RunDetails) addClasspath(path string) {
+func (in *RunDetails) AddClasspath(path string) {
 	if path != "" {
 		if in.Classpath == "" {
 			in.Classpath = in.ExpandEnv(path)
@@ -335,80 +373,92 @@ func (in *RunDetails) addClasspath(path string) {
 	}
 }
 
-func (in *RunDetails) getClasspath() string {
+func (in *RunDetails) GetClasspath() string {
 	cp := in.Classpath
 	// if ${COHERENCE_HOME} exists add coherence.jar to the classpath
 	if in.CoherenceHome != "" {
 		if _, err := os.Stat(in.CoherenceHome); err == nil {
 			if _, err := os.Stat(in.CoherenceHome + "/conf"); err == nil {
-				cp = cp + ":" + in.CoherenceHome + "/conf"
+				cp += ":" + in.CoherenceHome + "/conf"
 			}
 			if _, err := os.Stat(in.CoherenceHome + "/lib/coherence.jar"); err == nil {
-				cp = cp + ":" + in.CoherenceHome + "/lib/coherence.jar"
+				cp += ":" + in.CoherenceHome + "/lib/coherence.jar"
 			}
 		}
 	}
 	return cp
 }
 
-func (in *RunDetails) addArgFromEnvVar(name, property string) {
+func (in *RunDetails) AddArgFromEnvVar(name, property string) {
 	value := in.Getenv(name)
 	if value != "" {
 		s := fmt.Sprintf("%s=%s", property, value)
-		in.Args = append(in.Args, s)
+		in.AddArg(s)
 	}
 }
 
-func (in *RunDetails) setSystemPropertyFromEnvVarOrDefault(name, property, dflt string) {
+func (in *RunDetails) AddSystemPropertyFromEnvVar(name, property string) {
 	value := in.Getenv(name)
-	var s string
 	if value != "" {
-		s = fmt.Sprintf("%s=%s", property, value)
-	} else {
-		s = fmt.Sprintf("%s=%s", property, dflt)
+		in.AddSystemPropertyArg(property, value)
 	}
-	in.Args = append(in.Args, s)
 }
 
-func (in *RunDetails) getJavaExecutable() string {
+func (in *RunDetails) SetSystemPropertyFromEnvVarOrDefault(name, property, dflt string) {
+	value := in.Getenv(name)
+	if value != "" {
+		in.AddSystemPropertyArg(property, value)
+	} else {
+		in.AddSystemPropertyArg(property, dflt)
+	}
+}
+
+func (in *RunDetails) GetJavaExecutable() string {
 	if in.JavaHome != "" {
 		return in.JavaHome + "/bin/java"
 	}
 	return "java"
 }
 
-func (in *RunDetails) getJShellExecutable() string {
+func (in *RunDetails) GetJShellExecutable() string {
 	if in.JavaHome != "" {
 		return in.JavaHome + "/bin/jshell"
 	}
 	return "jshell"
 }
 
-// isBuildPacks determines whether to run the application with the Cloud Native Buildpack launcher
-func (in *RunDetails) isBuildPacks() bool {
+// IsBuildPacks determines whether to run the application with the Cloud Native Buildpack launcher
+func (in *RunDetails) IsBuildPacks() bool {
 	if in.BuildPacks == nil {
 		var bp bool
 		detect := strings.ToLower(in.env.GetString(v1.EnvVarCnbpEnabled))
 		switch detect {
 		case "true":
-			log.Info("Detecting Cloud Native Buildpacks", "envVar", v1.EnvVarCnbpEnabled, "value", detect)
+			in.log.Info("Detecting Cloud Native Buildpacks", "envVar", v1.EnvVarCnbpEnabled, "value", detect)
 			bp = true
 		case "false":
-			log.Info("Detecting Cloud Native Buildpacks", "envVar", v1.EnvVarCnbpEnabled, "value", detect)
+			in.log.Info("Detecting Cloud Native Buildpacks", "envVar", v1.EnvVarCnbpEnabled, "value", detect)
 			bp = false
 		default:
-			log.Info("Auto-detecting Cloud Native Buildpacks")
+			in.log.Info("Auto-detecting Cloud Native Buildpacks")
 			// else auto detect
 			// look for the CNB API environment variable
 			_, ok := os.LookupEnv("CNB_PLATFORM_API")
-			log.Info(fmt.Sprintf("Auto-detecting Cloud Native Buildpacks: CNB_PLATFORM_API found=%t", ok))
+			in.log.Info(fmt.Sprintf("Auto-detecting Cloud Native Buildpacks: CNB_PLATFORM_API found=%t", ok))
 			// look for the CNB launcher
-			launcher := getBuildpackLauncher()
+			launcher := GetBuildpackLauncher()
 			_, err := os.Stat(launcher)
-			log.Info(fmt.Sprintf("Auto-detecting Cloud Native Buildpacks: CNB Launcher '%s' found=%t\n", launcher, err == nil))
+			in.log.Info(fmt.Sprintf("Auto-detecting Cloud Native Buildpacks: CNB Launcher '%s' found=%t\n", launcher, err == nil))
 			bp = ok && err == nil
 		}
 		in.BuildPacks = &bp
 	}
 	return *in.BuildPacks
+}
+
+func GetBuildpackLauncher() string {
+	if launcher, ok := os.LookupEnv(v1.EnvVarCnbpLauncher); ok {
+		return launcher
+	}
+	return v1.DefaultCnbpLauncher
 }

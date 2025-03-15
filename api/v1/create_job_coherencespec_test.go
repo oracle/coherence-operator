@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -40,6 +40,7 @@ func TestCreateJobWithImage(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.InitContainers[1].Image = "coherence:1.0"
 	jobExpected.Spec.Template.Spec.Containers[0].Image = "coherence:1.0"
 
 	// assert that the Job is as expected
@@ -74,7 +75,7 @@ func TestCreateJobWithCoherenceSpecWithStorageEnabledTrue(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "true"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "true"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -92,7 +93,7 @@ func TestCreateJobWithCoherenceLocalPort(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPort, Value: "1234"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPort, Value: "1234"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -110,7 +111,7 @@ func TestCreateJobWithCoherenceLocalPortAdjustTrue(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "true"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "true"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -128,7 +129,7 @@ func TestCreateJobWithCoherenceLocalPortAdjustFalse(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "false"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "false"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -146,7 +147,7 @@ func TestCreateJobWithCoherenceLocalPortAdjust(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "9876"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "9876"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -164,7 +165,7 @@ func TestCreateJobWithCoherenceSpecWithStorageEnabledFalse(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "false"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "false"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -182,7 +183,7 @@ func TestCreateJobWithCoherenceSpecWithCacheConfig(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohCacheConfig, Value: "test-config.xml"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohCacheConfig, Value: "test-config.xml"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -200,7 +201,7 @@ func TestCreateJobWithCoherenceSpecWithOverrideConfig(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohOverride, Value: "test-override.xml"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohOverride, Value: "test-override.xml"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -218,7 +219,7 @@ func TestCreateJobWithCoherenceSpecWithLogLevel(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohLogLevel, Value: "9"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohLogLevel, Value: "9"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -275,7 +276,7 @@ func TestCreateJobWithCoherenceSpecWithTracingRatio(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohTracingRatio, Value: "500u"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohTracingRatio, Value: "500u"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -327,7 +328,8 @@ func TestCreateJobWithCoherenceSpecWithIpMonitorEnabled(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarEnableIPMonitor, Value: "TRUE"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarEnableIPMonitor, Value: "TRUE"})
+	removeEnvVarsFromAllJobContainers(jobExpected, coh.ContainerNameCoherence, coh.EnvVarIPMonitorPingTimeout)
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -348,7 +350,7 @@ func TestCreateJobWithCoherenceSpecWithWkaSameNamespace(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: deployment.GetWKA()})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: deployment.GetWKA()})
 	jobExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the Job is as expected
@@ -372,7 +374,7 @@ func TestCreateJobWithCoherenceSpecWithWkaDifferentNamespace(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	expectedWka := deployment.GetWKA()
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	jobExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the Job is as expected
@@ -398,7 +400,7 @@ func TestCreateJobWithCoherenceSpecWithWkaAddress(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 	expectedWka := "storage.foo.bar.local"
 	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	jobExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the Job is as expected
@@ -424,7 +426,7 @@ func TestCreateJobWithCoherenceSpecWithMultipleWkaAddresses(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 	expectedWka := "storage.one.bar.local,storage.two.bar.local"
 	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	jobExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the Job is as expected

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -226,7 +226,7 @@ func AssertPodRestartTimes(t *testing.T, before, after []corev1.Pod, idFunction 
 				// must not be equal
 				g.Expect(i).NotTo(BeZero())
 				// ready must be the same comparison as scheduled,
-				//i.e. if scheduled is before then ready must be before
+				// i.e. if scheduled is before then ready must be before
 				g.Expect(ready.Compare(readyOther)).To(Equal(i), fmt.Sprintf("node %s scheduled and ready overlap with node %s", name, otherName))
 			}
 		}

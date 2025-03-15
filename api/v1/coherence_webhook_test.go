@@ -233,41 +233,6 @@ func TestCoherenceImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
 	g.Expect(*c.Spec.Image).To(Equal(image))
 }
 
-func TestUtilsImageIsSet(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	viper.Set(operator.FlagOperatorImage, "foo")
-
-	c := coh.Coherence{}
-	err := c.Default(context.Background(), &c)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
-	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
-	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal("foo"))
-}
-
-func TestUtilsImageIsNotOverriddenWhenAlreadySet(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	viper.Set(operator.FlagOperatorImage, "foo")
-	image := "bar"
-	c := coh.Coherence{
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				CoherenceUtils: &coh.ImageSpec{
-					Image: &image,
-				},
-			},
-		},
-	}
-
-	err := c.Default(context.Background(), &c)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(c.Spec.CoherenceUtils).NotTo(BeNil())
-	g.Expect(c.Spec.CoherenceUtils.Image).NotTo(BeNil())
-	g.Expect(*c.Spec.CoherenceUtils.Image).To(Equal(image))
-}
-
 func TestPersistenceModeChangeNotAllowed(t *testing.T) {
 	g := NewGomegaWithT(t)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -56,7 +56,7 @@ func TestCreateStatefulSetWithJvmSpecWithArgs(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmArgs, Value: "argOne argTwo"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarJvmArgs, Value: "argOne argTwo"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -91,7 +91,7 @@ func TestCreateStatefulSetWithJvmSpecWithClasspath(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmExtraClasspath, Value: "/foo:/bar"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarJvmExtraClasspath, Value: "/foo:/bar"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -109,7 +109,7 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmUseContainerLimits, Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarJvmUseContainerLimits, Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -127,7 +127,7 @@ func TestCreateStatefulSetWithJvmSpecWithUseContainerLimitsFalse(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarJvmUseContainerLimits, Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarJvmUseContainerLimits, Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -172,10 +172,10 @@ func TestCreateStatefulSetWithJvmSpecWithDebugEnabledTrueSuspendTrue(t *testing.
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_SUSPEND", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_ATTACH", Value: "10.10.10.10:5001"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_PORT", Value: "1234"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_SUSPEND", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_ATTACH", Value: "10.10.10.10:5001"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_PORT", Value: "1234"})
 	// add the expected debug port
 	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
 		Name:          coh.PortNameDebug,
@@ -203,9 +203,9 @@ func TestCreateStatefulSetWithJvmSpecWithDebugEnabledTrueSuspendFalse(t *testing
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_ENABLED", Value: "true"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_ATTACH", Value: "10.10.10.10:5001"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DEBUG_PORT", Value: "1234"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_ENABLED", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_ATTACH", Value: "10.10.10.10:5001"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DEBUG_PORT", Value: "1234"})
 	// add the expected debug port
 	addPorts(stsExpected, coh.ContainerNameCoherence, corev1.ContainerPort{
 		Name:          coh.PortNameDebug,
@@ -230,7 +230,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollector(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_GC_COLLECTOR", Value: "G1"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_COLLECTOR", Value: "G1"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -251,7 +251,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_GC_ARGS", Value: "-XX:GC-ArgOne -XX:GC-ArgTwo"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_ARGS", Value: "-XX:GC-ArgOne -XX:GC-ArgTwo"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -271,7 +271,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingFalse(t *testing
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -291,7 +291,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingTrue(t *testing.
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -341,11 +341,11 @@ func TestCreateStatefulSetWithJvmSpecWithMemorySettings(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "5g"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_STACK_SIZE", Value: "500m"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_METASPACE_SIZE", Value: "1g"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_DIRECT_MEMORY_SIZE", Value: "4g"})
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_NATIVE_MEMORY_TRACKING", Value: "detail"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_HEAP_SIZE", Value: "5g"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_STACK_SIZE", Value: "500m"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_METASPACE_SIZE", Value: "1g"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_DIRECT_MEMORY_SIZE", Value: "4g"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_NATIVE_MEMORY_TRACKING", Value: "detail"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -368,7 +368,7 @@ func TestCreateStatefulSetWithJvmSpecWithExitOnOomTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_OOM_EXIT", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_OOM_EXIT", Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -391,7 +391,7 @@ func TestCreateStatefulSetWithJvmSpecWithExitOnOomFalse(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_OOM_EXIT", Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_OOM_EXIT", Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -413,7 +413,7 @@ func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_OOM_HEAP_DUMP", Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_OOM_HEAP_DUMP", Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -435,7 +435,7 @@ func TestCreateStatefulSetWithJvmSpecWithHeapDumpOnOomFalse(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: "JVM_OOM_HEAP_DUMP", Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_OOM_HEAP_DUMP", Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

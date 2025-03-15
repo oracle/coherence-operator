@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -166,7 +166,6 @@ func (f *PortForwarder) Start() error {
 		if err = f.forwarder.ForwardPorts(); err != nil { // Locks until stopChan is closed.
 			pfError = err
 			fmt.Println(err)
-			//close(readyChan)
 		}
 	}()
 

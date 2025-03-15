@@ -293,14 +293,6 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 		in.SetCoherenceImage(&currentPodSpec, cohImage)
 	}
 
-	// ensure the Operator image is present so that we do not patch on a Coherence resource
-	// from pre-3.1.x that does not have images set
-	if spec.CoherenceUtils == nil || spec.CoherenceUtils.Image == nil {
-		operatorImage := in.GetOperatorImage(&desiredPodSpec)
-		in.SetOperatorImage(&originalPodSpec, operatorImage)
-		in.SetOperatorImage(&currentPodSpec, operatorImage)
-	}
-
 	// a callback function that the 3-way patch method will call just before it applies a patch
 	// if there is any patch to apply, this will check StatusHA if required and update the deployment status
 	callback := func() {

@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
- *
  */
 
 package compatibility
@@ -15,6 +14,7 @@ import (
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 	"testing"
 	"time"
 )
@@ -139,6 +139,12 @@ func TestActivePersistenceScaleDownAndUp(t *testing.T) {
 func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod) {
 	deployment, err := helper.NewSingleCoherenceFromYaml(ns, yamlFile)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	if helper.GetTestCoherenceIsJava8() {
+		deployment.Spec.JVM = &v1.JVMSpec{
+			Java8: ptr.To(true),
+		}
+	}
 
 	d, _ := json.Marshal(deployment)
 	fmt.Printf("Persistence Test installing deployment:\n%s\n", string(d))

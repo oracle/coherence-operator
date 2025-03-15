@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -22,7 +22,7 @@ func TestBasicOperator(t *testing.T) {
 	}
 
 	args := []string{"operator", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -45,7 +45,7 @@ func TestOperatorWithSingleGlobalLabel(t *testing.T) {
 	}
 
 	args := []string{"operator", "--dry-run", "--global-label", "one=value-one"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -69,7 +69,7 @@ func TestOperatorWithMultipleGlobalLabels(t *testing.T) {
 		"--global-label", "two=value-two",
 		"--global-label", "three=value-three",
 	}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -91,7 +91,7 @@ func TestOperatorWithSingleGlobalAnnotation(t *testing.T) {
 	}
 
 	args := []string{"operator", "--dry-run", "--global-annotation", "one=value-one"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -115,7 +115,7 @@ func TestOperatorWithMultipleGlobalAnnotations(t *testing.T) {
 		"--global-annotation", "two=value-two",
 		"--global-annotation", "three=value-three",
 	}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
