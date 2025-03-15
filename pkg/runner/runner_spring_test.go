@@ -111,7 +111,7 @@ func TestSpringBootFatJarApplication(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	expected := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), "--class-path", "/apps/lib/foo.jar")
+	expected := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), coh.JvmOptClassPath, "/apps/lib/foo.jar")
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
@@ -145,7 +145,7 @@ func TestSpringBoot3FatJarApplication(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	expected := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain3), "--class-path", "/apps/lib/foo.jar")
+	expected := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain3), coh.JvmOptClassPath, "/apps/lib/foo.jar")
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
@@ -180,7 +180,7 @@ func TestSpringBootFatJarConsole(t *testing.T) {
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
-	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), "--class-path", jar)
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), coh.JvmOptClassPath, jar)
 	expectedArgs = append(expectedArgs, "-Dcoherence.role=console",
 		"-Dloader.main=com.tangosol.net.CacheFactory",
 		"-Dcoherence.distributed.localstorage=false",
@@ -228,7 +228,7 @@ func TestSpringBootFatJarConsoleWithArgs(t *testing.T) {
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
-	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), "--class-path", jar)
+	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2), coh.JvmOptClassPath, jar)
 	expectedArgs = append(expectedArgs, "-Dcoherence.role=console",
 		"-Dloader.main=com.tangosol.net.CacheFactory",
 		"-Dcoherence.distributed.localstorage=false",
@@ -279,7 +279,7 @@ func TestSpringBootFatJarApplicationWithCustomMain(t *testing.T) {
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
 	expectedArgs := append(GetMinimalExpectedSpringBootArgs(t, coh.SpringBootMain2),
-		"--class-path", jar, "-Dloader.main=foo.Bar")
+		coh.JvmOptClassPath, jar, "-Dloader.main=foo.Bar")
 
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
 }

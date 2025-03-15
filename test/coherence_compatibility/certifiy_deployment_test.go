@@ -71,6 +71,12 @@ func TestCoherenceCompatibilityScaling(t *testing.T) {
 		},
 	}
 
+	if helper.GetTestCoherenceIsJava8() {
+		d.Spec.JVM = &v1.JVMSpec{
+			Java8: ptr.To(true),
+		}
+	}
+
 	// Start with one replica
 	err := testContext.Client.Create(context.TODO(), d)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -90,16 +96,14 @@ func TestCoherenceCompatibilityScaling(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-// This test is not really using Java8.
-// It just sets the Java8 field to true to test running with
+// This test is not really using Java8 for images using Coherence 14.1.1-2206
+// and above. The test just sets the Java8 field to true to test running with
 // the legacy container entry point.
 func TestCoherenceCompatibilityJava8(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
 
 	g := NewGomegaWithT(t)
-
-	imageName := helper.GetCoherenceCompatibilityImage()
 
 	ns := helper.GetTestNamespace()
 	d := &v1.Coherence{
@@ -109,7 +113,6 @@ func TestCoherenceCompatibilityJava8(t *testing.T) {
 		},
 		Spec: v1.CoherenceStatefulSetResourceSpec{
 			CoherenceResourceSpec: v1.CoherenceResourceSpec{
-				Image: &imageName,
 				JVM: &v1.JVMSpec{
 					Java8: ptr.To(true),
 				},

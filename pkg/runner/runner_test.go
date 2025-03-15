@@ -121,7 +121,7 @@ func GetMinimalExpectedArgsWithWorkingDir(t *testing.T, wd string) []string {
 		cp = cp + ":" + cfg
 	}
 
-	args := []string{GetJavaArg(), "--class-path", cp}
+	args := []string{GetJavaArg(), "-cp", cp}
 	return append(AppendCommonExpectedArgs(args),
 		"com.oracle.coherence.k8s.Main",
 		"$DEFAULT$")

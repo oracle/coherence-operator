@@ -977,7 +977,7 @@ func checkCoherenceVersion(v string, details *run_details.RunDetails) bool {
 
 		if jar, _ := details.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
 			// This is a fat jar Spring boot app so put the fat jar on the classpath
-			args = append(args, "--class-path", jar)
+			args = append(args, v1.JvmOptClassPath, jar)
 		}
 
 		if details.AppType == v1.AppTypeSpring2 {
@@ -989,7 +989,7 @@ func checkCoherenceVersion(v string, details *run_details.RunDetails) bool {
 		}
 	} else {
 		// We can use normal Java
-		args = append(args, "--class-path", cp,
+		args = append(args, v1.JvmOptClassPath, cp,
 			"-Dcoherence.operator.springboot.listener=false",
 			"com.oracle.coherence.k8s.CoherenceVersion", v)
 	}

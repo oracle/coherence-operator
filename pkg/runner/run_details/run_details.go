@@ -262,7 +262,7 @@ func (in *RunDetails) GetCommandWithPrefix(propPrefix, jvmPrefix string) []strin
 	var cmd []string
 	cp := in.GetClasspath()
 	if cp != "" {
-		cmd = append(cmd, "--class-path", cp)
+		cmd = append(cmd, v1.JvmOptClassPath, cp)
 	}
 	if propPrefix == "" && jvmPrefix == "" {
 		cmd = append(cmd, in.GetAllArgs()...)
@@ -286,7 +286,7 @@ func (in *RunDetails) GetSpringBootArgs() []string {
 	var cmd []string
 	// Are we using a Spring Boot fat jar
 	if jar, _ := in.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
-		cmd = append(cmd, "--class-path", jar)
+		cmd = append(cmd, v1.JvmOptClassPath, jar)
 	}
 	return append(cmd, in.GetAllArgs()...)
 }

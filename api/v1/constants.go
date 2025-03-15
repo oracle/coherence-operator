@@ -336,6 +336,7 @@ const (
 	SysPropSpringLoaderMain = "loader.main"
 	SysPropSpringLoaderPath = "loader.path"
 
+	JvmOptClassPath                 = "-cp"
 	JvmOptUnlockDiagnosticVMOptions = "-XX:+UnlockDiagnosticVMOptions"
 	JvmOptNativeMemoryTracking      = "-XX:NativeMemoryTracking"
 

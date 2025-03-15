@@ -82,7 +82,7 @@ func TestJibClasspathFileWhenJibFilePresent(t *testing.T) {
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 
-	expected := append(GetMinimalExpectedArgsWithoutCP(), "--class-path", expectedCp)
+	expected := append(GetMinimalExpectedArgsWithoutCP(), coh.JvmOptClassPath, expectedCp)
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
@@ -150,7 +150,7 @@ func TestJibClasspathFileAndMainClassFile(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	expected := append(GetMinimalExpectedArgsWithoutCP(), "--class-path", expectedCp)
+	expected := append(GetMinimalExpectedArgsWithoutCP(), coh.JvmOptClassPath, expectedCp)
 	expected = ReplaceArg(expected, coh.DefaultMain, JibMainClass)
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 	//	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.tangosol.net.DefaultCacheServer")))
