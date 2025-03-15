@@ -830,8 +830,8 @@ func (in *JVMSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 		}
 
 		if in.Java8 != nil && *in.Java8 {
-			podTemplate.Spec.Containers[0].Command = []string{RunnerCommand, "server"}
-			podTemplate.Spec.Containers[0].Args = []string{}
+			c.Command = []string{RunnerCommand, "server"}
+			c.Args = []string{}
 		}
 	}
 

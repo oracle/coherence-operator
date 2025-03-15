@@ -780,3 +780,20 @@ func TestAddLifecycleToStatefulSetCoherenceContainer(t *testing.T) {
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestCreateStatefulUsingJava8(t *testing.T) {
+	// Create minimal spec spec
+	spec := coh.CoherenceResourceSpec{
+		JVM: &coh.JVMSpec{
+			Java8: ptr.To(true),
+		},
+	}
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].Command = []string{coh.RunnerCommand, "server"}
+	stsExpected.Spec.Template.Spec.Containers[0].Args = []string{}
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
