@@ -388,13 +388,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 	cohContainer := corev1.Container{
 		Name:    coh.ContainerNameCoherence,
 		Image:   testCoherenceImage,
-		Command: []string{"java"},
-		Args: []string{
-			"--class-path",
-			fmt.Sprintf("@%s/%s", coh.VolumeMountPathUtils, coh.OperatorClasspathFile),
-			fmt.Sprintf("@%s/%s", coh.VolumeMountPathUtils, coh.OperatorJvmArgsFile),
-			fmt.Sprintf("@%s/%s", coh.VolumeMountPathUtils, coh.OperatorMainClassFile),
-		},
+		Command: []string{"java", fmt.Sprintf("@%s/%s", coh.VolumeMountPathUtils, coh.OperatorCoherenceArgsFile)},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          coh.PortNameCoherence,

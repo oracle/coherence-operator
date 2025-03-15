@@ -175,6 +175,9 @@ const (
 	// OperatorRackURL is the default Operator rack query URL
 	OperatorRackURL = "http://$(COHERENCE_OPERATOR_HOST)/rack/$(COHERENCE_MACHINE)"
 
+	// OperatorCoherenceArgsFile is the name of the file in the utils directory containing the full set of
+	// JVM arguments to run the Coherence container
+	OperatorCoherenceArgsFile = "coherence-container-args.txt"
 	// OperatorJvmArgsFile is the name of the file in the utils directory containing the JVM arguments
 	OperatorJvmArgsFile = "coherence-jvm-args.txt"
 	// OperatorClasspathFile is the name of the file in the utils directory containing the JVM class path

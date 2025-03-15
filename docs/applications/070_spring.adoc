@@ -174,36 +174,24 @@ class as opposed to the `org.springframework.boot.loader.JarLauncher` that `java
 === Using Could Native Buildpacks
 
 If the Spring Boot Maven or Gradle plugin has been used to produce an image using
-https://spring.io/blog/2020/01/27/creating-docker-images-with-spring-boot-2-3-0-m1[Cloud Native Buildpacks]
+https://docs.spring.io/spring-boot/reference/packaging/container-images/cloud-native-buildpacks.html[Cloud Native Buildpacks]
 these images can work with the Coherence Operator.
+
+Images using Cloud Native Buildpacks contain a special launcher executable the runs the Java application. This makes it more complex than normal for the Operator to provide a custom Java command. For images built using Cloud Native Buildpacks to work the `Coherence` resource must be configured to execute the images entry point instead of the Operator injecting a command line.
 
 [WARNING]
 ====
+Due to the way that the Coherence Operator configures JVM arguments
+when configured to use an image entry point, the image must be running
+Java 11 or higher.
+====
+
+Instead of building a custom command line, the Operator uses the `JDK_JAVA_OPTIONS` environment variable to pass and
+configured JVM options and system properties to the Spring application.
+This is a standard environment variable that the JVM will effectively use to pre-pend JVM arguments to its command line.
+
 Due to limitation on the way that arguments can be passed to the JVM when using Buildpacks images the Coherence
 operator will only work with images containing a JVM greater than Java 11.
-Although the Buildpacks launcher will honour the `JAVA_OPTS` or `JAVA_TOOL_OPTIONS` environment variables there appear
-to be size limitations for the values of these variables that make it impractical for the Operator to use them.
-The Operator therefore creates a JVM arguments file to pass the arguments to the JVM.
-At the time of writing these docs, Java 8 (which is the default version of Java used by the Spring Boot plugin) does not
-support the use of argument files for the JVM.
-
-It is simple to configure the version of the JVM used by the Spring Boot plugin, for example in Maven:
-[source,xml]
-----
-<plugin>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-maven-plugin</artifactId>
-  <version>2.3.4.RELEASE</version>
-  <configuration>
-    <image>
-      <env>
-        <BP_JVM_VERSION>11.*</BP_JVM_VERSION>
-      </env>
-    </image>
-  </configuration>
-</plugin>
-----
-====
 
 
 When creating a `Coherence` deployment for a Spring Boot Buildpacks image The application type must be set to `spring`.
@@ -220,25 +208,13 @@ spec:
   image: catalogue:1.0.0
   application:
     type: spring # <1>
+    useImageEntryPoint: true <2>
 ----
 
 <1> The application type has been set to `spring` (for Spring Boot 2.x) or `spring3` (for Spring Boot 3.x) so that the
 operator knows that this is a Spring Boot application, and the fact that the image is a Buildpacks image will be auto-discovered.
+<2> The Operator will run the image's entry point
 
-When the Operator starts the application it will then run the buildpacks launcher with a command equivalent
-to this:
-
-*Spring Boot 2.x*
-[source,bash]
-----
-/cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.PropertiesLauncher
-----
-
-*Spring Boot 3.x*
-[source,bash]
-----
-/cnb/lifecycle/launcher java @jvm-args-file org.springframework.boot.loader.launch.PropertiesLauncher
-----
 
 ==== Buildpacks Detection
 

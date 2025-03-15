@@ -64,7 +64,6 @@ func TestCreateStatefulSetWithApplicationMainArgs(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.Containers[0].Args = append(stsExpected.Spec.Template.Spec.Containers[0].Args, "arg1", "arg2")
 	// Add the expected environment variables
 	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
 
@@ -124,7 +123,7 @@ func TestCreateStatefulSetUseImageEntryPoint(t *testing.T) {
 	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-jvm-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -169,7 +168,7 @@ func TestCreateStatefulSetUseImageEntryPointWithExistingJdkOpts(t *testing.T) {
 	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-jvm-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-container-args.txt"})
 	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
 		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar"})
 	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
@@ -191,6 +190,58 @@ func TestCreateStatefulSetWithApplicationEntryPoint(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].Command = []string{"foo", "bar"}
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetUseImageEntryPointWithAltJavaOptEnvVar(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Application: &coh.ApplicationSpec{
+			UseImageEntryPoint:      ptr.To(true),
+			AlternateJdkJavaOptions: ptr.To("ALT_OPTS"),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
+	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
+	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"},
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetUseImageEntryPointAndUseJdkOptsFalseWithAltJavaOptEnvVar(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Application: &coh.ApplicationSpec{
+			UseImageEntryPoint:      ptr.To(true),
+			UseJdkJavaOptions:       ptr.To(false),
+			AlternateJdkJavaOptions: ptr.To("ALT_OPTS"),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
+	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
+	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

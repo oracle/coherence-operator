@@ -242,12 +242,22 @@ type ApplicationSpec struct {
 	// to the entry point.
 	// +optional
 	UseImageEntryPoint *bool `json:"useImageEntryPoint,omitempty"`
-	// UseJdkJavaOptions is a flag to indicate that the JDK_JAVA_OPTIONS environment variable
+	// UseJdkJavaOptions is a flag to indicate that the `JDK_JAVA_OPTIONS` environment variable
 	// should be set in the Coherence container to contain the JVM arguments configured by
 	// the Operator.
-	// Setting JDK_JAVA_OPTIONS defaults to true and only applies if UseImageEntryPoint is set to true.
+	// Setting `JDK_JAVA_OPTIONS` defaults to true and only applies if UseImageEntryPoint is set to true.
 	// +optional
 	UseJdkJavaOptions *bool `json:"useJdkJavaOptions,omitempty"`
+	// AlternateJdkJavaOptions specifies an alternative environment variable name to use instead of
+	// `JDK_JAVA_OPTIONS` for the command line options.
+	// If an application does not want to use the `JDK_JAVA_OPTIONS` environment variable but still
+	// wants access to the options the operator would have configured, this field can be set to an
+	// environment variable that an application can then access in the container at runtime.
+	// The value of the environment variable specified here will be set even if `UseJdkJavaOptions`
+	// is set to false.
+	// Setting the alternate JVM options environment variable only applies if UseImageEntryPoint is set to true.
+	// +optional
+	AlternateJdkJavaOptions *string `json:"alternateJdkJavaOptions,omitempty"`
 }
 
 // UpdateCoherenceContainer updates the Coherence container with the relevant settings.
@@ -294,32 +304,28 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 		useJdkJavaOptions = useImageEntryPoint && (in.UseJdkJavaOptions == nil || *in.UseJdkJavaOptions)
 	}
 
+	argsFile := fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorCoherenceArgsFile)
+
 	if useImageEntryPoint {
 		// we are configured to use the image's entry point
 		// in cannot be nil if we get here
 		if useJdkJavaOptions {
 			// find any existing JDK_JAVA_OPTION env var so we do not loose its value
-			jdkOpts := ""
+			existingJdkOpts := ""
 			jdkOptsIdx := -1
 			for i, ev := range c.Env {
 				if ev.Name == EnvVarJdkOptions {
-					jdkOpts = ev.Value
+					existingJdkOpts = ev.Value
 					jdkOptsIdx = i
 					break
 				}
 			}
 
-			if in.IsSpringBoot() {
-				jdkOpts = jdkOpts + " " + fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile)
-				jdkOpts = jdkOpts + " " + fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile)
-			} else {
-				jdkOpts = jdkOpts + " " + fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile)
-			}
-
 			jdkOptsEV := corev1.EnvVar{
 				Name:  EnvVarJdkOptions,
-				Value: strings.TrimSpace(jdkOpts),
+				Value: strings.TrimSpace(existingJdkOpts + " " + argsFile),
 			}
+
 			if jdkOptsIdx >= 0 {
 				c.Env[jdkOptsIdx] = jdkOptsEV
 			} else {
@@ -327,30 +333,18 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 			}
 		}
 
+		if in.AlternateJdkJavaOptions != nil && *in.AlternateJdkJavaOptions != "" {
+			c.Env = append(c.Env, corev1.EnvVar{
+				Name:  *in.AlternateJdkJavaOptions,
+				Value: strings.TrimSpace(argsFile),
+			})
+		}
+
 		// Use the application args as container args
 		c.Args = in.Args
-	} else {
-		args := []string{"--class-path",
-			fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorClasspathFile)}
-
-		if in.IsSpringBoot() {
-			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
-			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorSpringBootArgsFile))
-			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
-		} else {
-			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorJvmArgsFile))
-			args = append(args, fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorMainClassFile))
-		}
-
-		if in != nil {
-			args = append(args, in.Args...)
-		}
-
-		if c.Command == nil {
-			// if not already set, use "java" as the container entry point
-			c.Command = []string{"java"}
-		}
-		c.Args = args
+	} else if c.Command == nil {
+		// if not already set, use "java" as the container entry point
+		c.Command = []string{"java", argsFile}
 	}
 }
 
@@ -1649,11 +1643,11 @@ func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 		corev1.EnvVar{Name: EnvVarJvmDebugPort, Value: p},
 	)
 
-	if in != nil && in.Suspend != nil && *in.Suspend {
+	if in.Suspend != nil && *in.Suspend {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugSuspended, Value: "true"})
 	}
 
-	if in != nil && in.Attach != nil {
+	if in.Attach != nil {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugAttach, Value: *in.Attach})
 	}
 

@@ -64,7 +64,6 @@ func TestCreateJobWithApplicationMainArgs(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	jobExpected.Spec.Template.Spec.Containers[0].Args = append(jobExpected.Spec.Template.Spec.Containers[0].Args, "arg1", "arg2")
 	// Add the expected environment variables
 	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarAppMainArgs, Value: "arg1 arg2"})
 
@@ -120,14 +119,14 @@ func TestCreateJobUseImageEntryPoint(t *testing.T) {
 	// Create the test deployment
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
-	stsExpected := createMinimalExpectedJob(deployment)
-	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
-	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
-	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-jvm-args.txt"})
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"})
 
 	// assert that the Job is as expected
-	assertJobCreation(t, deployment, stsExpected)
+	assertJobCreation(t, deployment, jobExpected)
 }
 
 func TestCreateJobUseImageEntryPointAndUseJdkOptsFalse(t *testing.T) {
@@ -141,12 +140,12 @@ func TestCreateJobUseImageEntryPointAndUseJdkOptsFalse(t *testing.T) {
 	// Create the test deployment
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
-	stsExpected := createMinimalExpectedJob(deployment)
-	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
-	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
 
 	// assert that the Job is as expected
-	assertJobCreation(t, deployment, stsExpected)
+	assertJobCreation(t, deployment, jobExpected)
 }
 
 func TestCreateJobUseImageEntryPointWithExistingJdkOpts(t *testing.T) {
@@ -165,18 +164,18 @@ func TestCreateJobUseImageEntryPointWithExistingJdkOpts(t *testing.T) {
 	// Create the test deployment
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
-	stsExpected := createMinimalExpectedJob(deployment)
-	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
-	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
-	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-jvm-args.txt"})
-	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-container-args.txt"})
+	jobExpected.Spec.Template.Spec.InitContainers[0].Env = append(jobExpected.Spec.Template.Spec.InitContainers[0].Env,
 		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar"})
-	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
+	jobExpected.Spec.Template.Spec.InitContainers[1].Env = append(jobExpected.Spec.Template.Spec.InitContainers[1].Env,
 		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar"})
 
 	// assert that the Job is as expected
-	assertJobCreation(t, deployment, stsExpected)
+	assertJobCreation(t, deployment, jobExpected)
 }
 
 func TestCreateJobWithApplicationEntryPoint(t *testing.T) {
@@ -189,9 +188,61 @@ func TestCreateJobWithApplicationEntryPoint(t *testing.T) {
 	// Create the test deployment
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
-	stsExpected := createMinimalExpectedJob(deployment)
-	stsExpected.Spec.Template.Spec.Containers[0].Command = []string{"foo", "bar"}
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = []string{"foo", "bar"}
 
 	// assert that the Job is as expected
-	assertJobCreation(t, deployment, stsExpected)
+	assertJobCreation(t, deployment, jobExpected)
+}
+
+func TestCreateJobUseImageEntryPointWithAltJavaOptEnvVar(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Application: &coh.ApplicationSpec{
+			UseImageEntryPoint:      ptr.To(true),
+			AlternateJdkJavaOptions: ptr.To("ALT_OPTS"),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJob(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"},
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	jobExpected.Spec.Template.Spec.InitContainers[0].Env = append(jobExpected.Spec.Template.Spec.InitContainers[0].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	jobExpected.Spec.Template.Spec.InitContainers[1].Env = append(jobExpected.Spec.Template.Spec.InitContainers[1].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
+}
+
+func TestCreateJobUseImageEntryPointAndUseJdkOptsFalseWithAltJavaOptEnvVar(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Application: &coh.ApplicationSpec{
+			UseImageEntryPoint:      ptr.To(true),
+			UseJdkJavaOptions:       ptr.To(false),
+			AlternateJdkJavaOptions: ptr.To("ALT_OPTS"),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJob(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
+	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	jobExpected.Spec.Template.Spec.InitContainers[0].Env = append(jobExpected.Spec.Template.Spec.InitContainers[0].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+	jobExpected.Spec.Template.Spec.InitContainers[1].Env = append(jobExpected.Spec.Template.Spec.InitContainers[1].Env,
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
 }

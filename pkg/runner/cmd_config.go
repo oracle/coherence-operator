@@ -47,6 +47,15 @@ func configCommand(env map[string]string) *cobra.Command {
 
 // createsFiles will create the various config files
 func createsFiles(details *run_details.RunDetails, _ *cobra.Command) (bool, error) {
+	ma, found := details.LookupEnv(v1.EnvVarAppMainArgs)
+	if found {
+		if ma != "" {
+			for _, arg := range strings.Split(ma, " ") {
+				details.MainArgs = append(details.MainArgs, details.ExpandEnv(arg))
+			}
+		}
+	}
+
 	populateMainClass(details)
 	populateServerDetails(details)
 	err := configureCommand(details)
@@ -68,7 +77,46 @@ func createsFiles(details *run_details.RunDetails, _ *cobra.Command) (bool, erro
 	if err := createCliConfig(details); err != nil {
 		return false, err
 	}
+
+	if err := createFinalArgsFile(details); err != nil {
+		return false, err
+	}
 	return false, nil
+}
+
+// createClassPathFile will create the class path files for a Coherence Pod - typically this is run from an init-container
+func createFinalArgsFile(details *run_details.RunDetails) error {
+	var buffer bytes.Buffer
+	buffer.WriteString("--class-path")
+	buffer.WriteString("\n")
+	buffer.WriteString(fmt.Sprintf(v1.ArgumentFileNamePattern, v1.VolumeMountPathUtils, os.PathSeparator, v1.OperatorClasspathFile))
+	buffer.WriteString("\n")
+
+	if details.IsSpringBoot() {
+		buffer.WriteString(fmt.Sprintf(v1.ArgumentFileNamePattern, v1.VolumeMountPathUtils, os.PathSeparator, v1.OperatorJvmArgsFile))
+		buffer.WriteString("\n")
+		buffer.WriteString(fmt.Sprintf(v1.ArgumentFileNamePattern, v1.VolumeMountPathUtils, os.PathSeparator, v1.OperatorSpringBootArgsFile))
+		buffer.WriteString("\n")
+		buffer.WriteString(fmt.Sprintf(v1.ArgumentFileNamePattern, v1.VolumeMountPathUtils, os.PathSeparator, v1.OperatorMainClassFile))
+	} else {
+		buffer.WriteString(fmt.Sprintf(v1.ArgumentFileNamePattern, v1.VolumeMountPathUtils, os.PathSeparator, v1.OperatorJvmArgsFile))
+		buffer.WriteString("\n")
+		buffer.WriteString(fmt.Sprintf(v1.ArgumentFileNamePattern, v1.VolumeMountPathUtils, os.PathSeparator, v1.OperatorMainClassFile))
+	}
+
+	if len(details.MainArgs) > 0 {
+		for _, arg := range details.MainArgs {
+			buffer.WriteString("\n")
+			buffer.WriteString(arg)
+		}
+	}
+	argsFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorCoherenceArgsFile)
+	err := os.WriteFile(argsFile, buffer.Bytes(), os.ModePerm)
+	if err != nil {
+		return errors.Wrap(err, "failed to write coherence container args file")
+	}
+	configLog.Info("Created class path file", "FileName", argsFile, "Args", buffer.String())
+	return nil
 }
 
 // createClassPathFile will create the class path files for a Coherence Pod - typically this is run from an init-container
