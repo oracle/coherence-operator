@@ -845,7 +845,7 @@ func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 	}
 
 	// Add the snapshot volume mount if required
-	if in != nil && in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
+	if in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
 		// Set the snapshot location environment variable
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotDir, Value: VolumeMountPathSnapshots})
 		// Add the snapshot volume mount
@@ -1276,7 +1276,7 @@ func (in *NamedPortSpec) GetServicePort(d CoherenceResource) int32 {
 	switch {
 	case in == nil:
 		return 0
-	case in != nil && in.Service != nil && in.Service.Port != nil:
+	case in.Service != nil && in.Service.Port != nil:
 		return *in.Service.Port
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
 		// special case for well known port - metrics
@@ -1380,15 +1380,23 @@ type ServiceMonitorSpec struct {
 	// +optional
 	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
 	// File to read bearer token for scraping targets.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// Deprecated: use `authorization` instead.
 	// +optional
 	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
 	// Secret to mount to read bearer token for scraping targets. The secret
 	// needs to be in the same namespace as the service monitor and accessible by
 	// the Prometheus Operator.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// Deprecated: use `authorization` instead.
 	// +optional
 	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
+	// `authorization` configures the Authorization header credentials to use when
+	// scraping the target.
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	//
+	// Cannot be set at the same time as `basicAuth`, or `oauth2`.
+	//
+	// +optional
+	Authorization *monitoringv1.SafeAuthorization `json:"authorization,omitempty"`
 	// HonorLabels chooses the metric labels on collisions with target labels.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
@@ -1511,11 +1519,11 @@ func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 		corev1.EnvVar{Name: EnvVarJvmDebugPort, Value: p},
 	)
 
-	if in != nil && in.Suspend != nil && *in.Suspend {
+	if in.Suspend != nil && *in.Suspend {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugSuspended, Value: "true"})
 	}
 
-	if in != nil && in.Attach != nil {
+	if in.Attach != nil {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugAttach, Value: *in.Attach})
 	}
 
@@ -1944,6 +1952,7 @@ type ServiceSpec struct {
 	// +optional
 	ClusterIPs []string `json:"clusterIPs,omitempty"`
 	// LoadBalancerIP is the IP address of the load balancer
+	// Deprecated: This field is deprecated in the Kubernetes API.
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
 	// The extra labels to add to the service.
