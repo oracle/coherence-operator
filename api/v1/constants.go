@@ -180,7 +180,7 @@ const (
 	OperatorCoherenceArgsFile = "coherence-container-args.txt"
 	// OperatorEntryPointArgsFile is the arguments file to add to the JDK_JAVA_OPTIONS environment variable
 	// when running the image entry point
-	OperatorEntryPointArgsFile = "coherence-container-args.txt"
+	OperatorEntryPointArgsFile = "coherence-entrypoint-args.txt"
 	// OperatorJvmArgsFile is the name of the file in the utils directory containing the JVM arguments
 	OperatorJvmArgsFile = "coherence-jvm-args.txt"
 	// OperatorClasspathFile is the name of the file in the utils directory containing the JVM class path
