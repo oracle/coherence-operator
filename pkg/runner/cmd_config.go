@@ -96,12 +96,13 @@ func createsFiles(details *run_details.RunDetails, _ *cobra.Command) (bool, erro
 	if details.IsSpringBoot() {
 		buffer.WriteString(sb)
 		buffer.WriteString("\n")
-	}
-	buffer.WriteString(main)
-	if len(details.MainArgs) > 0 {
-		for _, arg := range details.MainArgs {
-			buffer.WriteString("\n")
-			buffer.WriteString(arg)
+	} else {
+		buffer.WriteString(main)
+		if len(details.MainArgs) > 0 {
+			for _, arg := range details.MainArgs {
+				buffer.WriteString("\n")
+				buffer.WriteString(arg)
+			}
 		}
 	}
 
