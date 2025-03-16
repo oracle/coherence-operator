@@ -123,7 +123,7 @@ func TestCreateStatefulSetUseImageEntryPoint(t *testing.T) {
 	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -168,7 +168,7 @@ func TestCreateStatefulSetUseImageEntryPointWithExistingJdkOpts(t *testing.T) {
 	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
 		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar"})
 	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
@@ -210,12 +210,12 @@ func TestCreateStatefulSetUseImageEntryPointWithAltJavaOptEnvVar(t *testing.T) {
 	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"},
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"},
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -237,11 +237,11 @@ func TestCreateStatefulSetUseImageEntryPointAndUseJdkOptsFalseWithAltJavaOptEnvV
 	stsExpected.Spec.Template.Spec.Containers[0].Command = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
 	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	stsExpected.Spec.Template.Spec.InitContainers[0].Env = append(stsExpected.Spec.Template.Spec.InitContainers[0].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	stsExpected.Spec.Template.Spec.InitContainers[1].Env = append(stsExpected.Spec.Template.Spec.InitContainers[1].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

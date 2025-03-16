@@ -123,7 +123,7 @@ func TestCreateJobUseImageEntryPoint(t *testing.T) {
 	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -168,7 +168,7 @@ func TestCreateJobUseImageEntryPointWithExistingJdkOpts(t *testing.T) {
 	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar @/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	jobExpected.Spec.Template.Spec.InitContainers[0].Env = append(jobExpected.Spec.Template.Spec.InitContainers[0].Env,
 		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "-Dfoo=bar"})
 	jobExpected.Spec.Template.Spec.InitContainers[1].Env = append(jobExpected.Spec.Template.Spec.InitContainers[1].Env,
@@ -210,12 +210,12 @@ func TestCreateJobUseImageEntryPointWithAltJavaOptEnvVar(t *testing.T) {
 	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-container-args.txt"},
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"},
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	jobExpected.Spec.Template.Spec.InitContainers[0].Env = append(jobExpected.Spec.Template.Spec.InitContainers[0].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	jobExpected.Spec.Template.Spec.InitContainers[1].Env = append(jobExpected.Spec.Template.Spec.InitContainers[1].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -237,11 +237,11 @@ func TestCreateJobUseImageEntryPointAndUseJdkOptsFalseWithAltJavaOptEnvVar(t *te
 	jobExpected.Spec.Template.Spec.Containers[0].Command = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Args = nil
 	jobExpected.Spec.Template.Spec.Containers[0].Env = append(jobExpected.Spec.Template.Spec.Containers[0].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	jobExpected.Spec.Template.Spec.InitContainers[0].Env = append(jobExpected.Spec.Template.Spec.InitContainers[0].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 	jobExpected.Spec.Template.Spec.InitContainers[1].Env = append(jobExpected.Spec.Template.Spec.InitContainers[1].Env,
-		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-container-args.txt"})
+		corev1.EnvVar{Name: "ALT_OPTS", Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
