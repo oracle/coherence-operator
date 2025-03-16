@@ -70,33 +70,73 @@ func createsFiles(details *run_details.RunDetails, _ *cobra.Command) (bool, erro
 		return false, errors.Wrap(err, "failed to configure server command")
 	}
 
+	fileMap := make(map[string]string)
 	if cp, err = createClassPathFile(details); err != nil {
 		return false, err
 	}
+	fileMap[v1.OperatorClasspathFile] = cp
 	if args, err = createArgsFile(details); err != nil {
 		return false, err
 	}
+	fileMap[v1.OperatorJvmArgsFile] = args
 	if main, err = createMainClassFile(details); err != nil {
 		return false, err
 	}
+	fileMap[v1.OperatorMainClassFile] = main
 	if sb, err = createSpringBootFile(details); err != nil {
 		return false, err
 	}
+	fileMap[v1.OperatorSpringBootArgsFile] = sb
 	if err = createCliConfig(details); err != nil {
 		return false, err
 	}
 
+	if err = createOperatorCoherenceArgsFile(details, fileMap); err != nil {
+		return false, err
+	}
+	if err = createOperatorEntryPointArgsFile(details, fileMap); err != nil {
+		return false, err
+	}
+
+	return false, nil
+}
+
+// createOperatorCoherenceArgsFile will create the full arguments file for the Coherence container.
+// This file will contain the class path, all the JVM options, the main class and any main method arguments.
+func createOperatorCoherenceArgsFile(details *run_details.RunDetails, files map[string]string) error {
+	return createFullArgsFile(details, files, v1.OperatorCoherenceArgsFile, true)
+}
+
+// createOperatorCoherenceArgsFile will create the full arguments file for the Coherence container
+// This file will contain the class path, all the JVM options, but not the main class or any main method arguments.
+func createOperatorEntryPointArgsFile(details *run_details.RunDetails, files map[string]string) error {
+	return createFullArgsFile(details, files, v1.OperatorEntryPointArgsFile, false)
+}
+
+// createOperatorCoherenceArgsFile will create the full arguments file of a specified name,
+// optionally including the main class name and any main args
+func createFullArgsFile(details *run_details.RunDetails, files map[string]string, fileName string, includeMain bool) error {
 	var buffer bytes.Buffer
 	buffer.WriteString("--class-path")
-	buffer.WriteString("\n")
-	buffer.WriteString(cp)
-	buffer.WriteString("\n")
-	buffer.WriteString(args)
-	buffer.WriteString("\n")
-	if details.IsSpringBoot() {
-		buffer.WriteString(sb)
+	if cp, ok := files[v1.OperatorClasspathFile]; ok {
 		buffer.WriteString("\n")
-	} else {
+		buffer.WriteString(cp)
+	}
+	if args, ok := files[v1.OperatorJvmArgsFile]; ok {
+		buffer.WriteString("\n")
+		buffer.WriteString(args)
+	}
+
+	if details.IsSpringBoot() {
+		if sb, ok := files[v1.OperatorSpringBootArgsFile]; ok {
+			buffer.WriteString("\n")
+			buffer.WriteString(sb)
+		}
+	}
+
+	if includeMain {
+		main := files[v1.OperatorMainClassFile]
+		buffer.WriteString("\n")
 		buffer.WriteString(main)
 		if len(details.MainArgs) > 0 {
 			for _, arg := range details.MainArgs {
@@ -106,17 +146,15 @@ func createsFiles(details *run_details.RunDetails, _ *cobra.Command) (bool, erro
 		}
 	}
 
-	argsFile := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorCoherenceArgsFile)
-	err = os.WriteFile(argsFile, buffer.Bytes(), os.ModePerm)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to write coherence container args file")
+	path := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, fileName)
+	if err := os.WriteFile(path, buffer.Bytes(), os.ModePerm); err != nil {
+		return errors.Wrap(err, "failed to write coherence container args file")
 	}
-	configLog.Info("Created Coherence container args file", "FileName", argsFile, "Args", buffer.String())
-
-	return false, nil
+	configLog.Info("Created args file", "FileName", path, "Args", buffer.String())
+	return nil
 }
 
-// createClassPathFile will create the class path files for a Coherence Pod - typically this is run from an init-container
+// createClassPathFile will create the class path files for a Coherence Pod
 func createClassPathFile(details *run_details.RunDetails) (string, error) {
 	var classpath string
 	var err error

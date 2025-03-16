@@ -304,11 +304,11 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 		useJdkJavaOptions = useImageEntryPoint && (in.UseJdkJavaOptions == nil || *in.UseJdkJavaOptions)
 	}
 
-	argsFile := fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorCoherenceArgsFile)
-
 	if useImageEntryPoint {
 		// we are configured to use the image's entry point
 		// in cannot be nil if we get here
+		argsFile := fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorEntryPointArgsFile)
+
 		if useJdkJavaOptions {
 			// find any existing JDK_JAVA_OPTION env var so we do not loose its value
 			existingJdkOpts := ""
@@ -343,7 +343,7 @@ func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
 		// Use the application args as container args
 		c.Args = in.Args
 	} else if c.Command == nil {
-		// if not already set, use "java" as the container entry point
+		argsFile := fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorCoherenceArgsFile)
 		c.Command = []string{"java", argsFile}
 	}
 }

@@ -177,9 +177,10 @@ If the Spring Boot Maven or Gradle plugin has been used to produce an image usin
 https://docs.spring.io/spring-boot/reference/packaging/container-images/cloud-native-buildpacks.html[Cloud Native Buildpacks]
 these images can work with the Coherence Operator.
 
-Images using Cloud Native Buildpacks contain a special launcher executable the runs the Java application. This makes it more complex than normal for the Operator to provide a custom Java command. For images built using Cloud Native Buildpacks to work the `Coherence` resource must be configured to execute the images entry point instead of the Operator injecting a command line.
+Images using Cloud Native Buildpacks contain a special launcher executable the runs the Java application. This makes it more complex than normal for the Operator to provide a custom Java command.
+For images built using Cloud Native Buildpacks to work the `Coherence` resource must be configured to execute the images entry point instead of the Operator injecting a command line.
 
-[WARNING]
+[IMPORTANT]
 ====
 Due to the way that the Coherence Operator configures JVM arguments
 when configured to use an image entry point, the image must be running
@@ -189,10 +190,6 @@ Java 11 or higher.
 Instead of building a custom command line, the Operator uses the `JDK_JAVA_OPTIONS` environment variable to pass and
 configured JVM options and system properties to the Spring application.
 This is a standard environment variable that the JVM will effectively use to pre-pend JVM arguments to its command line.
-
-Due to limitation on the way that arguments can be passed to the JVM when using Buildpacks images the Coherence
-operator will only work with images containing a JVM greater than Java 11.
-
 
 When creating a `Coherence` deployment for a Spring Boot Buildpacks image The application type must be set to `spring`.
 The Operator's launcher will automatically detect that the image is a Buildpacks image and launch the application using
@@ -208,68 +205,18 @@ spec:
   image: catalogue:1.0.0
   application:
     type: spring # <1>
-    useImageEntryPoint: true <2>
+    useImageEntryPoint: true # <2>
 ----
 
 <1> The application type has been set to `spring` (for Spring Boot 2.x) or `spring3` (for Spring Boot 3.x) so that the
 operator knows that this is a Spring Boot application, and the fact that the image is a Buildpacks image will be auto-discovered.
-<2> The Operator will run the image's entry point
+<2> The Operator will run the image's entry point and set the `JDK_JAVA_OPTIONS` environment variable
+to pass arguments to the JVM
 
+For more information on using image entry points with the Coherence operator see the
+<<docs/applications/080_entrypoint.adoc,Run an Image Entry Point>> documentation.
 
-==== Buildpacks Detection
-
-If for some reason buildpacks auto-detection does not work properly the `Coherence`
-CRD contains a filed to force buildpacks to be enabled or disabled.
-
-The `boolean` field `spec.application.cloudNativeBuildPack.enabled` can be set to `true` to enable buildpacks or false
-to disable buildpack.
-
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: Coherence
-metadata:
-  name: test
-spec:
-  image: catalogue:1.0.0
-  application:
-    type: spring            # <1>
-    cloudNativeBuildPack:
-      enabled: true         # <2>
-----
-
-<1> The application type has been set to `spring` so that the operator knows that this is a Spring Boot application
-<2> The `cloudNativeBuildPack.enabled` field has been set to `true` to force the Operator to use the Buildpacks launcher.
-
-==== Specify the Buildpacks Launcher
-
-A Cloud Native Buildpacks image uses a launcher mechanism to run the executable(s) in the image. The Coherence Operator
-launcher will configure the application and then invoke the same buildpacks launcher.
-The Coherence Operator assumes that the buildpacks launcher is in the image in the location `/cnb/lifecycle/launcher`.
-If a buildpacks image has been built with the launcher in a different location then the `Coherence` CRD contains
-a field to set the new location.
-
-The `spec.application.cloudNativeBuildPack.enabled` field.
-
-[source,yaml]
-----
-apiVersion: coherence.oracle.com/v1
-kind: Coherence
-metadata:
-  name: test
-spec:
-  image: catalogue:1.0.0
-  application:
-    type: spring                    # <1>
-    cloudNativeBuildPack:
-      launcher: /buildpack/launcher # <2>
-----
-
-<1> The application type has been set to `spring` so that the operator knows that this is a Spring Boot application
-<2> The buildpacks launcher that the Operator will invoke is located at `/buildpack/launcher`.
-
-
-==== Buildpack JVM Arguments
+==== Buildpacks JVM Arguments
 
 A typical Spring Boot buildpack launcher will attempt to configure options such as heap size based on the container
 resource limits configured, so this must be taken into account if using any of the memory options available in the
