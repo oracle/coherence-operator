@@ -12,6 +12,7 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
+	"os"
 	"testing"
 )
 
@@ -28,6 +29,10 @@ func TestStartSpringFatJarCluster(t *testing.T) {
 }
 
 func TestStartSpringBuildpacksCluster(t *testing.T) {
+	skip := os.Getenv("SKIP_SPRING_CNBP")
+	if skip == "true" {
+		return
+	}
 	testContext.CleanupAfterTest(t)
 	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster.yaml")
 	AssertSpringEndpoint(t, pods)
@@ -46,6 +51,10 @@ func TestStartSpringTwoFatJarCluster(t *testing.T) {
 }
 
 func TestStartSpringTwoBuildpacksCluster(t *testing.T) {
+	skip := os.Getenv("SKIP_SPRING_CNBP")
+	if skip == "true" {
+		return
+	}
 	testContext.CleanupAfterTest(t)
 	_, pods := helper.AssertDeployments(testContext, t, "spring-buildpack-cluster-2.yaml")
 	AssertSpringEndpoint(t, pods)

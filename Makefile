@@ -152,6 +152,7 @@ TEST_APPLICATION_IMAGE_SPRING_CNBP   := $(OPERATOR_IMAGE_REGISTRY)/operator-test
 TEST_APPLICATION_IMAGE_SPRING_2      := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-2:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat-2:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp-2:1.0.0
+SKIP_SPRING_CNBP                     := false
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -596,13 +597,10 @@ build-helidon-test-images: $(BUILD_TARGETS)/java ## Build the Helidon test image
 		$(MAVEN_BUILD_OPTS)
 
 .PHONY: build-spring-test-images
-build-spring-test-images: $(BUILD_TARGETS)/java ## Build the Spring test images
-#   Spring Boot 3.x JIB
-	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
-		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
-#   Spring Boot 3.x CNBP
-	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
+build-spring-test-images: $(BUILD_TARGETS)/java build-spring-jib-images build-spring-fat-images build-spring-cnbp-images ## Build the Spring test images
+
+.PHONY: build-spring-fat-images
+build-spring-fat-images: $(BUILD_TARGETS)/java ## Build the Spring Fat Jar test images
 #   Spring Boot 3.x fat jar
 	$(DOCKER_CMD) build -f java/operator-test-spring/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT) --load java/operator-test-spring/target
 #   Spring Boot 3.x exploded fat jar
@@ -610,12 +608,6 @@ build-spring-test-images: $(BUILD_TARGETS)/java ## Build the Spring test images
 	cp java/operator-test-spring/target/operator-test-spring-$(MVN_VERSION).jar java/operator-test-spring/target/spring/operator-test-spring-$(MVN_VERSION).jar
 	cd java/operator-test-spring/target/spring && jar -xvf operator-test-spring-$(MVN_VERSION).jar && rm -f operator-test-spring-$(MVN_VERSION).jar
 	$(DOCKER_CMD) build -f java/operator-test-spring/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING) --load java/operator-test-spring/target
-#   Spring Boot 2.x JIB
-	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
-		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
-#   Spring Boot 2.x CNBP
-	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
 #   Spring Boot 2.x fat jar
 	$(DOCKER_CMD) build -f java/operator-test-spring-2/target/FatJar.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) --load java/operator-test-spring-2/target
 #   Spring Boot 2.x exploded fat jar
@@ -623,6 +615,26 @@ build-spring-test-images: $(BUILD_TARGETS)/java ## Build the Spring test images
 	cp java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar java/operator-test-spring-2/target/spring/operator-test-spring-2-$(MVN_VERSION).jar
 	cd java/operator-test-spring-2/target/spring && jar -xvf operator-test-spring-2-$(MVN_VERSION).jar && rm -f operator-test-spring-2-$(MVN_VERSION).jar
 	$(DOCKER_CMD) build -f java/operator-test-spring-2/target/Dir.Dockerfile -t $(TEST_APPLICATION_IMAGE_SPRING_2) --load java/operator-test-spring-2/target
+
+.PHONY: build-spring-jib-images
+build-spring-jib-images: $(BUILD_TARGETS)/java ## Build the Spring JIB test images
+#   Spring Boot 3.x JIB
+	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
+#   Spring Boot 2.x JIB
+	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
+
+.PHONY: build-spring-cnbp-images
+build-spring-cnbp-images: $(BUILD_TARGETS)/java ## Build the Spring CNBP test images
+ifneq (true,$(SKIP_SPRING_CNBP))
+#   Spring Boot 3.x CNBP
+	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
+#   Spring Boot 2.x CNBP
+	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the basic Operator Test image
@@ -1240,6 +1252,7 @@ e2e-local-test: export VERSION := $(VERSION)
 e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+e2e-local-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
 e2e-local-test: $(BUILD_TARGETS)/build-operator undeploy reset-namespace create-ssl-secrets gotestsum install-crds ensure-pull-secret  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
