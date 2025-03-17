@@ -1512,15 +1512,23 @@ type ServiceMonitorSpec struct {
 	// +optional
 	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
 	// File to read bearer token for scraping targets.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// Deprecated: use `authorization` instead.
 	// +optional
 	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
 	// Secret to mount to read bearer token for scraping targets. The secret
 	// needs to be in the same namespace as the service monitor and accessible by
 	// the Prometheus Operator.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// Deprecated: use `authorization` instead.
 	// +optional
 	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
+	// `authorization` configures the Authorization header credentials to use when
+	// scraping the target.
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	//
+	// Cannot be set at the same time as `basicAuth`, or `oauth2`.
+	//
+	// +optional
+	Authorization *monitoringv1.SafeAuthorization `json:"authorization,omitempty"`
 	// HonorLabels chooses the metric labels on collisions with target labels.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
@@ -2076,6 +2084,7 @@ type ServiceSpec struct {
 	// +optional
 	ClusterIPs []string `json:"clusterIPs,omitempty"`
 	// LoadBalancerIP is the IP address of the load balancer
+	// Deprecated: This field is deprecated in the Kubernetes API.
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`
 	// The extra labels to add to the service.
