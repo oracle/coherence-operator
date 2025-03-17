@@ -3390,14 +3390,22 @@ see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native=
 </tr>
 <tr>
 <td class=""><code>bearerTokenFile</code></td>
-<td class="">File to read bearer token for scraping targets. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
+<td class="">File to read bearer token for scraping targets. Deprecated: use <code>authorization</code> instead.</td>
 <td class=""><code>string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>bearerTokenSecret</code></td>
-<td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a></td>
+<td class="">Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. Deprecated: use <code>authorization</code> instead.</td>
 <td class=""><code>&#42;<a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#secretkeyselector-v1-core">corev1.SecretKeySelector</a></code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>authorization</code></td>
+<td class=""><code>authorization</code> configures the Authorization header credentials to use when scraping the target. See <a id="" title="" target="_blank" href="https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint">https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint</a><br>
+<br>
+Cannot be set at the same time as <code>basicAuth</code>, or <code>oauth2</code>.</td>
+<td class=""><code>&#42;monitoringv1.SafeAuthorization</code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -3517,7 +3525,7 @@ Unless the "IPv6DualStack" feature gate is enabled, this field is limited to one
 </tr>
 <tr>
 <td class=""><code>loadBalancerIP</code></td>
-<td class="">LoadBalancerIP is the IP address of the load balancer</td>
+<td class="">LoadBalancerIP is the IP address of the load balancer Deprecated: This field is deprecated in the Kubernetes API.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
