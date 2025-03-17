@@ -1300,6 +1300,7 @@ run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP := $(TEST_APPLICATION_IM
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_2 := $(TEST_APPLICATION_IMAGE_SPRING_2)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
 run-e2e-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+run-e2e-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
 run-e2e-test: gotestsum  ## Run the Operator 'remote' end-to-end functional tests using an ALREADY DEPLOYED Operator
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/remote/...
@@ -1339,6 +1340,7 @@ e2e-k3d-test: export VERSION := $(VERSION)
 e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+e2e-k3d-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
 e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
@@ -1426,6 +1428,7 @@ run-prometheus-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 run-prometheus-test: export VERSION := $(VERSION)
 run-prometheus-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-prometheus-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+run-prometheus-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
 run-prometheus-test: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-prometheus-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/prometheus/...
@@ -1465,6 +1468,7 @@ just-compatibility-test: export COMPATIBLE_SELECTOR := $(COMPATIBLE_SELECTOR)
 just-compatibility-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 just-compatibility-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 just-compatibility-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
+just-compatibility-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
 just-compatibility-test:  ## Run the Operator backwards compatibility tests WITHOUT building anything
 	helm repo add coherence https://oracle.github.io/coherence-operator/charts
 	helm repo update
@@ -1524,6 +1528,7 @@ run-certification: export CERTIFICATION_VERSION := $(CERTIFICATION_VERSION)
 run-certification: export OPERATOR_IMAGE_REPO := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)
 run-certification: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-certification: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
+run-certification: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
 run-certification: gotestsum
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-certification-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/certification/...
@@ -2081,10 +2086,12 @@ kind-load: kind-load-operator kind-load-coherence  ## Load all images into the K
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_2) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_2) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) || true
+ifneq (true,$(SKIP_SPRING_CNBP))
+	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
 	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) || true
+endif
 
 .PHONY: kind-load-coherence
 kind-load-coherence:   ## Load the Coherence image into the KinD cluster
@@ -2519,10 +2526,12 @@ push-test-images:
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_3)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+ifneq (true,$(SKIP_SPRING_CNBP))
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Test images to ttl.sh
@@ -2543,14 +2552,16 @@ push-ttl-test-images:
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_FAT) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_FAT)
-	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_2) $(TTL_APPLICATION_IMAGE_SPRING_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_2)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_FAT_2)
+ifneq (true,$(SKIP_SPRING_CNBP))
+	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_CNBP)
 	$(DOCKER_CMD) tag $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TTL_APPLICATION_IMAGE_SPRING_CNBP_2)
+endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the Operator Test images
