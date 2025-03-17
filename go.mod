@@ -4,8 +4,6 @@ go 1.24.0
 
 toolchain go1.24.1
 
-godebug default=go1.24
-
 require (
 	github.com/distribution/reference v0.6.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32

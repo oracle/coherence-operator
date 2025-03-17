@@ -243,7 +243,7 @@ func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod
 }
 
 func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType, snapshotName string) error {
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	if err != nil {
 		return err
 	}

@@ -198,7 +198,7 @@ func requestManagementWithoutSSL(pod corev1.Pod, retry bool) error {
 
 // make a management over rest request.
 func assertManagementRequest(pod corev1.Pod, client *http.Client, protocol string, retry bool) error {
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	if err != nil {
 		return err
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -128,7 +128,7 @@ func assertLabel(t *testing.T, name string, fileName string, labels, prefixLabel
 	helper.DumpPodLog(testContext, &pods[0], t.Name())
 
 	// Port forward to the first Pod
-	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pods[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 

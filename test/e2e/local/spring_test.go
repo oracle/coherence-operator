@@ -64,7 +64,7 @@ func TestStartSpringTwoBuildpacksCluster(t *testing.T) {
 func AssertSpringEndpoint(t *testing.T, pods []corev1.Pod) {
 	g := NewGomegaWithT(t)
 
-	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pods[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 

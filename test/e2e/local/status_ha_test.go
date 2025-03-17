@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -70,7 +70,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	pods, err := helper.ListCoherencePodsForDeployment(testContext, ns, tc.Deployment.Name)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pods[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
