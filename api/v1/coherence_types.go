@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -206,14 +207,22 @@ type ApplicationSpec struct {
 	// runnable, for example if the application type is "node" the main may be a Javascript file.
 	// +optional
 	Main *string `json:"main,omitempty"`
-	// Args is the optional arguments to pass to the main class.
+	// Entrypoint array that will override the "java" entry point configured by the Operator or
+	// and any container entry point. This is an advanced use case, specifying an incorrect value here can
+	// cause the container not to start.
+	// Variable references $(VAR_NAME) are expanded using the container's environment. If a variable
+	// cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced
+	// to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. "$$(VAR_NAME)" will
+	// produce the string literal "$(VAR_NAME)". Escaped references will never be expanded, regardless
+	// of whether the variable exists or not. Cannot be updated.
+	// +optional
+	// +listType=atomic
+	EntryPoint []string `json:"entryPoint,omitempty"`
+	// Args is the optional arguments to pass to the main class or the container entry point.
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
-	// The application folder in the custom artifacts Docker image containing
-	// application artifacts.
-	// This will effectively become the working directory of the Coherence container.
-	// If not set the application directory default value is "/app".
+	// WorkingDir sets the working directory of the Coherence container.
 	// +optional
 	WorkingDir *string `json:"workingDir,omitempty"`
 	// Optional settings that may be configured if using a Cloud Native Buildpack Image.
@@ -227,42 +236,133 @@ type ApplicationSpec struct {
 	// For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"
 	// +optional
 	SpringBootFatJar *string `json:"springBootFatJar,omitempty"`
+	// UseImageEntryPoint is a flag to indicate that the Coherence container in the Pods
+	// should just execute the image entry point and not configure a custom command line.
+	// If this flag is set to true any arguments in the Args field are passed as container arguments
+	// to the entry point.
+	// +optional
+	UseImageEntryPoint *bool `json:"useImageEntryPoint,omitempty"`
+	// UseJdkJavaOptions is a flag to indicate that the `JDK_JAVA_OPTIONS` environment variable
+	// should be set in the Coherence container to contain the JVM arguments configured by
+	// the Operator.
+	// Setting `JDK_JAVA_OPTIONS` defaults to true and only applies if UseImageEntryPoint is set to true.
+	// +optional
+	UseJdkJavaOptions *bool `json:"useJdkJavaOptions,omitempty"`
+	// AlternateJdkJavaOptions specifies an alternative environment variable name to use instead of
+	// `JDK_JAVA_OPTIONS` for the command line options.
+	// If an application does not want to use the `JDK_JAVA_OPTIONS` environment variable but still
+	// wants access to the options the operator would have configured, this field can be set to an
+	// environment variable that an application can then access in the container at runtime.
+	// The value of the environment variable specified here will be set even if `UseJdkJavaOptions`
+	// is set to false.
+	// Setting the alternate JVM options environment variable only applies if UseImageEntryPoint is set to true.
+	// +optional
+	AlternateJdkJavaOptions *string `json:"alternateJdkJavaOptions,omitempty"`
 }
 
 // UpdateCoherenceContainer updates the Coherence container with the relevant settings.
 func (in *ApplicationSpec) UpdateCoherenceContainer(c *corev1.Container) {
-	if in == nil {
-		return
-	}
+	useImageEntryPoint := false
+	useJdkJavaOptions := true
 
-	if in.Type != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppType, Value: *in.Type})
-	}
-	if in.Main != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainClass, Value: *in.Main})
-	}
-	if in.WorkingDir != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
-	}
-	if len(in.Args) > 0 {
-		args := strings.Join(in.Args, " ")
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
-	}
-	if in.CloudNativeBuildPack != nil {
-		if in.CloudNativeBuildPack.Enabled != nil {
-			if *in.CloudNativeBuildPack.Enabled {
-				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "true"})
-			} else {
-				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "false"})
+	if in != nil {
+		if len(in.EntryPoint) > 0 {
+			c.Command = in.EntryPoint
+		}
+
+		if in.Type != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppType, Value: *in.Type})
+		}
+		if in.Main != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainClass, Value: *in.Main})
+		}
+		if in.WorkingDir != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohAppDir, Value: *in.WorkingDir})
+			c.WorkingDir = *in.WorkingDir
+		}
+		if len(in.Args) > 0 {
+			args := strings.Join(in.Args, " ")
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarAppMainArgs, Value: args})
+		}
+		if in.CloudNativeBuildPack != nil {
+			if in.CloudNativeBuildPack.Enabled != nil {
+				if *in.CloudNativeBuildPack.Enabled {
+					c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "true"})
+					useImageEntryPoint = true
+				} else {
+					c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpEnabled, Value: "false"})
+				}
+			}
+			if in.CloudNativeBuildPack.Launcher != nil {
+				c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpLauncher, Value: *in.CloudNativeBuildPack.Launcher})
 			}
 		}
-		if in.CloudNativeBuildPack.Launcher != nil {
-			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCnbpLauncher, Value: *in.CloudNativeBuildPack.Launcher})
+		if in.SpringBootFatJar != nil {
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarSpringBootFatJar, Value: *in.SpringBootFatJar})
 		}
+		useImageEntryPoint = useImageEntryPoint || (in.UseImageEntryPoint != nil && *in.UseImageEntryPoint)
+		useJdkJavaOptions = useImageEntryPoint && (in.UseJdkJavaOptions == nil || *in.UseJdkJavaOptions)
 	}
-	if in.SpringBootFatJar != nil {
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarSpringBootFatJar, Value: *in.SpringBootFatJar})
+
+	if useImageEntryPoint {
+		// we are configured to use the image's entry point
+		// in cannot be nil if we get here
+		argsFile := fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorEntryPointArgsFile)
+
+		if useJdkJavaOptions {
+			// find any existing JDK_JAVA_OPTION env var so we do not loose its value
+			existingJdkOpts := ""
+			jdkOptsIdx := -1
+			for i, ev := range c.Env {
+				if ev.Name == EnvVarJdkOptions {
+					existingJdkOpts = ev.Value
+					jdkOptsIdx = i
+					break
+				}
+			}
+
+			jdkOptsEV := corev1.EnvVar{
+				Name:  EnvVarJdkOptions,
+				Value: strings.TrimSpace(existingJdkOpts + " " + argsFile),
+			}
+
+			if jdkOptsIdx >= 0 {
+				c.Env[jdkOptsIdx] = jdkOptsEV
+			} else {
+				c.Env = append(c.Env, jdkOptsEV)
+			}
+		}
+
+		if in.AlternateJdkJavaOptions != nil && *in.AlternateJdkJavaOptions != "" {
+			c.Env = append(c.Env, corev1.EnvVar{
+				Name:  *in.AlternateJdkJavaOptions,
+				Value: strings.TrimSpace(argsFile),
+			})
+		}
+
+		// Use the application args as container args
+		c.Args = in.Args
+	} else if c.Command == nil {
+		argsFile := fmt.Sprintf(ArgumentFileNamePattern, VolumeMountPathUtils, os.PathSeparator, OperatorCoherenceArgsFile)
+		c.Command = []string{"java", argsFile}
 	}
+}
+
+// IsSpringBoot returns true if this is a Spring Boot application
+func (in *ApplicationSpec) IsSpringBoot() bool {
+	if in == nil {
+		return false
+	}
+	app := in.GetApplicationType()
+	return app == AppTypeSpring2 || app == AppTypeSpring3
+}
+
+// GetApplicationType returns the configured application type
+func (in *ApplicationSpec) GetApplicationType() string {
+	if in != nil && in.Type != nil {
+		return strings.ToLower(*in.Type)
+	}
+	return AppTypeNone
 }
 
 // ----- CloudNativeBuildPackSpec struct ------------------------------------
@@ -466,6 +566,7 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPort, Value: localPort})
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCoherenceLocalPortAdjust, Value: localPortAdjust})
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarIPMonitorPingTimeout, Value: "0"})
 		return
 	}
 
@@ -487,11 +588,9 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	if in.StorageEnabled != nil {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: BoolPtrToString(in.StorageEnabled)})
-	} else {
+	} else if deployment.GetType() == CoherenceTypeJob {
 		// StorageEnabled is nil, so if this is a CoherenceJob default to false
-		if deployment.GetType() == CoherenceTypeJob {
-			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
-		}
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohStorage, Value: "false"})
 	}
 
 	if in.SkipVersionCheck != nil {
@@ -508,6 +607,8 @@ func (in *CoherenceSpec) UpdatePodTemplateSpec(podTemplate *corev1.PodTemplateSp
 
 	if in.EnableIPMonitor != nil && *in.EnableIPMonitor {
 		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarEnableIPMonitor, Value: "TRUE"})
+	} else {
+		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarIPMonitorPingTimeout, Value: "0"})
 	}
 
 	in.Management.AddSSLVolumesForPod(podTemplate, c, VolumeNameManagementSSL, VolumeMountPathManagementCerts)
@@ -678,6 +779,14 @@ type JVMSpec struct {
 	// The default value fif not specified is true.
 	// +optional
 	UseJibClasspath *bool `json:"useJibClasspath,omitempty"`
+	// Java8 is a flag to indicate that a Coherence container is
+	// running on Java 8 and must use the legacy Operator container
+	// entry point. This would only apply to applications using
+	// older Coherence 12.2.1-4-* or 14.1.1-0-* versions.
+	// The default value for this field is false, if this field is not set to
+	// true when Java 8 is used the container will fail to start.
+	// +optional
+	Java8 *bool `json:"java8,omitempty"`
 }
 
 // UpdatePodTemplate updates the StatefulSet with any JVM specific settings
@@ -710,6 +819,11 @@ func (in *JVMSpec) UpdatePodTemplate(podTemplate *corev1.PodTemplateSpec) {
 
 		if in.Gc != nil {
 			gc = in.Gc
+		}
+
+		if in.Java8 != nil && *in.Java8 {
+			c.Command = []string{RunnerCommand, "server"}
+			c.Args = []string{}
 		}
 	}
 
@@ -755,9 +869,21 @@ type ImageSpec struct {
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
+// ----- ImageSpec struct ---------------------------------------------------
+
+// CoherenceUtilsSpec defines the settings for the Coherence Operator utilities image
+// +k8s:openapi-gen=true
+type CoherenceUtilsSpec struct {
+	// Image pull policy.
+	// One of Always, Never, IfNotPresent.
+	// More info: https://kubernetes.io/docs/concepts/containers/images#updating-images
+	// +optional
+	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+}
+
 // EnsureImage ensures that the image value is set.
 func (in *ImageSpec) EnsureImage(image *string) bool {
-	if in != nil && in.Image == nil {
+	if in != nil && (in.Image == nil || *in.Image != *image) {
 		in.Image = image
 		return true
 	}
@@ -836,7 +962,10 @@ func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 
 	if in.Volume != nil || in.PersistentVolumeClaim != nil {
 		// Set the persistence location environment variable
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceDir, Value: VolumeMountPathPersistence})
+		if c.Name == ContainerNameCoherence {
+			// only do this for the Coherence container as it's env-vars are copied to the other containers
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohPersistenceDir, Value: VolumeMountPathPersistence})
+		}
 		// Add the persistence volume mount
 		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
 			Name:      VolumeNamePersistence,
@@ -845,9 +974,12 @@ func (in *PersistenceSpec) AddVolumeMounts(c *corev1.Container) {
 	}
 
 	// Add the snapshot volume mount if required
-	if in != nil && in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
+	if in.Snapshots != nil && (in.Snapshots.Volume != nil || in.Snapshots.PersistentVolumeClaim != nil) {
 		// Set the snapshot location environment variable
-		c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotDir, Value: VolumeMountPathSnapshots})
+		if c.Name == ContainerNameCoherence {
+			// only do this for the Coherence container as it's env-vars are copied to the other containers
+			c.Env = append(c.Env, corev1.EnvVar{Name: EnvVarCohSnapshotDir, Value: VolumeMountPathSnapshots})
+		}
 		// Add the snapshot volume mount
 		c.VolumeMounts = append(c.VolumeMounts, corev1.VolumeMount{
 			Name:      VolumeNameSnapshots,
@@ -1276,7 +1408,7 @@ func (in *NamedPortSpec) GetServicePort(d CoherenceResource) int32 {
 	switch {
 	case in == nil:
 		return 0
-	case in != nil && in.Service != nil && in.Service.Port != nil:
+	case in.Service != nil && in.Service.Port != nil:
 		return *in.Service.Port
 	case in.Port == 0 && strings.ToLower(in.Name) == PortNameMetrics:
 		// special case for well known port - metrics
@@ -1511,11 +1643,11 @@ func (in *JvmDebugSpec) CreateEnvVars() []corev1.EnvVar {
 		corev1.EnvVar{Name: EnvVarJvmDebugPort, Value: p},
 	)
 
-	if in != nil && in.Suspend != nil && *in.Suspend {
+	if in.Suspend != nil && *in.Suspend {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugSuspended, Value: "true"})
 	}
 
-	if in != nil && in.Attach != nil {
+	if in.Attach != nil {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmDebugAttach, Value: *in.Attach})
 	}
 
@@ -2736,14 +2868,16 @@ func (in *Resource) IsPresent() bool {
 	return in.Spec != nil
 }
 
+var errCannotConvert = errors.New("cannot convert to runtime.Object")
+
 // As converts the Spec to the specified value.
 // This is done by serializing the Spec to json and deserializing into the specified object.
 func (in *Resource) As(o runtime.Object) error {
 	if in == nil {
-		return fmt.Errorf("cannot convert to runtime.Object - resource is nil")
+		return errors.Wrap(errCannotConvert, "resource is nil")
 	}
 	if in.Spec == nil {
-		return fmt.Errorf("cannot convert resource - spec is nil")
+		return errors.Wrap(errCannotConvert, "spec is nil")
 	}
 
 	data, err := json.Marshal(in.Spec)

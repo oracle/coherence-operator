@@ -78,6 +78,8 @@ const (
 	ContainerNameCoherence = "coherence"
 	// ContainerNameOperatorInit is the Operator init-container name
 	ContainerNameOperatorInit = "coherence-k8s-utils"
+	// ContainerNameOperatorConfig is the Operator config files init-container name
+	ContainerNameOperatorConfig = "coherence-k8s-config"
 
 	// VolumeNamePersistence is the name of the persistence volume
 	VolumeNamePersistence = "persistence-volume"
@@ -115,8 +117,10 @@ const (
 
 	// RunnerInitCommand is the start command for the Operator init-container
 	RunnerInitCommand = "/files/runner"
-	// RunnerInit is the command line argument for the Operator init-container
+	// RunnerInit is the command line argument for the Operator intialize init-container
 	RunnerInit = "init"
+	// RunnerConfig is the command line argument for the Operator config init-container
+	RunnerConfig = "config"
 
 	// ServiceMonitorKind is the Prometheus ServiceMonitor resource API Kind
 	ServiceMonitorKind = "ServiceMonitor"
@@ -167,9 +171,33 @@ const (
 	// OperatorConfigKeyHost is the key used in the Operator configuration Secret
 	OperatorConfigKeyHost = "operatorhost"
 	// OperatorSiteURL is the default Operator site query URL
-	OperatorSiteURL = "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)"
+	OperatorSiteURL = "http://$(COHERENCE_OPERATOR_HOST)/site/$(COHERENCE_MACHINE)"
 	// OperatorRackURL is the default Operator rack query URL
-	OperatorRackURL = "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)"
+	OperatorRackURL = "http://$(COHERENCE_OPERATOR_HOST)/rack/$(COHERENCE_MACHINE)"
+
+	// OperatorCoherenceArgsFile is the name of the file in the utils directory containing the full set of
+	// JVM arguments to run the Coherence container
+	OperatorCoherenceArgsFile = "coherence-container-args.txt"
+	// OperatorEntryPointArgsFile is the arguments file to add to the JDK_JAVA_OPTIONS environment variable
+	// when running the image entry point
+	OperatorEntryPointArgsFile = "coherence-entrypoint-args.txt"
+	// OperatorJvmArgsFile is the name of the file in the utils directory containing the JVM arguments
+	OperatorJvmArgsFile = "coherence-jvm-args.txt"
+	// OperatorClasspathFile is the name of the file in the utils directory containing the JVM class path
+	OperatorClasspathFile = "coherence-class-path.txt"
+	// OperatorMainClassFile is the name of the file in the utils directory containing the main class name
+	OperatorMainClassFile = "coherence-main-class.txt"
+	// OperatorSpringBootArgsFile is the name of the file in the utils directory containing the SpringBoot JVM args
+	OperatorSpringBootArgsFile = "coherence-spring-args.txt"
+	// OperatorJarFileSuffix is the suffix to append to the utils directory to locate the Operator jar file.
+	OperatorJarFileSuffix = "/lib/coherence-operator.jar"
+	// OperatorConfigDirSuffix is the suffix to append to the utils directory to locate the Operator config directory.
+	OperatorConfigDirSuffix = "/config"
+
+	// FileNamePattern is a formatting pattern for a directory separator and file name
+	FileNamePattern = "%s%c%s"
+	// ArgumentFileNamePattern is a formatting pattern for a JDK argument fle name: directory separator and file name
+	ArgumentFileNamePattern = "@" + FileNamePattern
 
 	// DefaultReadinessPath is the default readiness endpoint path
 	DefaultReadinessPath = "/ready"
@@ -179,50 +207,60 @@ const (
 	// DefaultCnbpLauncher is the Cloud Native Build Pack launcher executable
 	DefaultCnbpLauncher = "/cnb/lifecycle/launcher"
 
-	EnvVarAppType                     = "COH_APP_TYPE"
-	EnvVarAppMainClass                = "COH_MAIN_CLASS"
-	EnvVarAppMainArgs                 = "COH_MAIN_ARGS"
-	EnvVarOperatorHost                = "OPERATOR_HOST"
-	EnvVarOperatorTimeout             = "OPERATOR_REQUEST_TIMEOUT"
-	EnvVarOperatorAllowResume         = "OPERATOR_ALLOW_RESUME"
-	EnvVarOperatorResumeServices      = "OPERATOR_RESUME_SERVICES"
-	EnvVarUseOperatorHealthCheck      = "OPERATOR_HEALTH_CHECK"
-	EnvVarCoherenceHome               = "COHERENCE_HOME"
-	EnvVarCohDependencyModules        = "DEPENDENCY_MODULES"
-	EnvVarCohSkipVersionCheck         = "COH_SKIP_VERSION_CHECK"
-	EnvVarCohClusterName              = "COH_CLUSTER_NAME"
-	EnvVarCohIdentity                 = "COH_IDENTITY"
-	EnvVarCohWka                      = "COH_WKA"
-	EnvVarCohAppDir                   = "COH_APP_DIR"
-	EnvVarCohMachineName              = "COH_MACHINE_NAME"
-	EnvVarCohMemberName               = "COH_MEMBER_NAME"
-	EnvVarCohPodUID                   = "COH_POD_UID"
-	EnvVarCohSkipSite                 = "COH_SKIP_SITE"
-	EnvVarCohSite                     = "COH_SITE_INFO_LOCATION"
-	EnvVarCoherenceSite               = "COHERENCE_SITE"
-	EnvVarCohRack                     = "COH_RACK_INFO_LOCATION"
-	EnvVarCoherenceRack               = "COHERENCE_RACK"
-	EnvVarCohRole                     = "COH_ROLE"
-	EnvVarCohUtilDir                  = "COH_UTIL_DIR"
-	EnvVarCohUtilLibDir               = "COH_UTIL_LIB_DIR"
-	EnvVarCohHealthPort               = "COH_HEALTH_PORT"
-	EnvVarCohCacheConfig              = "COH_CACHE_CONFIG"
-	EnvVarCohOverride                 = "COH_OVERRIDE_CONFIG"
-	EnvVarCohLogLevel                 = "COH_LOG_LEVEL"
-	EnvVarCohStorage                  = "COH_STORAGE_ENABLED"
-	EnvVarCohPersistenceMode          = "COH_PERSISTENCE_MODE"
-	EnvVarCohPersistenceDir           = "COH_PERSISTENCE_DIR"
-	EnvVarCohSnapshotDir              = "COH_SNAPSHOT_DIR"
-	EnvVarCohTracingRatio             = "COH_TRACING_RATIO"
-	EnvVarCohAllowEndangered          = "COH_ALLOW_ENDANGERED"
-	EnvVarCohMgmtPrefix               = "COH_MGMT"
-	EnvVarCohMetricsPrefix            = "COH_METRICS"
+	EnvVarAppType                = "COHERENCE_OPERATOR_APP_TYPE"
+	EnvVarAppMainClass           = "COHERENCE_OPERATOR_MAIN_CLASS"
+	EnvVarAppMainArgs            = "COHERENCE_OPERATOR_MAIN_ARGS"
+	EnvVarOperatorHost           = "COHERENCE_OPERATOR_HOST"
+	EnvVarOperatorTimeout        = "COHERENCE_OPERATOR_REQUEST_TIMEOUT"
+	EnvVarOperatorAllowResume    = "COHERENCE_OPERATOR_ALLOW_RESUME"
+	EnvVarOperatorResumeServices = "COHERENCE_OPERATOR_RESUME_SERVICES"
+	EnvVarUseOperatorHealthCheck = "COHERENCE_OPERATOR_HEALTH_CHECK"
+	EnvVarCohDependencyModules   = "COHERENCE_OPERATOR_DEPENDENCY_MODULES"
+	EnvVarCohSkipVersionCheck    = "COHERENCE_OPERATOR_SKIP_VERSION_CHECK"
+	EnvVarCohPodUID              = "COHERENCE_OPERATOR_POD_UID"
+	EnvVarCohIdentity            = "COHERENCE_OPERATOR_IDENTITY"
+	EnvVarCohAppDir              = "COHERENCE_OPERATOR_APP_DIR"
+	EnvVarCohSkipSite            = "COHERENCE_OPERATOR_SKIP_SITE"
+	EnvVarCohSite                = "COHERENCE_OPERATOR_SITE_INFO_LOCATION"
+	EnvVarCohRack                = "COHERENCE_OPERATOR_RACK_INFO_LOCATION"
+	EnvVarCohUtilDir             = "COHERENCE_OPERATOR_UTIL_DIR"
+	EnvVarCohUtilLibDir          = "COHERENCE_OPERATOR_UTIL_LIB_DIR"
+	EnvVarCohAllowEndangered     = "COHERENCE_OPERATOR_ALLOW_ENDANGERED"
+	EnvVarSpringBootFatJar       = "COHERENCE_OPERATOR_SPRING_BOOT_FAT_JAR"
+	EnvVarCnbpEnabled            = "COHERENCE_OPERATOR_CNBP_ENABLED"
+	EnvVarCnbpLauncher           = "COHERENCE_OPERATOR_CNBP_LAUNCHER"
+	EnvVarCohForceExit           = "COHERENCE_OPERATOR_FORCE_EXIT"
+	EnvVarCohCliProtocol         = "COHERENCE_OPERATOR_CLI_PROTOCOL"
+
+	EnvVarCoherenceHome            = "COHERENCE_HOME"
+	EnvVarCohClusterName           = "COHERENCE_CLUSTER"
+	EnvVarCohWka                   = "COHERENCE_WKA"
+	EnvVarCohMachineName           = "COHERENCE_MACHINE"
+	EnvVarCohMemberName            = "COHERENCE_MEMBER"
+	EnvVarCoherenceSite            = "COHERENCE_SITE"
+	EnvVarCoherenceRack            = "COHERENCE_RACK"
+	EnvVarCohRole                  = "COHERENCE_ROLE"
+	EnvVarCohHealthPort            = "COHERENCE_HEALTH_HTTP_PORT"
+	EnvVarCohCacheConfig           = "COHERENCE_CACHECONFIG"
+	EnvVarCohOverride              = "COHERENCE_OVERRIDE"
+	EnvVarCohLogLevel              = "COHERENCE_LOG_LEVEL"
+	EnvVarCohStorage               = "COHERENCE_DISTRIBUTED_LOCALSTORAGE"
+	EnvVarCohPersistenceMode       = "COHERENCE_DISTRIBUTED_PERSISTENCE_MODE"
+	EnvVarCohPersistenceDir        = "COHERENCE_DISTRIBUTED_PERSISTENCE_BASE_DIR"
+	EnvVarCohSnapshotDir           = "COHERENCE_DISTRIBUTED_PERSISTENCE_SNAPSHOT_DIR"
+	EnvVarCohTracingRatio          = "COHERENCE_TRACING_RATIO"
+	EnvVarCohMgmtPrefix            = "COHERENCE_MANAGEMENT"
+	EnvVarCohMetricsPrefix         = "COHERENCE_METRICS"
+	EnvVarCoherenceLocalPort       = "COHERENCE_LOCALPORT"
+	EnvVarCoherenceLocalPortAdjust = "COHERENCE_LOCALPORT_ADJUST"
+	EnvVarCoherenceTTL             = "COHERENCE_TTL"
+	EnvVarEnableIPMonitor          = "COHERENCE_ENABLE_IPMONITOR"
+	EnvVarIPMonitorPingTimeout     = "COHERENCE_IPMONITOR_PINGTIMEOUT"
+
+	EnvVarCohCtlHome = "COHCTL_HOME"
+
 	EnvVarCohEnabledSuffix            = "_ENABLED"
 	EnvVarCohPortSuffix               = "_PORT"
-	EnvVarCohForceExit                = "COH_FORCE_EXIT"
-	EnvVarCoherenceLocalPort          = "COHERENCE_LOCALPORT"
-	EnvVarCoherenceLocalPortAdjust    = "COHERENCE_LOCALPORT_ADJUST"
-	EnvVarEnableIPMonitor             = "COH_ENABLE_IPMONITOR"
 	EnvVarSuffixSSLEnabled            = "_SSL_ENABLED"
 	EnvVarSuffixSSLCerts              = "_SSL_CERTS"
 	EnvVarSuffixSSLKeyStore           = "_SSL_KEYSTORE"
@@ -237,37 +275,110 @@ const (
 	EnvVarSuffixSSLTrustStoreProvider = "_SSL_TRUSTSTORE_PROVIDER"
 	EnvVarSuffixSSLTrustStoreType     = "_SSL_TRUSTSTORE_TYPE"
 	EnvVarSuffixSSLRequireClientCert  = "_SSL_REQUIRE_CLIENT_CERT"
-	EnvVarJavaHome                    = "JAVA_HOME"
-	EnvVarJavaClasspath               = "CLASSPATH"
-	EnvVarJvmClasspathJib             = "JVM_USE_JIB_CLASSPATH"
-	EnvVarJvmExtraClasspath           = "JVM_EXTRA_CLASSPATH"
-	EnvVarJvmArgs                     = "JVM_ARGS"
-	EnvVarJvmUseContainerLimits       = "JVM_USE_CONTAINER_LIMITS"
-	EnvVarJvmShowSettings             = "JVM_SHOW_SETTINGS"
-	EnvVarJvmDebugEnabled             = "JVM_DEBUG_ENABLED"
-	EnvVarJvmDebugPort                = "JVM_DEBUG_PORT"
-	EnvVarJvmDebugSuspended           = "JVM_DEBUG_SUSPEND"
-	EnvVarJvmDebugAttach              = "JVM_DEBUG_ATTACH"
-	EnvVarJvmGcArgs                   = "JVM_GC_ARGS"
-	EnvVarJvmGcCollector              = "JVM_GC_COLLECTOR"
-	EnvVarJvmGcLogging                = "JVM_GC_LOGGING"
-	EnvVarJvmMemoryHeap               = "JVM_HEAP_SIZE"
-	EnvVarJvmMemoryInitialHeap        = "JVM_INITIAL_HEAP_SIZE"
-	EnvVarJvmMemoryMaxHeap            = "JVM_MAX_HEAP_SIZE"
-	EnvVarJvmMaxRAM                   = "JVM_MAX_RAM"
-	EnvVarJvmRAMPercentage            = "JVM_RAM_PERCENTAGE"
-	EnvVarJvmInitialRAMPercentage     = "JVM_INITIAL_RAM_PERCENTAGE"
-	EnvVarJvmMaxRAMPercentage         = "JVM_MAX_RAM_PERCENTAGE"
-	EnvVarJvmMinRAMPercentage         = "JVM_MIN_RAM_PERCENTAGE"
-	EnvVarJvmMemoryDirect             = "JVM_DIRECT_MEMORY_SIZE"
-	EnvVarJvmMemoryStack              = "JVM_STACK_SIZE"
-	EnvVarJvmMemoryMeta               = "JVM_METASPACE_SIZE"
-	EnvVarJvmMemoryNativeTracking     = "JVM_NATIVE_MEMORY_TRACKING"
-	EnvVarJvmOomExit                  = "JVM_OOM_EXIT"
-	EnvVarJvmOomHeapDump              = "JVM_OOM_HEAP_DUMP"
-	EnvVarSpringBootFatJar            = "COH_SPRING_BOOT_FAT_JAR"
-	EnvVarCnbpEnabled                 = "COH_CNBP_ENABLED"
-	EnvVarCnbpLauncher                = "COH_CNBP_LAUNCHER"
+
+	EnvVarJavaHome                = "JAVA_HOME"
+	EnvVarJdkOptions              = "JDK_JAVA_OPTIONS"
+	EnvVarJavaClasspath           = "CLASSPATH"
+	EnvVarJvmClasspathJib         = "JVM_USE_JIB_CLASSPATH"
+	EnvVarJvmExtraClasspath       = "JVM_EXTRA_CLASSPATH"
+	EnvVarJvmArgs                 = "JVM_ARGS"
+	EnvVarJvmUseContainerLimits   = "JVM_USE_CONTAINER_LIMITS"
+	EnvVarJvmShowSettings         = "JVM_SHOW_SETTINGS"
+	EnvVarJvmDebugEnabled         = "JVM_DEBUG_ENABLED"
+	EnvVarJvmDebugPort            = "JVM_DEBUG_PORT"
+	EnvVarJvmDebugSuspended       = "JVM_DEBUG_SUSPEND"
+	EnvVarJvmDebugAttach          = "JVM_DEBUG_ATTACH"
+	EnvVarJvmGcArgs               = "JVM_GC_ARGS"
+	EnvVarJvmGcCollector          = "JVM_GC_COLLECTOR"
+	EnvVarJvmGcLogging            = "JVM_GC_LOGGING"
+	EnvVarJvmMemoryHeap           = "JVM_HEAP_SIZE"
+	EnvVarJvmMemoryInitialHeap    = "JVM_INITIAL_HEAP_SIZE"
+	EnvVarJvmMemoryMaxHeap        = "JVM_MAX_HEAP_SIZE"
+	EnvVarJvmMaxRAM               = "JVM_MAX_RAM"
+	EnvVarJvmRAMPercentage        = "JVM_RAM_PERCENTAGE"
+	EnvVarJvmInitialRAMPercentage = "JVM_INITIAL_RAM_PERCENTAGE"
+	EnvVarJvmMaxRAMPercentage     = "JVM_MAX_RAM_PERCENTAGE"
+	EnvVarJvmMinRAMPercentage     = "JVM_MIN_RAM_PERCENTAGE"
+	EnvVarJvmMemoryDirect         = "JVM_DIRECT_MEMORY_SIZE"
+	EnvVarJvmMemoryStack          = "JVM_STACK_SIZE"
+	EnvVarJvmMemoryMeta           = "JVM_METASPACE_SIZE"
+	EnvVarJvmMemoryNativeTracking = "JVM_NATIVE_MEMORY_TRACKING"
+	EnvVarJvmOomExit              = "JVM_OOM_EXIT"
+	EnvVarJvmOomHeapDump          = "JVM_OOM_HEAP_DUMP"
+
+	SystemPropertyPattern = "-D%s=%s"
+
+	SysPropCoherenceCacheConfig             = "coherence.cacheconfig"
+	SysPropCoherenceCluster                 = "coherence.cluster"
+	SysPropCoherenceDistributedLocalStorage = "coherence.distributed.localstorage"
+	SysPropCoherenceGrpcEnabled             = "coherence.grpc.enabled"
+	SysPropCoherenceHealthHttpPort          = "coherence.health.http.port"
+	SysPropCoherenceIpMonitor               = "coherence.ipmonitor.pingtimeout"
+	SysPropCoherenceLocalPortAdjust         = "coherence.localport.adjust"
+	SysPropCoherenceLogLevel                = "coherence.log.level"
+	SysPropCoherenceMachine                 = "coherence.machine"
+	SysPropCoherenceManagementHttp          = "coherence.management.http"
+	SysPropCoherenceManagementHttpPort      = "coherence.management.http.port"
+	SysPropCoherenceMember                  = "coherence.member"
+	SysPropCoherenceMetricsHttpEnabled      = "coherence.metrics.http.enabled"
+	SysPropCoherenceMetricsHttpPort         = "coherence.metrics.http.port"
+	SysPropCoherenceOverride                = "coherence.override"
+	SysPropCoherencePersistenceBaseDir      = "coherence.distributed.persistence.base.dir"
+	SysPropCoherencePersistenceMode         = "coherence.distributed.persistence-mode"
+	SysPropCoherencePersistenceSnapshotDir  = "coherence.distributed.persistence.snapshot.dir"
+	SysPropCoherenceRole                    = "coherence.role"
+	SysPropCoherenceRack                    = "coherence.rack"
+	SysPropCoherenceSite                    = "coherence.site"
+	SysPropCoherenceTracingRatio            = "coherence.tracing.ratio"
+	SysPropCoherenceTTL                     = "coherence.ttl"
+	SysPropCoherenceWKA                     = "coherence.wka"
+
+	SysPropOperatorForceExit     = "coherence.operator.force.exit"
+	SysPropOperatorHealthEnabled = "coherence.operator.health.enabled"
+	SysPropOperatorHealthPort    = "coherence.operator.health.port"
+	SysPropOperatorIdentity      = "coherence.operator.identity"
+	SysPropOperatorOverride      = "coherence.k8s.override"
+
+	SysPropSpringLoaderMain = "loader.main"
+	SysPropSpringLoaderPath = "loader.path"
+
+	JvmOptClassPath                 = "-cp"
+	JvmOptUnlockDiagnosticVMOptions = "-XX:+UnlockDiagnosticVMOptions"
+	JvmOptNativeMemoryTracking      = "-XX:NativeMemoryTracking"
+
+	// AppTypeNone is the argument to specify no application type.
+	AppTypeNone = ""
+	// AppTypeJava is the argument to specify a Java application.
+	AppTypeJava = "java"
+	// AppTypeCoherence is the argument to specify a Coherence application.
+	AppTypeCoherence = "coherence"
+	// AppTypeHelidon is the argument to specify a Helidon application.
+	AppTypeHelidon = "helidon"
+	// AppTypeSpring2 is the argument to specify an exploded Spring Boot 2.x application.
+	AppTypeSpring2 = "spring"
+	// AppTypeSpring3 is the argument to specify an exploded Spring Boot 3.x application.
+	AppTypeSpring3 = "spring3"
+	// AppTypeOperator is the argument to specify running an Operator command.
+	AppTypeOperator = "operator"
+	// AppTypeJShell is the argument to specify a JShell application.
+	AppTypeJShell = "jshell"
+
+	// DefaultMain is an indicator to run the default main class.
+	DefaultMain = "$DEFAULT$"
+	// HelidonMain is the default Helidon main class name.
+	HelidonMain = "io.helidon.microprofile.cdi.Main"
+	// ServerMain is the default server main class name.
+	ServerMain = "com.oracle.coherence.k8s.Main"
+	// SpringBootMain2 is the default Spring Boot 2.x main class name.
+	SpringBootMain2 = "org.springframework.boot.loader.PropertiesLauncher"
+	// SpringBootMain3 is the default Spring Boot 3.x main class name.
+	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
+	// ConsoleMain is the Coherence console main class
+	ConsoleMain = "com.tangosol.net.CacheFactory"
+	// QueryPlusMain is the main class to run Coherence Query Plus
+	QueryPlusMain = "com.tangosol.coherence.dslquery.QueryPlus"
+	// SleepMain is the main class to run Operator sleep command
+	SleepMain = "com.oracle.coherence.k8s.Sleep"
 )
 
 var (

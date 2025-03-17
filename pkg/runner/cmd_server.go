@@ -7,13 +7,13 @@
 package runner
 
 import (
+	"bufio"
 	"fmt"
 	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -37,60 +37,11 @@ func serverCommand() *cobra.Command {
 }
 
 // Configure the runner to run a Coherence Server
-func server(details *RunDetails, _ *cobra.Command) {
+func server(details *run_details.RunDetails, _ *cobra.Command) {
 	details.Command = CommandServer
-	details.MainClass = ServerMain
+	loadConfigFiles(details)
 
-	// If the main class environment variable is set then use that
-	// otherwise run Coherence DefaultMain.
-	mc, found := details.lookupEnv(v1.EnvVarAppMainClass)
-	appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
-	jibMainClassFileName := filepath.Join(appDir, "jib-main-class-file")
-	fi, err := os.Stat(jibMainClassFileName)
-	mainCls := ""
-	if err == nil && (fi.Size() != 0) {
-		mainCls, _ = readFirstLineFromFile(jibMainClassFileName)
-	}
-	if !found && (len(mainCls) != 0) {
-		mc = mainCls
-		found = true
-	}
-	isSpring := details.IsSpringBoot()
-	switch {
-	case found && !isSpring:
-		// we have a main class specified, and we're not a Spring Boot app
-		details.MainArgs = []string{mc}
-	case found && details.AppType == AppTypeSpring2:
-		// we have a main class and the app is Spring Boot 2.x
-		// the main is PropertiesLauncher,
-		details.MainClass = SpringBootMain2
-		// the specified main class is set as a Spring loader property
-		details.addArg("-Dloader.main=" + mc)
-	case found && details.AppType == AppTypeSpring3:
-		// we have a main class and the app is Spring Boot 3.x
-		// the main is PropertiesLauncher,
-		details.MainClass = SpringBootMain3
-		// the specified main class is set as a Spring loader property
-		details.addArg("-Dloader.main=" + mc)
-	case !found && details.AppType == AppTypeSpring2:
-		// the app type is Spring Boot 2.x so main is PropertiesLauncher
-		details.MainClass = SpringBootMain2
-	case !found && details.AppType == AppTypeSpring3:
-		// the app type is Spring Boot 3.x so main is PropertiesLauncher
-		details.MainClass = SpringBootMain3
-	case !found && details.AppType == AppTypeCoherence:
-		// the app type is Coherence so main is DefaultMain
-		details.MainArgs = []string{DefaultMain}
-	case !found && details.AppType == AppTypeHelidon:
-		// the app type is Helidon so main is the Helidon CDI starter
-		details.MainArgs = []string{HelidonMain}
-	default:
-		// no main or app type specified, use DefaultMain
-		details.MainArgs = []string{DefaultMain}
-	}
-
-	// Check for any main class arguments
-	ma, found := details.lookupEnv(v1.EnvVarAppMainArgs)
+	ma, found := details.LookupEnv(v1.EnvVarAppMainArgs)
 	if found {
 		if ma != "" {
 			for _, arg := range strings.Split(ma, " ") {
@@ -98,79 +49,87 @@ func server(details *RunDetails, _ *cobra.Command) {
 			}
 		}
 	}
+}
 
-	// Configure the Coherence member's role
-	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohRole, "-Dcoherence.role", "storage")
-	// Configure whether this member is storage enabled
-	details.addArgFromEnvVar(v1.EnvVarCohStorage, "-Dcoherence.distributed.localstorage")
+func loadConfigFiles(details *run_details.RunDetails) {
+	var err error
 
-	// Configure Coherence Tracing
-	ratio := details.Getenv(v1.EnvVarCohTracingRatio)
-	if ratio != "" {
-		q, err := resource.ParseQuantity(ratio)
-		if err == nil {
-			d := q.AsDec()
-			details.addArg("-Dcoherence.tracing.ratio=" + d.String())
-		} else {
-			fmt.Printf("ERROR: Coherence tracing ratio \"%s\" is invalid - %s\n", ratio, err.Error())
-			os.Exit(1)
+	if err = loadClassPathFile(details); err != nil {
+		fmt.Printf("Error loading class path file %v\n", err)
+	}
+
+	if err = loadJvmArgsFile(details); err != nil {
+		fmt.Printf("Error loading class path file %v\n", err)
+	}
+
+	if details.IsSpringBoot() {
+		if err = loadSpringBootArgsFile(details); err != nil {
+			fmt.Printf("Error loading main class file %v\n", err)
 		}
 	}
 
-	// Configure whether Coherence management is enabled
-	hasMgmt := details.isEnvTrue(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohEnabledSuffix)
-	log.Info("Coherence Management over REST", "enabled", strconv.FormatBool(hasMgmt), "envVar", v1.EnvVarCohMgmtPrefix+v1.EnvVarCohEnabledSuffix)
-	if hasMgmt {
-		fmt.Println("INFO: Configuring Coherence Management over REST")
-		details.addArg("-Dcoherence.management.http=all")
-		if details.CoherenceHome != "" {
-			// If management is enabled and the COHERENCE_HOME environment variable is set
-			// then $COHERENCE_HOME/lib/coherence-management.jar will be added to the classpath
-			details.addClasspath(details.CoherenceHome + "/lib/coherence-management.jar")
+	if err = loadMainClassFile(details); err != nil {
+		fmt.Printf("Error loading main class file %v\n", err)
+	}
+}
+
+func loadClassPathFile(details *run_details.RunDetails) error {
+	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorClasspathFile)
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return errors.Wrapf(err, "error reading %s", file)
+	}
+	details.Classpath = string(data)
+	return nil
+}
+
+func loadJvmArgsFile(details *run_details.RunDetails) error {
+	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorJvmArgsFile)
+	lines, err := readLines(file)
+	if err != nil {
+		return errors.Wrapf(err, "error reading %s", file)
+	}
+	details.AddArgs(lines...)
+	return nil
+}
+
+func loadMainClassFile(details *run_details.RunDetails) error {
+	dir := details.GetenvOrDefault(v1.EnvVarCohUtilDir, details.UtilsDir)
+	file := fmt.Sprintf(v1.FileNamePattern, dir, os.PathSeparator, v1.OperatorMainClassFile)
+	lines, err := readLines(file)
+	if err != nil {
+		return errors.Wrapf(err, "error reading %s", file)
+	}
+	if len(lines) > 0 {
+		details.MainClass = lines[0]
+		if len(lines) > 1 {
+			details.MainArgs = append(details.MainArgs, lines[1:]...)
 		}
 	}
+	return nil
+}
 
-	// Configure whether Coherence metrics is enabled
-	hasMetrics := details.isEnvTrue(v1.EnvVarCohMetricsPrefix + v1.EnvVarCohEnabledSuffix)
-	log.Info("Coherence Metrics", "enabled", strconv.FormatBool(hasMetrics), "envVar", v1.EnvVarCohMetricsPrefix+v1.EnvVarCohEnabledSuffix)
-	if hasMetrics {
-		details.addArg("-Dcoherence.metrics.http.enabled=true")
-		fmt.Println("INFO: Configuring Coherence Metrics")
-		if details.CoherenceHome != "" {
-			// If metrics is enabled and the COHERENCE_HOME environment variable is set
-			// then $COHERENCE_HOME/lib/coherence-metrics.jar will be added to the classpath
-			details.addClasspath(details.CoherenceHome + "/lib/coherence-metrics.jar")
-		}
+func loadSpringBootArgsFile(details *run_details.RunDetails) error {
+	file := fmt.Sprintf(v1.FileNamePattern, details.UtilsDir, os.PathSeparator, v1.OperatorSpringBootArgsFile)
+	lines, err := readLines(file)
+	if err != nil {
+		return errors.Wrapf(err, "error reading %s", file)
 	}
+	details.AddArgs(lines...)
+	return nil
+}
 
-	// Configure whether to add third-party modules to the classpath if management over rest
-	// or metrics are enabled and the directory pointed to by the DEPENDENCY_MODULES environment
-	// variable exists.
-	if hasMgmt || hasMetrics {
-		dm := details.Getenv(v1.EnvVarCohDependencyModules)
-		if dm != "" {
-			stat, err := os.Stat(dm)
-			if err == nil && stat.IsDir() {
-				// dependency modules directory exists
-				details.addClasspath(dm + "/*")
-			}
-		}
+func readLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
 	}
+	defer file.Close()
 
-	if details.isEnvTrueOrBlank(v1.EnvVarJvmShowSettings) {
-		details.addArg("-XshowSettings:all")
-		details.addArg("-XX:+PrintCommandLineFlags")
-		details.addArg("-XX:+PrintFlagsFinal")
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
 	}
-
-	// Add GC logging parameters if required
-	if details.isEnvTrue(v1.EnvVarJvmGcLogging) {
-		details.addArg("-verbose:gc")
-		details.addArg("-XX:+PrintGCDetails")
-		details.addArg("-XX:+PrintGCTimeStamps")
-		details.addArg("-XX:+PrintHeapAtGC")
-		details.addArg("-XX:+PrintTenuringDistribution")
-		details.addArg("-XX:+PrintGCApplicationStoppedTime")
-		details.addArg("-XX:+PrintGCApplicationConcurrentTime")
-	}
+	return lines, scanner.Err()
 }

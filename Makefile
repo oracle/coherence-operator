@@ -273,7 +273,8 @@ endif
 IMAGE_PULL_POLICY  ?= IfNotPresent
 
 # Env variable used by the kubectl test framework to locate the kubectl binary
-TEST_ASSET_KUBECTL ?= $(shell which kubectl)
+KUBECTL_CMD        ?= kubectl
+TEST_ASSET_KUBECTL ?= $(shell which $(KUBECTL_CMD))
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build output directories
@@ -800,7 +801,7 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --exclude='G114:' --skip-dirs=.*/fakes --skip-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --exclude='G114:' --exclude-dirs=.*/fakes --exclude-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
 	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='G101:' --exclude='G112:' --exclude='SA4005:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
 
 
@@ -1030,30 +1031,30 @@ olm-deploy-catalog: ## Deploy the Operator Catalog into OLM
 	mkdir -p $(BUILD_OUTPUT)/catalog || true
 	cp $(SCRIPTS_DIR)/operator-catalog-source.yaml $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
 	$(SED) -e 's^IMAGE_NAME_PLACEHOLDER^$(CATALOG_IMAGE)^g' $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
-	kubectl apply -f $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
-	kubectl -n olm get catalogsource
+	$(KUBECTL_CMD) apply -f $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	$(KUBECTL_CMD) -n olm get catalogsource
 
 .PHONY: wait-for-olm-deploy
-wait-for-olm-deploy: export POD=$(shell kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog -o name)
+wait-for-olm-deploy: export POD=$(shell $(KUBECTL_CMD) -n olm get pod -l olm.catalogSource=coherence-operator-catalog -o name)
 wait-for-olm-deploy: ## Wait for the Operator Catalog to be deployed into OLM
 	echo "Operator Catalog Source Pods:"
-	kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog
+	$(KUBECTL_CMD) -n olm get pod -l olm.catalogSource=coherence-operator-catalog
 	echo "Waiting for Operator Catalog Source to be ready. Pod: $(POD)"
-	kubectl -n olm wait --for condition=ready --timeout 480s $(POD)
+	$(KUBECTL_CMD) -n olm wait --for condition=ready --timeout 480s $(POD)
 
 .PHONY: olm-deploy
 olm-deploy: ## Deploy the Operator into the coherence namespace using OLM
-	kubectl create ns coherence || true
-	kubectl -n coherence apply -f $(SCRIPTS_DIR)/operator-group.yaml
-	kubectl -n coherence apply -f $(SCRIPTS_DIR)/operator-subscription.yaml
+	$(KUBECTL_CMD) create ns coherence || true
+	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/operator-group.yaml
+	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/operator-subscription.yaml
 	sleep 10
-	kubectl -n coherence get ip
-	kubectl -n coherence get csv
-	kubectl -n coherence wait --for condition=available  deployment/coherence-operator-controller-manager -timeout 480s
+	$(KUBECTL_CMD) -n coherence get ip
+	$(KUBECTL_CMD) -n coherence get csv
+	$(KUBECTL_CMD) -n coherence wait --for condition=available  deployment/coherence-operator-controller-manager -timeout 480s
 
 .PHONY: olm-undeploy
 olm-undeploy: ## Undeploy the Operator that was installed with OLM
-	kubectl -n coherence delete csv coherence-operator.v$(VERSION)
+	$(KUBECTL_CMD) -n coherence delete csv coherence-operator.v$(VERSION)
 
 # ======================================================================================================================
 # Targets to run a local container registry
@@ -1229,7 +1230,7 @@ e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION
 e2e-local-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 e2e-local-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-local-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-e2e-local-test: export COH_SKIP_SITE := true
+e2e-local-test: export COHERENCE_OPERATOR_SKIP_SITE := true
 e2e-local-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-local-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-local-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
@@ -1315,7 +1316,7 @@ e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_FAT_2 := $(TEST_APPLICATION_I
 e2e-k3d-test: export TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 e2e-k3d-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-k3d-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-e2e-k3d-test: export COH_SKIP_SITE := true
+e2e-k3d-test: export COHERENCE_OPERATOR_SKIP_SITE := true
 e2e-k3d-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-k3d-test: export TEST_STORAGE_CLASS := $(TEST_STORAGE_CLASS)
 e2e-k3d-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
@@ -1341,7 +1342,7 @@ e2e-client-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 e2e-client-test: export TEST_APPLICATION_IMAGE_CLIENT := $(TEST_APPLICATION_IMAGE_CLIENT)
 e2e-client-test: export TEST_COHERENCE_IMAGE := $(TEST_COHERENCE_IMAGE)
 e2e-client-test: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
-e2e-client-test: export COH_SKIP_SITE := true
+e2e-client-test: export COHERENCE_OPERATOR_SKIP_SITE := true
 e2e-client-test: export TEST_IMAGE_PULL_POLICY := $(IMAGE_PULL_POLICY)
 e2e-client-test: export GO_TEST_FLAGS_E2E := $(strip $(GO_TEST_FLAGS_E2E))
 e2e-client-test: export VERSION := $(VERSION)
@@ -1545,20 +1546,20 @@ install-network-policy-tests: $(BUILD_TARGETS)/build-operator reset-namespace in
 .PHONY: install-network-policies
 install-network-policies: install-operator-network-policies install-coherence-network-policies
 	@echo "API Server info"
-	kubectl get svc -o wide
-	kubectl get endpoints kubernetes
+	$(KUBECTL_CMD) get svc -o wide
+	$(KUBECTL_CMD) get endpoints kubernetes
 	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
-	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
+	$(KUBECTL_CMD) get networkpolicy -n $(OPERATOR_NAMESPACE)
 	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
-	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
+	$(KUBECTL_CMD) get networkpolicy -n $(CLUSTER_NAMESPACE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Prepare a copy of the example network policies
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: prepare-network-policies
-prepare-network-policies: export IP1=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[0].addresses[0].ip}')
-prepare-network-policies: export IP2=$(shell kubectl -n default get svc kubernetes -o jsonpath='{.spec.clusterIP}')
-prepare-network-policies: export API_PORT=$(shell kubectl -n default get endpoints kubernetes -o jsonpath='{.subsets[0].ports[0].port}')
+prepare-network-policies: export IP1=$(shell $(KUBECTL_CMD) -n default get endpoints kubernetes -o jsonpath='{.subsets[0].addresses[0].ip}')
+prepare-network-policies: export IP2=$(shell $(KUBECTL_CMD) -n default get svc kubernetes -o jsonpath='{.spec.clusterIP}')
+prepare-network-policies: export API_PORT=$(shell $(KUBECTL_CMD) -n default get endpoints kubernetes -o jsonpath='{.subsets[0].ports[0].port}')
 prepare-network-policies:
 	mkdir -p $(BUILD_OUTPUT)/network-policies
 	cp $(EXAMPLES_DIR)/095_network_policies/*.sh $(BUILD_OUTPUT)/network-policies
@@ -1575,9 +1576,9 @@ prepare-network-policies:
 .PHONY: uninstall-network-policies
 uninstall-network-policies: uninstall-operator-network-policies uninstall-coherence-network-policies
 	@echo "Network policies installed in $(OPERATOR_NAMESPACE)"
-	kubectl get networkpolicy -n $(OPERATOR_NAMESPACE)
+	$(KUBECTL_CMD) get networkpolicy -n $(OPERATOR_NAMESPACE)
 	@echo "Network policies installed in $(CLUSTER_NAMESPACE)"
-	kubectl get networkpolicy -n $(CLUSTER_NAMESPACE)
+	$(KUBECTL_CMD) get networkpolicy -n $(CLUSTER_NAMESPACE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install the Operator network policies from the examples
@@ -1671,7 +1672,7 @@ cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
 install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl create -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) create -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
@@ -1683,7 +1684,7 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 	@echo "Uninstalling CRDs - calling prepare_deploy"
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	@echo "Uninstalling CRDs - executing deletion"
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1726,11 +1727,11 @@ endif
 ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(ORACLE_REGISTRY)")
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) apply -f -
 else
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | $(KUBECTL_CMD) apply -f -
 endif
 	sleep 5
 
@@ -1739,20 +1740,20 @@ endif
 just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(ORACLE_REGISTRY)")
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) apply -f -
 else
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | kubectl apply -f -
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | $(KUBECTL_CMD) apply -f -
 endif
 
 
 .PHONY: ensure-pull-secret
 ensure-pull-secret:
 ifneq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
 		--from-file=.dockerconfigjson=$(DEPLOY_REGISTRY_CONFIG_PATH) \
 		--type=kubernetes.io/dockerconfigjson
-	kubectl -n $(OPERATOR_NAMESPACE) patch serviceaccount default -p '{"imagePullSecrets": [{"name": "coherence-operator-pull-secret"}]}'
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) patch serviceaccount default -p '{"imagePullSecrets": [{"name": "coherence-operator-pull-secret"}]}'
 endif
 
 
@@ -1765,8 +1766,8 @@ deploy-debug: prepare-deploy-debug create-namespace $(TOOLS_BIN)/kustomize   ## 
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
-	kubectl -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl apply -f -
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) apply -f -
 	sleep 5
 	@echo ""
 	@echo "Deployed a debug enabled Operator."
@@ -1782,26 +1783,26 @@ endif
 
 
 .PHONY: port-forward-debug
-port-forward-debug: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
+port-forward-debug: export POD=$(shell $(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 port-forward-debug:  ## Run a port-forward process to forward localhost:2345 to port 2345 in the Operator Pod
 	@echo "Starting port-forward to the Operator Pod on port 2345 - DO NOT stop this process until debugging is finished!"
 	@echo "Connect your IDE debugger to localhost:2345 (which is the default remote debug setting in IDEs like Goland)"
 	@echo "If your IDE immediately disconnects it may be that the Operator Pod was not yet started, so try again."
 	@echo ""
-	kubectl -n $(OPERATOR_NAMESPACE) port-forward $(POD) 2345:2345 || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) port-forward $(POD) 2345:2345 || true
 
 .PHONY: prepare-deploy-debug
 prepare-deploy-debug: $(BUILD_TARGETS)/manifests build-operator-debug $(TOOLS_BIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE_DEBUG),$(OPERATOR_NAMESPACE))
 
 .PHONY: wait-for-deploy
-wait-for-deploy: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
+wait-for-deploy: export POD=$(shell $(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 wait-for-deploy:
 	sleep 30
 	echo "Operator Pods:"
-	kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence
 	echo "Waiting for Operator to be ready. Pod: $(POD)"
-	kubectl -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Prepare the deployment manifests - this is called by a number of other targets.
@@ -1826,14 +1827,14 @@ endef
 undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## Undeploy the Coherence Operator
 	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | kubectl delete -f - || true
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
-	kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
-	kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
-	kubectl -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) delete -f - || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
+	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
+	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	@echo "Undeploy Coherence Operator completed"
 	@echo "Uninstalling CRDs - executing deletion"
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | kubectl delete --force -f - || true
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
 
 
@@ -1841,9 +1842,9 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## U
 # Tail the deployed operator logs.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: tail-logs
-tail-logs: export POD=$(shell kubectl -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
+tail-logs: export POD=$(shell $(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get pod -l control-plane=coherence -o name)
 tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
-	kubectl -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 
 $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
@@ -1883,13 +1884,13 @@ $(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
 create-namespace: export KUBECONFIG_PATH := $(KUBECONFIG_PATH)
 create-namespace: ## Create the test namespace
 ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
-	kubectl get ns $(OPERATOR_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE)
-	kubectl get ns $(OPERATOR_NAMESPACE_CLIENT) -o name > /dev/null 2>&1 || kubectl create namespace $(OPERATOR_NAMESPACE_CLIENT)
-	kubectl get ns $(CLUSTER_NAMESPACE) -o name > /dev/null 2>&1 || kubectl create namespace $(CLUSTER_NAMESPACE)
+	$(KUBECTL_CMD) get ns $(OPERATOR_NAMESPACE) -o name > /dev/null 2>&1 || $(KUBECTL_CMD) create namespace $(OPERATOR_NAMESPACE)
+	$(KUBECTL_CMD) get ns $(OPERATOR_NAMESPACE_CLIENT) -o name > /dev/null 2>&1 || $(KUBECTL_CMD) create namespace $(OPERATOR_NAMESPACE_CLIENT)
+	$(KUBECTL_CMD) get ns $(CLUSTER_NAMESPACE) -o name > /dev/null 2>&1 || $(KUBECTL_CMD) create namespace $(CLUSTER_NAMESPACE)
 endif
-	kubectl label namespace $(OPERATOR_NAMESPACE) coherence.oracle.com/test=true --overwrite
-	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) coherence.oracle.com/test=true --overwrite
-	kubectl label namespace $(CLUSTER_NAMESPACE) coherence.oracle.com/test=true --overwrite
+	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE) coherence.oracle.com/test=true --overwrite
+	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE_CLIENT) coherence.oracle.com/test=true --overwrite
+	$(KUBECTL_CMD) label namespace $(CLUSTER_NAMESPACE) coherence.oracle.com/test=true --overwrite
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Delete and re-create the test namespace
@@ -1904,7 +1905,7 @@ reset-namespace: export OCR_DOCKER_PASSWORD := $(OCR_DOCKER_PASSWORD)
 reset-namespace: delete-namespace create-namespace ensure-pull-secret     ## Reset the test namespace
 ifneq ($(DOCKER_SERVER),)
 	@echo "Creating pull secrets for $(DOCKER_SERVER)"
-	kubectl create secret docker-registry coherence-k8s-operator-development-secret \
+	$(KUBECTL_CMD) create secret docker-registry coherence-k8s-operator-development-secret \
 								--namespace $(OPERATOR_NAMESPACE) \
 								--docker-server "$(DOCKER_SERVER)" \
 								--docker-username "$(DOCKER_USERNAME)" \
@@ -1913,7 +1914,7 @@ ifneq ($(DOCKER_SERVER),)
 endif
 ifneq ("$(or $(OCR_DOCKER_USERNAME),$(OCR_DOCKER_PASSWORD))","")
 	@echo "Creating pull secrets for container-registry.oracle.com"
-	kubectl create secret docker-registry ocr-k8s-operator-development-secret \
+	$(KUBECTL_CMD) create secret docker-registry ocr-k8s-operator-development-secret \
 								--namespace $(OPERATOR_NAMESPACE) \
 								--docker-server container-registry.oracle.com \
 								--docker-username "$(OCR_DOCKER_USERNAME)" \
@@ -1931,13 +1932,13 @@ ifeq ($(CREATE_OPERATOR_NAMESPACE),true)
 	$(call delete_ns,$(OPERATOR_NAMESPACE_CLIENT))
 	$(call delete_ns,$(CLUSTER_NAMESPACE))
 endif
-	kubectl delete clusterrole operator-test-coherence-operator --force --ignore-not-found=true --grace-period=0 && echo "deleted namespace" || true
-	kubectl delete clusterrolebinding operator-test-coherence-operator --ignore-not-found=true --force --grace-period=0 && echo "deleted namespace" || true
+	$(KUBECTL_CMD) delete clusterrole operator-test-coherence-operator --force --ignore-not-found=true --grace-period=0 && echo "deleted namespace" || true
+	$(KUBECTL_CMD) delete clusterrolebinding operator-test-coherence-operator --ignore-not-found=true --force --grace-period=0 && echo "deleted namespace" || true
 
 define delete_ns
-	if kubectl get ns $(1); then \
+	if $(KUBECTL_CMD) get ns $(1); then \
 		echo "Deleting test namespace $(1)" ;\
-		kubectl delete namespace $(1) --force --ignore-not-found=true --grace-period=0 --timeout=600s ;\
+		$(KUBECTL_CMD) delete namespace $(1) --force --ignore-not-found=true --grace-period=0 --timeout=600s ;\
 		echo "deleted namespace $(1)" || true ;\
 	fi
 endef
@@ -1947,21 +1948,21 @@ endef
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: delete-coherence-clusters
 delete-coherence-clusters: ## Delete all running Coherence clusters in the test namespace
-	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
-  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
-		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	for i in $$($(KUBECTL_CMD) -n  $(OPERATOR_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
+  		$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
-	for i in $$(kubectl -n  $(CLUSTER_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
-  		kubectl -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
-		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	for i in $$($(KUBECTL_CMD) -n  $(CLUSTER_NAMESPACE) get coherencejob.coherence.oracle.com -o name); do \
+  		$(KUBECTL_CMD) -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		$(KUBECTL_CMD) -n $(CLUSTER_NAMESPACE) delete $${i}; \
 	done
-	for i in $$(kubectl -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
-  		kubectl -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
-		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+	for i in $$($(KUBECTL_CMD) -n  $(OPERATOR_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
+  		$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
-	for i in $$(kubectl -n  $(CLUSTER_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
-  		kubectl -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
-		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+	for i in $$($(KUBECTL_CMD) -n  $(CLUSTER_NAMESPACE) get coherence.coherence.oracle.com -o name); do \
+  		$(KUBECTL_CMD) -n $(CLUSTER_NAMESPACE) patch $${i} -p '{"metadata":{"finalizers":[]}}' --type=merge || true ;\
+		$(KUBECTL_CMD) -n $(CLUSTER_NAMESPACE) delete $${i}; \
 	done
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1970,15 +1971,15 @@ delete-coherence-clusters: ## Delete all running Coherence clusters in the test 
 .PHONY: clean-namespace
 clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test namespace
 	@echo "Cleaning Namespaces..."
-	kubectl delete --all networkpolicy --namespace=$(OPERATOR_NAMESPACE) || true
-	kubectl delete --all networkpolicy --namespace=$(CLUSTER_NAMESPACE) || true
-	for i in $$(kubectl -n $(OPERATOR_NAMESPACE) get all -o name); do \
+	$(KUBECTL_CMD) delete --all networkpolicy --namespace=$(OPERATOR_NAMESPACE) || true
+	$(KUBECTL_CMD) delete --all networkpolicy --namespace=$(CLUSTER_NAMESPACE) || true
+	for i in $$($(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get all -o name); do \
 		echo "Deleting $${i} from test namespace $(OPERATOR_NAMESPACE)" \
-		kubectl -n $(OPERATOR_NAMESPACE) delete $${i}; \
+		$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete $${i}; \
 	done
-	for i in $$(kubectl -n $(CLUSTER_NAMESPACE) get all -o name); do \
+	for i in $$($(KUBECTL_CMD) -n $(CLUSTER_NAMESPACE) get all -o name); do \
 		echo "Deleting $${i} from test namespace $(CLUSTER_NAMESPACE)" \
-		kubectl -n $(CLUSTER_NAMESPACE) delete $${i}; \
+		$(KUBECTL_CMD) -n $(CLUSTER_NAMESPACE) delete $${i}; \
 	done
 	@echo "Cleaning Namespaces completed"
 
@@ -1988,9 +1989,9 @@ clean-namespace: delete-coherence-clusters   ## Clean-up deployments in the test
 .PHONY: create-ssl-secrets
 create-ssl-secrets: $(BUILD_OUTPUT)/certs
 	@echo "Deleting SSL secret $(TEST_SSL_SECRET)"
-	kubectl --namespace $(OPERATOR_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
+	$(KUBECTL_CMD) --namespace $(OPERATOR_NAMESPACE) delete secret $(TEST_SSL_SECRET) && echo "secret deleted" || true
 	@echo "Creating SSL secret $(TEST_SSL_SECRET)"
-	kubectl create secret generic $(TEST_SSL_SECRET) \
+	$(KUBECTL_CMD) create secret generic $(TEST_SSL_SECRET) \
 		--namespace $(OPERATOR_NAMESPACE) \
 		--from-file=keystore.jks=build/_output/certs/icarus.jks \
 		--from-file=storepass.txt=build/_output/certs/storepassword.txt \
@@ -2042,11 +2043,11 @@ kind-calico: export KIND_CONFIG=$(SCRIPTS_DIR)/kind-config-calico.yaml
 kind-calico:   ## Run a KinD cluster with Calico
 	kind create cluster --name $(KIND_CLUSTER) --config $(SCRIPTS_DIR)/kind-config-calico.yaml --image $(KIND_IMAGE)
 	$(SCRIPTS_DIR)/kind-label-node.sh
-	kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/$(CALICO_VERSION)/manifests/calico.yaml
-	kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+	$(KUBECTL_CMD) apply -f https://raw.githubusercontent.com/projectcalico/calico/$(CALICO_VERSION)/manifests/calico.yaml
+	$(KUBECTL_CMD) -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 	sleep 30
-	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=calico-node pod
-	kubectl -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=kube-dns pod
+	$(KUBECTL_CMD) -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=calico-node pod
+	$(KUBECTL_CMD) -n kube-system wait --for condition=ready --timeout=$(CALICO_TIMEOUT) -l k8s-app=kube-dns pod
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop and delete the Kind cluster
@@ -2152,7 +2153,7 @@ MINIKUBE_K8S     ?= 1.25.8
 minikube: minikube-install  ## Run a default minikube cluster with Calico
 	$(MINIKUBE) start --driver docker --cni calico --kubernetes-version $(MINIKUBE_K8S)
 	$(MINIKUBE) status
-	kubectl get nodes
+	$(KUBECTL_CMD) get nodes
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Stop Minikube
@@ -2235,12 +2236,12 @@ $(TOOLS_BIN)/cmctl:
 
 .PHONY: install-cert-manager
 install-cert-manager: $(TOOLS_BIN)/cmctl ## Install Cert manager into the Kubernetes cluster
-	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+	$(KUBECTL_CMD) apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
 	$(CMCTL) check api --wait=10m
 
 .PHONY: uninstall-cert-manager
 uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
-	kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yam
+	$(KUBECTL_CMD) delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yam
 
 
 # ======================================================================================================================
@@ -2415,6 +2416,32 @@ $(BUILD_BIN_ARM64)/cohctl:
 	chmod +x $(BUILD_BIN_ARM64)/cohctl
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Download the OpenShift CLI (oc) into build/tools/bin
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: oc
+oc: $(TOOLS_BIN)/oc
+
+$(TOOLS_BIN)/oc: ## Download OpenShift oc CLI
+	mkdir -p oc-tmp || true
+	mkdir -p $(TOOLS_BIN) || true
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz -o oc-tmp/openshift-client.tar.gz
+else
+	curl -Ls https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/stable/openshift-client-mac-arm64.tar.gz -o oc-tmp/openshift-client.tar.gz
+endif
+else
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz -o oc-tmp/openshift-client.tar.gz
+else
+	curl -Ls https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/stable/openshift-client-linux.tar.gz -o oc-tmp/openshift-client.tar.gz
+endif
+endif
+	cd oc-tmp && tar -xvf openshift-client.tar.gz
+	mv oc-tmp/oc $(TOOLS_BIN)/oc
+	chmod +x $(TOOLS_BIN)/oc
+
+# ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: gotestsum
@@ -2586,37 +2613,37 @@ endif
 
 .PHONY: install-prometheus
 install-prometheus: get-prometheus ## Install Prometheus and Grafana
-	kubectl create -f $(PROMETHEUS_HOME)/manifests/setup
+	$(KUBECTL_CMD) create -f $(PROMETHEUS_HOME)/manifests/setup
 	sleep 10
-	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
+	until $(KUBECTL_CMD) get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
 #   We create additional custom RBAC rules because the defaults do not work
 #   in an RBAC enabled cluster such as KinD
 #   See: https://prometheus-operator.dev/docs/operator/rbac/
-	kubectl create -f hack/prometheus-rbac.yaml
-	kubectl create -f $(PROMETHEUS_HOME)/manifests
+	$(KUBECTL_CMD) create -f hack/prometheus-rbac.yaml
+	$(KUBECTL_CMD) create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
-	kubectl -n monitoring get all
+	$(KUBECTL_CMD) -n monitoring get all
 	@echo "Waiting for Prometheus StatefulSet to be ready"
-	until kubectl -n monitoring get statefulset/prometheus-k8s ; do date; sleep 1; echo ""; done
-	kubectl -n monitoring rollout status statefulset/prometheus-k8s --timeout=5m
+	until $(KUBECTL_CMD) -n monitoring get statefulset/prometheus-k8s ; do date; sleep 1; echo ""; done
+	$(KUBECTL_CMD) -n monitoring rollout status statefulset/prometheus-k8s --timeout=5m
 	@echo "Waiting for Grafana Deployment to be ready"
-	kubectl -n monitoring rollout status deployment/grafana --timeout=5m
+	$(KUBECTL_CMD) -n monitoring rollout status deployment/grafana --timeout=5m
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Prometheus
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-prometheus
 uninstall-prometheus: get-prometheus ## Uninstall Prometheus and Grafana
-	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests || true
-	kubectl delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup || true
-	kubectl delete --ignore-not-found=true -f hack/prometheus-rbac.yaml
+	$(KUBECTL_CMD) delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests || true
+	$(KUBECTL_CMD) delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup || true
+	$(KUBECTL_CMD) delete --ignore-not-found=true -f hack/prometheus-rbac.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus Adapter used for k8s metrics and Horizontal Pod Autoscaler
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-prometheus-adapter
 install-prometheus-adapter:
-	kubectl create ns $(OPERATOR_NAMESPACE) || true
+	$(KUBECTL_CMD) create ns $(OPERATOR_NAMESPACE) || true
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com/ || true
 	helm install --atomic --namespace $(OPERATOR_NAMESPACE) --version $(PROMETHEUS_ADAPTER_VERSION) --wait \
 		--set prometheus.url=http://prometheus.$(OPERATOR_NAMESPACE).svc \
@@ -2636,25 +2663,25 @@ uninstall-prometheus-adapter:
 port-forward-grafana: ## Run a port-forward to Grafana on http://127.0.0.1:3000
 	@echo "Reach Grafana on http://127.0.0.1:3000"
 	@echo "User: admin Password: admin"
-	kubectl --namespace monitoring port-forward svc/grafana 3000
+	$(KUBECTL_CMD) --namespace monitoring port-forward svc/grafana 3000
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install MetalLB
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-metallb
 install-metallb: ## Install MetalLB to allow services of type LoadBalancer
-	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml
-	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml
-	kubectl apply -f hack/metallb-config.yaml
+	$(KUBECTL_CMD) apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml
+	$(KUBECTL_CMD) apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml
+	$(KUBECTL_CMD) apply -f hack/metallb-config.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall MetalLB
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-metallb
 uninstall-metallb: ## Uninstall MetalLB
-	kubectl delete -f hack/metallb-config.yaml || true
-	kubectl delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml || true
-	kubectl delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml || true
+	$(KUBECTL_CMD) delete -f hack/metallb-config.yaml || true
+	$(KUBECTL_CMD) delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml || true
+	$(KUBECTL_CMD) delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml || true
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2664,23 +2691,23 @@ uninstall-metallb: ## Uninstall MetalLB
 install-istio: delete-istio-config get-istio ## Install the latest version of Istio into k8s (or override the version using the ISTIO_VERSION env var)
 ifeq (true,$(ISTIO_USE_CONFIG))
 	$(ISTIO_HOME)/bin/istioctl install -f $(BUILD_OUTPUT)/istio-config.yaml -y
-	kubectl -n istio-system wait --for condition=available deployment.apps/istiod-$(ISTIO_REVISION)
+	$(KUBECTL_CMD) -n istio-system wait --for condition=available deployment.apps/istiod-$(ISTIO_REVISION)
 	$(ISTIO_HOME)/bin/istioctl tag set default --revision $(ISTIO_REVISION)
 else
 	$(ISTIO_HOME)/bin/istioctl install --set profile=demo -y
-	kubectl -n istio-system wait --for condition=available deployment.apps/istiod
+	$(KUBECTL_CMD) -n istio-system wait --for condition=available deployment.apps/istiod
 endif
-	kubectl -n istio-system wait --for condition=available deployment.apps/istio-ingressgateway
-	kubectl -n istio-system wait --for condition=available deployment.apps/istio-egressgateway
-	kubectl apply -f $(SCRIPTS_DIR)/istio-strict.yaml
-	kubectl -n $(OPERATOR_NAMESPACE) apply -f $(SCRIPTS_DIR)/istio-operator.yaml
-	kubectl label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
-	kubectl label namespace $(OPERATOR_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
-	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
-	kubectl label namespace $(OPERATOR_NAMESPACE_CLIENT) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
-	kubectl label namespace $(CLUSTER_NAMESPACE) istio-injection=enabled --overwrite=true
-	kubectl label namespace $(CLUSTER_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
-	kubectl apply -f $(ISTIO_HOME)/samples/addons
+	$(KUBECTL_CMD) -n istio-system wait --for condition=available deployment.apps/istio-ingressgateway
+	$(KUBECTL_CMD) -n istio-system wait --for condition=available deployment.apps/istio-egressgateway
+	$(KUBECTL_CMD) apply -f $(SCRIPTS_DIR)/istio-strict.yaml
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(SCRIPTS_DIR)/istio-operator.yaml
+	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
+	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
+	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
+	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE_CLIENT) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
+	$(KUBECTL_CMD) label namespace $(CLUSTER_NAMESPACE) istio-injection=enabled --overwrite=true
+	$(KUBECTL_CMD) label namespace $(CLUSTER_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
+	$(KUBECTL_CMD) apply -f $(ISTIO_HOME)/samples/addons
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Upgrade Istio
@@ -2694,8 +2721,8 @@ upgrade-istio: delete-istio-config $(BUILD_OUTPUT)/istio-config.yaml ## Upgrade 
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-istio
 uninstall-istio: delete-istio-config get-istio ## Uninstall Istio from k8s
-	kubectl -n $(OPERATOR_NAMESPACE) delete -f $(SCRIPTS_DIR)/istio-operator.yaml || true
-	kubectl delete -f ./hack/istio-strict.yaml || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete -f $(SCRIPTS_DIR)/istio-operator.yaml || true
+	$(KUBECTL_CMD) delete -f ./hack/istio-strict.yaml || true
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
 $(BUILD_OUTPUT)/istio-config.yaml: $(BUILD_PROPS)
@@ -2722,7 +2749,7 @@ get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.63.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.64.7
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.
@@ -2802,9 +2829,9 @@ release-dashboards:
 	@echo "Releasing Dashboards $(VERSION)"
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
-	kubectl create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
+	$(KUBECTL_CMD) create configmap coherence-grafana-dashboards --from-file=dashboards/grafana \
 		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
-	kubectl create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
+	$(KUBECTL_CMD) create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
 		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------

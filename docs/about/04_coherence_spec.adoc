@@ -68,6 +68,7 @@ m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | fals
 * <<CoherenceSpec,CoherenceSpec>>
 * <<CoherenceStatefulSetResourceSpec,CoherenceStatefulSetResourceSpec>>
 * <<CoherenceTracingSpec,CoherenceTracingSpec>>
+* <<CoherenceUtilsSpec,CoherenceUtilsSpec>>
 * <<CoherenceWKASpec,CoherenceWKASpec>>
 * <<ConfigMapVolumeSpec,ConfigMapVolumeSpec>>
 * <<GlobalSpec,GlobalSpec>>
@@ -136,10 +137,14 @@ ApplicationSpec is the specification of the application deployed into the Cohere
 | Field | Description | Type | Required
 m| type | The application type to execute. This field would be set if using the Coherence Graal image and running a none-Java application. For example if the application was a Node application this field would be set to "node". The default is to run a plain Java application. m| &#42;string | false
 m| main | Class is the Coherence container main class.  The default value is com.tangosol.net.DefaultCacheServer. If the application type is non-Java this would be the name of the corresponding language specific runnable, for example if the application type is "node" the main may be a Javascript file. m| &#42;string | false
-m| args | Args is the optional arguments to pass to the main class. m| []string | false
-m| workingDir | The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is "/app". m| &#42;string | false
+m| entryPoint | Entrypoint array that will override the "java" entry point configured by the Operator or and any container entry point. This is an advanced use case, specifying an incorrect value here can cause the container not to start. Variable references $(VAR_NAME) are expanded using the container's environment. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. "$$(VAR_NAME)" will produce the string literal "$(VAR_NAME)". Escaped references will never be expanded, regardless of whether the variable exists or not. Cannot be updated. m| []string | false
+m| args | Args is the optional arguments to pass to the main class or the container entry point. m| []string | false
+m| workingDir | WorkingDir sets the working directory of the Coherence container. m| &#42;string | false
 m| cloudNativeBuildPack | Optional settings that may be configured if using a Cloud Native Buildpack Image. For example an image build with the Spring Boot Maven/Gradle plugin. See: https://github.com/paketo-buildpacks/spring-boot and https://buildpacks.io/ m| &#42;<<CloudNativeBuildPackSpec,CloudNativeBuildPackSpec>> | false
 m| springBootFatJar | SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar" m| &#42;string | false
+m| useImageEntryPoint | UseImageEntryPoint is a flag to indicate that the Coherence container in the Pods should just execute the image entry point and not configure a custom command line. If this flag is set to true any arguments in the Args field are passed as container arguments to the entry point. m| &#42;bool | false
+m| useJdkJavaOptions | UseJdkJavaOptions is a flag to indicate that the `JDK_JAVA_OPTIONS` environment variable should be set in the Coherence container to contain the JVM arguments configured by the Operator. Setting `JDK_JAVA_OPTIONS` defaults to true and only applies if UseImageEntryPoint is set to true. m| &#42;bool | false
+m| alternateJdkJavaOptions | AlternateJdkJavaOptions specifies an alternative environment variable name to use instead of `JDK_JAVA_OPTIONS` for the command line options. If an application does not want to use the `JDK_JAVA_OPTIONS` environment variable but still wants access to the options the operator would have configured, this field can be set to an environment variable that an application can then access in the container at runtime. The value of the environment variable specified here will be set even if `UseJdkJavaOptions` is set to false. Setting the alternate JVM options environment variable only applies if UseImageEntryPoint is set to true. m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -332,7 +337,7 @@ m| containerSecurityContext | ContainerSecurityContext is the SecurityContext th
 m| shareProcessNamespace | Share a single process namespace between all the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
 m| hostIPC | Use the host's ipc namespace. Optional: Default to false. m| &#42;bool | false
 m| network | Configure various networks and DNS settings for Pods in this role. m| &#42;<<NetworkSpec,NetworkSpec>> | false
-m| coherenceUtils | The configuration for the Coherence operator image name m| &#42;<<ImageSpec,ImageSpec>> | false
+m| coherenceUtils | The configuration for the Coherence operator image name m| &#42;<<CoherenceUtilsSpec,CoherenceUtilsSpec>> | false
 m| serviceAccountName | The name to use for the service account to use when RBAC is enabled The role bindings must already have been created as this chart does not create them it just sets the serviceAccountName value in the Pod spec. m| string | false
 m| automountServiceAccountToken | Whether to auto-mount the Kubernetes API credentials for a service account m| &#42;bool | false
 m| operatorRequestTimeout | The timeout to apply to REST requests made back to the Operator from Coherence Pods. These requests are typically to obtain site and rack information for the Pod. m| &#42;int32 | false
@@ -474,6 +479,18 @@ NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal
 
 <<Table of Contents,Back to TOC>>
 
+=== CoherenceUtilsSpec
+
+CoherenceUtilsSpec defines the settings for the Coherence Operator utilities image
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| imagePullPolicy | Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images m| &#42;https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
 === CoherenceWKASpec
 
 CoherenceWKASpec configures Coherence well-known-addressing to use an existing Coherence deployment for WKA.
@@ -554,6 +571,7 @@ m| gc | Set JVM garbage collector options. m| &#42;<<JvmGarbageCollectorSpec,Jvm
 m| diagnosticsVolume | DiagnosticsVolume is the volume to write JVM diagnostic information to, for example heap dumps, JFRs etc. m| &#42;https://{k8s-doc-link}/#volume-v1-core | false
 m| memory | Configure the JVM memory options. m| &#42;<<JvmMemorySpec,JvmMemorySpec>> | false
 m| useJibClasspath | A flag indicating whether to automatically add the default classpath for images created by the JIB tool https://github.com/GoogleContainerTools/jib If true then the /app/lib/* /app/classes and /app/resources entries are added to the JVM classpath. The default value fif not specified is true. m| &#42;bool | false
+m| java8 | Java8 is a flag to indicate that a Coherence container is running on Java 8 and must use the legacy Operator container entry point. This would only apply to applications using older Coherence 12.2.1-4-* or 14.1.1-0-* versions. The default value for this field is false, if this field is not set to true when Java 8 is used the container will fail to start. m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>

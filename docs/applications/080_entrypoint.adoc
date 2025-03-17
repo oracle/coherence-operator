@@ -1,0 +1,174 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Run an Image Entry Point
+
+== Run an Image Entry Point
+
+The default behaviour of the Coherence operator is to configure the entry point and arguments to
+use to run the Coherence container. This command line is created from the various configuration
+elements in the `Coherence` resource yaml. Any entry point and arguments actually configured in
+the image being used will be ignored.
+The behaviour can be changed so that the images own entry point is used for the container.
+This could be useful for example when an image contains a shell script that performs initialisation
+before running the Java Coherence application.
+
+[NOTE]
+====
+Using an image entry point is only supported in images that use Java 11 or higher.
+====
+
+To use an image's entry point set the `spec.application.useImageEntryPoint` field in the `Coherence`
+resource to `true`.
+
+For example:
+
+[source]
+.storage.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
+  application:
+    useImageEntryPoint: true
+----
+
+=== How are the JVM and Coherence Configured
+
+When the operator builds the container command line it can pass all the required JVM options
+and system properties to configure the application on the command line.
+But, when the image entry point it being used the operator needs to pass configuration another way.
+
+All the Coherence configuration system properties can also be passed as environment variables, so
+the operator configures the container to have all the required environment variables to configure
+Coherence. For example, the `coherence.role` system property is used to configure the role name
+of a Coherence process, but Coherence will also use the `COHERENCE_ROLE` environment variable for this.
+If `spec.role` value is set in the `Coherence` resource, this is be used to set `COHERENCE_ROLE`
+environment variable in the Coherence container configuration in the Pod.
+
+The operator then uses a combination of Java arguments files and the `JDK_JAVA_OPTIONS` environment
+variable to configure the JVM. This means that most of the features of the `Coherence` CRD can be
+used, even when running an image entry point.
+
+
+==== Java Argument Files
+
+Various other environment variables are set by the Coherence operator to configure the container.
+When the Pod starts an init-container that the operator has configured uses these environment
+variables to produce a number of Java command line argument files.
+These files contain all the JVM command line options that the operator would have used in its
+custom command line if it was running the container.
+For more information on argument files see the
+https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files[
+Java Arguments Files] documentation.
+
+The operator creates multiple arguments files for different purposes.
+The Java argument files are always created by the init-container as these are used in the command line
+that the operator normally configures for container.
+There will be a file for the class path, a file for JVM options, a file for Spring Boot options
+if the application is Spring Boot, etc.
+
+=== The `JDK_JAVA_OPTIONS` Environment Variable
+
+The `JDK_JAVA_OPTIONS` is a special environment variable recognised by the JVM.
+Any values in the `JDK_JAVA_OPTIONS` environment variable are effectively prepended to the JVM
+command line.
+It is described fully in the
+https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#using-the-jdk_java_options-launcher-environment-variable
+[Java Command] documentation.
+
+There are limitations on the size of the value for an environment variable, so the operator could
+not specify all the options it needs in the `JDK_JAVA_OPTIONS` environment variable.
+This is why the operator uses argument files instead, so all it needs to set into the `JDK_JAVA_OPTIONS` environment
+variable are the names of the argument files to load.
+
+==== What If The Application Already Sets `JDK_JAVA_OPTIONS`
+
+If the `JDK_JAVA_OPTIONS` environment variable is set in the `Coherence` resource then the operator
+will append its additional configuration onto the existing value.
+
+==== Disabling Use of `JDK_JAVA_OPTIONS`
+
+There may be occasions that the operator should not configure the `JDK_JAVA_OPTIONS` environment variable.
+For example, an image may run a shell script that runs various other Java commands before starting the
+main Coherence application. If the `JDK_JAVA_OPTIONS` environment variable was set it would be applied
+to all these Java processes too.
+
+Setting the `spec.application.useJdkJavaOptions` field to `false` in the Coherence resource will
+disable the use of the `JDK_JAVA_OPTIONS` environment variable and the operator will not set it.
+
+For example,
+
+[source]
+.storage.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
+  application:
+    useImageEntryPoint: true
+    useJdkJavaOptions: false
+----
+
+[NOTE]
+====
+When the  `spec.application.useJdkJavaOptions` field is set to false the operator has no way to pass
+a number of configuration options to the JVM. Coherence configurations that are passed as environment
+variables will still work. Anything passed as JVM options, such as memory configurations, system
+properties, etc cannot be configured.
+
+As long as the application that the image runs is a Coherence application correctly configured
+to run in Kubernetes with the options required by the operator then it should still work.
+====
+
+==== Using An Alternative To `JDK_JAVA_OPTIONS`
+
+In use cases where the `JDK_JAVA_OPTIONS` environment variable cannot be used and is disabled as
+described above, an alternative environment variable name can be specified that the operator will
+configure instead. This allows an application to use this alternative environment variable at runtime
+to obtain all the configurations that the Operator would have applied to the JVM.
+
+The name of the alternative environment variable is set in the `spec.application.alternateJdkJavaOptions`
+field of the `Coherence` resource.
+
+For example, using the the yaml below will cause the operator to set the Java options values
+into the `ALT_JAVA_OPTS` environment variable.
+
+[source]
+.storage.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 3
+  image: container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
+  application:
+    useImageEntryPoint: true
+    useJdkJavaOptions: false
+    alternateJdkJavaOptions: "ALT_JAVA_OPTS"
+----
+
+In the Coherence container the application code can then access the The `ALT_JAVA_OPTS` environment variable
+to obtain the JVM options the Operator configured.
+
+==== Use Java Argument Files Directly
+
+In use cases where the `JDK_JAVA_OPTIONS` environment variable has been disabled application code
+could also directly access the Java argument files the operator configured and use those to
+configure the Coherence JVM.
+

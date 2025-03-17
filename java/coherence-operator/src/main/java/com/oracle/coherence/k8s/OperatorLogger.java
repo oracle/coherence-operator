@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -21,7 +21,7 @@ public interface OperatorLogger {
     /**
      * The system property to use to set the health logging should use Java logger.
      */
-    String PROP_LOGGER = "coherence.k8s.operator.health.logger";
+    String PROP_LOGGER = "coherence.operator.health.logger";
 
     /**
      * The {@link #PROP_LOGGER} value to log to std-err.

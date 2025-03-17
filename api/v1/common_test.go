@@ -29,6 +29,10 @@ import (
 const (
 	testCoherenceImage = "oracle/coherence-ce:1.2.3"
 	testOperatorImage  = "oracle/operator:1.2.3"
+
+	actualFilePattern   = coh.FileNamePattern + "-Actual.json"
+	expectedFilePattern = coh.FileNamePattern + "-Expected.json"
+	diffFilePattern     = coh.FileNamePattern + "-Diff.txt"
 )
 
 // Returns a pointer to an int32
@@ -118,13 +122,13 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	// Dump the json for the actual StatefulSet for debugging failures
 	jsonActual, err := json.MarshalIndent(stsActual, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(actualFilePattern, dir, os.PathSeparator, stsActual.Name), jsonActual, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Dump the json for the expected StatefulSet for debugging failures
 	jsonExpected, err := json.MarshalIndent(stsExpected, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(expectedFilePattern, dir, os.PathSeparator, stsActual.Name), jsonExpected, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	assertEnvironmentVariables(t, stsActual, stsExpected)
@@ -134,7 +138,7 @@ func assertStatefulSet(t *testing.T, res coh.Resource, stsExpected *appsv1.State
 	msg := "StatefulSets not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
-		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		err = os.WriteFile(fmt.Sprintf(diffFilePattern, dir, os.PathSeparator, stsActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
 		g.Expect(err).NotTo(HaveOccurred())
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
@@ -173,23 +177,22 @@ func assertJob(t *testing.T, res coh.Resource, expected *batchv1.Job) {
 	// Dump the json for the actual StatefulSet for debugging failures
 	jsonActual, err := json.MarshalIndent(jobActual, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Actual.json", dir, os.PathSeparator, jobActual.Name), jsonActual, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(actualFilePattern, dir, os.PathSeparator, jobActual.Name), jsonActual, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Dump the json for the expected StatefulSet for debugging failures
 	jsonExpected, err := json.MarshalIndent(expected, "", "    ")
 	g.Expect(err).NotTo(HaveOccurred())
-	err = os.WriteFile(fmt.Sprintf("%s%c%s-Expected.json", dir, os.PathSeparator, jobActual.Name), jsonExpected, os.ModePerm)
+	err = os.WriteFile(fmt.Sprintf(expectedFilePattern, dir, os.PathSeparator, jobActual.Name), jsonExpected, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	assertEnvironmentVariablesForJob(t, jobActual, expected)
 	assertEnvironmentVariablesForJob(t, jobActual, expected)
 
 	diffs := deep.Equal(*jobActual, *expected)
 	msg := "Jobs not equal:"
 	if len(diffs) > 0 {
 		// Dump the diffs
-		err = os.WriteFile(fmt.Sprintf("%s%c%s-Diff.txt", dir, os.PathSeparator, jobActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
+		err = os.WriteFile(fmt.Sprintf(diffFilePattern, dir, os.PathSeparator, jobActual.Name), []byte(strings.Join(diffs, "\n")), os.ModePerm)
 		g.Expect(err).NotTo(HaveOccurred())
 		for _, diff := range diffs {
 			msg = msg + "\n" + diff
@@ -269,7 +272,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 
 	envVars := []corev1.EnvVar{
 		{
-			Name:  "COH_CLUSTER_NAME",
+			Name:  "COHERENCE_CLUSTER",
 			Value: deployment.GetName(),
 		},
 		{
@@ -281,11 +284,11 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Value: fmt.Sprintf("%d", coh.DefaultUnicastPortAdjust),
 		},
 		{
-			Name:  "COH_HEALTH_PORT",
+			Name:  "COHERENCE_HEALTH_HTTP_PORT",
 			Value: fmt.Sprintf("%d", spec.GetHealthPort()),
 		},
 		{
-			Name: "COH_MACHINE_NAME",
+			Name: "COHERENCE_MACHINE",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "spec.nodeName",
@@ -293,7 +296,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name: "COH_MEMBER_NAME",
+			Name: "COHERENCE_MEMBER",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "metadata.name",
@@ -301,15 +304,15 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name:  "COH_METRICS_ENABLED",
+			Name:  "COHERENCE_METRICS_ENABLED",
 			Value: "false",
 		},
 		{
-			Name:  "COH_MGMT_ENABLED",
+			Name:  "COHERENCE_MANAGEMENT_ENABLED",
 			Value: "false",
 		},
 		{
-			Name: "COH_POD_UID",
+			Name: "COHERENCE_OPERATOR_POD_UID",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					FieldPath: "metadata.uid",
@@ -317,23 +320,23 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name:  "COH_RACK_INFO_LOCATION",
-			Value: "http://$(OPERATOR_HOST)/rack/$(COH_MACHINE_NAME)",
+			Name:  "COHERENCE_OPERATOR_RACK_INFO_LOCATION",
+			Value: "http://$(COHERENCE_OPERATOR_HOST)/rack/$(COHERENCE_MACHINE)",
 		},
 		{
-			Name:  "COH_ROLE",
+			Name:  "COHERENCE_ROLE",
 			Value: deployment.GetRoleName(),
 		},
 		{
-			Name:  "COH_SITE_INFO_LOCATION",
-			Value: "http://$(OPERATOR_HOST)/site/$(COH_MACHINE_NAME)",
+			Name:  "COHERENCE_OPERATOR_SITE_INFO_LOCATION",
+			Value: "http://$(COHERENCE_OPERATOR_HOST)/site/$(COHERENCE_MACHINE)",
 		},
 		{
-			Name:  "COH_UTIL_DIR",
+			Name:  "COHERENCE_OPERATOR_UTIL_DIR",
 			Value: coh.VolumeMountPathUtils,
 		},
 		{
-			Name:  "COH_WKA",
+			Name:  "COHERENCE_WKA",
 			Value: deployment.GetWKA(),
 		},
 		{
@@ -345,7 +348,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Value: "true",
 		},
 		{
-			Name: "OPERATOR_HOST",
+			Name: "COHERENCE_OPERATOR_HOST",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: coh.OperatorConfigName},
@@ -355,14 +358,26 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			},
 		},
 		{
-			Name:  "OPERATOR_REQUEST_TIMEOUT",
+			Name:  "COHERENCE_OPERATOR_REQUEST_TIMEOUT",
 			Value: "120",
+		},
+		{
+			Name:  "COHERENCE_TTL",
+			Value: "0",
+		},
+		{
+			Name:  "COHCTL_HOME",
+			Value: coh.VolumeMountPathUtils,
+		},
+		{
+			Name:  "COHERENCE_IPMONITOR_PINGTIMEOUT",
+			Value: "0",
 		},
 	}
 
 	if deployment.GetType() == coh.CoherenceTypeJob {
 		envVars = append(envVars, corev1.EnvVar{
-			Name:  "COH_STORAGE_ENABLED",
+			Name:  "COHERENCE_DISTRIBUTED_LOCALSTORAGE",
 			Value: "false",
 		})
 	}
@@ -373,7 +388,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 	cohContainer := corev1.Container{
 		Name:    coh.ContainerNameCoherence,
 		Image:   testCoherenceImage,
-		Command: []string{coh.RunnerCommand, "server"},
+		Command: []string{"java", fmt.Sprintf("@%s/%s", coh.VolumeMountPathUtils, coh.OperatorCoherenceArgsFile)},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          coh.PortNameCoherence,
@@ -410,7 +425,6 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 				ReadOnly:  false,
 			},
 		},
-		Env: envVars,
 	}
 
 	if cohImage := spec.GetCoherenceImage(); cohImage != nil {
@@ -422,16 +436,6 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		Name:    coh.ContainerNameOperatorInit,
 		Image:   testOperatorImage,
 		Command: []string{coh.RunnerInitCommand, coh.RunnerInit},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "COH_CLUSTER_NAME",
-				Value: deployment.GetName(),
-			},
-			{
-				Name:  "COH_UTIL_DIR",
-				Value: coh.VolumeMountPathUtils,
-			},
-		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
 				Name:      coh.VolumeNameJVM,
@@ -446,9 +450,28 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		},
 	}
 
-	if operatorImage := spec.GetCoherenceOperatorImage(); operatorImage != nil {
-		initContainer.Image = *operatorImage
+	// The Operator JVM Args Init-Container
+	argsContainer := corev1.Container{
+		Name:    coh.ContainerNameOperatorConfig,
+		Image:   testCoherenceImage,
+		Command: []string{coh.RunnerCommand, coh.RunnerConfig},
+		VolumeMounts: []corev1.VolumeMount{
+			{
+				Name:      coh.VolumeNameJVM,
+				MountPath: coh.VolumeMountPathJVM,
+				ReadOnly:  false,
+			},
+			{
+				Name:      coh.VolumeNameUtils,
+				MountPath: coh.VolumeMountPathUtils,
+				ReadOnly:  false,
+			},
+		},
 	}
+
+	cohContainer.Env = append(cohContainer.Env, envVars...)
+	initContainer.Env = append(initContainer.Env, envVars...)
+	argsContainer.Env = append(argsContainer.Env, envVars...)
 
 	annotations := make(map[string]string)
 	annotations[coh.AnnotationIstioConfig] = coh.DefaultIstioConfigAnnotationValue
@@ -459,7 +482,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
-			InitContainers: []corev1.Container{initContainer},
+			InitContainers: []corev1.Container{initContainer, argsContainer},
 			Containers:     []corev1.Container{cohContainer},
 			Volumes: []corev1.Volume{
 				{
@@ -572,10 +595,22 @@ func sortPortsForPodTemplate(template *corev1.PodTemplateSpec) {
 	}
 }
 
+func addEnvVarsToAll(sts *appsv1.StatefulSet, envVars ...corev1.EnvVar) {
+	addEnvVars(sts, coh.ContainerNameCoherence, envVars...)
+	addEnvVars(sts, coh.ContainerNameOperatorInit, envVars...)
+	addEnvVars(sts, coh.ContainerNameOperatorConfig, envVars...)
+}
+
 func addEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...corev1.EnvVar) {
 	if sts != nil {
 		addEnvVarsToPodSpec(&sts.Spec.Template, containerName, envVars...)
 	}
+}
+
+func addEnvVarsToAllJobContainers(job *batchv1.Job, envVars ...corev1.EnvVar) {
+	addEnvVarsToJob(job, coh.ContainerNameCoherence, envVars...)
+	addEnvVarsToJob(job, coh.ContainerNameOperatorInit, envVars...)
+	addEnvVarsToJob(job, coh.ContainerNameOperatorConfig, envVars...)
 }
 
 func addEnvVarsToJob(job *batchv1.Job, containerName string, envVars ...corev1.EnvVar) {
@@ -615,6 +650,69 @@ func addEnvVarsToContainer(c *corev1.Container, envVars ...corev1.EnvVar) {
 			c.Env = append(c.Env, evAdd)
 		}
 	}
+}
+
+func removeEnvVarsFromAll(sts *appsv1.StatefulSet, envVars ...string) {
+	removeEnvVars(sts, coh.ContainerNameCoherence, envVars...)
+	removeEnvVars(sts, coh.ContainerNameOperatorInit, envVars...)
+	removeEnvVars(sts, coh.ContainerNameOperatorConfig, envVars...)
+}
+
+func removeEnvVars(sts *appsv1.StatefulSet, containerName string, envVars ...string) {
+	if sts != nil {
+		removeEnvVarsFromPodSpec(&sts.Spec.Template, containerName, envVars...)
+	}
+}
+
+func removeEnvVarsFromAllJobContainers(job *batchv1.Job, envVars ...string) {
+	removeEnvVarsFromJob(job, coh.ContainerNameCoherence, envVars...)
+	removeEnvVarsFromJob(job, coh.ContainerNameOperatorInit, envVars...)
+	removeEnvVarsFromJob(job, coh.ContainerNameOperatorConfig, envVars...)
+}
+
+func removeEnvVarsFromJob(job *batchv1.Job, containerName string, envVars ...string) {
+	if job != nil {
+		removeEnvVarsFromPodSpec(&job.Spec.Template, containerName, envVars...)
+	}
+}
+
+func removeEnvVarsFromPodSpec(template *corev1.PodTemplateSpec, containerName string, envVars ...string) {
+	for i, c := range template.Spec.InitContainers {
+		if c.Name == containerName {
+			removeEnvVarsFromContainer(&c, envVars...)
+			template.Spec.InitContainers[i] = c
+		}
+	}
+	for i, c := range template.Spec.Containers {
+		if c.Name == containerName {
+			removeEnvVarsFromContainer(&c, envVars...)
+			template.Spec.Containers[i] = c
+		}
+	}
+}
+
+func removeEnvVarsFromContainer(c *corev1.Container, envVars ...string) {
+	env := c.Env
+	if c.Env == nil || len(env) == 0 {
+		return
+	}
+
+	for _, name := range envVars {
+		for e, ev := range c.Env {
+			if ev.Name == name {
+				switch {
+				case e == 0:
+					env = env[:1]
+				case (e + 1) == len(env):
+					env = env[:e]
+				default:
+					env = append(env[:e], env[e+1:]...)
+				}
+				break
+			}
+		}
+	}
+	c.Env = env
 }
 
 func addEnvVarsFrom(sts *appsv1.StatefulSet, containerName string, envVars ...corev1.EnvFromSource) {

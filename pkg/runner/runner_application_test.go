@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -30,11 +30,12 @@ func TestApplicationArgsEmpty(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgs()
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -43,7 +44,7 @@ func TestApplicationArgsEmpty(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgs(t)))
 }
 
 func TestApplicationArgs(t *testing.T) {
@@ -60,11 +61,12 @@ func TestApplicationArgs(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "Foo", "Bar")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -73,7 +75,7 @@ func TestApplicationArgs(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "Foo", "Bar")))
 }
 
 func TestApplicationArgsWithEnvVarExpansion(t *testing.T) {
@@ -94,11 +96,12 @@ func TestApplicationArgsWithEnvVarExpansion(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "foo-value", "bar-value")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -107,7 +110,7 @@ func TestApplicationArgsWithEnvVarExpansion(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "foo-value", "bar-value")))
 }
 
 func TestApplicationMain(t *testing.T) {
@@ -124,11 +127,12 @@ func TestApplicationMain(t *testing.T) {
 		},
 	}
 
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContent())
+
 	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	env := EnvVarsFromDeployment(t, d)
 
 	expectedCommand := GetJavaCommand()
-	expectedArgs := ReplaceArg(GetMinimalExpectedArgs(), "$DEFAULT$", "com.oracle.test.Main")
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -137,13 +141,15 @@ func TestApplicationMain(t *testing.T) {
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
 	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithMainClass(t, "com.oracle.test.Main")))
 }
 
 func TestApplicationWorkingDirectory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	wd, err := os.Getwd()
+	utils := ensureTestUtilsDir(t)
+	wd := utils + "/foo"
+	err := os.MkdirAll(wd, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	d := &coh.Coherence{
@@ -157,11 +163,12 @@ func TestApplicationWorkingDirectory(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	expectedCP := GetOperatorClasspathWithUtilsDir(utils)
+	expectedArgs := GetExpectedArgsFileContent()
+	verifyConfigFilesWithArgsAndClasspath(t, d, expectedArgs, expectedCP)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgsWithoutAppClasspath()
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -169,6 +176,6 @@ func TestApplicationWorkingDirectory(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(wd))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWithWorkingDir(t, wd)))
 }

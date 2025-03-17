@@ -7,6 +7,7 @@ spec:
   image: ${TEST_APPLICATION_IMAGE_SPRING_CNBP}
   application:
     type: spring3
+    useImageEntryPoint: true
   jvm:
     args:
       - -Dcoherence.log=jdk

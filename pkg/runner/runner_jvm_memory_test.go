@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -31,11 +31,10 @@ func TestJvmHeapSize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:InitialHeapSize=10g", "-XX:MaxHeapSize=10g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialHeapSize=10g", "-XX:MaxHeapSize=10g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -43,8 +42,8 @@ func TestJvmHeapSize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:InitialHeapSize=10g", "-XX:MaxHeapSize=10g")))
 }
 
 func TestJvmInitialHeapSize(t *testing.T) {
@@ -63,11 +62,10 @@ func TestJvmInitialHeapSize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:InitialHeapSize=10g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialHeapSize=10g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -75,8 +73,8 @@ func TestJvmInitialHeapSize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:InitialHeapSize=10g")))
 }
 
 func TestJvmMaxHeapSize(t *testing.T) {
@@ -95,11 +93,10 @@ func TestJvmMaxHeapSize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:MaxHeapSize=10g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxHeapSize=10g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -107,8 +104,8 @@ func TestJvmMaxHeapSize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:MaxHeapSize=10g")))
 }
 
 func TestJvmHeapSizeOverridesInitialAndMaxHeapSize(t *testing.T) {
@@ -129,11 +126,10 @@ func TestJvmHeapSizeOverridesInitialAndMaxHeapSize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:InitialHeapSize=5g", "-XX:MaxHeapSize=5g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialHeapSize=5g", "-XX:MaxHeapSize=5g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -141,8 +137,8 @@ func TestJvmHeapSizeOverridesInitialAndMaxHeapSize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:InitialHeapSize=5g", "-XX:MaxHeapSize=5g")))
 }
 
 func TestJvmMaxRam(t *testing.T) {
@@ -161,11 +157,10 @@ func TestJvmMaxRam(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:MaxRAM=10g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxRAM=10g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -173,8 +168,8 @@ func TestJvmMaxRam(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:MaxRAM=10g")))
 }
 
 func TestJvmRamPercent(t *testing.T) {
@@ -194,12 +189,11 @@ func TestJvmRamPercent(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:InitialRAMPercentage=5.500",
+		"-XX:MaxRAMPercentage=5.500", "-XX:MinRAMPercentage=5.500"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialRAMPercentage=5.500",
-		"-XX:MaxRAMPercentage=5.500", "-XX:MinRAMPercentage=5.500")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -207,8 +201,9 @@ func TestJvmRamPercent(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:InitialRAMPercentage=5.500",
+		"-XX:MaxRAMPercentage=5.500", "-XX:MinRAMPercentage=5.500")))
 }
 
 func TestJvmInitialRamPercent(t *testing.T) {
@@ -228,11 +223,10 @@ func TestJvmInitialRamPercent(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:InitialRAMPercentage=5.500"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialRAMPercentage=5.500")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -240,8 +234,8 @@ func TestJvmInitialRamPercent(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:InitialRAMPercentage=5.500")))
 }
 
 func TestJvmMaxRamPercent(t *testing.T) {
@@ -261,11 +255,10 @@ func TestJvmMaxRamPercent(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:MaxRAMPercentage=5.500"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxRAMPercentage=5.500")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -273,8 +266,8 @@ func TestJvmMaxRamPercent(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:MaxRAMPercentage=5.500")))
 }
 
 func TestJvmMinRamPercent(t *testing.T) {
@@ -294,11 +287,10 @@ func TestJvmMinRamPercent(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:MinRAMPercentage=5.500"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MinRAMPercentage=5.500")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -306,8 +298,8 @@ func TestJvmMinRamPercent(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:MinRAMPercentage=5.500")))
 }
 
 func TestJvmRamPercentOverridesInitialMaxAndMin(t *testing.T) {
@@ -333,12 +325,11 @@ func TestJvmRamPercentOverridesInitialMaxAndMin(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:InitialRAMPercentage=5.500",
+		"-XX:MaxRAMPercentage=5.500", "-XX:MinRAMPercentage=5.500"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:InitialRAMPercentage=5.500",
-		"-XX:MaxRAMPercentage=5.500", "-XX:MinRAMPercentage=5.500")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -346,8 +337,9 @@ func TestJvmRamPercentOverridesInitialMaxAndMin(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:InitialRAMPercentage=5.500",
+		"-XX:MaxRAMPercentage=5.500", "-XX:MinRAMPercentage=5.500")))
 }
 
 func TestJvmStackSize(t *testing.T) {
@@ -366,11 +358,10 @@ func TestJvmStackSize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-Xss500k"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-Xss500k")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -378,8 +369,8 @@ func TestJvmStackSize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-Xss500k")))
 }
 
 func TestJvmMetaspaceSize(t *testing.T) {
@@ -398,11 +389,10 @@ func TestJvmMetaspaceSize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:MetaspaceSize=5g", "-XX:MaxMetaspaceSize=5g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MetaspaceSize=5g", "-XX:MaxMetaspaceSize=5g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -410,8 +400,9 @@ func TestJvmMetaspaceSize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t,
+		"-XX:MetaspaceSize=5g", "-XX:MaxMetaspaceSize=5g")))
 }
 
 func TestJvmDirectMemorySize(t *testing.T) {
@@ -430,11 +421,10 @@ func TestJvmDirectMemorySize(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-XX:MaxDirectMemorySize=5g"))
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgs(), "-XX:MaxDirectMemorySize=5g")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -442,8 +432,8 @@ func TestJvmDirectMemorySize(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-XX:MaxDirectMemorySize=5g")))
 }
 
 func TestJvmNativeMemoryTracking(t *testing.T) {
@@ -462,11 +452,11 @@ func TestJvmNativeMemoryTracking(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	expectedFileArgs := append(GetExpectedArgsFileContentWithoutPrefix("-XX:NativeMemoryTracking="), "-XX:NativeMemoryTracking=detail")
+	verifyConfigFilesWithArgs(t, d, expectedFileArgs)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-XX:NativeMemoryTracking="), "-XX:NativeMemoryTracking=detail")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -474,8 +464,9 @@ func TestJvmNativeMemoryTracking(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := append(RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-XX:NativeMemoryTracking="), "-XX:NativeMemoryTracking=detail")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
 func TestJvmOOMHeapDumpOff(t *testing.T) {
@@ -496,11 +487,11 @@ func TestJvmOOMHeapDumpOff(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	expectedArgs := GetExpectedArgsFileContentWithoutPrefix("-XX:+HeapDumpOnOutOfMemoryError")
+	verifyConfigFilesWithArgs(t, d, expectedArgs)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-XX:+HeapDumpOnOutOfMemoryError")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -508,8 +499,9 @@ func TestJvmOOMHeapDumpOff(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-XX:+HeapDumpOnOutOfMemoryError")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
 func TestJvmOOMExitOff(t *testing.T) {
@@ -530,11 +522,11 @@ func TestJvmOOMExitOff(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
+	expectedArgs := GetExpectedArgsFileContentWithoutPrefix("-XX:+ExitOnOutOfMemoryError")
+	verifyConfigFilesWithArgs(t, d, expectedArgs)
 
-	expectedCommand := GetJavaCommand()
-	expectedArgs := GetMinimalExpectedArgsWithoutPrefix("-XX:+ExitOnOutOfMemoryError")
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -542,6 +534,7 @@ func TestJvmOOMExitOff(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-XX:+ExitOnOutOfMemoryError")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }

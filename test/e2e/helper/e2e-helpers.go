@@ -174,7 +174,7 @@ func WaitForJob(ctx TestContext, namespace, stsName string, replicas int32, retr
 		} else {
 			ready = job.Status.Succeeded
 			if job.Status.Ready != nil {
-				ready = ready + job.Status.Active
+				ready += job.Status.Active
 			}
 		}
 
@@ -903,38 +903,47 @@ func DumpPodLog(ctx TestContext, pod *corev1.Pod, directory string) {
 	}
 
 	ctx.Logger.Info("Capturing Pod logs for " + pod.Name)
-	pathSep := string(os.PathSeparator)
 
+	pathSep := string(os.PathSeparator)
+	name := logs + pathSep + directory
+	err = os.MkdirAll(name, os.ModePerm)
+	if err != nil {
+		ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " due to " + err.Error())
+	}
+
+	for _, container := range pod.Spec.InitContainers {
+		DumpContainerLogs(ctx, container, pod, name)
+	}
 	for _, container := range pod.Spec.Containers {
-		var err error
-		res := ctx.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
-		s, err := res.Stream(ctx.Context)
+		DumpContainerLogs(ctx, container, pod, name)
+	}
+}
+
+// DumpContainerLogs dumps the logs for a container
+func DumpContainerLogs(ctx TestContext, container corev1.Container, pod *corev1.Pod, directory string) {
+	var err error
+	pathSep := string(os.PathSeparator)
+	res := ctx.KubeClient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name})
+	s, err := res.Stream(ctx.Context)
+	if err == nil {
+		suffix := 0
+		logName := fmt.Sprintf("%s%s%s(%s).log", directory, pathSep, pod.Name, container.Name)
+		_, err = os.Stat(logName)
+		for err == nil {
+			suffix++
+			logName = fmt.Sprintf("%s%s%s(%s)-%d.log", directory, pathSep, pod.Name, container.Name, suffix)
+			_, err = os.Stat(logName)
+		}
+		out, err := os.Create(logName)
 		if err == nil {
-			name := logs + pathSep + directory
-			err = os.MkdirAll(name, os.ModePerm)
-			if err == nil {
-				suffix := 0
-				logName := fmt.Sprintf("%s%s%s(%s).log", name, pathSep, pod.Name, container.Name)
-				_, err = os.Stat(logName)
-				for err == nil {
-					suffix++
-					logName = fmt.Sprintf("%s%s%s(%s)-%d.log", name, pathSep, pod.Name, container.Name, suffix)
-					_, err = os.Stat(logName)
-				}
-				out, err := os.Create(logName)
-				if err == nil {
-					if _, err = io.Copy(out, s); err != nil {
-						ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
-					}
-				} else {
-					ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
-				}
-			} else {
+			if _, err = io.Copy(out, s); err != nil {
 				ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 			}
 		} else {
 			ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 		}
+	} else {
+		ctx.Logger.Info("cannot capture logs for Pod " + pod.Name + " container " + container.Name + " due to " + err.Error())
 	}
 }
 
@@ -1711,20 +1720,12 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 
 	// Assert that a StatefulSet or Job of the correct number or replicas is created for each roleSpec in the cluster
 	for _, d := range deployments {
-		//if d.IsRunAsJob() {
-		//	ctx.Logf("Waiting for Job for deployment %s", d.Name)
-		//	// Wait for the Job for the roleSpec to be ready - wait five minutes max
-		//	_, err := WaitForJob(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
-		//	g.Expect(err).NotTo(HaveOccurred())
-		//	ctx.Logf("Have Job for deployment %s", d.Name)
-		//} else {
 		ctx.Logf("Waiting for StatefulSet for deployment %s", d.Name)
 		// Wait for the StatefulSet for the roleSpec to be ready - wait five minutes max
 		sts, err := WaitForStatefulSet(ctx, namespace, d.Name, d.GetReplicas(), time.Second*10, time.Minute*5)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(sts.Status.ReadyReplicas).To(Equal(d.GetReplicas()))
 		ctx.Logf("Have StatefulSet for deployment %s", d.Name)
-		//}
 	}
 
 	// Assert that the finalizer has been added to all the deployments that do not have AllowUnsafeDelete=false

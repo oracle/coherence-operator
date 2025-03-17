@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,6 +9,7 @@ package runner
 import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	"testing"
@@ -30,12 +31,12 @@ func TestServerWithPersistenceMode(t *testing.T) {
 		},
 	}
 
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(d)
-
-	expectedCommand := GetJavaCommand()
-	expectedArgs := append(GetMinimalExpectedArgsWithoutPrefix("-Dcoherence.distributed.persistence-mode="),
+	expectedFileArgs := append(GetExpectedArgsFileContentWithoutPrefix("-Dcoherence.distributed.persistence-mode="),
 		"-Dcoherence.distributed.persistence-mode=active")
+	verifyConfigFilesWithArgs(t, d, expectedFileArgs)
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
 
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -43,46 +44,72 @@ func TestServerWithPersistenceMode(t *testing.T) {
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(expectedArgs))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-Dcoherence.distributed.persistence-mode=")
+	expected = append(expected, "-Dcoherence.distributed.persistence-mode=active")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
 func TestServerWithPersistenceDirectory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	args := []string{"server", "--dry-run"}
-	env := map[string]string{
-		coh.EnvVarCohPersistenceDir: coh.VolumeMountPathPersistence,
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCohPersistenceDir,
+						Value: coh.VolumeMountPathPersistence,
+					},
+				},
+			},
+		},
 	}
 
-	expectedCommand := GetJavaCommand()
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-Dcoherence.distributed.persistence.base.dir="+coh.VolumeMountPathPersistence))
 
+	env := EnvVarsFromDeployment(t, d)
+
+	args := []string{"server", "--dry-run"}
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.base.dir=" + coh.VolumeMountPathPersistence))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-Dcoherence.distributed.persistence.base.dir="+coh.VolumeMountPathPersistence)))
 }
 
 func TestServerWithSnapshotDirectory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	args := []string{"server", "--dry-run"}
-	env := map[string]string{
-		coh.EnvVarCohSnapshotDir: coh.VolumeMountPathSnapshots,
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				Env: []corev1.EnvVar{
+					{
+						Name:  coh.EnvVarCohSnapshotDir,
+						Value: coh.VolumeMountPathSnapshots,
+					},
+				},
+			},
+		},
 	}
 
-	expectedCommand := GetJavaCommand()
+	verifyConfigFilesWithArgs(t, d, GetExpectedArgsFileContentWith("-Dcoherence.distributed.persistence.snapshot.dir="+coh.VolumeMountPathSnapshots))
 
+	env := EnvVarsFromDeployment(t, d)
+
+	args := []string{"server", "--dry-run"}
 	e, err := ExecuteWithArgsAndNewViper(env, args)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(e).NotTo(BeNil())
 	g.Expect(e.OsCmd).NotTo(BeNil())
 
 	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(expectedCommand))
-	g.Expect(e.OsCmd.Args).To(ContainElement("-Dcoherence.distributed.persistence.snapshot.dir=" + coh.VolumeMountPathSnapshots))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t, "-Dcoherence.distributed.persistence.snapshot.dir="+coh.VolumeMountPathSnapshots)))
 }

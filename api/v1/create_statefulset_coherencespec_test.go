@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -40,6 +40,7 @@ func TestCreateStatefulSetWithImage(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.InitContainers[1].Image = "coherence:1.0"
 	stsExpected.Spec.Template.Spec.Containers[0].Image = "coherence:1.0"
 
 	// assert that the StatefulSet is as expected
@@ -74,7 +75,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledTrue(t *testing.T) 
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -92,7 +93,7 @@ func TestCreateStatefulSetWithCoherenceLocalPort(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPort, Value: "1234"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPort, Value: "1234"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -110,7 +111,7 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjustTrue(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -128,7 +129,7 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjustFalse(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -146,7 +147,7 @@ func TestCreateStatefulSetWithCoherenceLocalPortAdjust(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "9876"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCoherenceLocalPortAdjust, Value: "9876"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -164,7 +165,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithStorageEnabledFalse(t *testing.T)
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohStorage, Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -182,7 +183,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithCacheConfig(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohCacheConfig, Value: "test-config.xml"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohCacheConfig, Value: "test-config.xml"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -200,7 +201,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithOverrideConfig(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohOverride, Value: "test-override.xml"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohOverride, Value: "test-override.xml"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -218,7 +219,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithLogLevel(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohLogLevel, Value: "9"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohLogLevel, Value: "9"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -275,7 +276,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithTracingRatio(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohTracingRatio, Value: "500u"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohTracingRatio, Value: "500u"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -327,7 +328,8 @@ func TestCreateStatefulSetWithCoherenceSpecWithIpMonitorEnabled(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarEnableIPMonitor, Value: "TRUE"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarEnableIPMonitor, Value: "TRUE"})
+	removeEnvVarsFromAll(stsExpected, coh.ContainerNameCoherence, coh.EnvVarIPMonitorPingTimeout)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -348,7 +350,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaSameNamespace(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: deployment.GetWKA()})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: deployment.GetWKA()})
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the StatefulSet is as expected
@@ -372,7 +374,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaDifferentNamespace(t *testing.
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	expectedWka := deployment.GetWKA()
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the StatefulSet is as expected
@@ -398,7 +400,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithWkaAddress(t *testing.T) {
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	expectedWka := "storage.foo.bar.local"
 	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the StatefulSet is as expected
@@ -424,7 +426,7 @@ func TestCreateStatefulSetWithCoherenceSpecWithMultipleWkaAddresses(t *testing.T
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	expectedWka := "storage.one.bar.local,storage.two.bar.local"
 	g.Expect(deployment.GetWKA()).To(Equal(expectedWka))
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarCohWka, Value: expectedWka})
 	stsExpected.Spec.Template.Labels[coh.LabelCoherenceWKAMember] = "false"
 
 	// assert that the StatefulSet is as expected
@@ -441,7 +443,7 @@ func TestCreateStatefulSetWithResumeServicesOnStartupTrue(t *testing.T) {
 	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "true"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -457,7 +459,7 @@ func TestCreateStatefulSetWithResumeServicesOnStartupFalse(t *testing.T) {
 	deployment := createTestCoherenceDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVars(stsExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "false"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: coh.EnvVarOperatorAllowResume, Value: "false"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

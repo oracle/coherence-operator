@@ -14,6 +14,7 @@ import (
 	"github.com/go-logr/logr"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -34,40 +35,6 @@ import (
 // The code that actually starts the process in the Coherence container.
 
 const (
-	// DefaultMain is an indicator to run the default main class.
-	DefaultMain = "$DEFAULT$"
-	// HelidonMain is the default Helidon main class name.
-	HelidonMain = "io.helidon.microprofile.cdi.Main"
-	// ServerMain is the default server main class name.
-	ServerMain = "com.oracle.coherence.k8s.Main"
-	// SpringBootMain2 is the default Spring Boot 2.x main class name.
-	SpringBootMain2 = "org.springframework.boot.loader.PropertiesLauncher"
-	// SpringBootMain3 is the default Spring Boot 3.x main class name.
-	SpringBootMain3 = "org.springframework.boot.loader.launch.PropertiesLauncher"
-	// ConsoleMain is the Coherence console main class
-	ConsoleMain = "com.tangosol.net.CacheFactory"
-	// QueryPlusMain is the main class to run Coherence Query Plus
-	QueryPlusMain = "com.tangosol.coherence.dslquery.QueryPlus"
-	// JShellMain is the main class to run a JShell console
-	JShellMain = "jdk.internal.jshell.tool.JShellToolProvider"
-
-	// AppTypeNone is the argument to specify no application type.
-	AppTypeNone = ""
-	// AppTypeJava is the argument to specify a Java application.
-	AppTypeJava = "java"
-	// AppTypeCoherence is the argument to specify a Coherence application.
-	AppTypeCoherence = "coherence"
-	// AppTypeHelidon is the argument to specify a Helidon application.
-	AppTypeHelidon = "helidon"
-	// AppTypeSpring2 is the argument to specify an exploded Spring Boot 2.x application.
-	AppTypeSpring2 = "spring"
-	// AppTypeSpring3 is the argument to specify an exploded Spring Boot 3.x application.
-	AppTypeSpring3 = "spring3"
-	// AppTypeOperator is the argument to specify running an Operator command.
-	AppTypeOperator = "operator"
-	// AppTypeJShell is the argument to specify a JShell application.
-	AppTypeJShell = "jshell"
-
 	// defaultConfig is the root name of the default configuration file
 	defaultConfig = ".coherence-runner"
 )
@@ -129,6 +96,7 @@ func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 
 	rootCmd.AddCommand(initCommand(env))
+	rootCmd.AddCommand(configCommand(env))
 	rootCmd.AddCommand(serverCommand())
 	rootCmd.AddCommand(consoleCommand(v))
 	rootCmd.AddCommand(queryPlusCommand(v))
@@ -220,7 +188,11 @@ func Execute() (Execution, error) {
 
 // ExecuteWithArgsAndNewViper runs the runner with a given environment and argument overrides.
 func ExecuteWithArgsAndNewViper(env map[string]string, args []string) (Execution, error) {
-	return ExecuteWithArgsAndViper(env, args, viper.New())
+	v := viper.New()
+	for key, value := range env {
+		v.SetDefault(key, value)
+	}
+	return ExecuteWithArgsAndViper(env, args, v)
 }
 
 // ExecuteWithArgsAndViper runs the runner with a given environment and argument overrides.
@@ -242,10 +214,10 @@ func ExecuteWithArgsAndViper(env map[string]string, args []string, v *viper.Vipe
 }
 
 // RunFunction is a function to run a command
-type RunFunction func(*RunDetails, *cobra.Command)
+type RunFunction func(*run_details.RunDetails, *cobra.Command)
 
 // MaybeRunFunction is a function to maybe run a command depending on the return bool
-type MaybeRunFunction func(*RunDetails, *cobra.Command) (bool, error)
+type MaybeRunFunction func(*run_details.RunDetails, *cobra.Command) (bool, error)
 
 // always is a wrapper around a RunFunction to turn it into a MaybeFunction that always runs
 type always struct {
@@ -253,7 +225,7 @@ type always struct {
 }
 
 // run will wrap a RunFunction and always return true
-func (in always) run(details *RunDetails, cmd *cobra.Command) (bool, error) {
+func (in always) run(details *run_details.RunDetails, cmd *cobra.Command) (bool, error) {
 	in.Fn(details, cmd)
 	return true, nil
 }
@@ -269,7 +241,7 @@ func maybeRun(cmd *cobra.Command, fn MaybeRunFunction) error {
 	var err error
 	e := fromContext(cmd.Context())
 
-	details := NewRunDetails(e.V)
+	details := run_details.NewRunDetails(e.V, log)
 	runCommand, err := fn(details, cmd)
 	if err != nil {
 		return err
@@ -311,82 +283,83 @@ func fromContext(ctx context.Context) *Execution {
 	return &Execution{}
 }
 
-// create the process to execute.
-func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
+// configure the command details.
+func configureCommand(details *run_details.RunDetails) error {
 	var err error
 
 	// Set standard system properties
-	details.addArgFromEnvVar(v1.EnvVarCohWka, "-Dcoherence.wka")
-	details.addArgFromEnvVar(v1.EnvVarCohMachineName, "-Dcoherence.machine")
-	details.addArgFromEnvVar(v1.EnvVarCohMemberName, "-Dcoherence.member")
-	details.addArgFromEnvVar(v1.EnvVarCohClusterName, "-Dcoherence.cluster")
-	details.addArgFromEnvVar(v1.EnvVarCohCacheConfig, "-Dcoherence.cacheconfig")
-	details.addArgFromEnvVar(v1.EnvVarCohIdentity, "-Dcoherence.k8s.operator.identity")
-	details.addArgFromEnvVar(v1.EnvVarCohForceExit, "-Dcoherence.k8s.operator.force.exit")
-	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.k8s.operator.health.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
-	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.management.http.port", fmt.Sprintf("%d", v1.DefaultManagementPort))
-	details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, "-Dcoherence.metrics.http.port", fmt.Sprintf("%d", v1.DefaultMetricsPort))
+	details.AddSystemPropertyArg(v1.SysPropCoherenceTTL, "0")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohWka, v1.SysPropCoherenceWKA)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohMachineName, v1.SysPropCoherenceMachine)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohMemberName, v1.SysPropCoherenceMember)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohClusterName, v1.SysPropCoherenceCluster)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohCacheConfig, v1.SysPropCoherenceCacheConfig)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohIdentity, v1.SysPropOperatorIdentity)
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohForceExit, v1.SysPropOperatorForceExit)
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, v1.SysPropOperatorHealthPort, fmt.Sprintf("%d", v1.DefaultHealthPort))
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMgmtPrefix+v1.EnvVarCohPortSuffix, v1.SysPropCoherenceManagementHttpPort, fmt.Sprintf("%d", v1.DefaultManagementPort))
+	details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohMetricsPrefix+v1.EnvVarCohPortSuffix, v1.SysPropCoherenceMetricsHttpPort, fmt.Sprintf("%d", v1.DefaultMetricsPort))
 
-	details.addArg("-XX:+UnlockDiagnosticVMOptions")
+	details.AddVMOption(v1.JvmOptUnlockDiagnosticVMOptions)
 
 	// Configure the classpath to support images created with the JIB Maven plugin
 	// This is enabled by default unless the image is a buildpacks image, or we
 	// are running a Spring Boot application.
-	if !details.isBuildPacks() && !details.IsSpringBoot() && details.isEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
-		appDir := details.getenvOrDefault(v1.EnvVarCohAppDir, "/app")
+	if !details.IsBuildPacks() && !details.IsSpringBoot() && details.IsEnvTrueOrBlank(v1.EnvVarJvmClasspathJib) {
+		appDir := details.GetenvOrDefault(v1.EnvVarCohAppDir, "/app")
 		cpFile := filepath.Join(appDir, "jib-classpath-file")
 		fi, e := os.Stat(cpFile)
+		if e != nil && appDir != "/app" {
+			// try in /app
+			cpFile = "/app/jib-classpath-file"
+			fi, e = os.Stat(cpFile)
+		}
+
 		if e == nil && (fi.Size() != 0) {
 			clsPath, _ := readFirstLineFromFile(cpFile)
 			if len(clsPath) != 0 {
-				details.addClasspath(clsPath)
+				details.AddClasspath(clsPath)
 			}
 		} else {
-			details.addClasspathIfExists(appDir + "/resources")
-			details.addClasspathIfExists(appDir + "/classes")
-			details.addJarsToClasspath(appDir + "/classpath")
-			details.addJarsToClasspath(appDir + "/libs")
+			details.AddClasspathIfExists(appDir + "/resources")
+			details.AddClasspathIfExists(appDir + "/classes")
+			details.AddJarsToClasspath(appDir + "/classpath")
+			details.AddJarsToClasspath(appDir + "/libs")
 		}
 	}
 
 	// Add the Operator Utils jar to the classpath
-	details.addClasspath(details.UtilsDir + "/lib/coherence-operator.jar")
-	details.addClasspathIfExists(details.UtilsDir + "/config")
+	details.AddClasspath(details.UtilsDir + v1.OperatorJarFileSuffix)
+	details.AddClasspathIfExists(details.UtilsDir + v1.OperatorConfigDirSuffix)
 
 	// Configure Coherence persistence
-	mode := details.getenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
-	details.addArg("-Dcoherence.distributed.persistence-mode=" + mode)
+	mode := details.GetenvOrDefault(v1.EnvVarCohPersistenceMode, "on-demand")
+	details.AddSystemPropertyArg(v1.SysPropCoherencePersistenceMode, mode)
 
 	persistence := details.Getenv(v1.EnvVarCohPersistenceDir)
 	if persistence != "" {
-		details.addArg("-Dcoherence.distributed.persistence.base.dir=" + persistence)
+		details.AddSystemPropertyArg(v1.SysPropCoherencePersistenceBaseDir, persistence)
 	}
 
 	snapshots := details.Getenv(v1.EnvVarCohSnapshotDir)
 	if snapshots != "" {
-		details.addArg("-Dcoherence.distributed.persistence.snapshot.dir=" + snapshots)
+		details.AddSystemPropertyArg(v1.SysPropCoherencePersistenceSnapshotDir, snapshots)
 	}
 
 	// Set the Coherence site and rack values
 	configureSiteAndRack(details)
 
 	// Set the Coherence log level
-	details.addArgFromEnvVar(v1.EnvVarCohLogLevel, "-Dcoherence.log.level")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohLogLevel, v1.SysPropCoherenceLogLevel)
 
 	// Disable IPMonitor
 	ipMon := details.Getenv(v1.EnvVarEnableIPMonitor)
 	if ipMon != "TRUE" {
-		details.addArg("-Dcoherence.ipmonitor.pingtimeout=0")
+		details.AddSystemPropertyArg(v1.SysPropCoherenceIpMonitor, "0")
 	}
 
-	// Do the Coherence version specific configuration
-	if ok := checkCoherenceVersion("12.2.1.4.0", details); ok {
-		// is at least 12.2.1.4
-		cohPost12214(details)
-	} else {
-		// is at pre-12.2.1.4
-		cohPre12214(details)
-	}
+	details.AddSystemPropertyArg(v1.SysPropCoherenceOverride, "k8s-coherence-override.xml")
+	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohOverride, v1.SysPropOperatorOverride)
 
 	post2206 := checkCoherenceVersion("14.1.1.2206.0", details)
 	if post2206 {
@@ -414,7 +387,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 	allowEndangered := details.Getenv(v1.EnvVarCohAllowEndangered)
 	if allowEndangered != "" {
-		details.addArg("-Dcoherence.k8s.operator.statusha.allowendangered=" + allowEndangered)
+		details.AddArg("-Dcoherence.operator.statusha.allowendangered=" + allowEndangered)
 	}
 
 	// Get the K8s Pod UID
@@ -427,59 +400,59 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	jvmDir := v1.VolumeMountPathJVM + "/" + member + "/" + podUID
 	if _, err = os.Stat(v1.VolumeMountPathJVM); err == nil {
 		if err = os.MkdirAll(jvmDir, os.ModePerm); err != nil {
-			return "", nil, err
+			return err
 		}
 		if err = os.MkdirAll(jvmDir+"/jfr", os.ModePerm); err != nil {
-			return "", nil, err
+			return err
 		}
 		if err = os.MkdirAll(jvmDir+"/heap-dumps", os.ModePerm); err != nil {
-			return "", nil, err
+			return err
 		}
 	}
 
-	details.addArg(fmt.Sprintf("-Dcoherence.k8s.operator.diagnostics.dir=%s", jvmDir))
-	details.addArg(fmt.Sprintf("-XX:HeapDumpPath=%s/heap-dumps/%s-%s.hprof", jvmDir, member, podUID))
+	details.AddArg(fmt.Sprintf("-Dcoherence.operator.diagnostics.dir=%s", jvmDir))
+	details.AddVMOption(fmt.Sprintf("-XX:HeapDumpPath=%s/heap-dumps/%s-%s.hprof", jvmDir, member, podUID))
 
 	// set the flag that allows the operator to resume suspended services on start-up
-	if !details.isEnvTrueOrBlank(v1.EnvVarOperatorAllowResume) {
-		details.addArg("-Dcoherence.k8s.operator.can.resume.services=false")
+	if !details.IsEnvTrueOrBlank(v1.EnvVarOperatorAllowResume) {
+		details.AddArg("-Dcoherence.operator.can.resume.services=false")
 	} else {
-		details.addArg("-Dcoherence.k8s.operator.can.resume.services=true")
+		details.AddArg("-Dcoherence.operator.can.resume.services=true")
 	}
 
 	if svc := details.Getenv(v1.EnvVarOperatorResumeServices); svc != "" {
-		details.addArg("-Dcoherence.k8s.operator.resume.services=base64:" + svc)
+		details.AddArg("-Dcoherence.operator.resume.services=base64:" + svc)
 	}
 
 	gc := strings.ToLower(details.Getenv(v1.EnvVarJvmGcCollector))
 	switch {
 	case gc == "" || gc == "g1":
-		details.addArg("-XX:+UseG1GC")
+		details.AddMemoryOption("-XX:+UseG1GC")
 	case gc == "cms":
-		details.addArg("-XX:+UseConcMarkSweepGC")
+		details.AddMemoryOption("-XX:+UseConcMarkSweepGC")
 	case gc == "parallel":
-		details.addArg("-XX:+UseParallelGC")
+		details.AddMemoryOption("-XX:+UseParallelGC")
 	}
 
 	maxRAM := details.Getenv(v1.EnvVarJvmMaxRAM)
 	if maxRAM != "" {
-		details.addArg("-XX:MaxRAM=" + maxRAM)
+		details.AddMemoryOption("-XX:MaxRAM=" + maxRAM)
 	}
 
 	heap := details.Getenv(v1.EnvVarJvmMemoryHeap)
 	if heap != "" {
 		// if heap is set use it
-		details.addArg("-XX:InitialHeapSize=" + heap)
-		details.addArg("-XX:MaxHeapSize=" + heap)
+		details.AddMemoryOption("-XX:InitialHeapSize=" + heap)
+		details.AddMemoryOption("-XX:MaxHeapSize=" + heap)
 	} else {
 		// if heap is not set check whether the individual heap values are set
 		initialHeap := details.Getenv(v1.EnvVarJvmMemoryInitialHeap)
 		if initialHeap != "" {
-			details.addArg("-XX:InitialHeapSize=" + initialHeap)
+			details.AddMemoryOption("-XX:InitialHeapSize=" + initialHeap)
 		}
 		maxHeap := details.Getenv(v1.EnvVarJvmMemoryMaxHeap)
 		if maxHeap != "" {
-			details.addArg("-XX:MaxHeapSize=" + maxHeap)
+			details.AddMemoryOption("-XX:MaxHeapSize=" + maxHeap)
 		}
 	}
 
@@ -489,9 +462,9 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		q, err := resource.ParseQuantity(percentageHeap)
 		if err == nil {
 			d := q.AsDec()
-			details.addArg("-XX:InitialRAMPercentage=" + d.String())
-			details.addArg("-XX:MinRAMPercentage=" + d.String())
-			details.addArg("-XX:MaxRAMPercentage=" + d.String())
+			details.AddMemoryOption("-XX:InitialRAMPercentage=" + d.String())
+			details.AddMemoryOption("-XX:MinRAMPercentage=" + d.String())
+			details.AddMemoryOption("-XX:MaxRAMPercentage=" + d.String())
 		} else {
 			log.Info("ERROR: Heap Percentage is not a valid resource.Quantity", "Value", percentageHeap, "Error", err.Error())
 			os.Exit(1)
@@ -503,7 +476,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 			q, err := resource.ParseQuantity(initial)
 			if err == nil {
 				d := q.AsDec()
-				details.addArg("-XX:InitialRAMPercentage=" + d.String())
+				details.AddMemoryOption("-XX:InitialRAMPercentage=" + d.String())
 			} else {
 				log.Info("ERROR: InitialRAMPercentage is not a valid resource.Quantity", "Value", initial, "Error", err.Error())
 				os.Exit(1)
@@ -515,7 +488,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 			q, err := resource.ParseQuantity(maxRam)
 			if err == nil {
 				d := q.AsDec()
-				details.addArg("-XX:MaxRAMPercentage=" + d.String())
+				details.AddMemoryOption("-XX:MaxRAMPercentage=" + d.String())
 			} else {
 				log.Info("ERROR: MaxRAMPercentage is not a valid resource.Quantity", "Value", maxRam, "Error", err.Error())
 				os.Exit(1)
@@ -527,7 +500,7 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 			q, err := resource.ParseQuantity(minRam)
 			if err == nil {
 				d := q.AsDec()
-				details.addArg("-XX:MinRAMPercentage=" + d.String())
+				details.AddMemoryOption("-XX:MinRAMPercentage=" + d.String())
 			} else {
 				log.Info("ERROR: MinRAMPercentage is not a valid resource.Quantity", "Value", minRam, "Error", err.Error())
 				os.Exit(1)
@@ -537,28 +510,28 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 
 	direct := details.Getenv(v1.EnvVarJvmMemoryDirect)
 	if direct != "" {
-		details.addArg("-XX:MaxDirectMemorySize=" + direct)
+		details.AddMemoryOption("-XX:MaxDirectMemorySize=" + direct)
 	}
 	stack := details.Getenv(v1.EnvVarJvmMemoryStack)
 	if stack != "" {
-		details.addArg("-Xss" + stack)
+		details.AddMemoryOption("-Xss" + stack)
 	}
 	meta := details.Getenv(v1.EnvVarJvmMemoryMeta)
 	if meta != "" {
-		details.addArg("-XX:MetaspaceSize=" + meta)
-		details.addArg("-XX:MaxMetaspaceSize=" + meta)
+		details.AddMemoryOption("-XX:MetaspaceSize=" + meta)
+		details.AddMemoryOption("-XX:MaxMetaspaceSize=" + meta)
 	}
-	track := details.getenvOrDefault(v1.EnvVarJvmMemoryNativeTracking, "summary")
+	track := details.GetenvOrDefault(v1.EnvVarJvmMemoryNativeTracking, "summary")
 	if track != "" {
-		details.addArg("-XX:NativeMemoryTracking=" + track)
-		details.addArg("-XX:+PrintNMTStatistics")
+		details.AddDiagnosticOption("-XX:NativeMemoryTracking=" + track)
+		details.AddDiagnosticOption("-XX:+PrintNMTStatistics")
 	}
 
 	// Configure debugging
 	debugArgs := ""
-	if details.isEnvTrue(v1.EnvVarJvmDebugEnabled) {
+	if details.IsEnvTrue(v1.EnvVarJvmDebugEnabled) {
 		var suspend string
-		if details.isEnvTrue(v1.EnvVarJvmDebugSuspended) {
+		if details.IsEnvTrue(v1.EnvVarJvmDebugSuspended) {
 			suspend = "y"
 		} else {
 			suspend = "n"
@@ -577,59 +550,64 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 		}
 	}
 
-	details.addArg("-Dcoherence.ttl=0")
+	details.AddVMOption(fmt.Sprintf("-XX:ErrorFile=%s/hs-err-%s-%s.log", jvmDir, member, podUID))
 
-	details.addArg(fmt.Sprintf("-XX:ErrorFile=%s/hs-err-%s-%s.log", jvmDir, member, podUID))
-
-	if details.isEnvTrueOrBlank(v1.EnvVarJvmOomHeapDump) {
-		details.addArg("-XX:+HeapDumpOnOutOfMemoryError")
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmOomHeapDump) {
+		details.AddVMOption("-XX:+HeapDumpOnOutOfMemoryError")
 	}
 
-	if details.isEnvTrueOrBlank(v1.EnvVarJvmOomExit) {
-		details.addArg("-XX:+ExitOnOutOfMemoryError")
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmOomExit) {
+		details.AddVMOption("-XX:+ExitOnOutOfMemoryError")
 	}
 
 	// Use JVM container support
-	if details.isEnvTrueOrBlank(v1.EnvVarJvmUseContainerLimits) {
-		details.addArg("-XX:+UseContainerSupport")
+	if details.IsEnvTrueOrBlank(v1.EnvVarJvmUseContainerLimits) {
+		details.AddVMOption("-XX:+UseContainerSupport")
 	}
 
-	details.addArgs(debugArgs)
+	details.AddArgs(debugArgs)
 
 	gcArgs := details.Getenv(v1.EnvVarJvmGcArgs)
 	if gcArgs != "" {
-		details.addArgs(strings.Split(gcArgs, " ")...)
+		details.AddArgs(strings.Split(gcArgs, " ")...)
 	}
 
 	jvmArgs := details.Getenv(v1.EnvVarJvmArgs)
 	if jvmArgs != "" {
-		details.addArgs(strings.Split(jvmArgs, " ")...)
+		details.AddArgs(strings.Split(jvmArgs, " ")...)
 	}
 
 	extraJvmArgs := operator.GetExtraJvmArgs()
 	if extraJvmArgs != nil {
-		details.addArgs(extraJvmArgs...)
+		details.AddArgs(extraJvmArgs...)
 	}
 
+	return nil
+}
+
+// create the process to execute.
+func createCommand(details *run_details.RunDetails) (string, *exec.Cmd, error) {
+	var err error
 	var cmd *exec.Cmd
 	var app string
+
 	switch {
-	case details.AppType == AppTypeNone || details.AppType == AppTypeJava:
+	case details.AppType == v1.AppTypeNone || details.AppType == v1.AppTypeJava:
 		app = "Java"
-		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
+		cmd, err = createJavaCommand(details.GetJavaExecutable(), details)
 	case details.IsSpringBoot():
 		app = "SpringBoot"
-		cmd, err = createSpringBootCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeHelidon:
+		cmd, err = createSpringBootCommand(details.GetJavaExecutable(), details)
+	case details.AppType == v1.AppTypeHelidon:
 		app = "Java"
-		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeCoherence:
+		cmd, err = createJavaCommand(details.GetJavaExecutable(), details)
+	case details.AppType == v1.AppTypeCoherence:
 		app = "Java"
-		cmd, err = createJavaCommand(details.getJavaExecutable(), details)
-	case details.AppType == AppTypeJShell:
+		cmd, err = createJavaCommand(details.GetJavaExecutable(), details)
+	case details.AppType == v1.AppTypeJShell:
 		app = "JShell"
-		cmd, err = createJShellCommand(details.getJShellExecutable(), details)
-	case details.AppType == AppTypeOperator:
+		cmd, err = createJShellCommand(details.GetJShellExecutable(), details)
+	case details.AppType == v1.AppTypeOperator:
 		app = "Operator"
 		cmd, err = createOperatorCommand(details)
 	default:
@@ -645,14 +623,14 @@ func createCommand(details *RunDetails) (string, *exec.Cmd, error) {
 	return app, cmd, err
 }
 
-func createJavaCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
-	args := details.getCommand()
+func createJavaCommand(javaCmd string, details *run_details.RunDetails) (*exec.Cmd, error) {
+	args := details.GetCommand()
 	args = append(args, details.MainClass)
 	return _createJavaCommand(javaCmd, details, args)
 }
 
-func createJShellCommand(jshellCmd string, details *RunDetails) (*exec.Cmd, error) {
-	args := details.getCommandWithPrefix("-R", "-J")
+func createJShellCommand(jshellCmd string, details *run_details.RunDetails) (*exec.Cmd, error) {
+	args := details.GetCommandWithPrefix("-R", "-J")
 	return _createJavaCommand(jshellCmd, details, args)
 }
 
@@ -675,18 +653,18 @@ func readFirstLineFromFile(path string) (string, error) {
 	return text[0], nil
 }
 
-func createSpringBootCommand(javaCmd string, details *RunDetails) (*exec.Cmd, error) {
-	if details.isBuildPacks() {
-		if details.AppType == AppTypeSpring2 {
-			return _createBuildPackCommand(details, SpringBootMain2, details.getSpringBootArgs())
+func createSpringBootCommand(javaCmd string, details *run_details.RunDetails) (*exec.Cmd, error) {
+	if details.IsBuildPacks() {
+		if details.AppType == v1.AppTypeSpring2 {
+			return _createBuildPackCommand(details, v1.SpringBootMain2, details.GetSpringBootArgs())
 		}
-		return _createBuildPackCommand(details, SpringBootMain3, details.getSpringBootArgs())
+		return _createBuildPackCommand(details, v1.SpringBootMain3, details.GetSpringBootArgs())
 	}
-	args := details.getSpringBootCommand()
+	args := details.GetSpringBootCommand()
 	return _createJavaCommand(javaCmd, details, args)
 }
 
-func _createJavaCommand(javaCmd string, details *RunDetails, args []string) (*exec.Cmd, error) {
+func _createJavaCommand(javaCmd string, details *run_details.RunDetails, args []string) (*exec.Cmd, error) {
 	args = append(args, details.MainArgs...)
 	cmd := exec.Command(javaCmd, args...)
 	cmd.Stdout = os.Stdout
@@ -704,7 +682,7 @@ func _createJavaCommand(javaCmd string, details *RunDetails, args []string) (*ex
 	return cmd, nil
 }
 
-func createOperatorCommand(details *RunDetails) (*exec.Cmd, error) {
+func createOperatorCommand(details *run_details.RunDetails) (*exec.Cmd, error) {
 	executable := os.Args[0]
 	args := details.MainArgs[1:]
 	cmd := exec.Command(executable, args...)
@@ -723,8 +701,8 @@ func createOperatorCommand(details *RunDetails) (*exec.Cmd, error) {
 	return cmd, nil
 }
 
-func _createBuildPackCommand(_ *RunDetails, className string, args []string) (*exec.Cmd, error) {
-	launcher := getBuildpackLauncher()
+func _createBuildPackCommand(_ *run_details.RunDetails, className string, args []string) (*exec.Cmd, error) {
+	launcher := run_details.GetBuildpackLauncher()
 
 	// Create the JVM arguments file
 	argsFile, err := os.CreateTemp("", "jvm-args")
@@ -748,17 +726,10 @@ func _createBuildPackCommand(_ *RunDetails, className string, args []string) (*e
 	return cmd, nil
 }
 
-func getBuildpackLauncher() string {
-	if launcher, ok := os.LookupEnv(v1.EnvVarCnbpLauncher); ok {
-		return launcher
-	}
-	return v1.DefaultCnbpLauncher
-}
-
-func createGraalCommand(details *RunDetails) (*exec.Cmd, error) {
+func createGraalCommand(details *run_details.RunDetails) (*exec.Cmd, error) {
 	ex := details.AppType
 	args := []string{"--polyglot", "--jvm"}
-	args = append(args, details.getCommand()...)
+	args = append(args, details.GetCommand()...)
 	args = append(args, details.MainClass)
 	args = append(args, details.MainArgs...)
 
@@ -779,7 +750,7 @@ func createGraalCommand(details *RunDetails) (*exec.Cmd, error) {
 }
 
 // Set the Coherence site and rack values
-func configureSiteAndRack(details *RunDetails) {
+func configureSiteAndRack(details *run_details.RunDetails) {
 	var err error
 	if !details.GetSite {
 		return
@@ -810,7 +781,7 @@ func configureSiteAndRack(details *RunDetails) {
 		}
 
 		if site != "" {
-			details.addArg("-Dcoherence.site=" + site)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceSite, site)
 		}
 	} else {
 		expanded := details.ExpandEnv(site)
@@ -818,10 +789,10 @@ func configureSiteAndRack(details *RunDetails) {
 			log.Info("Coherence site property set from expanded "+v1.EnvVarCoherenceSite+" environment variable", v1.EnvVarCoherenceSite, site, "Site", expanded)
 			site = expanded
 			if strings.TrimSpace(site) != "" {
-				details.addArg("-Dcoherence.site=" + site)
+				details.AddSystemPropertyArg(v1.SysPropCoherenceSite, site)
 			}
 		} else {
-			log.Info("Coherence site property not set as "+v1.EnvVarCoherenceSite+" environment variable is set", "Site", site)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceSite, site)
 		}
 	}
 
@@ -848,9 +819,9 @@ func configureSiteAndRack(details *RunDetails) {
 		}
 
 		if rack != "" {
-			details.addArg("-Dcoherence.rack=" + rack)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceRack, rack)
 		} else if site != "" {
-			details.addArg("-Dcoherence.rack=" + site)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceRack, site)
 		}
 	} else {
 		expanded := details.ExpandEnv(rack)
@@ -863,10 +834,10 @@ func configureSiteAndRack(details *RunDetails) {
 				rack = site
 			}
 			if strings.TrimSpace(rack) != "" {
-				details.addArg("-Dcoherence.rack=" + rack)
+				details.AddSystemPropertyArg(v1.SysPropCoherenceRack, rack)
 			}
 		} else {
-			log.Info("Coherence rack property not set as "+v1.EnvVarCoherenceRack+" environment variable is set", "Rack", rack)
+			details.AddSystemPropertyArg(v1.SysPropCoherenceRack, rack)
 		}
 	}
 }
@@ -879,7 +850,7 @@ func maybeStripFileScheme(uri string) string {
 }
 
 // httpGetWithBackoff does a http get for the specified url with retry back-off for errors.
-func httpGetWithBackoff(url string, details *RunDetails) string {
+func httpGetWithBackoff(url string, details *run_details.RunDetails) string {
 	var backoff time.Duration
 	timeout := 120
 
@@ -973,28 +944,28 @@ func httpGet(urlString string, client http.Client) (string, int, error) {
 	return s, resp.StatusCode, nil
 }
 
-func checkCoherenceVersion(v string, details *RunDetails) bool {
+func checkCoherenceVersion(v string, details *run_details.RunDetails) bool {
 	log.Info("Performing Coherence version check", "version", v)
 
-	if details.isEnvTrue(v1.EnvVarCohSkipVersionCheck) {
+	if details.IsEnvTrue(v1.EnvVarCohSkipVersionCheck) {
 		log.Info("Skipping Coherence version check", "envVar", v1.EnvVarCohSkipVersionCheck, "value", details.Getenv(v1.EnvVarCohSkipVersionCheck))
 		return true
 	}
 
 	// Get the classpath to use (we need Coherence jar)
-	cp := details.getClasspath()
+	cp := details.GetClasspath()
 
 	var exe string
 	var cmd *exec.Cmd
 	var args []string
 
-	if details.isBuildPacks() {
+	if details.IsBuildPacks() {
 		// This is a build-packs image so use the Build-packs launcher to run Java
-		exe = getBuildpackLauncher()
+		exe = run_details.GetBuildpackLauncher()
 		args = []string{exe}
 	} else {
 		// this should be a normal image with Java available
-		exe = details.getJavaExecutable()
+		exe = details.GetJavaExecutable()
 	}
 
 	if details.IsSpringBoot() {
@@ -1004,21 +975,21 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 			"-Dcoherence.operator.springboot.listener=false",
 			"-Dloader.main=com.oracle.coherence.k8s.CoherenceVersion")
 
-		if jar, _ := details.lookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
+		if jar, _ := details.LookupEnv(v1.EnvVarSpringBootFatJar); jar != "" {
 			// This is a fat jar Spring boot app so put the fat jar on the classpath
-			args = append(args, "--class-path", jar)
+			args = append(args, v1.JvmOptClassPath, jar)
 		}
 
-		if details.AppType == AppTypeSpring2 {
+		if details.AppType == v1.AppTypeSpring2 {
 			// we are running SpringBoot 2.x
-			args = append(args, SpringBootMain2, v)
+			args = append(args, v1.SpringBootMain2, v)
 		} else {
 			// we are running SpringBoot 3.x
-			args = append(args, SpringBootMain3, v)
+			args = append(args, v1.SpringBootMain3, v)
 		}
 	} else {
 		// We can use normal Java
-		args = append(args, "--class-path", cp,
+		args = append(args, v1.JvmOptClassPath, cp,
 			"-Dcoherence.operator.springboot.listener=false",
 			"com.oracle.coherence.k8s.CoherenceVersion", v)
 	}
@@ -1035,52 +1006,44 @@ func checkCoherenceVersion(v string, details *RunDetails) bool {
 		log.Info("Executed Coherence version check, version is greater than or equal to expected", "version", v)
 		return true
 	}
-	if _, ok := err.(*exec.ExitError); ok {
-		// The program has exited with an exit code != 0
-		log.Info("Executed Coherence version check, version is lower than expected", "version", v)
-		return false
+	if exitError, ok := err.(*exec.ExitError); ok {
+		// The program has exited with an exit code == 99 which means the version is lower than requested
+		if exitError.ExitCode() == 99 {
+			log.Info("Executed Coherence version check, version is lower than expected", "version", v)
+			return false
+		}
 	}
-	// command exited with some other error
-	log.Error(err, "Coherence version check failed")
-	return false
+	// command exited with some other error, assume the version is good
+	log.Info("Coherence version check failed, assuming version is valid", "version", v, "error", err.Error())
+	return true
 }
 
-func cohPre12214(details *RunDetails) {
-	details.addArg("-Dcoherence.override=k8s-coherence-nossl-override.xml")
-	details.addArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
-}
-
-func cohPost12214(details *RunDetails) {
-	details.addArg("-Dcoherence.override=k8s-coherence-override.xml")
-	details.addArgFromEnvVar(v1.EnvVarCohOverride, "-Dcoherence.k8s.override")
-}
-
-func cohPost2206(details *RunDetails) {
+func cohPost2206(details *run_details.RunDetails) {
 	if details.UseOperatorHealth {
-		details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
+		details.AddArg("-Dcoherence.operator.health.enabled=true")
 	} else {
-		useOperator := details.getenvOrDefault(v1.EnvVarUseOperatorHealthCheck, "false")
+		useOperator := details.GetenvOrDefault(v1.EnvVarUseOperatorHealthCheck, "false")
 		if strings.EqualFold("true", useOperator) {
-			details.addArg("-Dcoherence.k8s.operator.health.enabled=true")
+			details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "true")
 		} else {
-			details.addArg("-Dcoherence.k8s.operator.health.enabled=false")
-			details.setSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, "-Dcoherence.health.http.port", fmt.Sprintf("%d", v1.DefaultHealthPort))
+			details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "false")
+			details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, v1.SysPropCoherenceHealthHttpPort, fmt.Sprintf("%d", v1.DefaultHealthPort))
 		}
 	}
 }
 
-func addManagementSSL(details *RunDetails) {
+func addManagementSSL(details *run_details.RunDetails) {
 	addSSL(v1.EnvVarCohMgmtPrefix, v1.PortNameManagement, details)
 }
 
-func addMetricsSSL(details *RunDetails) {
+func addMetricsSSL(details *run_details.RunDetails) {
 	addSSL(v1.EnvVarCohMetricsPrefix, v1.PortNameMetrics, details)
 }
 
-func addSSL(prefix, prop string, details *RunDetails) {
+func addSSL(prefix, prop string, details *run_details.RunDetails) {
 	var urlPrefix string
 
-	sslCerts := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLCerts)
+	sslCerts := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLCerts)
 	if sslCerts != "" {
 		if !strings.HasSuffix(sslCerts, "/") {
 			sslCerts += "/"
@@ -1094,58 +1057,58 @@ func addSSL(prefix, prop string, details *RunDetails) {
 		urlPrefix = "file:"
 	}
 
-	if details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLEnabled) != "" {
-		details.addArg("-Dcoherence." + prop + ".http.provider=ManagementSSLProvider")
+	if details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLEnabled) != "" {
+		details.AddArg("-Dcoherence." + prop + ".http.provider=ManagementSSLProvider")
 	}
 
-	ks := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStore)
+	ks := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStore)
 	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.keystore=" + urlPrefix + ks)
+		details.AddArg("-Dcoherence." + prop + ".security.keystore=" + urlPrefix + ks)
 	}
-	kspw := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreCredFile)
+	kspw := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreCredFile)
 	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.keystore.password=" + urlPrefix + kspw)
+		details.AddArg("-Dcoherence." + prop + ".security.keystore.password=" + urlPrefix + kspw)
 	}
-	kpw := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyCredFile)
+	kpw := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyCredFile)
 	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.key.password=" + urlPrefix + kpw)
+		details.AddArg("-Dcoherence." + prop + ".security.key.password=" + urlPrefix + kpw)
 	}
-	kalg := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreAlgo)
+	kalg := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreAlgo)
 	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.keystore.algorithm=" + urlPrefix + kalg)
+		details.AddArg("-Dcoherence." + prop + ".security.keystore.algorithm=" + urlPrefix + kalg)
 	}
-	kprov := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreProvider)
+	kprov := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreProvider)
 	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.keystore.provider=" + urlPrefix + kprov)
+		details.AddArg("-Dcoherence." + prop + ".security.keystore.provider=" + urlPrefix + kprov)
 	}
-	ktyp := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreType)
+	ktyp := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreType)
 	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.keystore.type=" + urlPrefix + ktyp)
-	}
-
-	ts := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStore)
-	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.truststore=" + urlPrefix + ts)
-	}
-	tspw := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreCredFile)
-	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.truststore.password=" + urlPrefix + tspw)
-	}
-	talg := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreAlgo)
-	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.truststore.algorithm=" + urlPrefix + talg)
-	}
-	tprov := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreProvider)
-	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.truststore.provider=" + urlPrefix + tprov)
-	}
-	ttyp := details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreType)
-	if ks != "" {
-		details.addArg("-Dcoherence." + prop + ".security.truststore.type=" + urlPrefix + ttyp)
+		details.AddArg("-Dcoherence." + prop + ".security.keystore.type=" + urlPrefix + ktyp)
 	}
 
-	if details.getenvWithPrefix(prefix, v1.EnvVarSuffixSSLRequireClientCert) != "" {
-		details.addArg("-Dcoherence." + prop + ".http.auth=cert")
+	ts := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStore)
+	if ks != "" {
+		details.AddArg("-Dcoherence." + prop + ".security.truststore=" + urlPrefix + ts)
+	}
+	tspw := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreCredFile)
+	if ks != "" {
+		details.AddArg("-Dcoherence." + prop + ".security.truststore.password=" + urlPrefix + tspw)
+	}
+	talg := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreAlgo)
+	if ks != "" {
+		details.AddArg("-Dcoherence." + prop + ".security.truststore.algorithm=" + urlPrefix + talg)
+	}
+	tprov := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreProvider)
+	if ks != "" {
+		details.AddArg("-Dcoherence." + prop + ".security.truststore.provider=" + urlPrefix + tprov)
+	}
+	ttyp := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreType)
+	if ks != "" {
+		details.AddArg("-Dcoherence." + prop + ".security.truststore.type=" + urlPrefix + ttyp)
+	}
+
+	if details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLRequireClientCert) != "" {
+		details.AddArg("-Dcoherence." + prop + ".http.auth=cert")
 	}
 }
 

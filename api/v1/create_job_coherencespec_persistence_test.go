@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -44,7 +44,7 @@ func TestCreateJobWithPersistenceModeOnDemand(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceMode, Value: "on-demand"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohPersistenceMode, Value: "on-demand"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -64,7 +64,7 @@ func TestCreateJobWithPersistenceModeActive(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceMode, Value: "active"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohPersistenceMode, Value: "active"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -83,7 +83,7 @@ func TestCreateJobWithPersistenceModeActiveAsync(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceMode, Value: "active-async"})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohPersistenceMode, Value: "active-async"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
@@ -199,11 +199,16 @@ func TestCreateJobWithPersistenceSnapshotVolume(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      coh.VolumeNameSnapshots,
+		MountPath: coh.VolumeMountPathSnapshots,
+	})
+
+	// add the expected volume mount to the Operator init-container
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNameSnapshots,
 		MountPath: coh.VolumeMountPathSnapshots,
 	})
@@ -251,11 +256,16 @@ func TestCreateJobWithPersistenceSnapshotPVC(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      coh.VolumeNameSnapshots,
+		MountPath: coh.VolumeMountPathSnapshots,
+	})
+
+	// add the expected volume mount to the Operator init-container
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNameSnapshots,
 		MountPath: coh.VolumeMountPathSnapshots,
 	})
@@ -302,11 +312,16 @@ func TestCreateJobWithPersistenceSnapshotVolumeAndPVC(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      coh.VolumeNameSnapshots,
+		MountPath: coh.VolumeMountPathSnapshots,
+	})
+
+	// add the expected volume mount to the Operator init-container
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNameSnapshots,
 		MountPath: coh.VolumeMountPathSnapshots,
 	})
@@ -352,13 +367,16 @@ func TestCreateJobWithPersistenceAndSnapshotVolume(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts,
+		corev1.VolumeMount{Name: coh.VolumeNamePersistence, MountPath: coh.VolumeMountPathPersistence},
+		corev1.VolumeMount{Name: coh.VolumeNameSnapshots, MountPath: coh.VolumeMountPathSnapshots})
+
+	// add the expected volume mount to the Operator init-container
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts,
 		corev1.VolumeMount{Name: coh.VolumeNamePersistence, MountPath: coh.VolumeMountPathPersistence},
 		corev1.VolumeMount{Name: coh.VolumeNameSnapshots, MountPath: coh.VolumeMountPathSnapshots})
 
@@ -417,13 +435,16 @@ func TestCreateJobWithPersistenceAndSnapshotPVC(t *testing.T) {
 	jobExpected := createMinimalExpectedJob(deployment)
 
 	// Add the expected environment variables
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
-	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: coh.EnvVarCohSnapshotDir, Value: coh.VolumeMountPathSnapshots})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts,
+		corev1.VolumeMount{Name: coh.VolumeNamePersistence, MountPath: coh.VolumeMountPathPersistence},
+		corev1.VolumeMount{Name: coh.VolumeNameSnapshots, MountPath: coh.VolumeMountPathSnapshots})
+
+	// add the expected volume mount to the Operator init-container
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts,
 		corev1.VolumeMount{Name: coh.VolumeNamePersistence, MountPath: coh.VolumeMountPathPersistence},
 		corev1.VolumeMount{Name: coh.VolumeNameSnapshots, MountPath: coh.VolumeMountPathSnapshots})
 
@@ -445,9 +466,16 @@ func createResourcesForJob(spec coh.CoherenceResourceSpec) (*batchv1.Job, *coh.C
 	// Add the expected environment variables
 	addEnvVarsToJob(jobExpected, coh.ContainerNameCoherence, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorInit, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
+	addEnvVarsToJob(jobExpected, coh.ContainerNameOperatorConfig, corev1.EnvVar{Name: coh.EnvVarCohPersistenceDir, Value: coh.VolumeMountPathPersistence})
 
 	// add the expected volume mount to the Operator init-container
 	jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      coh.VolumeNamePersistence,
+		MountPath: coh.VolumeMountPathPersistence,
+	})
+
+	// add the expected volume mount to the Operator JVM args init-container
+	jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(jobExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, corev1.VolumeMount{
 		Name:      coh.VolumeNamePersistence,
 		MountPath: coh.VolumeMountPathPersistence,
 	})

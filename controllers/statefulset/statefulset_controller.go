@@ -433,6 +433,15 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	current.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 	original.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
 
+	// K8s does not allow the entry point (command) and arguments cannot be patched
+	// So we ignore these even if they have been changed
+	desired.Spec.Template.Spec.Containers[0].Command = []string{}
+	current.Spec.Template.Spec.Containers[0].Command = []string{}
+	original.Spec.Template.Spec.Containers[0].Command = []string{}
+	desired.Spec.Template.Spec.Containers[0].Args = []string{}
+	current.Spec.Template.Spec.Containers[0].Args = []string{}
+	original.Spec.Template.Spec.Containers[0].Args = []string{}
+
 	desiredPodSpec := desired.Spec.Template
 	currentPodSpec := current.Spec.Template
 	originalPodSpec := original.Spec.Template
@@ -456,14 +465,6 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 		cohImage := in.GetCoherenceImage(&desiredPodSpec)
 		in.SetCoherenceImage(&originalPodSpec, cohImage)
 		in.SetCoherenceImage(&currentPodSpec, cohImage)
-	}
-
-	// ensure the Operator image is present so that we do not patch on a Coherence resource
-	// from pre-3.1.x that does not have images set
-	if deploymentSpec.CoherenceUtils == nil || deploymentSpec.CoherenceUtils.Image == nil {
-		operatorImage := in.GetOperatorImage(&desiredPodSpec)
-		in.SetOperatorImage(&originalPodSpec, operatorImage)
-		in.SetOperatorImage(&currentPodSpec, operatorImage)
 	}
 
 	// a callback function that the 3-way patch method will call just before it applies a patch

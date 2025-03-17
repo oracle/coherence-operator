@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -44,6 +44,8 @@ func TestCreateStatefulSetWithOneVolumeMount(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts, mountOne)
+	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, mountOne)
+	stsExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, mountOne)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -71,6 +73,8 @@ func TestCreateStatefulSetWithTwoVolumeMounts(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.Containers[0].VolumeMounts, mountOne, mountTwo)
+	stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[0].VolumeMounts, mountOne, mountTwo)
+	stsExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts = append(stsExpected.Spec.Template.Spec.InitContainers[1].VolumeMounts, mountOne, mountTwo)
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

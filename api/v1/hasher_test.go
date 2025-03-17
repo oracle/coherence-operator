@@ -31,6 +31,5 @@ func TestHash(t *testing.T) {
 	// If this test fails you have probably added a new field to CoherenceResourceSpec
 	// This will break backwards compatibility. This field needs to be added to
 	// both CoherenceStatefulSetResourceSpec and CoherenceJobResourceSpec instead
-	//g.Expect(deployment.GetLabels()["coherence-hash"]).To(Equal("5cb9fd9f96"))
 	g.Expect(deployment.GetLabels()["coherence-hash"]).To(Equal("5859f96865"))
 }

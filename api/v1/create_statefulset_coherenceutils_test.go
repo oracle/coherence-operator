@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -15,32 +15,13 @@ import (
 func TestCreateStatefulSetWithCoherenceUtilsEmpty(t *testing.T) {
 
 	spec := coh.CoherenceResourceSpec{
-		CoherenceUtils: &coh.ImageSpec{},
+		CoherenceUtils: &coh.CoherenceUtilsSpec{},
 	}
 
 	// Create the test deployment
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithCoherenceUtilsWithImage(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		CoherenceUtils: &coh.ImageSpec{
-			Image: stringPtr("utils:1.0"),
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	// Set the expected Operator image name
-	stsExpected.Spec.Template.Spec.InitContainers[0].Image = "utils:1.0"
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
@@ -49,7 +30,7 @@ func TestCreateStatefulSetWithCoherenceUtilsWithImage(t *testing.T) {
 func TestCreateStatefulSetWithCoherenceUtilsWithImagePullPolicy(t *testing.T) {
 	policy := corev1.PullAlways
 	spec := coh.CoherenceResourceSpec{
-		CoherenceUtils: &coh.ImageSpec{
+		CoherenceUtils: &coh.CoherenceUtilsSpec{
 			ImagePullPolicy: &policy,
 		},
 	}
@@ -60,6 +41,7 @@ func TestCreateStatefulSetWithCoherenceUtilsWithImagePullPolicy(t *testing.T) {
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	// Set the expected Operator image pull policy
 	stsExpected.Spec.Template.Spec.InitContainers[0].ImagePullPolicy = policy
+	stsExpected.Spec.Template.Spec.InitContainers[1].ImagePullPolicy = policy
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

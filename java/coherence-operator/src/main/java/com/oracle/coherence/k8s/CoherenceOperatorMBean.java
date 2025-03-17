@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -20,7 +20,7 @@ public interface CoherenceOperatorMBean {
     /**
      * The System property that is used to set this members identity.
      */
-    String PROP_IDENTITY = "coherence.k8s.operator.identity";
+    String PROP_IDENTITY = "coherence.operator.identity";
 
     /**
      * The name of the Identity MBean attribute.
