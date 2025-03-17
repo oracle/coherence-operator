@@ -299,6 +299,19 @@ function createRoutes(){
             component: loadPage('docs-applications-070_spring', '/docs/applications/070_spring', {})
         },
         {
+            path: '/docs/applications/080_entrypoint',
+            meta: {
+                h1: 'Run an Image Entry Point',
+                title: 'Run an Image Entry Point',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-applications-080_entrypoint', '/docs/applications/080_entrypoint', {})
+        },
+        {
             path: '/docs/coherence/010_overview',
             meta: {
                 h1: 'Overview',
@@ -1363,7 +1376,8 @@ function createNav(){
                 { href: '/docs/applications/040_application_main', title: 'Set the Application Main' },
                 { href: '/docs/applications/050_application_args', title: 'Set Application Arguments' },
                 { href: '/docs/applications/060_application_working_dir', title: 'Set the Working Directory' },
-                { href: '/docs/applications/070_spring', title: 'Spring Boot Applications' }
+                { href: '/docs/applications/070_spring', title: 'Spring Boot Applications' },
+                { href: '/docs/applications/080_entrypoint', title: 'Run an Image Entry Point' }
             ]
         },
         {

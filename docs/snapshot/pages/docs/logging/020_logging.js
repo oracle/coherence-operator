@@ -233,10 +233,10 @@ data:
     &lt;filter coherence-cluster&gt;                  <span class="conum" data-value="3" />
      @type record_transformer
      &lt;record&gt;
-       cluster "#{ENV['COH_CLUSTER_NAME']}"
-       role "#{ENV['COH_ROLE']}"
+       cluster "#{ENV['COHERENCE_CLUSTER']}"
+       role "#{ENV['COHERENCE_ROLE']}"
        host "#{ENV['HOSTNAME']}"
-       pod-uid "#{ENV['COH_POD_UID']}"
+       pod-uid "#{ENV['COHERENCE_OPERATOR__POD_UID']}"
      &lt;/record&gt;
     &lt;/filter&gt;
 

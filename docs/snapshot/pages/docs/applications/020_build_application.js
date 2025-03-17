@@ -42,25 +42,7 @@ Java executable location, in this example to <code>/usr/lib/jvm/java-11-openjdk/
 <h3 id="_image_entrypoint_what_does_the_operator_run">Image <code>EntryPoint</code> - What Does the Operator Run?</h3>
 <div class="section">
 <p>The image does not need to have an <code>EntryPoint</code> or command specified, it does not need to actually be executable.
-If the image does have an <code>EntryPoint</code>, it will just be ignored.</p>
-
-<p>The Coherence Operator actually injects its own <code>runner</code> executable into the container which the container runs and which
-in turn builds the Java command line to execute. The <code>runner</code> process looks at arguments and environment variables configured
-for the Coherence container and from these constructs a Java command line that it then executes.</p>
-
-<p>The default command might look something like this:</p>
-
-<markup
-lang="bash"
-
->java --class-path `/app/resources:/app/classes:/app/libs/*` \
-    &lt;JVM args&gt; \
-    &lt;System Properties&gt; \
-    com.tangosol.net.Coherence</markup>
-
-<p>The <code>runner</code> will work out the JVM&#8217;s classpath, args and system properties to add to the command line
-and execute the main class <code>com.tangosol.net.Coherence</code>.
-All these are configurable in the <code>Coherence</code> resource spec.</p>
+The default behaviour of the Coherence operator it to configure its own entry point to execute the Coherence container, if the image does have an <code>EntryPoint</code>, it will just be ignored.</p>
 
 </div>
 
@@ -69,9 +51,8 @@ All these are configurable in the <code>Coherence</code> resource spec.</p>
 <p>If the <code>CLASSPATH</code> environment variable has been set in an image that classpath will be used when running the Coherence
 container. Other elements may also be added to the classpath depending on the configuration of the <code>Coherence</code> resource.</p>
 
-</div>
 
-<h3 id="_setting_the_classpath">Setting the Classpath</h3>
+<h4 id="_setting_the_classpath">Setting the Classpath</h4>
 <div class="section">
 <p>An application image contains <code>.jar</code> files (at least <code>coherence.jar</code>), possibly Java class files, also possibly
 other ad-hoc files, all of which need to be on the application&#8217;s classpath.
@@ -127,35 +108,13 @@ spec:
 the classpath will be <code>/data/libs/*:/data/config</code></li>
 </ul>
 </div>
+</div>
 
 <h3 id="_optional_java_home_environment_variable">Optional <code>JAVA_HOME</code> Environment Variable</h3>
 <div class="section">
 <p>The <code>JAVA_HOME</code> environment variable does not have to be set in the image. If it is set the JVM at that location will
 be used to run the application. If it is not set then the <code>java</code> executable <strong>must</strong> be on the <code>PATH</code> in the image.</p>
 
-</div>
-
-<h3 id="_optional_coherence_home_environment_variable">Optional <code>COHERENCE_HOME</code> Environment Variable</h3>
-<div class="section">
-<p>The <code>COHERENCE_HOME</code> environment variable does not have to be set in an image.
-Typically, all the jar files, including <code>coherence.jar</code> would be packaged into a single directory which is then used as
-the classpath.
-It is possible to run official Coherence images published by Oracle, which have <code>COHERENCE_HOME</code> set, which is then used
-by the Operator to set the classpath.</p>
-
-<p>If the <code>COHERENCE_HOME</code> environment variable is set in an image the following entries will be added to the end of the
-classpath:</p>
-
-<ul class="ulist">
-<li>
-<p><code>$COHERENCE_HOME/lib/coherence.jar</code></p>
-
-</li>
-<li>
-<p><code>$COHERENCE_HOME/conf</code></p>
-
-</li>
-</ul>
 </div>
 
 <h3 id="_additional_data_volumes">Additional Data Volumes</h3>

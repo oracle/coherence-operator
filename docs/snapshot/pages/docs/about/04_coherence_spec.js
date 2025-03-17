@@ -189,6 +189,10 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 
 </li>
 <li>
+<p><router-link to="#_coherenceutilsspec" @click.native="this.scrollFix('#_coherenceutilsspec')">CoherenceUtilsSpec</router-link></p>
+
+</li>
+<li>
 <p><router-link to="#_coherencewkaspec" @click.native="this.scrollFix('#_coherencewkaspec')">CoherenceWKASpec</router-link></p>
 
 </li>
@@ -438,14 +442,20 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <td class="">false</td>
 </tr>
 <tr>
+<td class=""><code>entryPoint</code></td>
+<td class="">Entrypoint array that will override the "java" entry point configured by the Operator or and any container entry point. This is an advanced use case, specifying an incorrect value here can cause the container not to start. Variable references $(VAR_NAME) are expanded using the container&#8217;s environment. If a variable cannot be resolved, the reference in the input string will be unchanged. Double  are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. "(VAR_NAME)" will produce the string literal "$(VAR_NAME)". Escaped references will never be expanded, regardless of whether the variable exists or not. Cannot be updated.</td>
+<td class=""><code>[]string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
 <td class=""><code>args</code></td>
-<td class="">Args is the optional arguments to pass to the main class.</td>
+<td class="">Args is the optional arguments to pass to the main class or the container entry point.</td>
 <td class=""><code>[]string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>workingDir</code></td>
-<td class="">The application folder in the custom artifacts Docker image containing application artifacts. This will effectively become the working directory of the Coherence container. If not set the application directory default value is "/app".</td>
+<td class="">WorkingDir sets the working directory of the Coherence container.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -458,6 +468,24 @@ These are all the types and fields that are used in the Coherence CRD.</p>
 <tr>
 <td class=""><code>springBootFatJar</code></td>
 <td class="">SpringBootFatJar is the full path name to the Spring Boot fat jar if the application image has been built by just adding a Spring Boot fat jar to the image. If this field is set then the application will be run by executing this jar. For example, if this field is "/app/libs/foo.jar" the command line will be "java -jar app/libs/foo.jar"</td>
+<td class=""><code>&#42;string</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>useImageEntryPoint</code></td>
+<td class="">UseImageEntryPoint is a flag to indicate that the Coherence container in the Pods should just execute the image entry point and not configure a custom command line. If this flag is set to true any arguments in the Args field are passed as container arguments to the entry point.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>useJdkJavaOptions</code></td>
+<td class="">UseJdkJavaOptions is a flag to indicate that the <code>JDK_JAVA_OPTIONS</code> environment variable should be set in the Coherence container to contain the JVM arguments configured by the Operator. Setting <code>JDK_JAVA_OPTIONS</code> defaults to true and only applies if UseImageEntryPoint is set to true.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>alternateJdkJavaOptions</code></td>
+<td class="">AlternateJdkJavaOptions specifies an alternative environment variable name to use instead of <code>JDK_JAVA_OPTIONS</code> for the command line options. If an application does not want to use the <code>JDK_JAVA_OPTIONS</code> environment variable but still wants access to the options the operator would have configured, this field can be set to an environment variable that an application can then access in the container at runtime. The value of the environment variable specified here will be set even if <code>UseJdkJavaOptions</code> is set to false. Setting the alternate JVM options environment variable only applies if UseImageEntryPoint is set to true.</td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
@@ -1104,7 +1132,7 @@ For example:<br>
 <tr>
 <td class=""><code>coherenceUtils</code></td>
 <td class="">The configuration for the Coherence operator image name</td>
-<td class=""><code>&#42;<router-link to="#_imagespec" @click.native="this.scrollFix('#_imagespec')">ImageSpec</router-link></code></td>
+<td class=""><code>&#42;<router-link to="#_coherenceutilsspec" @click.native="this.scrollFix('#_coherenceutilsspec')">CoherenceUtilsSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
@@ -1638,6 +1666,41 @@ NOTE: This field is a k8s resource.Quantity value as CRDs do not support decimal
 
 </div>
 
+<h3 id="_coherenceutilsspec">CoherenceUtilsSpec</h3>
+<div class="section">
+<p>CoherenceUtilsSpec defines the settings for the Coherence Operator utilities image</p>
+
+
+<div class="table__overflow elevation-1  ">
+<table class="datatable table">
+<colgroup>
+<col style="width: 7.692%;">
+<col style="width: 76.923%;">
+<col style="width: 7.692%;">
+<col style="width: 7.692%;">
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Type</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class=""><code>imagePullPolicy</code></td>
+<td class="">Image pull policy. One of Always, Never, IfNotPresent. More info: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts/containers/images#updating-images">https://kubernetes.io/docs/concepts/containers/images#updating-images</a></td>
+<td class=""><code>&#42;<a id="" title="" target="_blank" href="https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy">https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy</a></code></td>
+<td class="">false</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><router-link to="#_table_of_contents" @click.native="this.scrollFix('#_table_of_contents')">Back to TOC</router-link></p>
+
+</div>
+
 <h3 id="_coherencewkaspec">CoherenceWKASpec</h3>
 <div class="section">
 <p>CoherenceWKASpec configures Coherence well-known-addressing to use an existing Coherence deployment for WKA.</p>
@@ -1942,6 +2005,12 @@ see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.nati
 <tr>
 <td class=""><code>useJibClasspath</code></td>
 <td class="">A flag indicating whether to automatically add the default classpath for images created by the JIB tool <a id="" title="" target="_blank" href="https://github.com/GoogleContainerTools/jib">https://github.com/GoogleContainerTools/jib</a> If true then the /app/lib/* /app/classes and /app/resources entries are added to the JVM classpath. The default value fif not specified is true.</td>
+<td class=""><code>&#42;bool</code></td>
+<td class="">false</td>
+</tr>
+<tr>
+<td class=""><code>java8</code></td>
+<td class="">Java8 is a flag to indicate that a Coherence container is running on Java 8 and must use the legacy Operator container entry point. This would only apply to applications using older Coherence 12.2.1-4-* or 14.1.1-0-* versions. The default value for this field is false, if this field is not set to true when Java 8 is used the container will fail to start.</td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
