@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2025 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -39,7 +39,7 @@ Once secrets have been created in the namespace that the `Coherence` resource is
 can be specified in the `Coherence` CRD `spec`. It is possible to specify multiple secrets in the case where the different
 images being used are pulled from different registries.
 
-For example to use the commercial Coherence 14.1.1.0.0 image from OCR specify the image and image pull secrets in
+For example to use the commercial Coherence 14.1.2.0.0 image from OCR specify the image and image pull secrets in
 the `Coherence` resource yaml
 [source,yaml]
 ----
@@ -48,7 +48,7 @@ kind: Coherence
 metadata:
   name: test-cluster
 spec:
-  image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+  image: container-registry.oracle.com/middleware/coherence:14.1.2.0.0
   imagePullSecrets:
     - name: coherence-secret  # <1>
 ----

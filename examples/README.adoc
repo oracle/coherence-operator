@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2025 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -38,17 +38,17 @@ Building a simple Coherence image with a Dockerfile, that works out of the box w
 --
 Deploying the most basic Coherence cluster using the Operator.
 --
-====
 
-[PILLARS]
-====
 [CARD]
 .Coherence*Extend Clients
 [link=examples/025_extend_client/README.adoc]
 --
 An example demonstrating various ways to configure and use Coherence*Extend with Kubernetes.
 --
+====
 
+[PILLARS]
+====
 [CARD]
 .Deployment
 [link=examples/020_deployment/README.adoc]
@@ -74,9 +74,12 @@ An example covering the use of Kubernetes `NetworkPolicy` rules with the Operato
 .Federation
 [link=examples/100_federation/README.adoc]
 --
-This is a simple Coherence federation example. The federation feature requires Coherence Grid Edition.
+This example shows configuring federation using Oracle Cloud. (OCI) The federation feature requires Coherence Grid Edition.
 --
+====
 
+[PILLARS]
+====
 [CARD]
 .Autoscaling
 [link=examples/200_autoscaler/README.adoc]
@@ -97,10 +100,7 @@ Manage Coherence resources using Helm.
 --
 Istio Support
 --
-====
 
-[PILLARS]
-====
 [CARD]
 .Coherence Demo App
 [link=examples/900_demo/README.adoc]
