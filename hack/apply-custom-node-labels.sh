@@ -6,11 +6,9 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
+# Apply the custom node labels required for site and rack tests
 NODES=$(kubectl get nodes -o name)
 for NODE in $NODES; do
-  kubectl label $NODE topology.kubernetes.io/zone=twighlght-zone --overwrite
-  kubectl label $NODE topology.kubernetes.io/region=AYT --overwrite
-  kubectl label $NODE oci.oraclecloud.com/fault-domain=fd-one --overwrite
   kubectl label $NODE coherence.oracle.com/site=test-site --overwrite
   kubectl label $NODE coherence.oracle.com/rack=test-rack --overwrite
 done

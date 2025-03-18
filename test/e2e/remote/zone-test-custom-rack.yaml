@@ -4,7 +4,8 @@ metadata:
   name: zone-test
 spec:
   replicas: 3
-  rackLabel: coherence.oracle.com/test
+  siteLabel: coherence.oracle.com/site
+  rackLabel: coherence.oracle.com/rack
   operatorRequestTimeout: 120
   coherence:
     management:
