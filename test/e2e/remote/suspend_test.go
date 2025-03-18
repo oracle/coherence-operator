@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -324,7 +324,7 @@ func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]inte
 		return nil, fmt.Errorf("could not find any Pods for Coherence deployment %s", c.Name)
 	}
 
-	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pods[0])
 	if err != nil {
 		return nil, err
 	}

@@ -58,7 +58,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 	// the default number of replicas is 3 so the first pod should be able to be used
 	// Get only the first pod and add port forwarding
 	var pod = pods[1]
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 
@@ -130,7 +130,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	// the default number of replicas is 3 so the first pod should be able to be used
 	// Get only the first pod and add port forwarding
 	var pod = pods[1]
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 

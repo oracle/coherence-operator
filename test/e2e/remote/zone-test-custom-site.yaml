@@ -4,7 +4,7 @@ metadata:
   name: zone-test
 spec:
   replicas: 3
-  siteLabel: coherence.oracle.com/test
+  siteLabel: coherence.oracle.com/site
   operatorRequestTimeout: 120
   coherence:
     management:

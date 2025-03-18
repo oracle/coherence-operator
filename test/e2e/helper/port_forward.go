@@ -8,19 +8,18 @@ package helper
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/portforward"
+	"k8s.io/client-go/transport/spdy"
 	"net"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
-
-	"errors"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/portforward"
-	"k8s.io/client-go/transport/spdy"
 )
 
 // PortForwarder forwards ports from the local machine to a K8s Pod.
@@ -89,6 +88,23 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 	}
 
 	return &PortForwarder{Namespace: pod.Namespace, PodName: pod.Name, Ports: ports}, localPorts, nil
+}
+
+// StartPortForwarderForPodWithBackoff forwards all ports in a Pod to local ports.
+// This method returns a running PortForwarder, a map of port name to local port
+// and any error that may have occurred.
+func StartPortForwarderForPodWithBackoff(pod *corev1.Pod) (*PortForwarder, map[string]int32, error) {
+	var pf *PortForwarder
+	var m map[string]int32
+	var err error
+
+	for i := 0; i < 10; i++ {
+		pf, m, err = StartPortForwarderForPod(pod)
+		if err == nil {
+			break
+		}
+	}
+	return pf, m, err
 }
 
 // StartPortForwarderForPod forwards all ports in a Pod to local ports.

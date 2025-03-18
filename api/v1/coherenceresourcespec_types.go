@@ -996,6 +996,7 @@ func (in *CoherenceResourceSpec) CreateDefaultEnv(deployment CoherenceResource) 
 		corev1.EnvVar{Name: EnvVarCohHealthPort, Value: Int32ToString(in.GetHealthPort())},
 		corev1.EnvVar{Name: EnvVarCoherenceTTL, Value: "0"},
 		corev1.EnvVar{Name: EnvVarCohCtlHome, Value: VolumeMountPathUtils},
+		corev1.EnvVar{Name: EnvVarCohResourceName, Value: deployment.GetName()},
 	)
 
 	ann := deployment.GetAnnotations()

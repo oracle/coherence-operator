@@ -190,7 +190,7 @@ func processSnapshotRequestBlind(pod corev1.Pod, actionType snapshotActionType) 
 }
 
 func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error {
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	if err != nil {
 		return err
 	}

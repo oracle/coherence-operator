@@ -152,7 +152,7 @@ TEST_APPLICATION_IMAGE_SPRING_CNBP   := $(OPERATOR_IMAGE_REGISTRY)/operator-test
 TEST_APPLICATION_IMAGE_SPRING_2      := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-2:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat-2:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp-2:1.0.0
-SKIP_SPRING_CNBP                     := false
+SKIP_SPRING_CNBP                     ?= false
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -2526,6 +2526,7 @@ push-test-images:
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_3)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING)
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_2)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
 ifneq (true,$(SKIP_SPRING_CNBP))

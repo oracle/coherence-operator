@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -68,7 +68,7 @@ func httpRequest(ctx TestContext, namespace, deploymentName, endpoint, method st
 
 // Make a http request to a Pod.
 func httpRequestToPod(endpoint, method string, pod *v1.Pod) error {
-	forwarder, ports, err := StartPortForwarderForPod(pod)
+	forwarder, ports, err := StartPortForwarderForPodWithBackoff(pod)
 	if err != nil {
 		return err
 	}

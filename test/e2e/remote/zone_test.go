@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -58,7 +58,7 @@ func TestCustomSiteLabel(t *testing.T) {
 		return fmt.Sprintf("custom-site-zone-test-sts.%s.svc", namespace)
 	}
 
-	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/test"}, []string{}, fn, dfn)
+	assertLabel(t, "custom-site", "zone-test-custom-site.yaml", []string{"coherence.oracle.com/site"}, []string{}, fn, dfn)
 }
 
 // Verify that a Coherence resource deployed by the Operator has the correct rack value
@@ -96,7 +96,7 @@ func TestCustomRackLabel(t *testing.T) {
 		return "n/a"
 	}
 
-	assertLabel(t, "custom-rack", "zone-test-custom-rack.yaml", []string{"coherence.oracle.com/test"}, []string{}, fn, dfn)
+	assertLabel(t, "custom-rack", "zone-test-custom-rack.yaml", []string{"coherence.oracle.com/rack"}, []string{}, fn, dfn)
 }
 
 func assertLabel(t *testing.T, name string, fileName string, labels, prefixLabels []string, fn func(management.MemberData) string, dfn func(string) string) {
@@ -128,7 +128,7 @@ func assertLabel(t *testing.T, name string, fileName string, labels, prefixLabel
 	helper.DumpPodLog(testContext, &pods[0], t.Name())
 
 	// Port forward to the first Pod
-	pf, ports, err := helper.StartPortForwarderForPod(&pods[0])
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pods[0])
 	g.Expect(err).NotTo(HaveOccurred())
 	defer pf.Close()
 

@@ -188,7 +188,7 @@ func requestMetricsWithoutSSL(pod corev1.Pod, retry bool) error {
 
 // make a metrics request.
 func assertMetricsRequest(pod corev1.Pod, client *http.Client, protocol string, retry bool) error {
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	if err != nil {
 		return err
 	}

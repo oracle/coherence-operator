@@ -203,7 +203,7 @@ func PrometheusQuery(t *testing.T, pod corev1.Pod, query string, result interfac
 
 func PrometheusAPIRequest(pod corev1.Pod, path string) (*PrometheusAPIResult, error) {
 	// Start the port forwarder for the Pod
-	pf, ports, err := helper.StartPortForwarderForPod(&pod)
+	pf, ports, err := helper.StartPortForwarderForPodWithBackoff(&pod)
 	if err != nil {
 		return nil, err
 	}
