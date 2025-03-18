@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2025 Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <!--
@@ -23,31 +23,31 @@
   <federation-config>
     <participants>
       <participant>
-        <name system-property="primary.cluster">PrimaryCluster</name>
+        <name system-property="primary.cluster"/> <!--1-->
         <initial-action>start</initial-action>
         <remote-addresses>
           <socket-address>
-            <address system-property="primary.cluster.host">primary-cluster-federation</address>
-            <port    system-property="primary.cluster.port">7574</port>
+            <address system-property="primary.cluster.address"/>
+            <port    system-property="primary.cluster.port"/>
           </socket-address>
         </remote-addresses>
       </participant>
       <participant>
-        <name system-property="secondary.cluster">SecondaryCluster</name>
+        <name system-property="secondary.cluster"/> <!--2-->
         <initial-action>start</initial-action>
         <remote-addresses>
           <socket-address>
-            <address system-property="secondary.cluster.host">secondary-cluster-federation</address>
-            <port    system-property="secondary.cluster.port">7574</port>
+            <address system-property="secondary.cluster.address"/>
+            <port    system-property="secondary.cluster.port"/>
           </socket-address>
         </remote-addresses>
       </participant>
     </participants>
     <topology-definitions>
       <active-active>
-        <name>Active</name>
-        <active system-property="primary.cluster">PrimaryCluster</active>
-        <active system-property="secondary.cluster">SecondaryCluster</active>
+        <name>Active</name> <!--3-->
+        <active system-property="primary.cluster"/>
+        <active system-property="secondary.cluster"/>
       </active-active>
     </topology-definitions>
   </federation-config>

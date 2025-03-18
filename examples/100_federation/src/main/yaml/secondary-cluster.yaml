@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021, 2023 Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -14,25 +14,40 @@ spec:
     classpath:
       - /config
       - /u01/oracle/oracle_home/coherence/lib/coherence.jar
-    args:
-      - "-Dprimary.cluster=primary-cluster"
-      - "-Dprimary.cluster.port=40000"
-      - "-Dprimary.cluster.host=primary-cluster-federation"
-      - "-Dsecondary.cluster=secondary-cluster"
-      - "-Dsecondary.cluster.port=40000"
-      - "-Dsecondary.cluster.host=secondary-cluster-federation"
+  env:
+    - name: "PRIMARY_CLUSTER"
+      value: "primary-cluster"
+    - name: "PRIMARY_CLUSTER_ADDRESS"
+      value: ""
+    - name: "PRIMARY_CLUSTER_PORT"
+      value: "40000"
+    - name: "SECONDARY_CLUSTER"
+      value: "secondary-cluster"
+    - name: "SECONDARY_CLUSTER_ADDRESS"
+      value: ""
+    - name: "SECONDARY_CLUSTER_PORT"
+      value: "40000"
   secretVolumes:
     - mountPath: /config
       name: storage-config
   ports:
-    - name: federation
+    - name: "federation"
       port: 40000
+      protocol: TCP
+      service:
+        port: 40000
+        type: LoadBalancer
+        annotations:
+          oci.oraclecloud.com/load-balancer-type: "nlb"
+          oci-network-load-balancer.oraclecloud.com/internal: "true"
+          oci-network-load-balancer.oraclecloud.com/subnet: "(Internal subnet OCID - REPLACE ME)"
+          oci-network-load-balancer.oraclecloud.com/oci-network-security-groups: "(OCID of the NSG - REPLACE ME)"
     - name: management
   coherence:
-    cacheConfig: storage-cache-config.xml
-    overrideConfig: tangosol-coherence-override.xml
+    cacheConfig: /config/storage-cache-config.xml
+    overrideConfig: /config/tangosol-coherence-override.xml
     logLevel: 9
-  image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+  image: container-registry.oracle.com/middleware/coherence:14.1.2.0.0
   imagePullSecrets:
     - name: ocr-pull-secret
-  replicas: 2
+  replicas: 3
