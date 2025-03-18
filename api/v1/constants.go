@@ -219,6 +219,7 @@ const (
 	EnvVarCohSkipVersionCheck    = "COHERENCE_OPERATOR_SKIP_VERSION_CHECK"
 	EnvVarCohPodUID              = "COHERENCE_OPERATOR_POD_UID"
 	EnvVarCohIdentity            = "COHERENCE_OPERATOR_IDENTITY"
+	EnvVarCohResourceName        = "COHERENCE_OPERATOR_RESOURCE_NAME"
 	EnvVarCohAppDir              = "COHERENCE_OPERATOR_APP_DIR"
 	EnvVarCohSkipSite            = "COHERENCE_OPERATOR_SKIP_SITE"
 	EnvVarCohSite                = "COHERENCE_OPERATOR_SITE_INFO_LOCATION"

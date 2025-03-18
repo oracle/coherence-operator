@@ -239,6 +239,10 @@ func createCliConfig(details *run_details.RunDetails) error {
 	fileName := fmt.Sprintf(v1.FileNamePattern, home, os.PathSeparator, "cohctl.yaml")
 
 	cluster := details.Getenv(v1.EnvVarCohClusterName)
+	name := details.Getenv(v1.EnvVarCohResourceName)
+	if name == "" {
+		name = cluster
+	}
 	port := details.Getenv(v1.EnvVarCohMgmtPrefix + v1.EnvVarCohPortSuffix)
 	if port == "" {
 		port = fmt.Sprintf("%d", v1.DefaultManagementPort)
@@ -250,7 +254,7 @@ func createCliConfig(details *run_details.RunDetails) error {
 
 	var buffer bytes.Buffer
 	buffer.WriteString("clusters:\n")
-	buffer.WriteString("    - name: default\n")
+	buffer.WriteString("    - name: \"" + name + "\"\n")
 	buffer.WriteString("      discoverytype: manual\n")
 	buffer.WriteString("      connectiontype: " + protocol + "\n")
 	buffer.WriteString("      connectionurl: " + protocol + "://127.0.0.1:" + port + "/management/coherence/cluster\n")
@@ -267,7 +271,7 @@ func createCliConfig(details *run_details.RunDetails) error {
 	buffer.WriteString("      loggingdestination: \"\"\n")
 	buffer.WriteString("      managementavailable: false\n")
 	buffer.WriteString("color: \"on\"\n")
-	buffer.WriteString("currentcontext: default\n")
+	buffer.WriteString("currentcontext: \"" + name + "\"\n")
 	buffer.WriteString("debug: false\n")
 	buffer.WriteString("defaultbytesformat: m\n")
 	buffer.WriteString("ignoreinvalidcerts: false\n")

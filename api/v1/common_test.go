@@ -373,6 +373,10 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 			Name:  "COHERENCE_IPMONITOR_PINGTIMEOUT",
 			Value: "0",
 		},
+		{
+			Name:  coh.EnvVarCohResourceName,
+			Value: deployment.GetName(),
+		},
 	}
 
 	if deployment.GetType() == coh.CoherenceTypeJob {
