@@ -12,24 +12,33 @@
 This example demonstrates the Coherence federation feature which allows you to federate cache data asynchronously across multiple geographically dispersed clusters.
 Cached data is federated across clusters to provide redundancy, off-site backup, and multiple points of access for application users in different geographical locations.
 
-NOTE: The Coherence federation feature requires Coherence Grid Edition.
+NOTE: **Coherence federation feature requires Coherence Grid Edition.**
 
-To demonstrate this feature, we will deploy two Coherence clusters (using Coherence Operator) located on separate OKE (Kubernetes Engine) clusters on Oracle Cloud (OCI).
-
-It is assumed that you have two OCI regions, with two separate OKE clusters already configured, and have configured Dynamic Routing Gateways (DRGs)
+To demonstrate this feature, we will deploy two Coherence clusters, using the https://github.com/oracle/coherence-operator[Coherence Operator], located on separate OKE (Kubernetes Engine) clusters on Oracle Cloud (OCI).
+It is assumed that you have two OCI regions, with these OKE clusters already configured, and have configured Dynamic Routing Gateways (DRGs)
 to connect the two regions together.
 
-The diagram below outlines the setup for this example and uses the following regions that have been configured with the relevant Kubernetes contexts.
+TIP: Although this example uses OCI, the concepts can be applied to other cloud providers to achieve the same result.
 
-* Melbourne region has has a Kubernetes context of `c1`
-* Sydney region and has a Kubernetes context of `c3`
+They key (cloud platform-agnostic) aspects of the example are:
 
+* The two Kubernetes clusters are located in separate cloud regions
+* Each region must be able to be connected with or communicate with the other region
+* Each region must have a network load balancer (LB), created either via deployment yaml or configured, that can forward traffic on port 40000, in our case, to the federation service in the OKE cluster
+* Routing rules must be setup to allow LBs to send traffic over the specified ports between the regions
 
-image::images/federated-coherence.png[Federated Setup,align="center"]
+The diagram below outlines the setup for this example and uses the following OCI regions that have been configured with the relevant Kubernetes contexts.
+
+* Melbourne region has a Kubernetes context of `c1`
+* Sydney region has a Kubernetes context of `c3`
+
+image::images/federated-coherence.png[Federated Setup,align="center",width="100%",height="auto"]
 
 NOTE: **Although some network setup information is outlined below, it is assumed you have knowledge of, or access to
 Oracle Cloud Infrastructure (OCI) administrators who can set up cross region networking using Dynamic Routing Gateways (DRG's) and
 Remote Peering Connections. DRG Documentation below for more information.**
+
+
 
 See the links below for more information on various topics described above:
 
@@ -41,7 +50,7 @@ See the links below for more information on various topics described above:
 
 [TIP]
 ====
-image:GitHub-Mark-32px.png[] The complete source code for this example is in the https://{examples-source}100_federation[Coherence Operator GitHub] repository.
+The complete source code for this example is in the https://{examples-source}100_federation[Coherence Operator GitHub] repository.
 ====
 
 === What the Example will Cover
