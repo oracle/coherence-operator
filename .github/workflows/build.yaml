@@ -118,10 +118,10 @@ jobs:
       run: make all
 
     - name: Load Images to KinD
-#     Load the images just built to the KinD cluster
       shell: bash
       run: |
         make kind-load
+        make remove-all-images
 
     - name: Unit Tests
       shell: bash
