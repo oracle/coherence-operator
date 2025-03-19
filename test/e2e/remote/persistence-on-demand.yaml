@@ -23,3 +23,10 @@ spec:
       port: 30000
     - name: rest
       port: 8080
+  volumeMounts:
+    - name: persistence
+      mountPath: /coherence
+      readOnly: false
+  volumes:
+    - name: persistence
+      emptyDir: {}

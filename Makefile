@@ -657,6 +657,33 @@ build-client-image: ## Build the test client image
 .PHONY: build-all-images
 build-all-images: $(BUILD_TARGETS)/build-operator build-test-images build-compatibility-image ## Build all images (including tests)
 
+.PHONY: remove-all-images
+remove-all-images: remove-operator-image remove-test-images  ## Remove the Operator image and all test images from the local Podman or Docker
+
+.PHONY: remove-operator-image
+remove-operator-image:
+	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE) || true
+	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE_AMD) || true
+	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE_ARM) || true
+	$(DOCKER_CMD) rmi $($(DOCKER_CMD) images -q -f "dangling=true") || true
+	rm $(BUILD_TARGETS)/build-operator || true
+
+.PHONY: remove-test-images
+remove-test-images:
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_CLIENT) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_HELIDON) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_HELIDON_2) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_HELIDON_3) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_SPRING) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_SPRING_2) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
+	$(DOCKER_CMD) rmi $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) || true
+	$(DOCKER_CMD) rmi $(TEST_COMPATIBILITY_IMAGE) || true
+	$(DOCKER_CMD) rmi $($(DOCKER_CMD) images -q -f "dangling=true") || true
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Ensure Operator SDK is at the correct version
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1253,7 +1280,7 @@ e2e-local-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-local-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-local-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-local-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
-e2e-local-test: $(BUILD_TARGETS)/build-operator undeploy reset-namespace create-ssl-secrets gotestsum install-crds ensure-pull-secret  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-local-test: undeploy reset-namespace create-ssl-secrets gotestsum install-crds ensure-pull-secret  ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-local-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/local/...
 
@@ -1273,7 +1300,7 @@ e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional te
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: $(BUILD_TARGETS)/build-operator reset-namespace create-ssl-secrets deploy-and-wait
+prepare-e2e-test: reset-namespace create-ssl-secrets deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -1364,7 +1391,7 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: build-operator-images build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
@@ -1397,7 +1424,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus $(BUILD_TARGETS)/build-operator create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
+e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
