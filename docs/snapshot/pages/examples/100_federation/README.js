@@ -487,7 +487,9 @@ lang="xml"
     &lt;federated-scheme&gt; <span class="conum" data-value="2" />
       &lt;scheme-name&gt;server&lt;/scheme-name&gt;
       &lt;backing-map-scheme&gt;
-        &lt;local-scheme/&gt;
+        &lt;local-scheme&gt;
+          &lt;unit-calculator&gt;BINARY&lt;/unit-calculator&gt;
+        &lt;/local-scheme&gt;
       &lt;/backing-map-scheme&gt;
       &lt;autostart&gt;true&lt;/autostart&gt;
       &lt;address-provider&gt;
