@@ -22,7 +22,9 @@
     <federated-scheme> <!--2-->
       <scheme-name>server</scheme-name>
       <backing-map-scheme>
-        <local-scheme/>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
       <address-provider>
