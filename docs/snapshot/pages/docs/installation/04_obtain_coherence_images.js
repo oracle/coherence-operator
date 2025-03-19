@@ -68,7 +68,7 @@ for this.</p>
 can be specified in the <code>Coherence</code> CRD <code>spec</code>. It is possible to specify multiple secrets in the case where the different
 images being used are pulled from different registries.</p>
 
-<p>For example to use the commercial Coherence 14.1.1.0.0 image from OCR specify the image and image pull secrets in
+<p>For example to use the commercial Coherence 14.1.2.0.0 image from OCR specify the image and image pull secrets in
 the <code>Coherence</code> resource yaml</p>
 
 <markup
@@ -79,7 +79,7 @@ kind: Coherence
 metadata:
   name: test-cluster
 spec:
-  image: container-registry.oracle.com/middleware/coherence:14.1.1.0.0
+  image: container-registry.oracle.com/middleware/coherence:14.1.2.0.0
   imagePullSecrets:
     - name: coherence-secret  <span class="conum" data-value="1" /></markup>
 
