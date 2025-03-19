@@ -32,7 +32,7 @@ The diagram below outlines the setup for this example and uses the following OCI
 * Melbourne region has a Kubernetes context of `c1`
 * Sydney region has a Kubernetes context of `c3`
 
-image::images/federated-coherence.png[Federated Setup,align="center"]
+image::images/federated-coherence.png[Federated Setup,align="center",width="100%",height="auto"]
 
 NOTE: **Although some network setup information is outlined below, it is assumed you have knowledge of, or access to
 Oracle Cloud Infrastructure (OCI) administrators who can set up cross region networking using Dynamic Routing Gateways (DRG's) and
