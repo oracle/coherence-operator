@@ -8,9 +8,9 @@ spec:
   image: ${TEST_APPLICATION_IMAGE}
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
+    runAsUser: 1000850001
+    runAsGroup: 1000850001
+    fsGroup: 1000850001
     fsGroupChangePolicy: "OnRootMismatch"
   readinessProbe:
     initialDelaySeconds: 10
