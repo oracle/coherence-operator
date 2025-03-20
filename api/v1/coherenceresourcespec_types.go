@@ -384,7 +384,7 @@ func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 
 // GetDefaultScalingProbe returns a default Scaling probe
 func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
-	timeout := 10
+	timeout := 30
 
 	probe := Probe{
 		TimeoutSeconds: &timeout,
@@ -909,24 +909,24 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment CoherenceResource) [
 	env := []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "spec.nodeName",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "spec.nodeName",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohMemberName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.name",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohPodUID, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.uid",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.uid",
 			},
+		},
 		},
 		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
 	}
