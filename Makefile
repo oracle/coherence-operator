@@ -1158,13 +1158,13 @@ preflight: ## Run the OpenShift preflight tests against the Operator Image in a 
 
 .PHONY: preflight-oc
 preflight-oc: $(BUILD_PREFLIGHT)/preflight.yaml preflight-oc-cleanup ## Run the OpenShift preflight tests as a K8s Job against the Operator Image
-	oc apply -f $(BUILD_PREFLIGHT)/preflight.yaml
-	oc wait --for condition=complete job/preflight --timeout 480s
-	oc logs job/preflight > $(BUILD_PREFLIGHT)/preflight.log || true
+	$(KUBECTL_CMD) apply -f $(BUILD_PREFLIGHT)/preflight.yaml
+	$(KUBECTL_CMD) wait --for condition=complete job/preflight --timeout 480s
+	$(KUBECTL_CMD) logs job/preflight > $(BUILD_PREFLIGHT)/preflight.log || true
 
 .PHONY: preflight-oc-cleanup
 preflight-oc-cleanup: $(BUILD_PREFLIGHT)/preflight.yaml ## Clean up the OpenShift preflight tests Job
-	oc delete -f $(BUILD_PREFLIGHT)/preflight.yaml || true
+	$(KUBECTL_CMD) delete -f $(BUILD_PREFLIGHT)/preflight.yaml || true
 
 # This variable should be passed in and is the credentials for the container registry
 # that holds the Operator Image to be pulled by the preflight Job.
@@ -2487,6 +2487,32 @@ endif
 	cd oc-tmp && tar -xvf openshift-client.tar.gz
 	mv oc-tmp/oc $(TOOLS_BIN)/oc
 	chmod +x $(TOOLS_BIN)/oc
+	cd $(CURRDIR)
+	rm -f oc-tmp || true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Download the OpenShift CLI (oc) into build/tools/bin
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: get-kubectl
+get-kubectl: $(TOOLS_BIN)/kubectl
+
+$(TOOLS_BIN)/kubectl: ## Download kubectl
+	mkdir -p $(TOOLS_BIN) || true
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
+else
+	curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
+endif
+else
+ifeq (x86_64, $(UNAME_M))
+	curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+else
+	curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
+endif
+endif
+	mv kubectl $(TOOLS_BIN)/kubectl
+	chmod +x $(TOOLS_BIN)/kubectl
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
