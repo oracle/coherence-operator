@@ -1,0 +1,136 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: operator-ci
+spec:
+  description: |
+    This pipeline clones a git repo, then echoes the README file to the stout.
+  params:
+    - name: repo-url
+      type: string
+      description: The git repo URL to clone from.
+    - name: revision
+      type: string
+      description: The git revision to check out.
+      default: "main"
+    - name: source-directory
+      type: string
+      description: Subdirectory inside the shared-data Workspace to clone the repo into.
+      default: "source"
+    - name: deleteExisting
+      type: string
+      description: Clean out the contents of the source directory if it already exists before cloning.
+      default: 'true'
+    - name: httpProxy
+      type: string
+      description: The optional http proxy to use
+      default: ""
+    - name: httpsProxy
+      type: string
+      description: The optional https proxy to use
+      default: ""
+    - name: noProxy
+      type: string
+      description: The optional no proxy to use
+      default: ""
+    - name: builder-image-reference
+      type: string
+      description: The builder image
+      default: "iad.ocir.io/odx-stateservice/tekton/builder:1.0.0"
+    - name: skip-builder-image
+      type: string
+      description: Skip building the builder image
+      default: "false"
+  workspaces:
+    - name: shared-data
+      description: |
+        This workspace contains the cloned repo files, so they can be read by the
+        next task.
+    - name: dockerconfig
+      description: Includes a docker `config.json`
+  tasks:
+    - name: setup-env
+      taskRef:
+        name: setup-env
+      workspaces:
+        - name: shared-data
+          workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
+    - name: git-clone
+      runAfter: ["setup-env"]
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-data
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+        - name: subdirectory
+          value: $(params.source-directory)
+        - name: deleteExisting
+          value: $(params.deleteExisting)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: create-builder
+      runAfter: ["git-clone"]
+      when:
+        - input: "$(params.skip-builder-image)"
+          operator: in
+          values: ["false"]
+      taskRef:
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: shared-data
+        - name: dockerconfig
+          workspace: shared-data
+      params:
+        - name: DOCKERFILE
+          value: $(workspaces.source.path)/source/tekton/builder.Dockerfile
+        - name: IMAGE
+          value: $(params.builder-image-reference)-$(tasks.setup-env.results.BUILD_ARCH)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: make
+      runAfter: ["create-builder"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: shared-data
+          workspace: shared-data
+      params:
+        - name: image
+          value: $(params.builder-image-reference)-$(tasks.setup-env.results.BUILD_ARCH)
+        - name: command
+          value: ""
+        - name: sub-directory
+          value: "source"
+
+#    - name: create-builder
+#      runAfter: ["git-clone"]
+#      taskRef:
+#        name: kaniko
+#      workspaces:
+#        - name: source
+#          workspace: shared-data
+#        - name: dockerconfig
+#          workspace: shared-data
+#      params:
+#        - name: DOCKERFILE
+#          value: $(workspaces.source.path)/source/tekton/builder.Dockerfile
+#        - name: IMAGE
+#          value: $(params.builder-image-reference)-$(tasks.setup-env.results.BUILD_ARCH)
+#    - name: create-builder
+#      runAfter: ["git-clone"]

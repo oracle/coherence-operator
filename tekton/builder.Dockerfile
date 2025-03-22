@@ -1,11 +1,11 @@
-FROM container-registry.oracle.com/java/jdk-no-fee-term:21-oraclelinux9
+FROM container-registry.oracle.com/os/oraclelinux:9
 
 ARG GoVersion=1.24.1
 ARG GoArch=arm64
 
 CMD ["/bin/bash"]
 
-RUN dnf install make -y
+RUN dnf install make which -y
 
 RUN curl -L https://go.dev/dl/go$GoVersion.linux-$GoArch.tar.gz -o go-linux.tar.gz \
     && rm -rf /usr/local/go \
@@ -13,4 +13,3 @@ RUN curl -L https://go.dev/dl/go$GoVersion.linux-$GoArch.tar.gz -o go-linux.tar.
     && rm go-linux.tar.gz
 
 ENV PATH="$PATH:/usr/local/go/bin"
-
