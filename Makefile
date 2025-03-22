@@ -123,7 +123,7 @@ OPERATOR_SDK_VERSION := v1.39.1
 # Options to append to the Maven command
 # ----------------------------------------------------------------------------------------------------------------------
 MAVEN_OPTIONS ?= -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3
-MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE_17) -Dcoherence.test.base.image.21=$(COHERENCE_TEST_BASE_IMAGE_21) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
+MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.version=$(COHERENCE_VERSION_LTS) -Dcoherence.groupId=$(COHERENCE_GROUP_ID) -Dcoherence.test.base.image=$(COHERENCE_TEST_BASE_IMAGE_17) -Dcoherence.test.base.image.21=$(COHERENCE_TEST_BASE_IMAGE_21) -Dbuild.java.version=$(BUILD_JAVA_VERSION) $(MAVEN_OPTIONS)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Test image names
@@ -579,22 +579,19 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 .PHONY: build-helidon-test-images
 build-helidon-test-images: $(BUILD_TARGETS)/java ## Build the Helidon test images
 #   Helidon 4
-	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) \
-		$(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON)
 #   Helidon 3
-	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) \
-		$(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3)
 #   Helidon 2
-	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) \
-		$(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2)
 
 .PHONY: build-spring-test-images
 build-spring-test-images: $(BUILD_TARGETS)/java build-spring-jib-images build-spring-fat-images build-spring-cnbp-images ## Build the Spring test images
@@ -619,21 +616,23 @@ build-spring-fat-images: $(BUILD_TARGETS)/java ## Build the Spring Fat Jar test 
 .PHONY: build-spring-jib-images
 build-spring-jib-images: $(BUILD_TARGETS)/java ## Build the Spring JIB test images
 #   Spring Boot 3.x JIB
-	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING)
 #   Spring Boot 2.x JIB
-	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2)
 
 .PHONY: build-spring-cnbp-images
 build-spring-cnbp-images: $(BUILD_TARGETS)/java ## Build the Spring CNBP test images
 ifneq (true,$(SKIP_SPRING_CNBP))
 #   Spring Boot 3.x CNBP
-	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package \
+		spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 #   Spring Boot 2.x CNBP
-	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring-2 package spring-boot:build-image \
+		-DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -641,15 +640,15 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-basic-test-image
 build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test image
-	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
-	./mvnw -B -f java/operator-test-client package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-client package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT) $(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
@@ -716,7 +715,7 @@ endif
 build-mvn: $(BUILD_TARGETS)/java ## Build the Java artefacts
 
 $(BUILD_TARGETS)/java: $(JAVA_FILES)
-	./mvnw -B -f java clean install -DskipTests $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java clean install -DskipTests
 	touch $(BUILD_TARGETS)/java
 
 
@@ -833,7 +832,7 @@ $(BUILD_OUTPUT)/certs:
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review and Checkstyle test
-	./mvnw -B -f java validate -DskipTests -P checkstyle $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java validate -DskipTests -P checkstyle
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
@@ -1213,7 +1212,7 @@ test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/genera
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: $(BUILD_OUTPUT)/certs $(BUILD_TARGETS)/java  ## Run the Java artefact tests
-	./mvnw -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2501,16 +2500,15 @@ gotestsum: ## Download gotestsum locally if necessary.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	./mvnw -B -f ./examples package jib:dockerBuild -DskipTests \
-		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
- 		$(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f ./examples package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	./mvnw -B -f ./examples verify $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f ./examples verify
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Docker image
@@ -2596,14 +2594,14 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
 build-compatibility-image: $(BUILD_TARGETS)/java
-	./mvnw -B -f java/operator-compatibility package -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-compatibility package -DskipTests \
 		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
-	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
-	./mvnw -B -f java/operator-compatibility exec:exec \
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-compatibility exec:exec \
 		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
-	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
