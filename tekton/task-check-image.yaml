@@ -1,0 +1,57 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: check-image-exists
+spec:
+  description: Check whether an image exists in a registry.
+  params:
+    - name: IMAGE_NAME
+      description: Reference of the image to check.
+    - name: httpProxy
+      description: HTTP proxy server for non-SSL requests.
+      type: string
+      default: ""
+    - name: httpsProxy
+      description: HTTPS proxy server for SSL requests.
+      type: string
+      default: ""
+    - name: noProxy
+      description: Opt out of proxying HTTP/HTTPS requests.
+      type: string
+      default: ""
+  workspaces:
+    - name: dockerconfig
+      description: >-
+        An optional workspace that allows providing a registry auth config.json file
+        for Buildah to access the container registry.
+      optional: true
+  results:
+    - name: IMAGE_EXISTS
+      description: True if the image exists otherwise false.
+  steps:
+    - name: check-image-exists
+      image: quay.io/skopeo/stable:v1
+      env:
+        - name: PARAM_IMAGE_NAME
+          value: $(params.IMAGE_NAME)
+        - name: PARAM_HTTP_PROXY
+          value: $(params.httpProxy)
+        - name: PARAM_HTTPS_PROXY
+          value: $(params.httpsProxy)
+        - name: PARAM_NO_PROXY
+          value: $(params.noProxy)
+      script: |
+        set -e
+
+        [ "$(workspaces.dockerconfig.bound)" = "true" ] && REGISTRY_AUTH_FILE="$(workspaces.dockerconfig.path)/config.json" && export REGISTRY_AUTH_FILE
+        test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
+        test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
+        test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
+
+
+        if skopeo inspect docker://${PARAM_IMAGE_NAME}; then
+          IMAGE_EXISTS=true
+        else
+          IMAGE_EXISTS=false
+        fi
+        echo -n "${IMAGE_EXISTS}" | tee "$(results.IMAGE_EXISTS.path)"

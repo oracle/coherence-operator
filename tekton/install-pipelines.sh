@@ -5,7 +5,7 @@
 #
 
 #!/usr/bin/env sh
-set -v
+set -e
 
 SCRIPT_PATH="${0}"
 SCRIPT_DIR=$(dirname -- "${SCRIPT_PATH}")
@@ -28,6 +28,7 @@ tkn hub install task ${NS} git-clone
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-make.yaml
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-setup-env.yaml
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-buildah.yaml
+${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-check-image.yaml
 
 # Install Operator Pipelines
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/pipeline-operator-ci.yaml

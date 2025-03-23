@@ -5,35 +5,39 @@ metadata:
 spec:
   description: Environment setup.
   params:
-   - name: docker-config-name
-     description: The name of the Docker config json file.
-     type: string
-     default: ".dockerconfigjson"
+    - name: builder-image-prefix
+      description: The builder image name without a tag.
   workspaces:
     - name: shared-data
       description: |
         This workspace contains the cloned repo files, so they can be read by the
         next task.
-    - name: dockerconfig
-      description: Includes a docker `config.json`
   results:
     - name: BUILD_ARCH
       description: The build architecture.
+    - name: BUILDER_IMAGE_NAME
+      description: The builder image name.
   steps:
     - name: setup-env
       image: container-registry.oracle.com/os/oraclelinux:9-slim
       env:
+        - name: PARAM_BUILDER_IMAGE_PREFIX
+          value: $(params.builder-image-prefix)
       script: |
         set -e
-        cp $(workspaces.dockerconfig.path)/$(params.docker-config-name) $(workspaces.shared-data.path)/config.json
         UNAME_M=$(uname -m)
         if [ "$UNAME_M" = "arm64" ]
         then
           BUILD_ARCH=arm64
-        elif [ "$UNAME_M" = "aarch" ]
+        elif [ "$UNAME_M" = "aarch64" ]
         then
           BUILD_ARCH=arm64
         else
           BUILD_ARCH=amd64
         fi
-        echo -n "$BUILD_ARCH" | tee "$(results.BUILD_ARCH.path)"
+        SOURCE=$(workspaces.shared-data.path)/source
+        DOCKER_FILE_SHA1SUM=$(sha1sum "${SOURCE}/tekton/builder.Dockerfile")
+        readarray -d ' ' -t DOCKER_FILE_SHA <<< "${DOCKER_FILE_SHA1SUM}"
+        BUILDER_IMAGE_NAME="${PARAM_BUILDER_IMAGE_PREFIX}:${DOCKER_FILE_SHA}-${BUILD_ARCH}"
+        echo -n "${BUILD_ARCH}" | tee "$(results.BUILD_ARCH.path)"
+        echo -n "${BUILDER_IMAGE_NAME}" | tee "$(results.BUILDER_IMAGE_NAME.path)"

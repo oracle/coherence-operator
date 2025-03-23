@@ -17,30 +17,37 @@ spec:
       type: string
       description: Subdirectory inside the shared-data Workspace to clone the repo into.
       default: "source"
-    - name: deleteExisting
+    - name: delete-existing-source
       type: string
       description: Clean out the contents of the source directory if it already exists before cloning.
       default: 'true'
-    - name: httpProxy
-      type: string
-      description: The optional http proxy to use
-      default: ""
-    - name: httpsProxy
-      type: string
-      description: The optional https proxy to use
-      default: ""
-    - name: noProxy
-      type: string
-      description: The optional no proxy to use
-      default: ""
-    - name: builder-image-reference
+    - name: builder-image-prefix
       type: string
       description: The builder image
-      default: "iad.ocir.io/odx-stateservice/tekton/builder:1.0.0"
     - name: skip-builder-image
       type: string
       description: Skip building the builder image
       default: "false"
+    - name: env-configmap
+      description: The name of a ConfigMap to use to set environment variables.
+      type: string
+      default: "unset"
+    - name: env-secret
+      description: The name of a Secret to use to set environment variables.
+      type: string
+      default: "unset"
+    - name: httpProxy
+      type: string
+      description: The optional http proxy to use
+      default: ''
+    - name: httpsProxy
+      type: string
+      description: The optional https proxy to use
+      default: ''
+    - name: noProxy
+      type: string
+      description: The optional no proxy to use
+      default: ''
   workspaces:
     - name: shared-data
       description: |
@@ -49,16 +56,7 @@ spec:
     - name: dockerconfig
       description: Includes a docker `config.json`
   tasks:
-    - name: setup-env
-      taskRef:
-        name: setup-env
-      workspaces:
-        - name: shared-data
-          workspace: shared-data
-        - name: dockerconfig
-          workspace: dockerconfig
     - name: git-clone
-      runAfter: ["setup-env"]
       taskRef:
         name: git-clone
       workspaces:
@@ -72,7 +70,37 @@ spec:
         - name: subdirectory
           value: $(params.source-directory)
         - name: deleteExisting
-          value: $(params.deleteExisting)
+          value: $(params.delete-existing-source)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: setup-env
+      runAfter: ["git-clone"]
+      taskRef:
+        name: setup-env
+      workspaces:
+        - name: shared-data
+          workspace: shared-data
+      params:
+        - name: builder-image-prefix
+          value: $(params.builder-image-prefix)
+    - name: check-builder-image
+      runAfter: ["setup-env"]
+      when:
+        - input: "$(params.skip-builder-image)"
+          operator: in
+          values: ["false"]
+      taskRef:
+        name: check-image-exists
+      workspaces:
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: IMAGE_NAME
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
         - name: httpProxy
           value: $(params.httpProxy)
         - name: httpsProxy
@@ -80,9 +108,12 @@ spec:
         - name: noProxy
           value: $(params.noProxy)
     - name: create-builder
-      runAfter: ["git-clone"]
+      runAfter: ["check-builder-image"]
       when:
         - input: "$(params.skip-builder-image)"
+          operator: in
+          values: ["false"]
+        - input: "$(tasks.check-builder-image.results.IMAGE_EXISTS)"
           operator: in
           values: ["false"]
       taskRef:
@@ -96,7 +127,7 @@ spec:
         - name: DOCKERFILE
           value: $(workspaces.source.path)/source/tekton/builder.Dockerfile
         - name: IMAGE
-          value: $(params.builder-image-reference)-$(tasks.setup-env.results.BUILD_ARCH)
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
         - name: httpProxy
           value: $(params.httpProxy)
         - name: httpsProxy
@@ -108,29 +139,22 @@ spec:
       taskRef:
         name: make
       workspaces:
-        - name: shared-data
+        - name: source
           workspace: shared-data
       params:
         - name: image
-          value: $(params.builder-image-reference)-$(tasks.setup-env.results.BUILD_ARCH)
-        - name: command
-          value: ""
-        - name: sub-directory
-          value: "source"
-
-#    - name: create-builder
-#      runAfter: ["git-clone"]
-#      taskRef:
-#        name: kaniko
-#      workspaces:
-#        - name: source
-#          workspace: shared-data
-#        - name: dockerconfig
-#          workspace: shared-data
-#      params:
-#        - name: DOCKERFILE
-#          value: $(workspaces.source.path)/source/tekton/builder.Dockerfile
-#        - name: IMAGE
-#          value: $(params.builder-image-reference)-$(tasks.setup-env.results.BUILD_ARCH)
-#    - name: create-builder
-#      runAfter: ["git-clone"]
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "build-runner"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)

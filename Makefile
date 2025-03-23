@@ -2256,7 +2256,11 @@ else
 	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_arm64 -o $(TOOLS_BIN)/yq
 endif
 else
+ifeq (x86_64, $(UNAME_M))
 	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -o $(TOOLS_BIN)/yq
+else
+	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_arm64 -o $(TOOLS_BIN)/yq
+endif
 endif
 	chmod +x $(TOOLS_BIN)/yq
 
