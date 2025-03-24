@@ -140,7 +140,7 @@ spec:
           value: $(params.httpsProxy)
         - name: noProxy
           value: $(params.noProxy)
-    - name: make
+    - name: build-runner
       displayName: "Build Operator Runner"
       runAfter: ["create-builder"]
       taskRef:
@@ -153,6 +153,35 @@ spec:
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
         - name: target
           value: "build-runner"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/caches/go-cache
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: test
+      displayName: "Run Local Tests"
+      runAfter: ["build-runner"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: source
+          workspace: shared-data
+      params:
+        - name: image
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "e2e-local-test"
+        - name: extra-args
+          value: "GO_TEST_FLAGS_E2E=-run=^TestMinimalDeployment$"
         - name: makefile-directory
           value: $(params.source-directory)
         - name: go-cache

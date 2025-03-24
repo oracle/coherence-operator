@@ -39,7 +39,7 @@ spec:
         fi
         SOURCE=$(workspaces.shared-data.path)/source
         DOCKER_FILE_SHA1SUM=$(sha1sum "${SOURCE}/tekton/builder.Dockerfile")
-        OPERATOR_GO_VERSION=$(sed -n -e 's/^go \(.*\)$/\1/p' ${SOURCE}/go.mod)
+        OPERATOR_GO_VERSION=$(sed -n -e 's/^toolchain \(.*\)$/\1/p' ${SOURCE}/go.mod)
         readarray -d ' ' -t DOCKER_FILE_SHA <<< "${DOCKER_FILE_SHA1SUM}"
         LATEST_GO=$(curl -s 'https://go.dev/VERSION?m=text' | head -n 1)
         BUILDER_IMAGE_NAME="${PARAM_BUILDER_IMAGE_PREFIX}:${DOCKER_FILE_SHA}-${OPERATOR_GO_VERSION}-${BUILD_ARCH}"

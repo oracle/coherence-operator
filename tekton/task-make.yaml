@@ -9,6 +9,10 @@ spec:
       description: The make command to run.
       type: string
       default: ""
+    - name: extra-args
+      description: The extra arguments to pass to the make command
+      type: string
+      default: ""
     - name: makefile-directory
       description: The workspace subdirectory containing the Makefile.
       type: string
@@ -53,6 +57,8 @@ spec:
       image: $(params.image)
       workingDir: $(workspaces.source.path)/$(params.makefile-directory)
       env:
+        - name: PARAM_EXTRA_ARGS
+          value: $(params.extra-args)
         - name: PARAM_GOCACHE
           value: $(params.go-cache)
         - name: PARAM_HTTP_PROXY
@@ -75,4 +81,4 @@ spec:
         test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
         test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
         git config --global --add safe.directory $(pwd)
-        make $(params.target)
+        make $(params.target) ${PARAM_EXTRA_ARGS}

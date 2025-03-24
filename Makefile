@@ -1802,7 +1802,7 @@ endif
 
 
 .PHONY: prepare-deploy
-prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
+prepare-deploy: $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: deploy-debug
