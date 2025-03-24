@@ -57,6 +57,7 @@ spec:
       description: Includes a docker `config.json`
   tasks:
     - name: git-clone
+      displayName: "Clone GitHub Repo"
       taskRef:
         name: git-clone
       workspaces:
@@ -78,6 +79,7 @@ spec:
         - name: noProxy
           value: $(params.noProxy)
     - name: setup-env
+      displayName: "Setup"
       runAfter: ["git-clone"]
       taskRef:
         name: setup-env
@@ -88,6 +90,7 @@ spec:
         - name: builder-image-prefix
           value: $(params.builder-image-prefix)
     - name: check-builder-image
+      displayName: "Check Builder Image"
       runAfter: ["setup-env"]
       when:
         - input: "$(params.skip-builder-image)"
@@ -108,6 +111,7 @@ spec:
         - name: noProxy
           value: $(params.noProxy)
     - name: create-builder
+      displayName: "Create Builder Image"
       runAfter: ["check-builder-image"]
       when:
         - input: "$(params.skip-builder-image)"
@@ -122,12 +126,14 @@ spec:
         - name: source
           workspace: shared-data
         - name: dockerconfig
-          workspace: shared-data
+          workspace: dockerconfig
       params:
         - name: DOCKERFILE
           value: $(workspaces.source.path)/source/tekton/builder.Dockerfile
         - name: IMAGE
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: BUILD_EXTRA_ARGS
+          value: "--build-arg GoArch=$(tasks.setup-env.results.BUILD_ARCH) --build-arg GoVersion=$(tasks.setup-env.results.OPERATOR_GO_VERSION)"
         - name: httpProxy
           value: $(params.httpProxy)
         - name: httpsProxy
@@ -135,6 +141,7 @@ spec:
         - name: noProxy
           value: $(params.noProxy)
     - name: make
+      displayName: "Build Operator Runner"
       runAfter: ["create-builder"]
       taskRef:
         name: make
@@ -148,6 +155,8 @@ spec:
           value: "build-runner"
         - name: makefile-directory
           value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/caches/go-cache
         - name: env-configmap
           value: $(params.env-configmap)
         - name: env-secret

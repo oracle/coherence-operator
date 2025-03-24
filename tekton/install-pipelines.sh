@@ -5,7 +5,6 @@
 #
 
 #!/usr/bin/env sh
-set -e
 
 SCRIPT_PATH="${0}"
 SCRIPT_DIR=$(dirname -- "${SCRIPT_PATH}")
@@ -22,6 +21,8 @@ fi
 echo "Installing Tekton resources ${NS}"
 tkn task delete ${NS} --force git-clone || true
 tkn hub install task ${NS} git-clone
+tkn task delete ${NS} --force git-cli || true
+tkn hub install task ${NS} git-cli
 
 
 # Install Operator Tasks

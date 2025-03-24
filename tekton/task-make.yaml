@@ -13,6 +13,10 @@ spec:
       description: The workspace subdirectory containing the Makefile.
       type: string
       default: ""
+    - name: go-cache
+      description: The workspace subdirectory containing the Go cache.
+      type: string
+      default: ""
     - name: image
       description: The image to run.
       type: string
@@ -40,11 +44,17 @@ spec:
   workspaces:
     - name: source
       description: The workspace that contains the Makefile
+    - name: dockerconfig
+      description: >-
+        An optional workspace that allows providing a registry auth config.json file
+      optional: true
   steps:
     - name: make
       image: $(params.image)
       workingDir: $(workspaces.source.path)/$(params.makefile-directory)
       env:
+        - name: PARAM_GOCACHE
+          value: $(params.go-cache)
         - name: PARAM_HTTP_PROXY
           value: $(params.httpProxy)
         - name: PARAM_HTTPS_PROXY
@@ -60,7 +70,9 @@ spec:
             optional: true
       script: |
         set -e
+        test -z "${PARAM_GOCACHE}" || export GOCACHE="${PARAM_GOCACHE}"
         test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
         test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
         test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
+        git config --global --add safe.directory $(pwd)
         make $(params.target)

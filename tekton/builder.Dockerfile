@@ -1,7 +1,7 @@
 FROM container-registry.oracle.com/os/oraclelinux:9
 
-ARG GoVersion=1.24.1
-ARG GoArch=arm64
+ARG GoVersion
+ARG GoArch
 
 CMD ["/bin/bash"]
 
