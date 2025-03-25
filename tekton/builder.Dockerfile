@@ -1,4 +1,4 @@
-FROM container-registry.oracle.com/os/oraclelinux:9
+FROM container-registry.oracle.com/java/jdk:21-oraclelinux9
 
 ARG GoVersion
 ARG GoArch
