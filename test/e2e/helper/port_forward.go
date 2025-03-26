@@ -66,7 +66,7 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 	var hostname string
 	inK8s := IsTestRunningInK8s()
 	if inK8s {
-		hostname = fmt.Sprintf("%s.%s.pod.cluster.local", pod.Name, pod.Namespace)
+		hostname = pod.Status.PodIP
 	} else {
 		hostname = "127.0.0.1"
 	}
