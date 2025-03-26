@@ -197,8 +197,8 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 
 	defer pf.Close()
 
-	url := fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence/snapshots/snapshotOne",
-		ports[v1.PortNameManagement], canaryServiceName)
+	url := fmt.Sprintf("http://%s:%d/management/coherence/cluster/services/%s/persistence/snapshots/snapshotOne",
+		pf.Hostname, ports[v1.PortNameManagement], canaryServiceName)
 	httpMethod := "POST"
 	if actionType == Delete {
 		httpMethod = "DELETE"

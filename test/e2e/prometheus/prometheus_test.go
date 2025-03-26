@@ -217,7 +217,7 @@ func PrometheusAPIRequest(pod corev1.Pod, path string) (*PrometheusAPIResult, er
 		sep = "/"
 	}
 
-	url := fmt.Sprintf("http://127.0.0.1:%d%s%s", ports["web"], sep, path)
+	url := fmt.Sprintf("http://%s:%d%s%s", pf.Hostname, ports["web"], sep, path)
 	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()

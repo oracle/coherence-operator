@@ -199,7 +199,7 @@ spec:
         - name: noProxy
           value: $(params.noProxy)
     - name: e2e-test
-      runAfter: ["e2e-test"]
+      runAfter: ["e2e-local-test"]
       taskRef:
         name: make
       workspaces:

@@ -337,7 +337,7 @@ func ManagementOverRestRequest(c *cohv1.Coherence, path string) (map[string]inte
 		sep = "/"
 	}
 
-	url := fmt.Sprintf("http://127.0.0.1:%d%s%s", ports[cohv1.PortNameManagement], sep, path)
+	url := fmt.Sprintf("http://%s:%d%s%s", pf.Hostname, ports[cohv1.PortNameManagement], sep, path)
 	var resp *http.Response
 
 	// try a max of 5 times
