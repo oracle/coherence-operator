@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: buildah
+  name: coherence-buildah
   labels:
     app.kubernetes.io/version: "0.9"
   annotations:

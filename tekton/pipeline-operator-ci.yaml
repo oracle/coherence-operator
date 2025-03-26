@@ -9,6 +9,7 @@ spec:
     - name: repo-url
       type: string
       description: The git repo URL to clone from.
+      default: "git@github.com:thegridman/coherence-operator.git"
     - name: revision
       type: string
       description: The git revision to check out.
@@ -50,11 +51,11 @@ spec:
       default: ''
   workspaces:
     - name: shared-data
-      description: |
-        This workspace contains the cloned repo files, so they can be read by the
-        next task.
+      description: This workspace contains the cloned repo and other work files.
     - name: dockerconfig
       description: Includes a docker `config.json`
+    - name: git-credentials
+      description: GitHub ssh credentials (ssh private key named id_rsa)
   tasks:
     - name: git-clone
       displayName: "Clone GitHub Repo"
@@ -63,6 +64,8 @@ spec:
       workspaces:
         - name: output
           workspace: shared-data
+        - name: ssh-directory
+          workspace: git-credentials
       params:
         - name: url
           value: $(params.repo-url)
@@ -89,6 +92,8 @@ spec:
       params:
         - name: builder-image-prefix
           value: $(params.builder-image-prefix)
+        - name: source-directory
+          value: $(params.source-directory)
     - name: check-builder-image
       displayName: "Check Builder Image"
       runAfter: ["setup-env"]
@@ -121,7 +126,7 @@ spec:
           operator: in
           values: ["false"]
       taskRef:
-        name: buildah
+        name: coherence-buildah
       workspaces:
         - name: source
           workspace: shared-data
@@ -129,7 +134,7 @@ spec:
           workspace: dockerconfig
       params:
         - name: DOCKERFILE
-          value: $(workspaces.source.path)/source/tekton/builder.Dockerfile
+          value: $(workspaces.source.path)/$(params.source-directory)/tekton/builder.Dockerfile
         - name: IMAGE
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
         - name: BUILD_EXTRA_ARGS
@@ -156,7 +161,7 @@ spec:
         - name: makefile-directory
           value: $(params.source-directory)
         - name: go-cache
-          value: $(workspaces.source.path)/caches/go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
         - name: env-configmap
           value: $(params.env-configmap)
         - name: env-secret
@@ -185,7 +190,7 @@ spec:
         - name: makefile-directory
           value: $(params.source-directory)
         - name: go-cache
-          value: $(workspaces.source.path)/caches/go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
         - name: env-configmap
           value: $(params.env-configmap)
         - name: env-secret

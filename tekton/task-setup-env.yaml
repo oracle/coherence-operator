@@ -7,6 +7,10 @@ spec:
   params:
     - name: builder-image-prefix
       description: The builder image name without a tag.
+    - name: source-directory
+      type: string
+      description: Subdirectory inside the shared-data Workspace where the Git repo was cloned to.
+      default: ""
   workspaces:
     - name: shared-data
       description: |
@@ -25,6 +29,8 @@ spec:
       env:
         - name: PARAM_BUILDER_IMAGE_PREFIX
           value: $(params.builder-image-prefix)
+        - name: SOURCE_DIRECTORY
+          value: $(workspaces.shared-data.path)/$(params.source-directory)
       script: |
         set -e
         UNAME_M=$(uname -m)
@@ -37,9 +43,8 @@ spec:
         else
           BUILD_ARCH=amd64
         fi
-        SOURCE=$(workspaces.shared-data.path)/source
-        DOCKER_FILE_SHA1SUM=$(sha1sum "${SOURCE}/tekton/builder.Dockerfile")
-        OPERATOR_GO_VERSION=$(sed -n -e 's/^toolchain \(.*\)$/\1/p' ${SOURCE}/go.mod)
+        DOCKER_FILE_SHA1SUM=$(sha1sum "${SOURCE_DIRECTORY}/tekton/builder.Dockerfile")
+        OPERATOR_GO_VERSION=$(sed -n -e 's/^toolchain \(.*\)$/\1/p' ${SOURCE_DIRECTORY}/go.mod)
         readarray -d ' ' -t DOCKER_FILE_SHA <<< "${DOCKER_FILE_SHA1SUM}"
         LATEST_GO=$(curl -s 'https://go.dev/VERSION?m=text' | head -n 1)
         BUILDER_IMAGE_NAME="${PARAM_BUILDER_IMAGE_PREFIX}:${DOCKER_FILE_SHA}-${OPERATOR_GO_VERSION}-${BUILD_ARCH}"

@@ -5,7 +5,9 @@ ARG GoArch
 
 CMD ["/bin/bash"]
 
-RUN dnf install make which git -y
+RUN dnf install oracle-java-jdk-release-el* -y \
+    && dnf install jdk-21-headful -y \
+    && dnf install make which git -y
 
 RUN curl -Ls https://go.dev/dl/$GoVersion.linux-$GoArch.tar.gz -o go-linux.tar.gz \
     && rm -rf /usr/local/go \

@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: operator-ci-run-
+spec:
+  pipelineRef:
+    name: operator-ci
+  workspaces:
+    - name: shared-data
+      persistentVolumeClaim:
+        claimName: operator-ci-pvc
+    - name: dockerconfig
+      secret:
+        secretName: container-auth-json
+  params:
+    - name: repo-url
+      value: https://github.com/thegridman/coherence-operator.git
+    - name: revision
+      value: tekton
+    - name: builder-image-prefix
+      value: "iad.ocir.io/odx-stateservice/tekton/builder"
+    - name: env-configmap
+      value: os-cert-config
+    - name: httpProxy
+      value: "http://www-proxy-hqdc.us.oracle.com:80"
+    - name: httpsProxy
+      value: "http://www-proxy-hqdc.us.oracle.com:80"
+    - name: noProxy
+      value: "127.0.0.1,localhost,*.oracle.com,*.oracleads.com,*.us.oracle.com,*.uk.oracle.com,*.ca.oracle.com,*.oraclecorp.com,*.oracleportal.com"
