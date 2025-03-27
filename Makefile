@@ -1565,6 +1565,10 @@ run-certification: gotestsum
 .PHONY: cleanup-certification
 cleanup-certification: undeploy clean-namespace
 
+.PHONY: zip-test-output
+zip-test-output:
+	tar -C $(BUILD_OUTPUT) -czf $(BUILD)/build-output.tgz .
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Kubernetes network policy tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.

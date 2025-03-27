@@ -29,4 +29,12 @@ spec:
       value: "iad.ocir.io/odx-stateservice/tekton/builder"
     - name: env-configmap
       value: os-cert-config
+    - name: oci-tenancy-ocid
+      value: "ocid1.tenancy.oc1..aaaaaaaaztkccp2ubbxhhuftzvouv6t3b4sfencpgvsicrtmhwprk2mgahjq"
+    - name: oci-user-ocid
+      value: "ocid1.user.oc1..aaaaaaaa6vuuuw4vx3etfnugb6r34uyy2ovu2hbqivmazxylohc633pflkla"
+    - name: oci-region
+      value: "us-phoenix-1"
+    - name: oci-cli-secret
+      value: oci-cli-secret
 

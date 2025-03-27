@@ -30,6 +30,7 @@ ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-make.yaml
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-setup-env.yaml
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-buildah.yaml
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-check-image.yaml
+${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-oci-cli.yaml
 
 # Install Operator Pipelines
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/pipeline-operator-ci.yaml
