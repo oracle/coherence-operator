@@ -25,4 +25,4 @@ oci os preauth-request create -bn coherence-cert-tests \
 
 cat ${PA_JSON}
 PA_URI=$(cat ${PA_JSON} | jq -r '.data."access-uri"')
-echo -n "${PA_URI}" | tee ${TASK_RESULT_PATH}
+echo -n "https://objectstorage.${REGION}.oraclecloud.com/${PA_URI}" | tee ${TASK_RESULT_PATH}
