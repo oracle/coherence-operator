@@ -1301,7 +1301,7 @@ e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional te
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: reset-namespace create-ssl-secrets deploy-and-wait
+prepare-e2e-test: reset-namespace create-ssl-secrets ensure-pull-secret deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0

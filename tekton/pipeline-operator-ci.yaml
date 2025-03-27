@@ -169,6 +169,8 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
       params:
         - name: image
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
@@ -195,6 +197,8 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
       params:
         - name: image
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
@@ -221,6 +225,8 @@ spec:
       workspaces:
         - name: source
           workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
       params:
         - name: image
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
