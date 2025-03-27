@@ -6,8 +6,8 @@
 
 #!/usr/bin/env sh
 
-if [ -z ${PIPELINE_NAME} ]; then
-  PIPELINE_NAME=date +"%Y%m%d%H%M"
+if [ "${PIPELINE_NAME}" = "" ]; then
+  PIPELINE_NAME=$(date +"%Y%m%d%H%M")
 fi
 
 FILE_NAME=pipelinerun-${PIPELINE_NAME}.tgz
