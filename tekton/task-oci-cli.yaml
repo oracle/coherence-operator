@@ -62,7 +62,7 @@ spec:
         chmod 600 ${HOME}/.oci/config
 
         # Run the provided commands
-        TASK_RESULT_PATH="$(results.RESULT.path)"
+        echo "" > ${TASK_RESULT_PATH}
         for CMD in "$@"
         do
           eval $CMD
@@ -78,6 +78,10 @@ spec:
           value: "$(params.user-ocid)"
         - name: REGION
           value: "$(params.region)"
+        - name: PIPELINE_NAME
+          value: "$(context.pipelinerun.name)"
+        - name: TASK_RESULT_PATH
+          value: "$(results.RESULT.path)"
       volumeMounts:
         - name: oci-cli-secret
           mountPath: /secrets/oci

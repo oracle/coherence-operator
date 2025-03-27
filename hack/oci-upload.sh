@@ -20,9 +20,9 @@ oci os object put --bucket-name coherence-cert-tests --file ${FULL_PATH_NAME}
 oci os preauth-request create -bn coherence-cert-tests \
     --time-expires=${EXPIRY_DATE} \
     --access-type ObjectRead \
-    --name new-preauth-request \
+    --name pipelinerun-${PIPELINE_NAME} \
     -on ${FILE_NAME} > ${PA_JSON}
 
 cat ${PA_JSON}
 PA_URI=$(cat ${PA_JSON} | jq -r '.data."access-uri"')
-echo -n "https://objectstorage.${REGION}.oraclecloud.com/${PA_URI}" | tee ${TASK_RESULT_PATH}
+echo -n "https://objectstorage.${REGION}.oraclecloud.com${PA_URI}" | tee ${TASK_RESULT_PATH}
