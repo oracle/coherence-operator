@@ -456,6 +456,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(TEST_LOGS_DIR)
 	@mkdir -p $(TOOLS_BIN)
 	@mkdir -p $(TOOLS_MANIFESTS)
+	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -509,6 +510,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUI
 	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),amd64,$(OPERATOR_IMAGE))
 	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),arm64,$(OPERATOR_IMAGE))
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
+	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
 	touch $(BUILD_TARGETS)/build-operator
 
 define buildOperatorImage

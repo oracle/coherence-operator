@@ -25,10 +25,6 @@ spec:
       description: The workspace subdirectory that will be the working directory.
       type: string
       default: ""
-    - name: pipeline-run-name
-      description: The name of the pipeline run
-      type: string
-      default: ""
     - name: commands
       description: "The OCI CLI command to execute"
       type: array
@@ -82,8 +78,6 @@ spec:
           value: "$(params.user-ocid)"
         - name: REGION
           value: "$(params.region)"
-        - name: PIPELINE_NAME
-          value: "$(params.pipeline-run-name)"
         - name: TASK_RESULT_PATH
           value: "$(results.RESULT.path)"
       volumeMounts:

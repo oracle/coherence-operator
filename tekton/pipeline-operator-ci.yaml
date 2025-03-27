@@ -260,5 +260,4 @@ spec:
           value: $(params.source-directory)
         - name: commands
           value:
-            - "export PIPELINE_NAME=$(context.pipelinerun.name)"
             - "sh ./hack/oci-upload.sh"

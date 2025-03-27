@@ -6,21 +6,18 @@
 
 #!/usr/bin/env sh
 
-if [ "${PIPELINE_NAME}" = "" ]; then
-  PIPELINE_NAME=$(date +"%Y%m%d%H%M")
-fi
-
-FILE_NAME=pipelinerun-${PIPELINE_NAME}.tgz
+UPLOAD_TIMESTAMP=$(date +"%Y%m%d%H%M")
+FILE_NAME=pipelinerun-${UPLOAD_TIMESTAMP}.tgz
 FULL_PATH_NAME=${HOME}/${FILE_NAME}
 PA_JSON=${HOME}/pa.json
-EXPIRY_DATE=$(date -d '+10 days' --iso-8601=seconds)
+EXPIRY_DATE=$(date -d '+1 days' --iso-8601=seconds)
 
 tar -C build/_output -czf ${FULL_PATH_NAME} .
 oci os object put --bucket-name coherence-cert-tests --file ${FULL_PATH_NAME}
 oci os preauth-request create -bn coherence-cert-tests \
     --time-expires=${EXPIRY_DATE} \
     --access-type ObjectRead \
-    --name pipelinerun-${PIPELINE_NAME} \
+    --name pipelinerun-${UPLOAD_TIMESTAMP} \
     -on ${FILE_NAME} > ${PA_JSON}
 
 cat ${PA_JSON}
