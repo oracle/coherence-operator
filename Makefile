@@ -1759,7 +1759,8 @@ OPERATOR_HA ?= true
 # coherence-operator-pull-secret in the test namespace and the
 # the Kustomize deployment will be config/overlays/ci directory
 # to patch the ServiceAccount to use the secret
-DEPLOY_REGISTRY_CONFIG_DIR  ?=
+DOCKER_CONFIG               ?=
+DEPLOY_REGISTRY_CONFIG_DIR  ?= $(DOCKER_CONFIG)
 DEPLOY_REGISTRY_CONFIG_JSON ?=
 
 DEPLOY_REGISTRY_CONFIG_PATH :=
