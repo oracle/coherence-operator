@@ -188,58 +188,58 @@ spec:
           value: $(params.httpsProxy)
         - name: noProxy
           value: $(params.noProxy)
-#    - name: e2e-local-test
-#      runAfter: ["build-runner"]
-#      taskRef:
-#        name: make
-#      workspaces:
-#        - name: source
-#          workspace: shared-data
-#      params:
-#        - name: image
-#          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
-#        - name: target
-#          value: "e2e-local-test"
-#        - name: makefile-directory
-#          value: $(params.source-directory)
-#        - name: go-cache
-#          value: $(workspaces.source.path)/.caches/go-cache
-#        - name: env-configmap
-#          value: $(params.env-configmap)
-#        - name: env-secret
-#          value: $(params.env-secret)
-#        - name: httpProxy
-#          value: $(params.httpProxy)
-#        - name: httpsProxy
-#          value: $(params.httpsProxy)
-#        - name: noProxy
-#          value: $(params.noProxy)
-#    - name: e2e-test
-#      runAfter: ["e2e-local-test"]
-#      taskRef:
-#        name: make
-#      workspaces:
-#        - name: source
-#          workspace: shared-data
-#      params:
-#        - name: image
-#          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
-#        - name: target
-#          value: "e2e-test"
-#        - name: makefile-directory
-#          value: $(params.source-directory)
-#        - name: go-cache
-#          value: $(workspaces.source.path)/.caches/go-cache
-#        - name: env-configmap
-#          value: $(params.env-configmap)
-#        - name: env-secret
-#          value: $(params.env-secret)
-#        - name: httpProxy
-#          value: $(params.httpProxy)
-#        - name: httpsProxy
-#          value: $(params.httpsProxy)
-#        - name: noProxy
-#          value: $(params.noProxy)
+    - name: e2e-local-test
+      runAfter: ["build-runner"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: source
+          workspace: shared-data
+      params:
+        - name: image
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "e2e-local-test"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: e2e-test
+      runAfter: ["e2e-local-test"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: source
+          workspace: shared-data
+      params:
+        - name: image
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "e2e-test"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
   finally:
     - name: upload
       taskRef:
