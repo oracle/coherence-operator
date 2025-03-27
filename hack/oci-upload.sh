@@ -19,7 +19,7 @@ oci os object put --bucket-name coherence-cert-tests --file ${FILE_NAME}
 oci os preauth-request create -bn coherence-cert-tests \
     --time-expires=${EXPIRY_DATE} \
     --access-type ObjectRead \
-    --name new-preauth-request
+    --name new-preauth-request \
     -on ${FILE_NAME} > ${HOME}/pa.json
 
 cat ${HOME}/pa.json

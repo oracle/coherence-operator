@@ -64,7 +64,7 @@ spec:
   results:
     - name: upload-result
       description: The result of the upload task
-      value: $(tasks.upload.results.RESULT)
+      value: $(finally.upload.results.RESULT)
   workspaces:
     - name: shared-data
       description: This workspace contains the cloned repo and other work files.
