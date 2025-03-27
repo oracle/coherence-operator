@@ -1767,6 +1767,8 @@ DEPLOY_REGISTRY_CONFIG_PATH :=
 ifneq (,$(DEPLOY_REGISTRY_CONFIG_DIR))
 ifneq (,$(DEPLOY_REGISTRY_CONFIG_JSON))
 	DEPLOY_REGISTRY_CONFIG_PATH := $(DEPLOY_REGISTRY_CONFIG_DIR)/$(DEPLOY_REGISTRY_CONFIG_JSON)
+else
+	DEPLOY_REGISTRY_CONFIG_PATH := $(DEPLOY_REGISTRY_CONFIG_DIR)/config.json
 endif
 endif
 
@@ -1799,6 +1801,7 @@ endif
 
 .PHONY: ensure-pull-secret
 ensure-pull-secret:
+	@echo "In ensure-pull-secret DEPLOY_REGISTRY_CONFIG_PATH=${DEPLOY_REGISTRY_CONFIG_PATH}"
 ifneq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
