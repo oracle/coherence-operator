@@ -327,6 +327,7 @@
                         <siteOutputDirectory>${top.parent.basedir}/../build/_output/docs</siteOutputDirectory>
                         <siteArchiveExcludes>
                             <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
+                            <siteArchiveExclude>${top.parent.basedir}/../build/**</siteArchiveExclude>
                         </siteArchiveExcludes>
                     </configuration>
                     <dependencies>
