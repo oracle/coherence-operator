@@ -21,11 +21,23 @@ spec:
       description: "The OCID of the user"
     - name: region
       description: "The OCI region (e.g., us-ashburn-1)"
-    - name: command
+    - name: sub-directory
+      description: The workspace subdirectory that will be the working directory.
+      type: string
+      default: ""
+    - name: commands
       description: "The OCI CLI command to execute"
+      type: array
+  workspaces:
+    - name: source
+      description: The workspace that contains the shared data
+  results:
+    - name: RESULT
+      description: The result of the task
   steps:
     - name: oci-cli
       image: ghcr.io/oracle/oci-cli:sha-5846bb2
+      workingDir: $(workspaces.source.path)/$(params.sub-directory)
       script: |
         #!/bin/bash
         set -e
@@ -49,8 +61,16 @@ spec:
         EOF
         chmod 600 ${HOME}/.oci/config
 
-        # Run the provided OCI CLI command
-        eval $COMMAND
+        # Run the provided commands
+        TASK_RESULT_PATH="$(results.RESULT.path)"
+        for CMD in "$@"
+        do
+          eval $CMD
+        done
+        echo "Task results:"
+        cat "$(results.RESULT.path)"
+      args:
+        - $(params.commands[*])
       env:
         - name: TENANCY_OCID
           value: "$(params.tenancy-ocid)"
@@ -58,8 +78,6 @@ spec:
           value: "$(params.user-ocid)"
         - name: REGION
           value: "$(params.region)"
-        - name: COMMAND
-          value: "$(params.command)"
       volumeMounts:
         - name: oci-cli-secret
           mountPath: /secrets/oci

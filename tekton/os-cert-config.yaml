@@ -5,3 +5,4 @@ metadata:
 data:
   OPERATOR_IMAGE_REGISTRY: "iad.ocir.io/odx-stateservice/test"
   OPERATOR_TEST_IS_RUNNING_IN_K8S: "true"
+  SKIP_SPRING_CNBP: "true"

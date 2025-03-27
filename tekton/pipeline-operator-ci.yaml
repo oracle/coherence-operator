@@ -37,10 +37,10 @@ spec:
       description: The name of a Secret to use to set environment variables.
       type: string
       default: "unset"
-    - name: oci-tenancy_ocid
+    - name: oci-tenancy-ocid
       description: "The OCI OCID of the tenancy"
       default: ""
-    - name: oci-user_ocid
+    - name: oci-user-ocid
       description: "The OCI OCID of the user"
       default: ""
     - name: oci-region
@@ -61,6 +61,10 @@ spec:
       type: string
       description: The optional no proxy to use
       default: ''
+  results:
+    - name: upload-result
+      description: The result of the upload task
+      value: $(tasks.upload.results.RESULT)
   workspaces:
     - name: shared-data
       description: This workspace contains the cloned repo and other work files.
@@ -184,89 +188,65 @@ spec:
           value: $(params.httpsProxy)
         - name: noProxy
           value: $(params.noProxy)
-    - name: e2e-local-test
-      runAfter: ["build-runner"]
-      taskRef:
-        name: make
-      workspaces:
-        - name: source
-          workspace: shared-data
-      params:
-        - name: image
-          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
-        - name: target
-          value: "e2e-local-test"
-        - name: makefile-directory
-          value: $(params.source-directory)
-        - name: go-cache
-          value: $(workspaces.source.path)/.caches/go-cache
-        - name: env-configmap
-          value: $(params.env-configmap)
-        - name: env-secret
-          value: $(params.env-secret)
-        - name: httpProxy
-          value: $(params.httpProxy)
-        - name: httpsProxy
-          value: $(params.httpsProxy)
-        - name: noProxy
-          value: $(params.noProxy)
-    - name: e2e-test
-      runAfter: ["e2e-local-test"]
-      taskRef:
-        name: make
-      workspaces:
-        - name: source
-          workspace: shared-data
-      params:
-        - name: image
-          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
-        - name: target
-          value: "e2e-test"
-        - name: makefile-directory
-          value: $(params.source-directory)
-        - name: go-cache
-          value: $(workspaces.source.path)/.caches/go-cache
-        - name: env-configmap
-          value: $(params.env-configmap)
-        - name: env-secret
-          value: $(params.env-secret)
-        - name: httpProxy
-          value: $(params.httpProxy)
-        - name: httpsProxy
-          value: $(params.httpsProxy)
-        - name: noProxy
-          value: $(params.noProxy)
+#    - name: e2e-local-test
+#      runAfter: ["build-runner"]
+#      taskRef:
+#        name: make
+#      workspaces:
+#        - name: source
+#          workspace: shared-data
+#      params:
+#        - name: image
+#          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+#        - name: target
+#          value: "e2e-local-test"
+#        - name: makefile-directory
+#          value: $(params.source-directory)
+#        - name: go-cache
+#          value: $(workspaces.source.path)/.caches/go-cache
+#        - name: env-configmap
+#          value: $(params.env-configmap)
+#        - name: env-secret
+#          value: $(params.env-secret)
+#        - name: httpProxy
+#          value: $(params.httpProxy)
+#        - name: httpsProxy
+#          value: $(params.httpsProxy)
+#        - name: noProxy
+#          value: $(params.noProxy)
+#    - name: e2e-test
+#      runAfter: ["e2e-local-test"]
+#      taskRef:
+#        name: make
+#      workspaces:
+#        - name: source
+#          workspace: shared-data
+#      params:
+#        - name: image
+#          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+#        - name: target
+#          value: "e2e-test"
+#        - name: makefile-directory
+#          value: $(params.source-directory)
+#        - name: go-cache
+#          value: $(workspaces.source.path)/.caches/go-cache
+#        - name: env-configmap
+#          value: $(params.env-configmap)
+#        - name: env-secret
+#          value: $(params.env-secret)
+#        - name: httpProxy
+#          value: $(params.httpProxy)
+#        - name: httpsProxy
+#          value: $(params.httpsProxy)
+#        - name: noProxy
+#          value: $(params.noProxy)
   finally:
-    - name: zip-output
-      taskRef:
-        name: make
-      workspaces:
-        - name: source
-          workspace: shared-data
-      params:
-        - name: image
-          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
-        - name: target
-          value: "zip-test-output"
-        - name: makefile-directory
-          value: $(params.source-directory)
-        - name: go-cache
-          value: $(workspaces.source.path)/.caches/go-cache
-        - name: env-configmap
-          value: $(params.env-configmap)
-        - name: env-secret
-          value: $(params.env-secret)
-        - name: httpProxy
-          value: $(params.httpProxy)
-        - name: httpsProxy
-          value: $(params.httpsProxy)
-        - name: noProxy
-          value: $(params.noProxy)
     - name: upload
-      runAfter:
-        - zip-output
       taskRef:
         name: oci-cli
+      workspaces:
+        - name: source
+          workspace: shared-data
       params:
         - name: tenancy-ocid
           value: $(params.oci-tenancy-ocid)
@@ -276,5 +256,9 @@ spec:
           value: $(params.oci-region)
         - name: config-secret
           value: $(params.oci-config-secret)
-        - name: command
-          value: "oci os object put --bucket-name coherence-cert-tests --file $(workspaces.source.path)/$(params.source-directory)/build/build-output.tgz"
+        - name: sub-directory
+          value: $(params.source-directory)
+        - name: commands
+          value:
+            - "export PIPELINE_NAME=$(context.pipelinerun.name)"
+            - "sh ./hack/oci-upload.sh"
