@@ -75,6 +75,11 @@ func TestSnapshotWithActivePersistence(t *testing.T) {
 // Persistence will be active, a PVC will be created for the StatefulSet. Put data in a cache, take a snapshot,
 // delete the deployment, re-deploy the deployment, recover the snapshot, assert that the data is recovered.
 func TestSnapshotWithActivePersistenceWithSecurityContext(t *testing.T) {
+	if helper.IsTestRunningInOpenShift() {
+		// skip this test in OpenShift because all Pods run with a security context anyway
+		// and the context configured by this test is invalid in an OpenShift cluster
+		return
+	}
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	assertPersistence("persistence-active-snapshot-security.yaml", "snapshot-volume", true, true, true, t)

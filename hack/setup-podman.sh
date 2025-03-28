@@ -12,7 +12,7 @@
 # --------------------------------------------------------------------
 
 export DOCKER_CMD=podman
-export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export DOCKER_HOST=unix://${XDG_RUNTIME_DIR}/podman/podman.sock
 export JIB_EXECUTABLE=$(which podman)
 export MY_DOCKER_HOST=${DOCKER_HOST}
 export USE_PODMAN=true

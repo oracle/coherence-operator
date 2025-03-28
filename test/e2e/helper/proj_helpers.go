@@ -66,6 +66,8 @@ const (
 	VersionEnv = "VERSION"
 	// IsRunningInK8s is an environment variable to indicate that the tests are running inside the same Kubernetes cluster
 	IsRunningInK8s = "OPERATOR_TEST_IS_RUNNING_IN_K8S"
+	// IsRunningInOpenShift is an environment variable to indicate that the tests are running in an OpenShift cluster
+	IsRunningInOpenShift = "OPERATOR_TEST_IS_RUNNING_IN_OPENSHIFT"
 
 	defaultNamespace        = "operator-test"
 	defaultClusterNamespace = "coherence-test"
@@ -195,6 +197,12 @@ func GetTestCoherenceIsJava8() bool {
 // IsTestRunningInK8s returns true if the tests are running inside K8s.
 func IsTestRunningInK8s() bool {
 	s := os.Getenv(IsRunningInK8s)
+	return strings.ToLower(s) == "true"
+}
+
+// IsTestRunningInOpenShift return true if the tests are running in an OpenShift cluster
+func IsTestRunningInOpenShift() bool {
+	s := os.Getenv(IsRunningInOpenShift)
 	return strings.ToLower(s) == "true"
 }
 

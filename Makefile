@@ -2826,7 +2826,7 @@ delete-istio-config:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
 get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to the build/tools/istio-* directory
-	$(SCRIPTS_DIR)/olm/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
+	$(SCRIPTS_DIR)/istio/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
 	@echo "Istio installed at $(ISTIO_HOME)"
 
 
