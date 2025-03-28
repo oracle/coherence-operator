@@ -24,9 +24,12 @@ metadata:
     operators.openshift.io/infrastructure-features: '["disconnected"]'
     operators.operatorframework.io/builder: operator-sdk-v1.39.1
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
+    operatorframework.io/os.linux: supported
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.arm64: supported
     repository: https://github.com/oracle/coherence-operator
     support: Oracle Corporation
-  name: coherence-operator.v3.4.2
+  name: coherence-operator.v3.5.0
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:

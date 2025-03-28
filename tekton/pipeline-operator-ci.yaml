@@ -266,4 +266,4 @@ spec:
           value: $(params.source-directory)
         - name: commands
           value:
-            - "sh ./hack/oci-upload.sh"
+            - "sh ./hack/oci/oci-upload.sh"
