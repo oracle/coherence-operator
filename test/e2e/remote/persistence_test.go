@@ -235,8 +235,8 @@ func processSnapshotRequest(pod corev1.Pod, actionType snapshotActionType) error
 
 	// wait for idle
 	err = wait.PollUntilContextTimeout(context.Background(), helper.RetryInterval, helper.Timeout, true, func(context.Context) (done bool, err error) {
-		url = fmt.Sprintf("http://127.0.0.1:%d/management/coherence/cluster/services/%s/persistence?fields=operationStatus",
-			ports[v1.PortNameManagement], canaryServiceName)
+		url = fmt.Sprintf("http://%s:%d/management/coherence/cluster/services/%s/persistence?fields=operationStatus",
+			pf.Hostname, ports[v1.PortNameManagement], canaryServiceName)
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			fmt.Printf("Cannot create idle check request: %v\n", url)
