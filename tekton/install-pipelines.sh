@@ -35,3 +35,5 @@ ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-oci-cli.yaml
 # Install Operator Pipelines
 ${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/pipeline-operator-ci.yaml
 
+# Install Operator test configmap
+${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/os-cert-config.yaml
