@@ -7,7 +7,6 @@
 package runner
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
@@ -21,7 +20,6 @@ import (
 	"github.com/spf13/viper"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/version"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	rest2 "k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
@@ -29,7 +27,6 @@ import (
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -108,13 +105,6 @@ func execute() error {
 		return errors.Wrap(err, "unable to create client set")
 	}
 
-	// create the client here as we use it to install CRDs then inject it into the Manager
-	setupLog.Info("Creating Kubernetes client", "Host", cfg.Host)
-	cl, err := client.New(cfg, client.Options{Scheme: scheme})
-	if err != nil {
-		return errors.Wrap(err, "unable to create client")
-	}
-
 	dryRun := operator.IsDryRun()
 	secureMetrics := vpr.GetBool(operator.FlagSecureMetrics)
 
@@ -191,14 +181,6 @@ func execute() error {
 		return errors.Wrap(err, "unable to create controller manager")
 	}
 
-	v, err := operator.DetectKubernetesVersion(cs)
-	if err != nil {
-		return errors.Wrap(err, "unable to detect Kubernetes version")
-	}
-
-	ctx := context.TODO()
-	initialiseOperator(ctx, v, cl)
-
 	// Set up the Coherence reconciler
 	if err = (&controllers.CoherenceReconciler{
 		Client:    mgr.GetClient(),
@@ -210,7 +192,7 @@ func execute() error {
 	}
 
 	// Set up the CoherenceJob reconciler
-	if operator.ShouldInstallJobCRD() {
+	if operator.ShouldSupportCoherenceJob() {
 		if err = (&controllers.CoherenceJobReconciler{
 			Client:    mgr.GetClient(),
 			ClientSet: cs,
@@ -279,17 +261,4 @@ func execute() error {
 	}
 
 	return nil
-}
-
-func initialiseOperator(ctx context.Context, v *version.Version, cl client.Client) {
-	opLog := ctrl.Log.WithName("operator")
-
-	// Ensure that the CRDs exist
-	if operator.ShouldInstallCRDs() {
-		err := coh.EnsureCRDs(ctx, v, scheme, cl)
-		if err != nil {
-			opLog.Error(err, "")
-			os.Exit(1)
-		}
-	}
 }
