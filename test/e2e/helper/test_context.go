@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -215,11 +215,6 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		return TestContext{}, err
 	}
 
-	cl, err := client.New(k8sCfg, client.Options{Scheme: scheme.Scheme})
-	if err != nil {
-		return TestContext{}, err
-	}
-
 	options := ctrl.Options{
 		Scheme: scheme.Scheme,
 	}
@@ -256,22 +251,11 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		return TestContext{}, err
 	}
 
-	v, err := operator.DetectKubernetesVersion(cs)
-	if err != nil {
-		return TestContext{}, err
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var stop chan struct{}
 
 	if startController {
-		// Ensure CRDs exist
-		err = coh.EnsureCRDs(ctx, v, scheme.Scheme, cl)
-		if err != nil {
-			return TestContext{}, err
-		}
-
 		// Create the Coherence controller
 		err = (&controllers.CoherenceReconciler{
 			Client: k8sManager.GetClient(),

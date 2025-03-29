@@ -122,8 +122,8 @@ it is not recommended.
 * Only one version of a CRD can be installed - There is currently only a single version of the CRD, but different
 releases of the Operator may use slightly different specs of this CRD version, for example
 a new Operator release may introduce extra fields not in the previous releases.
-As the CRD version is fixed at `v1` there is no guarantee which CRD version has actually installed, which could lead to
-subtle issues.
+As the CRD version is fixed at `v1` there is no guarantee which CRD version has actually installed, which could
+lead to subtle issues.
 * The operator creates and installs defaulting and validating web-hooks. A web-hook is associated to a CRD resource so
 installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
 configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
@@ -168,7 +168,7 @@ downloading and editing the yaml file.
 
 In some restricted environments, a Kubernetes user might not have RBAC permissions to install CRDs.
 In this case the `coherence-operator.yaml` file will need to be edited to remove the two CRDs from the
-beginning of the file. The CRDs *_must be manually installed before the Operator is installed_*, as described
+beginning of the file. The CRDs *_must be installed before the Operator is installed_*, as described
 below in <<manual-crd,Manually Install the CRDs>>.
 
 [NOTE]
@@ -214,9 +214,9 @@ The Operator installed with this yaml
 
 [NOTE]
 ====
-As of v3.5.0 of the Operator the `coherence-operator-restricted.yaml` also installs the two CRDs that the Operator uses.
-In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
-when installing with the manifest yaml.
+As of v3.4.3 of the Operator the `coherence-operator-restricted.yaml` also installs the two CRDs that the
+Operator uses.
+In previous releases the Operator would install the CRDs when it started but this behaviour has been removed.
 ====
 
 The following command will install the Operator. This assumes that the Kubernetes account being used to perform
@@ -231,15 +231,12 @@ kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/
 ====
 In some restricted environments, a Kubernetes user might not have RBAC permissions to install CRDs.
 In this case the `coherence-operator.yaml` file will need to be edited to remove the two CRDs from the
-beginning of the file. The CRDs *_must be manually installed before the Operator is installed_*, as described
+beginning of the file. The CRDs *_must be installed before the Operator is installed_*, as described
 below in <<manual-crd,Manually Install the CRDs>>.
 ====
 
 [#manual-crd]
 === Manually Install the CRDs
-
-Although by default the Operator will install its CRDs, they can be manually installed into Kubernetes.
-This may be required where the Operator is running with restricted permissions as described above.
 
 The Operator release artifacts include small versions of the two CRDs which can be installed with the following commands:
 
@@ -727,12 +724,12 @@ deploymentAnnotations:
 [#helm-job]
 === CoherenceJob CRD Support
 
-By default, the Operator will install both CRDs, `Coherence` and `CoherenceJob`.
-If support for `CoherenceJob` is not required then it can be excluded from being installed setting the
-Operator command line parameter `--install-job-crd` to `false`.
+By default, the Operator install manifests contains both CRDs, `Coherence` and `CoherenceJob`.
+If support for `CoherenceJob` is not required then it can be excluded from being ued by setting the
+Operator command line parameter `--enabled-jobs` to `false`.
 
-When installing with Helm, the `allowCoherenceJobs` value can be set to `false` to disable support for `CoherenceJob`
-resources (the default value is `true`).
+When installing with Helm, the `allowCoherenceJobs` value can be set to `false` to disable support
+for `CoherenceJob` resources (the default value is `true`).
 
 [source,bash]
 ----
@@ -764,9 +761,8 @@ see the documentation here: https://kubernetes.io/docs/tasks/manage-kubernetes-o
 
 [NOTE]
 ====
-As of v3.5.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
-In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
-when installing with the manifest yaml.
+As of v3.4.3 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+In previous releases the Operator would install the CRDs when it started but this behaviour has been removed.
 ====
 
 Download the
