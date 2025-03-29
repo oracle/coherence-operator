@@ -1,4 +1,4 @@
 - op: add
   path: /spec/template/spec/containers/0/args/-
   value:
-    - --install-job-crd=false
+    - --enabled-jobs=false

@@ -60,7 +60,8 @@ There are a number of examples of using the Coherence Operator and different Coh
 .Non-Operator Guides & Examples
 [icon=fa-ban,link=examples/no-operator/000_overview.adoc]
 --
-Examples for those in the unlucky situation of not being able to install Operators, CRDs, RBAC cluster roles etc, and therfore need to manage Coherence clusters manually.
+Examples for those in the unlucky situation of not being able to install Operators, CRDs, RBAC cluster roles etc, and
+therefore need to manage Coherence clusters manually.
 --
 ====
 
