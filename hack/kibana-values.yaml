@@ -1,7 +1,0 @@
-secretMounts:
-  - name: coherence-kibana-dashboard
-    secretName: coherence-kibana-dashboard
-    path: /usr/share/kibana/data/coherence/dashboards
-  - name: coherence-kibana-import
-    secretName: coherence-kibana-import
-    path: /usr/share/kibana/data/coherence/scripts

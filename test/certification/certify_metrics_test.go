@@ -67,7 +67,7 @@ func TestCertifyMetricsDefaultPort(t *testing.T) {
 		fmt.Println(key, value)
 	}
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[v1.PortNameMetrics])
+	url := fmt.Sprintf("%s://%s:%d/metrics", "http", pf.Hostname, ports[v1.PortNameMetrics])
 
 	var resp *http.Response
 	client := &http.Client{}
@@ -138,7 +138,7 @@ func TestCertifyMetricsNonStandardPort(t *testing.T) {
 	for key, value := range ports {
 		fmt.Println(key, value)
 	}
-	url := fmt.Sprintf("%s://127.0.0.1:%d/metrics", "http", ports[v1.PortNameMetrics])
+	url := fmt.Sprintf("%s://%s:%d/metrics", "http", pf.Hostname, ports[v1.PortNameMetrics])
 
 	var resp *http.Response
 	client := &http.Client{}

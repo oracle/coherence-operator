@@ -46,6 +46,8 @@ type PortForwarder struct {
 	Ports []string
 	// A flag indicating whether this PortForwarder is running
 	Running bool
+	// HostName is the host name to use to connect to the Pod
+	Hostname string
 
 	stopChan   chan struct{}
 	forwarder  *portforward.PortForwarder
@@ -61,6 +63,14 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 	podPorts := make(map[string]int32)
 	available := GetAvailablePorts()
 
+	var hostname string
+	inK8s := IsTestRunningInK8s()
+	if inK8s {
+		hostname = pod.Status.PodIP
+	} else {
+		hostname = "127.0.0.1"
+	}
+
 	for _, c := range pod.Spec.Containers {
 		for _, p := range c.Ports {
 			name := p.Name
@@ -70,11 +80,15 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 					name = strconv.Itoa(int(p.ContainerPort))
 				}
 				podPorts[name] = port
-				local, err := available.Next()
-				if err != nil {
-					return nil, nil, err
+				if inK8s {
+					localPorts[name] = port
+				} else {
+					local, err := available.Next()
+					if err != nil {
+						return nil, nil, err
+					}
+					localPorts[name] = local
 				}
-				localPorts[name] = local
 			}
 		}
 	}
@@ -87,7 +101,7 @@ func PortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32, err
 		i++
 	}
 
-	return &PortForwarder{Namespace: pod.Namespace, PodName: pod.Name, Ports: ports}, localPorts, nil
+	return &PortForwarder{Namespace: pod.Namespace, PodName: pod.Name, Hostname: hostname, Ports: ports}, localPorts, nil
 }
 
 // StartPortForwarderForPodWithBackoff forwards all ports in a Pod to local ports.
@@ -116,7 +130,9 @@ func StartPortForwarderForPod(pod *corev1.Pod) (*PortForwarder, map[string]int32
 		return pf, m, err
 	}
 
-	err = pf.Start()
+	if !IsTestRunningInK8s() {
+		err = pf.Start()
+	}
 	return pf, m, err
 }
 

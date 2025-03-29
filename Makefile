@@ -48,6 +48,7 @@ OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(V
 OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
 OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
 OPERATOR_BASE_IMAGE     ?= scratch
+OLM_IMAGE_REGISTRY      ?= $(OPERATOR_IMAGE_REGISTRY)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
@@ -180,7 +181,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMAGE := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
+BUNDLE_IMAGE := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release build options
@@ -397,12 +398,12 @@ ISTIO_VERSION    ?=
 ISTIO_PROFILE    ?= demo
 ISTIO_USE_CONFIG ?= false
 ifeq (,$(ISTIO_VERSION))
-	ISTIO_VERSION_USE := $(shell $(SCRIPTS_DIR)/find-istio-version.sh "$(TOOLS_DIRECTORY)/istio-latest.txt")
+	ISTIO_VERSION_USE := $(shell $(SCRIPTS_DIR)/istio/find-istio-version.sh "$(TOOLS_DIRECTORY)/istio-latest.txt")
 	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION_USE))
 	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION_USE)
 else
 ifeq (latest,$(ISTIO_VERSION))
-	ISTIO_VERSION_USE := $(shell $(SCRIPTS_DIR)/find-istio-version.sh "$(TOOLS_DIRECTORY)/istio-latest.txt")
+	ISTIO_VERSION_USE := $(shell $(SCRIPTS_DIR)/istio/find-istio-version.sh "$(TOOLS_DIRECTORY)/istio-latest.txt")
 	ISTIO_REVISION    := $(subst .,-,$(ISTIO_VERSION_USE))
 	ISTIO_HOME        := $(TOOLS_DIRECTORY)/istio-$(ISTIO_VERSION_USE)
 else
@@ -456,6 +457,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(TEST_LOGS_DIR)
 	@mkdir -p $(TOOLS_BIN)
 	@mkdir -p $(TOOLS_MANIFESTS)
+	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -509,6 +511,7 @@ $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUI
 	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),amd64,$(OPERATOR_IMAGE))
 	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),arm64,$(OPERATOR_IMAGE))
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
+	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
 	touch $(BUILD_TARGETS)/build-operator
 
 define buildOperatorImage
@@ -579,22 +582,19 @@ build-test-images: $(BUILD_TARGETS)/java build-client-image build-basic-test-ima
 .PHONY: build-helidon-test-images
 build-helidon-test-images: $(BUILD_TARGETS)/java ## Build the Helidon test images
 #   Helidon 4
-	./mvnw -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-helidon package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON) \
-		$(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON)
 #   Helidon 3
-	./mvnw -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-helidon-3 package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
 		-Dcoherence.ce.version=$(COHERENCE_CE_LATEST) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3) \
-		$(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_3)
 #   Helidon 2
-	./mvnw -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-helidon-2 package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2) \
-		$(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_HELIDON_2)
 
 .PHONY: build-spring-test-images
 build-spring-test-images: $(BUILD_TARGETS)/java build-spring-jib-images build-spring-fat-images build-spring-cnbp-images ## Build the Spring test images
@@ -619,21 +619,23 @@ build-spring-fat-images: $(BUILD_TARGETS)/java ## Build the Spring Fat Jar test 
 .PHONY: build-spring-jib-images
 build-spring-jib-images: $(BUILD_TARGETS)/java ## Build the Spring JIB test images
 #   Spring Boot 3.x JIB
-	./mvnw -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING) $(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING)
 #   Spring Boot 2.x JIB
-	./mvnw -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring-2 package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2) $(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_SPRING_2)
 
 .PHONY: build-spring-cnbp-images
 build-spring-cnbp-images: $(BUILD_TARGETS)/java ## Build the Spring CNBP test images
 ifneq (true,$(SKIP_SPRING_CNBP))
 #   Spring Boot 3.x CNBP
-	./mvnw -B -f java/operator-test-spring package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package \
+		spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 #   Spring Boot 2.x CNBP
-	./mvnw -B -f java/operator-test-spring-2 package spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring-2 package spring-boot:build-image \
+		-DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -641,15 +643,15 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-basic-test-image
 build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test image
-	./mvnw -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE) $(MAVEN_BUILD_OPTS) -Dcoherence.version=$(COHERENCE_IMAGE_TAG)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
-	./mvnw -B -f java/operator-test-client package jib:dockerBuild -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-client package jib:dockerBuild -DskipTests \
 		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT) $(MAVEN_BUILD_OPTS)
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE_CLIENT)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build all of the Docker images
@@ -716,7 +718,7 @@ endif
 build-mvn: $(BUILD_TARGETS)/java ## Build the Java artefacts
 
 $(BUILD_TARGETS)/java: $(JAVA_FILES)
-	./mvnw -B -f java clean install -DskipTests $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java clean install -DskipTests
 	touch $(BUILD_TARGETS)/java
 
 
@@ -833,7 +835,7 @@ $(BUILD_OUTPUT)/certs:
 code-review: export MAVEN_USER := $(MAVEN_USER)
 code-review: export MAVEN_PASSWORD := $(MAVEN_PASSWORD)
 code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review and Checkstyle test
-	./mvnw -B -f java validate -DskipTests -P checkstyle $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java validate -DskipTests -P checkstyle
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes golangci-lint to perform various code review checks on the source.
@@ -851,8 +853,8 @@ golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: copyright
 copyright:  ## Check copyright headers
-	@java -cp hack/glassfish-copyright-maven-plugin-2.1.jar \
-	  org.glassfish.copyright.Copyright -C hack/copyright.txt \
+	@java -cp hack/codestyle/glassfish-copyright-maven-plugin-2.1.jar \
+	  org.glassfish.copyright.Copyright -C hack/codestyle/copyright.txt \
 	  -X .adoc \
 	  -X artifacts/ \
 	  -X bin/ \
@@ -865,9 +867,9 @@ copyright:  ## Check copyright headers
 	  -X examples/.mvn/ \
 	  -X examples/helm/chart/templates/NOTES.txt \
 	  -X .factories \
-	  -X hack/copyright.txt \
-	  -X hack/install-cli.sh \
-	  -X hack/intellij-codestyle.xml \
+	  -X hack/codestyle/copyright.txt \
+	  -X hack/codestyle/intellij-codestyle.xml \
+	  -X hack/install-cohctl.sh \
 	  -X hack/istio- \
 	  -X hack/sdk/ \
 	  -X go.mod \
@@ -1028,7 +1030,7 @@ $(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 	}
 
 # The image tag given to the resulting catalog image
-CATALOG_IMAGE_NAME := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog
+CATALOG_IMAGE_NAME := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog
 CATALOG_IMAGE      := $(CATALOG_IMAGE_NAME):latest
 
 # Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
@@ -1040,10 +1042,9 @@ catalog-build: opm ## Build a catalog image (the bundle image must have been pus
 	mkdir -p catalog
 	rm catalog.Dockerfile || true
 	$(OPM) generate dockerfile catalog
-	$(OPM) init coherence-operator --default-channel=stable --description=./README.md --icon=./hack/logo.svg --output yaml > catalog/operator.yaml
-	$(OPM) render $(BUNDLE_IMAGE) --output=yaml >> catalog/operator.yaml
-	cat ./hack/catalog-template.yaml >> catalog/operator.yaml
-	@echo $(VERSION) >> catalog/operator.yaml
+	cp $(SCRIPTS_DIR)/olm/olm-catalog-template.yaml $(BUILD_OUTPUT)/olm-catalog-template.yaml
+	printf "    - Image: $(BUNDLE_IMAGE)" >> $(BUILD_OUTPUT)/olm-catalog-template.yaml
+	$(OPM) alpha render-template semver -o yaml < $(BUILD_OUTPUT)/olm-catalog-template.yaml > catalog/operator.yaml
 	$(OPM) validate catalog
 	$(DOCKER_CMD) build --load -f catalog.Dockerfile -t $(CATALOG_IMAGE) .
 
@@ -1065,27 +1066,48 @@ uninstall-olm: ensure-sdk ## Uninstall the Operator Lifecycle Manage from the K8
 	$(OPERATOR_SDK) olm uninstall || true
 
 # Catalog image must be pushed first
+CATALOG_SOURCE_NAMESPACE ?= olm
 .PHONY: olm-deploy-catalog
 olm-deploy-catalog: ## Deploy the Operator Catalog into OLM
 	mkdir -p $(BUILD_OUTPUT)/catalog || true
-	cp $(SCRIPTS_DIR)/operator-catalog-source.yaml $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	cp $(SCRIPTS_DIR)/olm/operator-catalog-source.yaml $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	$(SED) -e 's^NAMESPACE_PLACEHOLDER^$(CATALOG_SOURCE_NAMESPACE)^g' $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
 	$(SED) -e 's^IMAGE_NAME_PLACEHOLDER^$(CATALOG_IMAGE)^g' $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+ifneq ($(GITHUB_REGISTRY),$(OLM_IMAGE_REGISTRY))
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) delete secret coherence-operator-pull-secret || true
+ifneq (,$(DEPLOY_REGISTRY_CONFIG_PATH))
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) create secret generic coherence-operator-pull-secret \
+		--from-file=.dockerconfigjson=$(DEPLOY_REGISTRY_CONFIG_PATH) \
+		--type=kubernetes.io/dockerconfigjson
+else
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) create secret generic coherence-operator-pull-secret \
+		--from-file=.dockerconfigjson=$(HOME)/.config/containers/auth.json \
+		--type=kubernetes.io/dockerconfigjson
+endif
+	printf "\n  secrets:" >> $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+	printf "\n    - coherence-operator-pull-secret" >> $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
+endif
 	$(KUBECTL_CMD) apply -f $(BUILD_OUTPUT)/catalog/operator-catalog-source.yaml
-	$(KUBECTL_CMD) -n olm get catalogsource
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) get catalogsource
+
+.PHONY: olm-undeploy-catalog
+olm-undeploy-catalog: ## Undeploy the Operator Catalog from OLM
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) delete catalogsource coherence-operator-catalog
+
 
 .PHONY: wait-for-olm-deploy
-wait-for-olm-deploy: export POD=$(shell $(KUBECTL_CMD) -n olm get pod -l olm.catalogSource=coherence-operator-catalog -o name)
+wait-for-olm-deploy: export POD=$(shell $(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) get pod -l olm.catalogSource=coherence-operator-catalog -o name)
 wait-for-olm-deploy: ## Wait for the Operator Catalog to be deployed into OLM
 	echo "Operator Catalog Source Pods:"
-	$(KUBECTL_CMD) -n olm get pod -l olm.catalogSource=coherence-operator-catalog
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) get pod -l olm.catalogSource=coherence-operator-catalog
 	echo "Waiting for Operator Catalog Source to be ready. Pod: $(POD)"
-	$(KUBECTL_CMD) -n olm wait --for condition=ready --timeout 480s $(POD)
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
 
 .PHONY: olm-deploy
 olm-deploy: ## Deploy the Operator into the coherence namespace using OLM
 	$(KUBECTL_CMD) create ns coherence || true
-	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/operator-group.yaml
-	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/operator-subscription.yaml
+	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/olm/operator-group.yaml
+	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/olm/operator-subscription.yaml
 	sleep 10
 	$(KUBECTL_CMD) -n coherence get ip
 	$(KUBECTL_CMD) -n coherence get csv
@@ -1173,8 +1195,8 @@ preflight-oc-cleanup: $(BUILD_PREFLIGHT)/preflight.yaml ## Clean up the OpenShif
 PREFLIGHT_REGISTRY_CRED ?=
 
 # Generate the preflight job yaml
-$(BUILD_PREFLIGHT)/preflight.yaml: hack/preflight.yaml
-	cp hack/preflight.yaml $(BUILD_PREFLIGHT)/preflight.yaml
+$(BUILD_PREFLIGHT)/preflight.yaml: $(SCRIPTS_DIR)/openshift/preflight.yaml
+	cp $(SCRIPTS_DIR)/openshif/preflight.yaml $(BUILD_PREFLIGHT)/preflight.yaml
 	$(SED) -e 's^image-placeholder^$(OPERATOR_IMAGE)^g' $(BUILD_PREFLIGHT)/preflight.yaml
 	$(SED) -e 's/registry-credential-placeholder/$(PREFLIGHT_REGISTRY_CRED)/g' $(BUILD_PREFLIGHT)/preflight.yaml
 
@@ -1213,7 +1235,7 @@ test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/genera
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-mvn
 test-mvn: $(BUILD_OUTPUT)/certs $(BUILD_TARGETS)/java  ## Run the Java artefact tests
-	./mvnw -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java verify -Dtest.certs.location=$(BUILD_OUTPUT)/certs
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1300,7 +1322,7 @@ e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional te
 	; exit $$rc
 
 .PHONY: prepare-e2e-test
-prepare-e2e-test: reset-namespace create-ssl-secrets deploy-and-wait
+prepare-e2e-test: reset-namespace create-ssl-secrets ensure-pull-secret deploy-and-wait
 
 .PHONY: run-e2e-test
 run-e2e-test: export CGO_ENABLED = 0
@@ -1566,6 +1588,10 @@ run-certification: gotestsum
 .PHONY: cleanup-certification
 cleanup-certification: undeploy clean-namespace
 
+.PHONY: zip-test-output
+zip-test-output:
+	tar -C $(BUILD_OUTPUT) -czf $(BUILD)/build-output.tgz .
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Kubernetes network policy tests.
 # These tests will use whichever k8s cluster the local environment is pointing to.
@@ -1754,13 +1780,16 @@ OPERATOR_HA ?= true
 # coherence-operator-pull-secret in the test namespace and the
 # the Kustomize deployment will be config/overlays/ci directory
 # to patch the ServiceAccount to use the secret
-DEPLOY_REGISTRY_CONFIG_DIR  ?=
+DOCKER_CONFIG               ?=
+DEPLOY_REGISTRY_CONFIG_DIR  ?= $(DOCKER_CONFIG)
 DEPLOY_REGISTRY_CONFIG_JSON ?=
 
 DEPLOY_REGISTRY_CONFIG_PATH :=
 ifneq (,$(DEPLOY_REGISTRY_CONFIG_DIR))
 ifneq (,$(DEPLOY_REGISTRY_CONFIG_JSON))
 	DEPLOY_REGISTRY_CONFIG_PATH := $(DEPLOY_REGISTRY_CONFIG_DIR)/$(DEPLOY_REGISTRY_CONFIG_JSON)
+else
+	DEPLOY_REGISTRY_CONFIG_PATH := $(DEPLOY_REGISTRY_CONFIG_DIR)/config.json
 endif
 endif
 
@@ -1793,6 +1822,7 @@ endif
 
 .PHONY: ensure-pull-secret
 ensure-pull-secret:
+	@echo "In ensure-pull-secret DEPLOY_REGISTRY_CONFIG_PATH=${DEPLOY_REGISTRY_CONFIG_PATH}"
 ifneq ("$(DEPLOY_REGISTRY_CONFIG_PATH)","")
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-operator-pull-secret \
@@ -1803,7 +1833,7 @@ endif
 
 
 .PHONY: prepare-deploy
-prepare-deploy: $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/build-operator $(TOOLS_BIN)/kustomize
+prepare-deploy: $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 
 .PHONY: deploy-debug
@@ -2056,27 +2086,28 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 KIND_CLUSTER   ?= operator
 KIND_IMAGE     ?= "kindest/node:v1.32.0@sha256:c48c62eac5da28cdadcf560d1d8616cfa6783b58f0d94cf63ad1bf49600cb027"
 CALICO_TIMEOUT ?= 300s
+KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind:   ## Run a default KinD cluster
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config.yaml --image $(KIND_IMAGE)
-	$(SCRIPTS_DIR)/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config.yaml --image $(KIND_IMAGE)
+	$(KIND_SCRIPTS)/kind-label-node.sh
 
 .PHONY: kind-dual
 kind-dual:   ## Run a KinD cluster configured for a dual stack IPv4 and IPv6 network
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-dual.yaml --image $(KIND_IMAGE)
-	$(SCRIPTS_DIR)/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config-dual.yaml --image $(KIND_IMAGE)
+	$(KIND_SCRIPTS)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-single-worker
 kind-single-worker:   ## Run a KinD cluster with a single worker node
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(SCRIPTS_DIR)/kind-config-single.yaml --image $(KIND_IMAGE)
-	$(SCRIPTS_DIR)/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config-single.yaml --image $(KIND_IMAGE)
+	$(KIND_SCRIPTS)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster with Calico
@@ -2084,10 +2115,10 @@ kind-single-worker:   ## Run a KinD cluster with a single worker node
 CALICO_VERSION ?= v3.25.0
 
 .PHONY: kind-calico
-kind-calico: export KIND_CONFIG=$(SCRIPTS_DIR)/kind-config-calico.yaml
+kind-calico: export KIND_CONFIG=$(KIND_SCRIPTS)/kind-config-calico.yaml
 kind-calico:   ## Run a KinD cluster with Calico
-	kind create cluster --name $(KIND_CLUSTER) --config $(SCRIPTS_DIR)/kind-config-calico.yaml --image $(KIND_IMAGE)
-	$(SCRIPTS_DIR)/kind-label-node.sh
+	kind create cluster --name $(KIND_CLUSTER) --config $(KIND_SCRIPTS)/kind-config-calico.yaml --image $(KIND_IMAGE)
+	$(KIND_SCRIPTS)/kind-label-node.sh
 	$(KUBECTL_CMD) apply -f https://raw.githubusercontent.com/projectcalico/calico/$(CALICO_VERSION)/manifests/calico.yaml
 	$(KUBECTL_CMD) -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 	sleep 30
@@ -2156,7 +2187,7 @@ k3d-create: $(TOOLS_BIN)/k3d ## Create the k3d cluster
 		--registry-use $(K3D_INTERNAL_REGISTRY) --no-lb \
 		--runtime-ulimit "nofile=64000:64000" --runtime-ulimit "nproc=64000:64000" \
 		--api-port 127.0.0.1:6550
-	$(SCRIPTS_DIR)/k3d-label-node.sh
+	$(SCRIPTS_DIR)/k3d/k3d-label-node.sh
 
 .PHONY: k3d-stop
 k3d-stop: $(TOOLS_BIN)/k3d  ## Stop a default k3d cluster
@@ -2257,7 +2288,11 @@ else
 	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_arm64 -o $(TOOLS_BIN)/yq
 endif
 else
+ifeq (x86_64, $(UNAME_M))
 	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -o $(TOOLS_BIN)/yq
+else
+	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_arm64 -o $(TOOLS_BIN)/yq
+endif
 endif
 	chmod +x $(TOOLS_BIN)/yq
 
@@ -2299,7 +2334,7 @@ uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
 TANZU = $(shell which tanzu)
 .PHONY: get-tanzu
 get-tanzu: $(BUILD_PROPS)
-	$(SCRIPTS_DIR)/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
+	$(SCRIPTS_DIR)/tanzu/get-tanzu.sh "$(TANZU_VERSION)" "$(TOOLS_DIRECTORY)"
 
 .PHONY: tanzu-create-cluster
 tanzu-create-cluster: ## Create a local Tanzu unmanaged cluster named "$(KIND_CLUSTER)" (default "operator")
@@ -2452,14 +2487,14 @@ $(BUILD_BIN_AMD64)/cohctl: export COHCTL_HOME=$(BUILD_BIN_AMD64)
 $(BUILD_BIN_AMD64)/cohctl: export OS=Linux
 $(BUILD_BIN_AMD64)/cohctl: export ARCH=x86_64
 $(BUILD_BIN_AMD64)/cohctl:
-	./hack/install-cli.sh
+	$(SCRIPTS_DIR)/install-cohctl.sh
 	chmod +x $(BUILD_BIN_AMD64)/cohctl
 
 $(BUILD_BIN_ARM64)/cohctl: export COHCTL_HOME=$(BUILD_BIN_ARM64)
 $(BUILD_BIN_ARM64)/cohctl: export OS=Linux
 $(BUILD_BIN_ARM64)/cohctl: export ARCH=arm64
 $(BUILD_BIN_ARM64)/cohctl:
-	./hack/install-cli.sh
+	$(SCRIPTS_DIR)/install-cohctl.sh
 	chmod +x $(BUILD_BIN_ARM64)/cohctl
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2501,16 +2536,15 @@ gotestsum: ## Download gotestsum locally if necessary.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-examples
 build-examples:
-	./mvnw -B -f ./examples package jib:dockerBuild -DskipTests \
-		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
- 		$(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f ./examples package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the examples
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-examples
 test-examples: build-examples
-	./mvnw -B -f ./examples verify $(MAVEN_BUILD_OPTS)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f ./examples verify
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Docker image
@@ -2530,7 +2564,7 @@ ifneq ("$(OPERATOR_RELEASE_REGISTRY)","$(OPERATOR_IMAGE_REGISTRY)")
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_ARM) $(OPERATOR_RELEASE_ARM)
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_AMD) $(OPERATOR_RELEASE_AMD)
 endif
-	chmod +x $(CURRDIR)/hack/run-buildah.sh
+	chmod +x $(SCRIPTS_DIR)/buildah/run-buildah.sh
 	export OPERATOR_IMAGE=$(OPERATOR_RELEASE_IMAGE) \
 	&& export OPERATOR_IMAGE_AMD=$(OPERATOR_RELEASE_AMD) \
 	&& export OPERATOR_IMAGE_ARM=$(OPERATOR_RELEASE_ARM) \
@@ -2539,7 +2573,7 @@ endif
 	&& export REVISION=$(GITCOMMIT) \
 	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
 	&& export DOCKER_CMD=$(DOCKER_CMD) \
-	&& $(CURRDIR)/hack/run-buildah.sh PUSH
+	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh PUSH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2596,14 +2630,14 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-compatibility-image
 build-compatibility-image: $(BUILD_TARGETS)/java
-	./mvnw -B -f java/operator-compatibility package -DskipTests \
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-compatibility package -DskipTests \
 		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
-	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
-	./mvnw -B -f java/operator-compatibility exec:exec \
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-compatibility exec:exec \
 		-Ddocker.command=$(DOCKER_CMD) \
 	    -Dcoherence.compatibility.image.name=$(TEST_COMPATIBILITY_IMAGE) \
-	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE) $(MAVEN_BUILD_OPTS)
+	    -Dcoherence.compatibility.coherence.image=$(COHERENCE_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator JIB Test Docker images
@@ -2671,7 +2705,7 @@ install-prometheus: get-prometheus ## Install Prometheus and Grafana
 #   We create additional custom RBAC rules because the defaults do not work
 #   in an RBAC enabled cluster such as KinD
 #   See: https://prometheus-operator.dev/docs/operator/rbac/
-	$(KUBECTL_CMD) create -f hack/prometheus-rbac.yaml
+	$(KUBECTL_CMD) create -f $(SCRIPTS_DIR)/prometheus/prometheus-rbac.yaml
 	$(KUBECTL_CMD) create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
 	$(KUBECTL_CMD) -n monitoring get all
@@ -2688,7 +2722,7 @@ install-prometheus: get-prometheus ## Install Prometheus and Grafana
 uninstall-prometheus: get-prometheus ## Uninstall Prometheus and Grafana
 	$(KUBECTL_CMD) delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests || true
 	$(KUBECTL_CMD) delete --ignore-not-found=true -f $(PROMETHEUS_HOME)/manifests/setup || true
-	$(KUBECTL_CMD) delete --ignore-not-found=true -f hack/prometheus-rbac.yaml
+	$(KUBECTL_CMD) delete --ignore-not-found=true -f $(SCRIPTS_DIR)/prometheus/prometheus-rbac.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Install Prometheus Adapter used for k8s metrics and Horizontal Pod Autoscaler
@@ -2724,14 +2758,14 @@ port-forward-grafana: ## Run a port-forward to Grafana on http://127.0.0.1:3000
 install-metallb: ## Install MetalLB to allow services of type LoadBalancer
 	$(KUBECTL_CMD) apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml
 	$(KUBECTL_CMD) apply -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml
-	$(KUBECTL_CMD) apply -f hack/metallb-config.yaml
+	$(KUBECTL_CMD) apply -f $(KIND_SCRIPTS)/metallb-config.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall MetalLB
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-metallb
 uninstall-metallb: ## Uninstall MetalLB
-	$(KUBECTL_CMD) delete -f hack/metallb-config.yaml || true
+	$(KUBECTL_CMD) delete -f $(KIND_SCRIPTS)/metallb-config.yaml || true
 	$(KUBECTL_CMD) delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/metallb.yaml || true
 	$(KUBECTL_CMD) delete -f https://raw.githubusercontent.com/metallb/metallb/$(METALLB_VERSION)/manifests/namespace.yaml || true
 
@@ -2751,8 +2785,8 @@ else
 endif
 	$(KUBECTL_CMD) -n istio-system wait --for condition=available deployment.apps/istio-ingressgateway
 	$(KUBECTL_CMD) -n istio-system wait --for condition=available deployment.apps/istio-egressgateway
-	$(KUBECTL_CMD) apply -f $(SCRIPTS_DIR)/istio-strict.yaml
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(SCRIPTS_DIR)/istio-operator.yaml
+	$(KUBECTL_CMD) apply -f $(SCRIPTS_DIR)/istio/istio-strict.yaml
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(SCRIPTS_DIR)/istio/istio-operator.yaml
 	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE) istio-injection=enabled --overwrite=true
 	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE) istio.io/rev=$(ISTIO_REVISION) --overwrite=true
 	$(KUBECTL_CMD) label namespace $(OPERATOR_NAMESPACE_CLIENT) istio-injection=enabled --overwrite=true
@@ -2766,20 +2800,20 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: upgrade-istio
 upgrade-istio: delete-istio-config $(BUILD_OUTPUT)/istio-config.yaml ## Upgrade an already installed Istio to the Istio version specified by ISTIO_VERSION
-	$(ISTIO_HOME)/bin/istioctl upgrade -f $(SCRIPTS_DIR)/istio-config.yaml -y
+	$(ISTIO_HOME)/bin/istioctl upgrade -f $(BUILD_OUTPUT)/istio-config.yaml -y
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall Istio
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: uninstall-istio
 uninstall-istio: delete-istio-config get-istio ## Uninstall Istio from k8s
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete -f $(SCRIPTS_DIR)/istio-operator.yaml || true
-	$(KUBECTL_CMD) delete -f ./hack/istio-strict.yaml || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete -f $(SCRIPTS_DIR)/istio/istio-operator.yaml || true
+	$(KUBECTL_CMD) delete -f $(SCRIPTS_DIR)/istio/istio-strict.yaml || true
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
 $(BUILD_OUTPUT)/istio-config.yaml: $(BUILD_PROPS)
 	@echo "Creating Istio config: rev=$(ISTIO_REVISION)"
-	cp $(SCRIPTS_DIR)/istio-config.yaml $(BUILD_OUTPUT)/istio-config.yaml
+	cp $(SCRIPTS_DIR)/istio/istio-config.yaml $(BUILD_OUTPUT)/istio-config.yaml
 	$(SED) -e 's/ISTIO_PROFILE/$(ISTIO_PROFILE)/g' $(BUILD_OUTPUT)/istio-config.yaml
 	$(SED) -e 's/ISTIO_REVISION/$(ISTIO_REVISION)/g' $(BUILD_OUTPUT)/istio-config.yaml
 
@@ -2792,7 +2826,7 @@ delete-istio-config:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
 get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to the build/tools/istio-* directory
-	$(SCRIPTS_DIR)/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
+	$(SCRIPTS_DIR)/istio/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
 	@echo "Istio installed at $(ISTIO_HOME)"
 
 
@@ -2996,6 +3030,7 @@ endif
 new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z specified)
 	$(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' Makefile
 	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' Makefile
+	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' config/manifests/bases/coherence-operator.clusterserviceversion.yaml
 	find docs \( -name '*.adoc' -o -name '*.yaml' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	find examples \( -name 'pom.xml' \) -exec $(SED) 's/<version>$(subst .,\.,$(VERSION))<\/version>/<version>$(NEXT_VERSION)<\/version>/g' {} +
 	find examples \( -name '*.adoc' -o -name 'Dockerfile' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
@@ -3003,6 +3038,8 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 	find config \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	find helm-charts \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	$(SED) -e 's/<revision>$(subst .,\.,$(VERSION))<\/revision>/<revision>$(NEXT_VERSION)<\/revision>/g' java/pom.xml
+	printf "    - Image: $(BUNDLE_IMAGE)" >> $(SCRIPTS_DIR)/olm/olm-catalog-template.yaml
+
 
 GIT_BRANCH="version-update-$(VERSION)"
 GIT_LABEL="version-update"

@@ -134,7 +134,7 @@ func assertLabel(t *testing.T, name string, fileName string, labels, prefixLabel
 
 	// Do a Management over REST query for the deployment members
 	cl := &http.Client{}
-	members, _, err := management.GetMembers(cl, "127.0.0.1", ports[coh.PortNameManagement])
+	members, _, err := management.GetMembers(cl, pf.Hostname, ports[coh.PortNameManagement])
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// assert that the site or rack for each member matches the Node's zone label

@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: setup-env
+spec:
+  description: Environment setup.
+  params:
+    - name: builder-image-prefix
+      description: The builder image name without a tag.
+    - name: source-directory
+      type: string
+      description: Subdirectory inside the shared-data Workspace where the Git repo was cloned to.
+      default: ""
+  workspaces:
+    - name: shared-data
+      description: |
+        This workspace contains the cloned repo files, so they can be read by the
+        next task.
+  results:
+    - name: BUILD_ARCH
+      description: The build architecture.
+    - name: BUILDER_IMAGE_NAME
+      description: The builder image name.
+    - name: OPERATOR_GO_VERSION
+      description: The Go version required by the Operator build.
+  steps:
+    - name: setup-env
+      image: container-registry.oracle.com/os/oraclelinux:9-slim
+      env:
+        - name: PARAM_BUILDER_IMAGE_PREFIX
+          value: $(params.builder-image-prefix)
+        - name: SOURCE_DIRECTORY
+          value: $(workspaces.shared-data.path)/$(params.source-directory)
+      script: |
+        set -e
+        UNAME_M=$(uname -m)
+        if [ "$UNAME_M" = "arm64" ]
+        then
+          BUILD_ARCH=arm64
+        elif [ "$UNAME_M" = "aarch64" ]
+        then
+          BUILD_ARCH=arm64
+        else
+          BUILD_ARCH=amd64
+        fi
+        DOCKER_FILE_SHA1SUM=$(sha1sum "${SOURCE_DIRECTORY}/tekton/builder.Dockerfile")
+        OPERATOR_GO_VERSION=$(sed -n -e 's/^toolchain \(.*\)$/\1/p' ${SOURCE_DIRECTORY}/go.mod)
+        readarray -d ' ' -t DOCKER_FILE_SHA <<< "${DOCKER_FILE_SHA1SUM}"
+        LATEST_GO=$(curl -s 'https://go.dev/VERSION?m=text' | head -n 1)
+        BUILDER_IMAGE_NAME="${PARAM_BUILDER_IMAGE_PREFIX}:${DOCKER_FILE_SHA}-${OPERATOR_GO_VERSION}-${BUILD_ARCH}"
+        echo -n "${BUILD_ARCH}" | tee "$(results.BUILD_ARCH.path)"
+        echo -n "${OPERATOR_GO_VERSION}" | tee "$(results.OPERATOR_GO_VERSION.path)"
+        echo -n "${BUILDER_IMAGE_NAME}" | tee "$(results.BUILDER_IMAGE_NAME.path)"

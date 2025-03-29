@@ -69,7 +69,7 @@ func AssertSpringEndpoint(t *testing.T, pods []corev1.Pod) {
 	defer pf.Close()
 
 	client := &http.Client{}
-	url := fmt.Sprintf("http://127.0.0.1:%d/", ports["web"])
+	url := fmt.Sprintf("http://%s:%d/", pf.Hostname, ports["web"])
 
 	resp, err := client.Get(url)
 	if resp != nil {

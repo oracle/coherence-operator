@@ -1,0 +1,94 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: oci-cli
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.54.0"
+    tekton.dev/categories: CLI
+    tekton.dev/tags: cli
+    tekton.dev/displayName: "oracle cli task"
+    tekton.dev/platforms: "linux/amd64"
+spec:
+  params:
+    - name: config-secret
+      description: "The OCI config secret name"
+      default: oci-cli-secret
+    - name: tenancy-ocid
+      description: "The OCID of the tenancy"
+    - name: user-ocid
+      description: "The OCID of the user"
+    - name: region
+      description: "The OCI region (e.g., us-ashburn-1)"
+    - name: sub-directory
+      description: The workspace subdirectory that will be the working directory.
+      type: string
+      default: ""
+    - name: commands
+      description: "The OCI CLI command to execute"
+      type: array
+  workspaces:
+    - name: source
+      description: The workspace that contains the shared data
+  results:
+    - name: RESULT
+      description: The result of the task
+  steps:
+    - name: oci-cli
+      image: ghcr.io/oracle/oci-cli:sha-5846bb2
+      workingDir: $(workspaces.source.path)/$(params.sub-directory)
+      script: |
+        #!/bin/bash
+        set -e
+        mkdir -p ${HOME}/.oci
+
+        # Use the mounted secret
+        cp /secrets/oci/oci_api_key.pem ${HOME}/.oci/oci_api_key.pem
+        chmod 600 ${HOME}/.oci/oci_api_key.pem
+        FINGERPRINT=$(cat /secrets/oci/fingerprint)
+        PASS_PHRASE=$(cat /secrets/oci/pass_phrase)
+
+        # Create OCI configuration
+        cat <<EOF > ${HOME}/.oci/config
+        [DEFAULT]
+        tenancy=${TENANCY_OCID}
+        user=${USER_OCID}
+        fingerprint=${FINGERPRINT}
+        key_file=${HOME}/.oci/oci_api_key.pem
+        region=${REGION}
+        pass_phrase=${PASS_PHRASE}
+        EOF
+        chmod 600 ${HOME}/.oci/config
+
+        # Run the provided commands
+        echo "" > ${TASK_RESULT_PATH}
+        for CMD in "$@"
+        do
+          eval $CMD
+        done
+        echo "Task results:"
+        cat "$(results.RESULT.path)"
+      args:
+        - $(params.commands[*])
+      env:
+        - name: TENANCY_OCID
+          value: "$(params.tenancy-ocid)"
+        - name: USER_OCID
+          value: "$(params.user-ocid)"
+        - name: REGION
+          value: "$(params.region)"
+        - name: TASK_RESULT_PATH
+          value: "$(results.RESULT.path)"
+      volumeMounts:
+        - name: oci-cli-secret
+          mountPath: /secrets/oci
+          readOnly: true
+        - name: oci-config
+          mountPath: /oci-config
+  volumes:
+    - name: oci-cli-secret
+      secret:
+        secretName: $(params.config-secret)
+    - name: oci-config
+      emptyDir: {}
