@@ -736,6 +736,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # Copy the Helm chart from the source location to the distribution folder
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
+	cp -R config/crd-small/bases/ $(BUILD_HELM)/coherence-operator/templates
 	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
 	helm lint $(BUILD_HELM)/coherence-operator
 	helm package $(BUILD_HELM)/coherence-operator --destination $(BUILD_HELM)
@@ -1393,7 +1394,7 @@ e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-k3d-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
-e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy install-crds ensure-pull-secret ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
 
@@ -1416,7 +1417,7 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy install-crds ensure-pull-secret  ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
@@ -1432,7 +1433,7 @@ e2e-helm-test: export COHERENCE_IMAGE_REGISTRY := $(COHERENCE_IMAGE_REGISTRY)
 e2e-helm-test: export COHERENCE_IMAGE_NAME := $(COHERENCE_IMAGE_NAME)
 e2e-helm-test: export COHERENCE_IMAGE_TAG := $(COHERENCE_IMAGE_TAG)
 e2e-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz uninstall-crds reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -1449,7 +1450,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
+e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets ensure-pull-secret deploy-and-wait  ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -1491,7 +1492,7 @@ run-prometheus-test: gotestsum
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
-compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
+compatibility-test: undeploy build-all-images helm-chart undeploy clean-namespace reset-namespace ensure-pull-secret gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
 
 .PHONY: just-compatibility-test
 just-compatibility-test: export CGO_ENABLED = 0
@@ -1547,7 +1548,7 @@ certification-test: install-certification     ## Run the Operator Kubernetes ver
 # Install the Operator prior to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets deploy-and-wait
+install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets ensure-pull-secret deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
