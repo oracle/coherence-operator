@@ -20,6 +20,9 @@ spec:
       podTemplate:
         securityContext:
           fsGroup: 65532
+  timeouts:
+    pipeline: "2h3m0s"
+    tasks: "2h0m0s"
   params:
     - name: repo-url
       value: git@github.com:thegridman/coherence-operator.git
