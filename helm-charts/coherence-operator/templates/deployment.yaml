@@ -158,14 +158,13 @@ spec:
 {{- end }}
 {{- if (eq .Values.clusterRoles false) }}
         - --enable-webhook=false
-        - --install-crd=false
 {{- else }}
 {{- if (eq .Values.webhooks false) }}
         - --enable-webhook=false
 {{- end }}
 {{- end }}
 {{- if (eq .Values.allowCoherenceJobs false) }}
-        - --install-job-crd=false
+        - --enabled-jobs=false
 {{- end }}
 {{- if (.Values.globalLabels) }}
 {{- range $k, $v := .Values.globalLabels }}

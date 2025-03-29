@@ -54,6 +54,7 @@ const (
 	FlagCoherenceImage        = "coherence-image"
 	FlagCRD                   = "install-crd"
 	FlagJobCRD                = "install-job-crd"
+	FlagEnableCoherenceJobs   = "enabled-jobs"
 	FlagDevMode               = "coherence-dev-mode"
 	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"
@@ -177,12 +178,17 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().Bool(
 		FlagCRD,
 		true,
-		"Enables automatic installation/update of all Coherence CRDs",
+		"This flag is deprecated and no longer has any function",
 	)
 	cmd.Flags().Bool(
 		FlagJobCRD,
 		true,
-		"Enables automatic installation/update of CoherenceJob CRD",
+		"Enables CoherenceJob support, this flag is deprecated use --"+FlagEnableCoherenceJobs,
+	)
+	cmd.Flags().Bool(
+		FlagEnableCoherenceJobs,
+		true,
+		"Enables CoherenceJob support",
 	)
 	cmd.Flags().Bool(
 		FlagEnableHttp2,
@@ -347,12 +353,9 @@ func GetRackLabel() []string {
 	return GetViper().GetStringSlice(FlagRackLabel)
 }
 
-func ShouldInstallCRDs() bool {
-	return GetViper().GetBool(FlagCRD) && !IsDryRun()
-}
-
-func ShouldInstallJobCRD() bool {
-	return GetViper().GetBool(FlagJobCRD)
+func ShouldSupportCoherenceJob() bool {
+	v := GetViper()
+	return v.GetBool(FlagEnableCoherenceJobs) || v.GetBool(FlagJobCRD)
 }
 
 func ShouldEnableWebhooks() bool {
