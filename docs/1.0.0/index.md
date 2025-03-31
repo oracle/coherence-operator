@@ -6,10 +6,6 @@ http://oss.oracle.com/licenses/upl.
 
 -->
 
----
-layout: none
----
-
 <script>
   window.location.href = "https://github.com/oracle/coherence-operator";
 </script>
