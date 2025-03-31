@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -137,6 +137,7 @@ func UpgradeToCurrentVersion(t *testing.T, g *GomegaWithT, ns, name string) {
 	cmd := exec.Command("helm", "upgrade",
 		"--set", "image="+helper.GetOperatorImage(),
 		"--set", "defaultCoherenceUtilsImage="+helper.GetOperatorImage(),
+		"--set", "installCrd=false",
 		"--namespace", ns, "--wait", name, chart)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

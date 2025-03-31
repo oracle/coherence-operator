@@ -46,4 +46,6 @@ release: {{ .Release.Name | quote }}
 chart: {{ template "coherence-operator.chart" . }}
 app: {{ template "coherence-operator.name" . }}
 component: coherence-operator
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
