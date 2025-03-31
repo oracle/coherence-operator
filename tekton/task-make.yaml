@@ -1,0 +1,87 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: make
+spec:
+  description: Run a make target.
+  params:
+    - name: target
+      description: The make command to run.
+      type: string
+      default: ""
+    - name: extra-args
+      description: The extra arguments to pass to the make command
+      type: string
+      default: ""
+    - name: makefile-directory
+      description: The workspace subdirectory containing the Makefile.
+      type: string
+      default: ""
+    - name: go-cache
+      description: The workspace subdirectory containing the Go cache.
+      type: string
+      default: ""
+    - name: image
+      description: The image to run.
+      type: string
+      default: ""
+    - name: env-configmap
+      description: The name of a ConfigMap to use to set environment variables.
+      type: string
+      default: "unset"
+    - name: env-secret
+      description: The name of a Secret to use to set environment variables.
+      type: string
+      default: "unset"
+    - name: httpProxy
+      description: HTTP proxy server for non-SSL requests.
+      type: string
+      default: ""
+    - name: httpsProxy
+      description: HTTPS proxy server for SSL requests.
+      type: string
+      default: ""
+    - name: noProxy
+      description: Opt out of proxying HTTP/HTTPS requests.
+      type: string
+      default: ""
+  workspaces:
+    - name: source
+      description: The workspace that contains the Makefile
+    - name: dockerconfig
+      description: >-
+        An optional workspace that allows providing a registry auth config.json file
+      optional: true
+  steps:
+    - name: make
+      image: $(params.image)
+      workingDir: $(workspaces.source.path)/$(params.makefile-directory)
+      env:
+        - name: PARAM_EXTRA_ARGS
+          value: $(params.extra-args)
+        - name: PARAM_GOCACHE
+          value: $(params.go-cache)
+        - name: PARAM_HTTP_PROXY
+          value: $(params.httpProxy)
+        - name: PARAM_HTTPS_PROXY
+          value: $(params.httpsProxy)
+        - name: PARAM_NO_PROXY
+          value: $(params.noProxy)
+      envFrom:
+        - configMapRef:
+            name: $(params.env-configmap)
+            optional: true
+        - secretRef:
+            name: $(params.env-secret)
+            optional: true
+      script: |
+        set -e
+        test -z "${PARAM_GOCACHE}" || export GOCACHE="${PARAM_GOCACHE}/gocache"
+        test -z "${PARAM_GOCACHE}" || export GOMODCACHE="${PARAM_GOCACHE}/gomodcache"
+        [ "$(workspaces.dockerconfig.bound)" = "true" ] && DOCKER_CONFIG="$(workspaces.dockerconfig.path)" && export DOCKER_CONFIG
+        [ "$(workspaces.dockerconfig.bound)" = "true" ] && DEPLOY_REGISTRY_CONFIG_DIR="$(workspaces.dockerconfig.path)" && export DEPLOY_REGISTRY_CONFIG_DIR
+        test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
+        test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
+        test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
+        git config --global --add safe.directory $(pwd)
+        make $(params.target) ${PARAM_EXTRA_ARGS}

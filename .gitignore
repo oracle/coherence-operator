@@ -58,6 +58,5 @@ test/**/test-report.xml
 api/**/zz_*.go
 bundle.Dockerfile
 /__debug_bin
-hack/istio*/
 /java/certs/
 .flattened-pom.xml

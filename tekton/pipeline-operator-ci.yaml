@@ -1,0 +1,269 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: operator-ci
+spec:
+  description: |
+    This pipeline clones a git repo, then echoes the README file to the stout.
+  params:
+    - name: repo-url
+      type: string
+      description: The git repo URL to clone from.
+      default: "git@github.com:thegridman/coherence-operator.git"
+    - name: revision
+      type: string
+      description: The git revision to check out.
+      default: "main"
+    - name: source-directory
+      type: string
+      description: Subdirectory inside the shared-data Workspace to clone the repo into.
+      default: "source"
+    - name: delete-existing-source
+      type: string
+      description: Clean out the contents of the source directory if it already exists before cloning.
+      default: 'true'
+    - name: builder-image-prefix
+      type: string
+      description: The builder image
+    - name: skip-builder-image
+      type: string
+      description: Skip building the builder image
+      default: "false"
+    - name: env-configmap
+      description: The name of a ConfigMap to use to set environment variables.
+      type: string
+      default: "unset"
+    - name: env-secret
+      description: The name of a Secret to use to set environment variables.
+      type: string
+      default: "unset"
+    - name: oci-tenancy-ocid
+      description: "The OCI OCID of the tenancy"
+      default: ""
+    - name: oci-user-ocid
+      description: "The OCI OCID of the user"
+      default: ""
+    - name: oci-region
+      description: "The OCI region"
+      default: ""
+    - name: oci-config-secret
+      description: "The OCI config secret name"
+      default: oci-cli-secret
+    - name: httpProxy
+      type: string
+      description: The optional http proxy to use
+      default: ''
+    - name: httpsProxy
+      type: string
+      description: The optional https proxy to use
+      default: ''
+    - name: noProxy
+      type: string
+      description: The optional no proxy to use
+      default: ''
+  results:
+    - name: upload-result
+      description: The result of the upload task
+      value: $(finally.upload.results.RESULT)
+  workspaces:
+    - name: shared-data
+      description: This workspace contains the cloned repo and other work files.
+    - name: dockerconfig
+      description: Includes a docker `config.json`
+    - name: git-credentials
+      description: GitHub ssh credentials (ssh private key named id_rsa)
+  tasks:
+    - name: git-clone
+      displayName: "Clone GitHub Repo"
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-data
+        - name: ssh-directory
+          workspace: git-credentials
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+        - name: subdirectory
+          value: $(params.source-directory)
+        - name: deleteExisting
+          value: $(params.delete-existing-source)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: setup-env
+      displayName: "Setup"
+      runAfter: ["git-clone"]
+      taskRef:
+        name: setup-env
+      workspaces:
+        - name: shared-data
+          workspace: shared-data
+      params:
+        - name: builder-image-prefix
+          value: $(params.builder-image-prefix)
+        - name: source-directory
+          value: $(params.source-directory)
+    - name: check-builder-image
+      displayName: "Check Builder Image"
+      runAfter: ["setup-env"]
+      when:
+        - input: "$(params.skip-builder-image)"
+          operator: in
+          values: ["false"]
+      taskRef:
+        name: check-image-exists
+      workspaces:
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: IMAGE_NAME
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: create-builder
+      displayName: "Create Builder Image"
+      runAfter: ["check-builder-image"]
+      when:
+        - input: "$(params.skip-builder-image)"
+          operator: in
+          values: ["false"]
+        - input: "$(tasks.check-builder-image.results.IMAGE_EXISTS)"
+          operator: in
+          values: ["false"]
+      taskRef:
+        name: coherence-buildah
+      workspaces:
+        - name: source
+          workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: DOCKERFILE
+          value: $(workspaces.source.path)/$(params.source-directory)/tekton/builder.Dockerfile
+        - name: IMAGE
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: BUILD_EXTRA_ARGS
+          value: "--build-arg GoArch=$(tasks.setup-env.results.BUILD_ARCH) --build-arg GoVersion=$(tasks.setup-env.results.OPERATOR_GO_VERSION)"
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: build-runner
+      displayName: "Build Operator Runner"
+      runAfter: ["create-builder"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: source
+          workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: image
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "build-runner"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: e2e-local-test
+      runAfter: ["build-runner"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: source
+          workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: image
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "e2e-local-test"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+    - name: e2e-test
+      runAfter: ["e2e-local-test"]
+      taskRef:
+        name: make
+      workspaces:
+        - name: source
+          workspace: shared-data
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: image
+          value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
+        - name: target
+          value: "e2e-test"
+        - name: makefile-directory
+          value: $(params.source-directory)
+        - name: go-cache
+          value: $(workspaces.source.path)/.caches/go-cache
+        - name: env-configmap
+          value: $(params.env-configmap)
+        - name: env-secret
+          value: $(params.env-secret)
+        - name: httpProxy
+          value: $(params.httpProxy)
+        - name: httpsProxy
+          value: $(params.httpsProxy)
+        - name: noProxy
+          value: $(params.noProxy)
+  finally:
+    - name: upload
+      taskRef:
+        name: oci-cli
+      workspaces:
+        - name: source
+          workspace: shared-data
+      params:
+        - name: tenancy-ocid
+          value: $(params.oci-tenancy-ocid)
+        - name: user-ocid
+          value: $(params.oci-user-ocid)
+        - name: region
+          value: $(params.oci-region)
+        - name: config-secret
+          value: $(params.oci-config-secret)
+        - name: sub-directory
+          value: $(params.source-directory)
+        - name: commands
+          value:
+            - "sh ./hack/oci/oci-upload.sh"

@@ -33,6 +33,7 @@ pages:
         - "docs/**/*.adoc"
         - "examples/**/*.adoc"
     - excludes:
+        - "build/**"
 backend:
     name: "vuetify"
     homePage: "docs/about/01_overview.adoc"
