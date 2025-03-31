@@ -55,6 +55,8 @@ jobs:
         dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
         df -h
         echo "Removing large packages"
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
         sudo apt-get remove -y '^dotnet-.*' || true
         sudo apt-get remove -y '^llvm-.*' || true
         sudo apt-get remove -y 'monodoc-http' || true
@@ -66,6 +68,8 @@ jobs:
         echo "Removing large directories"
         rm -rf /usr/share/dotnet/
         sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
         df -h
 
     - name: Set up JDK
@@ -108,21 +112,20 @@ jobs:
         make kind
         kubectl version
         kubectl get nodes
-        docker pull gcr.io/distroless/java
-        docker pull gcr.io/distroless/java11-debian11
-        docker pull gcr.io/distroless/java17-debian11
-        docker pull gcr.io/distroless/java17-debian12
-        docker pull gcr.io/distroless/java21-debian12
 
     - name: Build
       shell: bash
-      run: make all
+      run: | 
+        make all
 
     - name: Load Images to KinD
 #     Load the images just built to the KinD cluster
       shell: bash
       run: |
         make kind-load
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+        df -h
 
     - name: Istio Tests
       shell: bash
