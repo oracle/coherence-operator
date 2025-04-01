@@ -750,7 +750,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
 	helm lint $(BUILD_HELM)/coherence-operator
 	helm package $(BUILD_HELM)/coherence-operator --destination $(BUILD_HELM)
-
+	rm -rf $(BUILD_HELM)/temp
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.
 # This is done because the Helm charts can be large and processing every file
