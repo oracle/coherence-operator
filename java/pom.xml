@@ -327,6 +327,7 @@
                         <siteOutputDirectory>${top.parent.basedir}/../build/_output/docs</siteOutputDirectory>
                         <siteArchiveExcludes>
                             <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
+                            <siteArchiveExclude>${top.parent.basedir}/../build/**</siteArchiveExclude>
                         </siteArchiveExcludes>
                     </configuration>
                     <dependencies>
@@ -527,8 +528,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
-                    <configLocation>/hack/checkstyle.xml</configLocation>
-                    <suppressionsLocation>/hack/checkstyle-suppressions.xml</suppressionsLocation>
+                    <configLocation>/hack/codestyle/checkstyle.xml</configLocation>
+                    <suppressionsLocation>/hack/codestyle/checkstyle-suppressions.xml</suppressionsLocation>
                 </configuration>
             </plugin>
 
@@ -564,8 +565,8 @@
                                 </goals>
                                 <phase>validate</phase>
                                 <configuration>
-                                    <configLocation>${top.parent.basedir}/../hack/checkstyle.xml</configLocation>
-                                    <suppressionsLocation>${top.parent.basedir}/../hack/checkstyle-suppressions.xml
+                                    <configLocation>${top.parent.basedir}/../hack/codestyle/checkstyle.xml</configLocation>
+                                    <suppressionsLocation>${top.parent.basedir}/../hack/codestyle/checkstyle-suppressions.xml
                                     </suppressionsLocation>
                                 </configuration>
                             </execution>

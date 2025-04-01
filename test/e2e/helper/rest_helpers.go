@@ -80,7 +80,7 @@ func httpRequestToPod(endpoint, method string, pod *v1.Pod) error {
 		return fmt.Errorf("could not find rest port in pod %s", pod.Name)
 	}
 
-	url := fmt.Sprintf("http://127.0.0.1:%d/%s", port, endpoint)
+	url := fmt.Sprintf("http://%s:%d/%s", forwarder.Hostname, port, endpoint)
 	client := &http.Client{Timeout: time.Minute * 1}
 
 	var resp *http.Response

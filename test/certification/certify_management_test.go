@@ -67,7 +67,7 @@ func TestCertifyManagementDefaultPort(t *testing.T) {
 		fmt.Println(key, value)
 	}
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[v1.PortNameManagement])
+	url := fmt.Sprintf("%s://%s:%d/management/coherence/cluster", "http", pf.Hostname, ports[v1.PortNameManagement])
 
 	var resp *http.Response
 	client := &http.Client{}
@@ -138,7 +138,7 @@ func TestCertifyManagementNonStandardPort(t *testing.T) {
 	for key, value := range ports {
 		fmt.Println(key, value)
 	}
-	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", "http", ports[v1.PortNameManagement])
+	url := fmt.Sprintf("%s://%s:%d/management/coherence/cluster", "http", pf.Hostname, ports[v1.PortNameManagement])
 
 	var resp *http.Response
 	client := &http.Client{}

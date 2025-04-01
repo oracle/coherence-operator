@@ -205,7 +205,7 @@ func assertManagementRequest(pod corev1.Pod, client *http.Client, protocol strin
 
 	defer pf.Close()
 
-	url := fmt.Sprintf("%s://127.0.0.1:%d/management/coherence/cluster", protocol, ports[coh.PortNameManagement])
+	url := fmt.Sprintf("%s://%s:%d/management/coherence/cluster", protocol, pf.Hostname, ports[coh.PortNameManagement])
 
 	var resp *http.Response
 

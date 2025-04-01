@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: os-cert-config
+data:
+  OPERATOR_IMAGE_REGISTRY: "iad.ocir.io/odx-stateservice/test"
+  OPERATOR_TEST_IS_RUNNING_IN_K8S: "true"
+  OPERATOR_TEST_IS_RUNNING_IN_OPENSHIFT: "true"
+  SKIP_SPRING_CNBP: "true"
