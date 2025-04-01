@@ -747,6 +747,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
+	rm -rf $(BUILD_HELM)/temp
 
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.
