@@ -31,7 +31,7 @@ cp ${BUILD_OUTPUT}/manifests/crd/coherence.oracle.com_coherence.yaml ${RELEASE_A
 cp ${BUILD_OUTPUT}/manifests/crd-small/coherence.oracle.com_coherence.yaml ${RELEASE_ASSETS_DIR}/coherence.oracle.com_coherence_small.yaml
 cp ${BUILD_OUTPUT}/manifests/crd/coherencejob.oracle.com_coherence.yaml ${RELEASE_ASSETS_DIR}
 cp ${BUILD_OUTPUT}/manifests/crd-small/coherencejob.oracle.com_coherence.yaml ${RELEASE_ASSETS_DIR}/coherencejob.oracle.com_coherence_small.yaml
-cp ${BUILD_OUTPUT}/coherence-dashboards.tar.gz ${RELEASE_ASSETS_DIR}
+cp ${BUILD_OUTPUT}/dashboards/${VERSION}/coherence-dashboards.tar.gz ${RELEASE_ASSETS_DIR}
 cp ${BUILD_OUTPUT}/coherence-operator-bundle.tar.gz ${RELEASE_ASSETS_DIR}
 cp ${BUILD_OUTPUT}/docs.zip ${RELEASE_ASSETS_DIR}
 
