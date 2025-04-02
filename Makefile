@@ -48,7 +48,13 @@ OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(V
 OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
 OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
 OPERATOR_BASE_IMAGE     ?= scratch
-OLM_IMAGE_REGISTRY      ?= $(OPERATOR_IMAGE_REGISTRY)
+
+# The registry we release (push) the operator images to, which can be different to the registry
+# used to build and test the operator.
+OPERATOR_RELEASE_REGISTRY ?= $(OPERATOR_IMAGE_REGISTRY)
+OPERATOR_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
+OPERATOR_RELEASE_ARM      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
+OPERATOR_RELEASE_AMD      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
@@ -158,6 +164,8 @@ SKIP_SPRING_CNBP                     ?= false
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
 # ----------------------------------------------------------------------------------------------------------------------
+OLM_IMAGE_REGISTRY  ?= $(OPERATOR_RELEASE_REGISTRY)
+
 # CHANNELS define the bundle channels used in the Operator Lifecycle Manager bundle.
 CHANNELS := stable
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
@@ -2653,13 +2661,6 @@ test-examples: build-examples
 # Push the Operator Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 PUSH_ARGS ?=
-
-# The registry we release (push) the operator images to, which can be different to the registry
-# used to build and test the operator.
-OPERATOR_RELEASE_REGISTRY ?= $(OPERATOR_IMAGE_REGISTRY)
-OPERATOR_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
-OPERATOR_RELEASE_ARM      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
-OPERATOR_RELEASE_AMD      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
 
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
