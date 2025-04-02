@@ -47,8 +47,8 @@ git clean -d -f
 
 git status
 
-#git commit -m "Release Coherence Operator version: ${VERSION}"
-#git log -1
-#git push origin gh-pages
-#
+git commit -m "Release Coherence Operator version: ${VERSION}"
+git log -1
+git push origin gh-pages
+
 cd ${ROOT_DIR}

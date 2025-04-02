@@ -86,6 +86,7 @@ TEST_COHERENCE_GID     ?= $(COHERENCE_GROUP_ID)
 
 # The minimum certified OpenShift version the Operator runs on
 OPENSHIFT_MIN_VERSION   := v4.15
+OPENSHIFT_MAX_VERSION   := v4.18
 OPENSHIFT_COMPONENT_PID := 67b738ef88736e8a179ac976
 
 # The current working directory
@@ -991,7 +992,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> $(BUNDLE_DIRECTORY)/metadata/annotations.yaml
 	@echo "" >> bundle.Dockerfile
 	@echo "# OpenShift labels" >> bundle.Dockerfile
-	@echo "LABEL com.redhat.openshift.versions=$(OPENSHIFT_MIN_VERSION)" >> bundle.Dockerfile
+	@echo "LABEL com.redhat.openshift.versions=\"$(OPENSHIFT_MIN_VERSION)-$(OPENSHIFT_MAX_VERSION)" >> bundle.Dockerfile
 	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY)
@@ -1001,8 +1002,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=categories --optional-values=k8s-version=1.26
 	rm -rf $(BUNDLE_BUILD) || true
 	mkdir -p $(BUNDLE_BUILD)/coherence-operator/$(VERSION) || true
-	cp -R $(BUNDLE_DIRECTORY)/. $(BUNDLE_BUILD)/coherence-operator/$(VERSION)
-	rm $(BUNDLE_BUILD)/coherence-operator/$(VERSION)/ci.yaml || true
+	sh $(SCRIPTS_DIR)/bundle.sh
 	tar -C $(BUNDLE_BUILD) -czf $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz .
 	rm -rf bundle_tmp*
 
@@ -1052,6 +1052,7 @@ catalog-build: opm ## Build a catalog image (the bundle image must have been pus
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: catalog-build ## Push a catalog image.
+	@echo "Pushing catalog image $(CATALOG_IMAGE)"
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(CATALOG_IMAGE)
 
 .PHONY: scorecard
