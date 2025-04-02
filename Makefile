@@ -2537,6 +2537,47 @@ endif
 	$(TOOLS_BIN)/gh version
 
 # ----------------------------------------------------------------------------------------------------------------------
+# download Helm
+# ----------------------------------------------------------------------------------------------------------------------
+HELM_VERSION=3.17.2
+
+.PHONY: get-helm
+get-helm: $(TOOLS_BIN)/helm ## Download Helm to the build/tools/bin directory
+
+$(TOOLS_BIN)/helm:
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-darwin-amd64.tar.gz -o helm.tar.gz
+	tar -xvf helm.tar.gz
+	mv darwin-amd64/helm $(TOOLS_BIN)/
+	rm -rf darwin-amd64
+	rm helm.tar.gz
+else
+	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-darwin-arm64.tar.gz -o helm.tar.gz
+	tar -xvf helm.tar.gz
+	mv darwin-arm64/helm $(TOOLS_BIN)/
+	rm -rf darwin-arm64
+	rm helm.tar.gz
+endif
+else
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-linux-amd64.tar.gz -o helm.tar.gz
+	tar -xvf helm.tar.gz
+	mv linux-amd64/helm $(TOOLS_BIN)/
+	rm -rf linux-amd64
+	rm helm.tar.gz
+else
+	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-linux-arm64.tar.gz -o helm.tar.gz
+	tar -xvf helm.tar.gz
+	mv linux-arm64/helm $(TOOLS_BIN)/
+	rm -rf linux-arm64
+	rm helm.tar.gz
+endif
+endif
+	chmod +x $(TOOLS_BIN)/helm
+	$(TOOLS_BIN)/helm version
+
+# ----------------------------------------------------------------------------------------------------------------------
 # find or download the Coherence CLI
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: coherence-cli
