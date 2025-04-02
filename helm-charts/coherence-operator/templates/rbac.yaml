@@ -7,7 +7,6 @@ metadata:
   name: {{ default "coherence-operator" .Values.serviceAccountName }}
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -31,7 +30,6 @@ metadata:
   name: coherence-operator-crd-webhook-install
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -72,7 +70,6 @@ metadata:
   name: coherence-operator-crd-webhook-install
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -107,7 +104,6 @@ metadata:
   name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -139,7 +135,6 @@ metadata:
   name: coherence-operator-node-viewer
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -175,7 +170,6 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -287,7 +281,6 @@ metadata:
   name: coherence-operator
   namespace: {{ .Release.Namespace }}
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -321,7 +314,6 @@ kind: Role
 metadata:
   name: leader-election-role
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
@@ -375,7 +367,6 @@ kind: RoleBinding
 metadata:
   name: leader-election-rolebinding
   labels:
-{{- include "coherence-operator.release_labels" . | indent 4 }}
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/version: "${VERSION}"
