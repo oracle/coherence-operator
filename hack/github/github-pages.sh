@@ -51,4 +51,4 @@ git status
 #git log -1
 #git push origin gh-pages
 #
-#cd ${ROOT_DIR}
+cd ${ROOT_DIR}

@@ -33,7 +33,7 @@ COMPATIBLE_SELECTOR ?= control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.30
+KUBERNETES_DOC_VERSION=v1.32
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -2472,6 +2472,69 @@ kustomize: $(TOOLS_BIN)/kustomize ## Download kustomize locally if necessary.
 
 $(TOOLS_BIN)/kustomize:
 	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header $(GH_AUTH) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download kubectl
+# ----------------------------------------------------------------------------------------------------------------------
+
+.PHONY: get-kubectl
+get-kubectl: $(TOOLS_BIN)/kubectl ## Download kubectl to the build/tools/bin directory
+
+$(TOOLS_BIN)/kubectl:
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl" -o $(TOOLS_BIN)/kubectl
+else
+	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl" -o $(TOOLS_BIN)/kubectl
+endif
+else
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o $(TOOLS_BIN)/kubectl
+else
+	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" -o $(TOOLS_BIN)/kubectl
+endif
+endif
+	chmod +x $(TOOLS_BIN)/kubectl
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download the GitHub CLI
+# ----------------------------------------------------------------------------------------------------------------------
+GH_CLI_VERSION=2.69.0
+
+.PHONY: get-gh
+get-gh: $(TOOLS_BIN)/gh ## Download GitHub CLI to the build/tools/bin directory
+
+$(TOOLS_BIN)/gh:
+ifeq (Darwin, $(UNAME_S))
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_macos_amd64.zip -o gh.zip
+	unzip gh.zip
+	mv gh_$(GH_CLI_VERSION)_macOS_amd64/bin/gh $(TOOLS_BIN)/
+	rm -rf gh_$(GH_CLI_VERSION)_macOS_amd64
+	rm gh.zip
+else
+	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_macos_arm64.zip -o gh.zip
+	unzip gh.zip
+	mv gh_$(GH_CLI_VERSION)_macOS_arm64/bin/gh $(TOOLS_BIN)/
+	rm -rf gh_$(GH_CLI_VERSION)_macOS_arm64
+	rm gh.zip
+endif
+else
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_linux_amd64.tar.gz -o gh.tar.gz
+	tar -xvf gh.tar.gz
+	mv gh_$(GH_CLI_VERSION)_linux_amd64/bin/gh $(TOOLS_BIN)/
+	rm -rf gh_$(GH_CLI_VERSION)_linux_amd64
+else
+	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_linux_arm64.tar.gz -o gh.tar.gz
+	tar -xvf gh.tar.gz
+	mv gh_$(GH_CLI_VERSION)_linux_arm64/bin/gh $(TOOLS_BIN)/
+	rm -rf gh_$(GH_CLI_VERSION)_linux_arm64
+	rm gh.tar.gz
+endif
+endif
+	chmod +x $(TOOLS_BIN)/gh
+	$(TOOLS_BIN)/gh version
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download the Coherence CLI
