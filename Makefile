@@ -2580,6 +2580,31 @@ endif
 	$(TOOLS_BIN)/helm version
 
 # ----------------------------------------------------------------------------------------------------------------------
+# download the Tekton CLI
+# ----------------------------------------------------------------------------------------------------------------------
+TEKTON_VERSION=0.40.0
+
+.PHONY: get-tekton
+get-tekton: $(TOOLS_BIN)/tkn ## Download Tekton to the build/tools/bin directory
+
+$(TOOLS_BIN)/tkn:
+ifeq (Darwin, $(UNAME_S))
+	curl -Ls https://github.com/tektoncd/cli/releases/download/v$(TEKTON_VERSION)/tkn_$(TEKTON_VERSION)_Darwin_all.tar.gz -o tekton.tar.gz
+else
+ifeq (x86_64, $(UNAME_M))
+	curl -Ls https://github.com/tektoncd/cli/releases/download/v$(TEKTON_VERSION)/tkn_$(TEKTON_VERSION)_Linux_x86_64.tar.gz -o tekton.tar.gz
+else
+	curl -Ls https://github.com/tektoncd/cli/releases/download/v$(TEKTON_VERSION)/tkn_$(TEKTON_VERSION)_Linux_aarch64.tar.gz -o tekton.tar.gz
+endif
+endif
+	tar -C $(TOOLS_BIN)/ -xvf tekton.tar.gz
+	rm tekton.tar.gz
+	rm $(TOOLS_BIN)/LICENSE || true
+	rm $(TOOLS_BIN)/README.md || true
+	chmod +x $(TOOLS_BIN)/tkn
+	$(TOOLS_BIN)/tkn version
+
+# ----------------------------------------------------------------------------------------------------------------------
 # find or download the Coherence CLI
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: coherence-cli
