@@ -733,9 +733,8 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
 	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
-# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
-	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
+	helm package $(BUILD_HELM)/coherence-operator --destination $(BUILD_HELM)
 
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.
@@ -2890,22 +2889,12 @@ serve-docs:
 ##@ Release Targets
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Pre-Release Tasks
-# Update the version numbers in the documentation to be the version about to be released
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: pre-release
-pre-release:
-	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' README.md
-	find docs \( -name '*.adoc' -o -name '*.md' \) -exec $(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
-	find examples \( -name '*.adoc' -o -name '*.md' -o -name '*.yaml' \) -exec $(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Post-Release Tasks
 # Update the version numbers
 #post-release: check-new-version new-version manifests generate build-all-images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: post-release
-post-release: check-new-version new-version
+post-release: new-version
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator dashboards
@@ -2919,109 +2908,6 @@ release-dashboards:
 		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
 	$(KUBECTL_CMD) create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
 		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator to the gh-pages branch.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release-ghpages
-release-ghpages:  helm-chart docs release-dashboards
-	mkdir -p /tmp/coherence-operator || true
-	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
-	cp $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz /tmp/coherence-operator/_output/coherence-dashboards.tar.gz
-	git stash save --keep-index --include-untracked || true
-	git stash drop || true
-	git checkout --track origin/gh-pages
-	git config pull.rebase true
-	git pull
-	mkdir -p dashboards || true
-	rm -rf dashboards/$(VERSION) || true
-	mv $(BUILD_OUTPUT)/dashboards/$(VERSION)/ dashboards/
-	git add dashboards/$(VERSION)/*
-ifeq (true, $(PRE_RELEASE))
-	mkdir -p docs-unstable || true
-	rm -rf docs-unstable/$(VERSION)/ || true
-	mv $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION)/
-	ls -ls docs-unstable
-
-	mkdir -p charts-unstable || true
-	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts-unstable/
-	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
-	git add charts-unstable/coherence-operator-$(VERSION).tgz
-	git add charts-unstable/index.yaml
-	ls -ls charts-unstable
-
-	git add docs-unstable/*
-	git status
-else
-	rm -rf dashboards/latest || true
-	cp -R dashboards/$(VERSION) dashboards/latest
-	git add -A dashboards/latest/*
-	mkdir docs/$(VERSION) || true
-	rm -rf docs/$(VERSION)/ || true
-	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION)/
-	rm -rf docs/latest
-	cp -R docs/$(VERSION) docs/latest
-	git add -A docs/*
-
-	ls -ls docs
-
-	mkdir -p charts || true
-	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts/
-	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
-	git add charts/coherence-operator-$(VERSION).tgz
-	git add charts/index.yaml
-	ls -ls charts
-
-	git status
-endif
-	git clean -d -f
-	git status
-	git commit -m "Release Coherence Operator version: $(VERSION)"
-	git log -1
-ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed Helm chart and docs $(VERSION) to gh-pages"
-else
-	git push origin gh-pages
-endif
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator snapshot documentation.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: push-snapshot-docs
-push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
-	rm -rf /tmp/coherence-operator || true
-	mkdir -p /tmp/coherence-operator || true
-	cp -R $(BUILD_OUTPUT)/ /tmp/coherence-operator
-	ls -al /tmp/coherence-operator
-	git stash save --keep-index --include-untracked || true
-	git stash drop || true
-	git checkout --track origin/gh-pages
-	git config pull.rebase true
-	git pull
-	rm -rf docs/snapshot
-	mv /tmp/coherence-operator/_output/docs/ docs/snapshot/
-	ls -al docs/
-	git add -A docs/snapshot/*
-	git status
-	git clean -d -f
-	git status
-	git commit -m "Release Coherence Operator snapshot docs $(VERSION)"
-	git log -1
-	git push origin gh-pages
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release
-release: ## Release the Operator
-ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images release-ghpages
-	@echo "release dry-run: would have pushed images"
-else
-release: build-all-images push-release-images release-ghpages
-endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Update the Operator version and all references to the previous version
