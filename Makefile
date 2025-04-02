@@ -192,12 +192,6 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 BUNDLE_IMAGE := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Release build options
-# ----------------------------------------------------------------------------------------------------------------------
-RELEASE_DRY_RUN  ?= true
-PRE_RELEASE      ?= true
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Testing properties
 # ----------------------------------------------------------------------------------------------------------------------
 # Extra arguments to pass to the go test command for the various test steps.
@@ -2994,18 +2988,10 @@ serve-docs:
 ##@ Release Targets
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Post-Release Tasks
-# Update the version numbers
-#post-release: check-new-version new-version manifests generate build-all-images
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: post-release
-post-release: new-version
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator dashboards
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release-dashboards
-release-dashboards:
+.PHONY: package-dashboards
+package-dashboards: ## package the Grafana and Kibana dashboards
 	@echo "Releasing Dashboards $(VERSION)"
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
