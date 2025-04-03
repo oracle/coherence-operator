@@ -25,21 +25,21 @@ buildah rmi "${OPERATOR_IMAGE}" || true
 buildah manifest rm "${OPERATOR_IMAGE}" || true
 buildah manifest create \
     --annotation org.opencontainers.image.source=https://github.com/oracle/coherence-operator \
-    --annotation org.opencontainers.image.description="${DESCR}" \
+    --annotation org.opencontainers.image.description="\"${DESCR}\"" \
     --annotation org.opencontainers.image.licenses="UPL-1.0" \
     --annotation org.opencontainers.image.version="${VERSION}" \
     --annotation org.opencontainers.image.revision="${REVISION}" \
     "${OPERATOR_IMAGE}"
 buildah manifest add --arch amd64 --os linux \
     --annotation org.opencontainers.image.source=https://github.com/oracle/coherence-operator \
-    --annotation org.opencontainers.image.description="${DESCR}" \
+    --annotation org.opencontainers.image.description="\"${DESCR}\"" \
     --annotation org.opencontainers.image.licenses="UPL-1.0" \
     --annotation org.opencontainers.image.version="${VERSION}" \
     --annotation org.opencontainers.image.revision="${REVISION}" \
     "${OPERATOR_IMAGE}" "${OPERATOR_IMAGE_AMD}"
 buildah manifest add --arch arm64 --os linux \
     --annotation org.opencontainers.image.source=https://github.com/oracle/coherence-operator \
-    --annotation org.opencontainers.image.description="${DESCR}" \
+    --annotation org.opencontainers.image.description="\"${DESCR}\"" \
     --annotation "org.opencontainers.image.licenses"="UPL-1.0" \
     --annotation org.opencontainers.image.version="${VERSION}" \
     --annotation org.opencontainers.image.revision="${REVISION}" \
