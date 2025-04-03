@@ -17,18 +17,18 @@ VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
 if [ "Darwin" = "${UNAME_S}" ]; then
   if [ "x86_64" = "${UNAME_M}" ]; then
     echo "Downloading kubectl ${VERSION} ${UNAME_S} ${UNAME_M}"
-    curl -Ls "https://dl.k8s.io/release/${version}/bin/darwin/amd64/kubectl" -o ${TOOLS_BIN}/kubectl
+    curl -Ls "https://dl.k8s.io/release/${VERSION}/bin/darwin/amd64/kubectl" -o ${TOOLS_BIN}/kubectl
   else
     echo "Downloading kubectl ${VERSION} ${UNAME_S} ${UNAME_M}"
-    curl -Ls "https://dl.k8s.io/release/${version}/bin/darwin/arm64/kubectl" -o ${TOOLS_BIN}/kubectl
+    curl -Ls "https://dl.k8s.io/release/${VERSION}/bin/darwin/arm64/kubectl" -o ${TOOLS_BIN}/kubectl
   fi
 else
   if [ "x86_64" = "${UNAME_M}" ]; then
     echo "Downloading kubectl ${VERSION} ${UNAME_S} ${UNAME_M}"
-    curl -Ls "https://dl.k8s.io/release/${version}/bin/linux/amd64/kubectl" -o ${TOOLS_BIN}/kubectl
+    curl -Ls "https://dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl" -o ${TOOLS_BIN}/kubectl
   else
     echo "Downloading kubectl ${VERSION} ${UNAME_S} ${UNAME_M}"
-    curl -Ls "https://dl.k8s.io/release/${version}/bin/linux/arm64/kubectl" -o ${TOOLS_BIN}/kubectl
+    curl -Ls "https://dl.k8s.io/release/${VERSION}/bin/linux/arm64/kubectl" -o ${TOOLS_BIN}/kubectl
   fi
 fi
 
