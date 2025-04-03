@@ -2282,7 +2282,7 @@ get-yq: $(TOOLS_BIN)/yq  ## Install yq (defaults to the latest version, can be c
 
 $(TOOLS_BIN)/yq:
 	mkdir -p $(TOOLS_BIN) || true
-	sh $(SCRIPT_DIR)/tools/get-yq.sh
+	sh $(SCRIPTS_DIR)/tools/get-yq.sh
 	$(YQ) --version
 
 # ======================================================================================================================
