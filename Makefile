@@ -2275,29 +2275,15 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Install yq
 # ----------------------------------------------------------------------------------------------------------------------
-YQ         = $(TOOLS_BIN)/yq
-YQ_VERSION = v4.44.3
+YQ = $(TOOLS_BIN)/yq
 
-.PHONY: yq-install
-yq-install: $(TOOLS_BIN)/yq  ## Install yq (defaults to the latest version, can be changed by setting YQ_VERSION)
-	$(YQ) version
+.PHONY: get-yq
+get-yq: $(TOOLS_BIN)/yq  ## Install yq (defaults to the latest version, can be changed by setting YQ_VERSION)
 
 $(TOOLS_BIN)/yq:
 	mkdir -p $(TOOLS_BIN) || true
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_amd64 -o $(TOOLS_BIN)/yq
-else
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_arm64 -o $(TOOLS_BIN)/yq
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -o $(TOOLS_BIN)/yq
-else
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_arm64 -o $(TOOLS_BIN)/yq
-endif
-endif
-	chmod +x $(TOOLS_BIN)/yq
+	sh $(SCRIPT_DIR)/tools/get-yq.sh
+	$(YQ) --version
 
 # ======================================================================================================================
 # Kubernetes Cert Manager targets
@@ -2475,6 +2461,7 @@ KUSTOMIZE = $(TOOLS_BIN)/kustomize
 kustomize: $(TOOLS_BIN)/kustomize ## Download kustomize locally if necessary.
 
 $(TOOLS_BIN)/kustomize:
+	mkdir -p $(TOOLS_BIN) || true
 	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header $(GH_AUTH) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2485,6 +2472,7 @@ $(TOOLS_BIN)/kustomize:
 get-kubectl: $(TOOLS_BIN)/kubectl ## Download kubectl to the build/tools/bin directory
 
 $(TOOLS_BIN)/kubectl:
+	mkdir -p $(TOOLS_BIN) || true
 	sh $(SCRIPTS_DIR)/tools/get-kubectl.sh
 	$(TOOLS_BIN)/kubectl version --client=true
 
@@ -2495,6 +2483,7 @@ $(TOOLS_BIN)/kubectl:
 get-gh: $(TOOLS_BIN)/gh ## Download GitHub CLI to the build/tools/bin directory
 
 $(TOOLS_BIN)/gh:
+	mkdir -p $(TOOLS_BIN) || true
 	sh $(SCRIPTS_DIR)/github/get-gh.sh
 	$(TOOLS_BIN)/gh version
 
@@ -2507,6 +2496,7 @@ HELM_VERSION=3.17.2
 get-helm: $(TOOLS_BIN)/helm ## Download Helm to the build/tools/bin directory
 
 $(TOOLS_BIN)/helm:
+	mkdir -p $(TOOLS_BIN) || true
 	sh $(SCRIPTS_DIR)/tools/get-helm.sh
 	$(TOOLS_BIN)/helm version
 
@@ -2519,6 +2509,7 @@ TEKTON_VERSION=0.40.0
 get-tekton: $(TOOLS_BIN)/tkn ## Download Tekton to the build/tools/bin directory
 
 $(TOOLS_BIN)/tkn:
+	mkdir -p $(TOOLS_BIN) || true
 	sh $(SCRIPTS_DIR)/tools/get-tekton.sh
 	$(TOOLS_BIN)/tkn version
 
@@ -2552,24 +2543,9 @@ $(BUILD_BIN_ARM64)/cohctl:
 oc: $(TOOLS_BIN)/oc
 
 $(TOOLS_BIN)/oc: ## Download OpenShift oc CLI
-	mkdir -p oc-tmp || true
 	mkdir -p $(TOOLS_BIN) || true
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz -o oc-tmp/openshift-client.tar.gz
-else
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/stable/openshift-client-mac-arm64.tar.gz -o oc-tmp/openshift-client.tar.gz
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz -o oc-tmp/openshift-client.tar.gz
-else
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/stable/openshift-client-linux.tar.gz -o oc-tmp/openshift-client.tar.gz
-endif
-endif
-	cd oc-tmp && tar -xvf openshift-client.tar.gz
-	mv oc-tmp/oc $(TOOLS_BIN)/oc
-	chmod +x $(TOOLS_BIN)/oc
+	sh $(SCRIPTS_DIR)/openshift/get-oc.sh
+	$(TOOLS_BIN)/oc version --client=true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
