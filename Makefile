@@ -2485,59 +2485,17 @@ $(TOOLS_BIN)/kustomize:
 get-kubectl: $(TOOLS_BIN)/kubectl ## Download kubectl to the build/tools/bin directory
 
 $(TOOLS_BIN)/kubectl:
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl" -o $(TOOLS_BIN)/kubectl
-else
-	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl" -o $(TOOLS_BIN)/kubectl
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o $(TOOLS_BIN)/kubectl
-else
-	curl -Ls "https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" -o $(TOOLS_BIN)/kubectl
-endif
-endif
-	chmod +x $(TOOLS_BIN)/kubectl
+	sh $(SCRIPTS_DIR)/tools/get-kubectl.sh
+	$(TOOLS_BIN)/kubectl version --client=true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download the GitHub CLI
 # ----------------------------------------------------------------------------------------------------------------------
-GH_CLI_VERSION=2.69.0
-
 .PHONY: get-gh
 get-gh: $(TOOLS_BIN)/gh ## Download GitHub CLI to the build/tools/bin directory
 
 $(TOOLS_BIN)/gh:
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_macos_amd64.zip -o gh.zip
-	unzip gh.zip
-	mv gh_$(GH_CLI_VERSION)_macOS_amd64/bin/gh $(TOOLS_BIN)/
-	rm -rf gh_$(GH_CLI_VERSION)_macOS_amd64
-	rm gh.zip
-else
-	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_macos_arm64.zip -o gh.zip
-	unzip gh.zip
-	mv gh_$(GH_CLI_VERSION)_macOS_arm64/bin/gh $(TOOLS_BIN)/
-	rm -rf gh_$(GH_CLI_VERSION)_macOS_arm64
-	rm gh.zip
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_linux_amd64.tar.gz -o gh.tar.gz
-	tar -xvf gh.tar.gz
-	mv gh_$(GH_CLI_VERSION)_linux_amd64/bin/gh $(TOOLS_BIN)/
-	rm -rf gh_$(GH_CLI_VERSION)_linux_amd64
-else
-	curl -Ls https://github.com/cli/cli/releases/download/v$(GH_CLI_VERSION)/gh_$(GH_CLI_VERSION)_linux_arm64.tar.gz -o gh.tar.gz
-	tar -xvf gh.tar.gz
-	mv gh_$(GH_CLI_VERSION)_linux_arm64/bin/gh $(TOOLS_BIN)/
-	rm -rf gh_$(GH_CLI_VERSION)_linux_arm64
-	rm gh.tar.gz
-endif
-endif
-	chmod +x $(TOOLS_BIN)/gh
+	sh $(SCRIPTS_DIR)/github/get-gh.sh
 	$(TOOLS_BIN)/gh version
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2549,36 +2507,7 @@ HELM_VERSION=3.17.2
 get-helm: $(TOOLS_BIN)/helm ## Download Helm to the build/tools/bin directory
 
 $(TOOLS_BIN)/helm:
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-darwin-amd64.tar.gz -o helm.tar.gz
-	tar -xvf helm.tar.gz
-	mv darwin-amd64/helm $(TOOLS_BIN)/
-	rm -rf darwin-amd64
-	rm helm.tar.gz
-else
-	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-darwin-arm64.tar.gz -o helm.tar.gz
-	tar -xvf helm.tar.gz
-	mv darwin-arm64/helm $(TOOLS_BIN)/
-	rm -rf darwin-arm64
-	rm helm.tar.gz
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-linux-amd64.tar.gz -o helm.tar.gz
-	tar -xvf helm.tar.gz
-	mv linux-amd64/helm $(TOOLS_BIN)/
-	rm -rf linux-amd64
-	rm helm.tar.gz
-else
-	curl -Ls https://get.helm.sh/helm-v$(HELM_VERSION)-linux-arm64.tar.gz -o helm.tar.gz
-	tar -xvf helm.tar.gz
-	mv linux-arm64/helm $(TOOLS_BIN)/
-	rm -rf linux-arm64
-	rm helm.tar.gz
-endif
-endif
-	chmod +x $(TOOLS_BIN)/helm
+	sh $(SCRIPTS_DIR)/tools/get-helm.sh
 	$(TOOLS_BIN)/helm version
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2590,20 +2519,7 @@ TEKTON_VERSION=0.40.0
 get-tekton: $(TOOLS_BIN)/tkn ## Download Tekton to the build/tools/bin directory
 
 $(TOOLS_BIN)/tkn:
-ifeq (Darwin, $(UNAME_S))
-	curl -Ls https://github.com/tektoncd/cli/releases/download/v$(TEKTON_VERSION)/tkn_$(TEKTON_VERSION)_Darwin_all.tar.gz -o tekton.tar.gz
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://github.com/tektoncd/cli/releases/download/v$(TEKTON_VERSION)/tkn_$(TEKTON_VERSION)_Linux_x86_64.tar.gz -o tekton.tar.gz
-else
-	curl -Ls https://github.com/tektoncd/cli/releases/download/v$(TEKTON_VERSION)/tkn_$(TEKTON_VERSION)_Linux_aarch64.tar.gz -o tekton.tar.gz
-endif
-endif
-	tar -C $(TOOLS_BIN)/ -xvf tekton.tar.gz
-	rm tekton.tar.gz
-	rm $(TOOLS_BIN)/LICENSE || true
-	rm $(TOOLS_BIN)/README.md || true
-	chmod +x $(TOOLS_BIN)/tkn
+	sh $(SCRIPTS_DIR)/tools/get-tekton.sh
 	$(TOOLS_BIN)/tkn version
 
 # ----------------------------------------------------------------------------------------------------------------------
