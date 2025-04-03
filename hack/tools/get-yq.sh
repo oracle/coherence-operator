@@ -12,7 +12,7 @@ TOOLS_BIN=${ROOT_DIR}/build/tools/bin
 UNAME_S=$(uname -s)
 UNAME_M=$(uname -m)
 
-YQ_VERSION = v4.45.1
+YQ_VERSION=v4.45.1
 
 if [ "Darwin" = "${UNAME_S}" ]; then
   if [ "x86_64" = "${UNAME_M}" ]; then
