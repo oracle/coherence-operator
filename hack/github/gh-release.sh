@@ -35,17 +35,25 @@ cp ${BUILD_OUTPUT}/dashboards/${VERSION}/coherence-dashboards.tar.gz ${RELEASE_A
 cp ${BUILD_OUTPUT}/coherence-operator-bundle.tar.gz ${RELEASE_ASSETS_DIR}
 cp ${BUILD_OUTPUT}/docs.zip ${RELEASE_ASSETS_DIR}
 
-
+K8S_VERSIONS=$(yq '.jobs.build.strategy.matrix.matrixName[]' .github/workflows/k8s-matrix.yaml)
+OS_VERSIONS=$(cat ${BUILD_OUTPUT}/openshift-version.txt)
 cp hack/github/release-template.md ${RELEASE_ASSETS_DIR}/release-template.md
 if [ "Darwin" = "${UNAME_S}" ]; then
   sed -i '' -e "s^VERSION_PLACEHOLDER^${VERSION}^g" ${RELEASE_ASSETS_DIR}/release-template.md
+  sed -i '' -e "s^K8S_VERSIONS_PLACEHOLDER^${K8S_VERSIONS}^g" ${RELEASE_ASSETS_DIR}/release-template.md
+  sed -i '' -e "s^OPENSHIFT_VERSIONS_PLACEHOLDER^${OS_VERSIONS}^g" ${RELEASE_ASSETS_DIR}/release-template.md
 else
   sed -i -e "s^VERSION_PLACEHOLDER^${VERSION}^g" ${RELEASE_ASSETS_DIR}/release-template.md
+  sed -i -e "s^K8S_VERSIONS_PLACEHOLDER^${K8S_VERSIONS}^g" ${RELEASE_ASSETS_DIR}/release-template.md
+  sed -i -e "s^OPENSHIFT_VERSIONS_PLACEHOLDER^${OS_VERSIONS}^g" ${RELEASE_ASSETS_DIR}/release-template.md
 fi
 
 gh release delete v${VERSION} --yes || true
-gh release create v${VERSION} --draft --generate-notes \
+gh release create v${VERSION} --draft \
+    --verify-tag \
+    --generate-notes \
     --target ${RELEASE_TAG} \
+    --latest \
     --notes-file "${RELEASE_ASSETS_DIR}/release-template.md"
 
 # Upload all the various assets to the release

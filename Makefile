@@ -461,6 +461,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(TOOLS_BIN)
 	@mkdir -p $(TOOLS_MANIFESTS)
 	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
+	printf "$(OPENSHIFT_MIN_VERSION)-$(OPENSHIFT_MAX_VERSION)" > $(BUILD_OUTPUT)/openshift-version.txt
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -2965,7 +2966,7 @@ $(TOOLS_BIN)/golangci-lint:
 # Display the full version string for the artifacts that would be built.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: version
-version:
+version: $(BUILD_PROPS)
 	@echo ${VERSION}
 
 # ----------------------------------------------------------------------------------------------------------------------
