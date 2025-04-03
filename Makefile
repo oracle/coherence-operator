@@ -993,7 +993,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> $(BUNDLE_DIRECTORY)/metadata/annotations.yaml
 	@echo "" >> bundle.Dockerfile
 	@echo "# OpenShift labels" >> bundle.Dockerfile
-	@echo "LABEL com.redhat.openshift.versions=\"$(OPENSHIFT_MIN_VERSION)-$(OPENSHIFT_MAX_VERSION)" >> bundle.Dockerfile
+	@echo "LABEL com.redhat.openshift.versions=\"$(OPENSHIFT_MIN_VERSION)-$(OPENSHIFT_MAX_VERSION)\"" >> bundle.Dockerfile
 	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY)
