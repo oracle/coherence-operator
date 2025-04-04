@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
@@ -35,7 +35,7 @@ cp ${BUILD_OUTPUT}/dashboards/${VERSION}/coherence-dashboards.tar.gz ${RELEASE_A
 cp ${BUILD_OUTPUT}/coherence-operator-bundle.tar.gz ${RELEASE_ASSETS_DIR}
 cp ${BUILD_OUTPUT}/docs.zip ${RELEASE_ASSETS_DIR}
 
-K8S_VERSIONS=$(yq '.jobs.build.strategy.matrix.matrixName[]' .github/workflows/k8s-matrix.yaml)
+K8S_VERSIONS=$(yq '.jobs.build.strategy.matrix.matrixName[]' .github/workflows/k8s-matrix.yaml | tr '\n' ' ')
 OS_VERSIONS=$(cat ${BUILD_OUTPUT}/openshift-version.txt)
 cp hack/github/release-template.md ${RELEASE_ASSETS_DIR}/release-template.md
 if [ "Darwin" = "${UNAME_S}" ]; then
