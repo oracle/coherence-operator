@@ -5,7 +5,7 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-set -o errexit
+set -o -v errexit
 
 GITHUB_REPO=$(git config --get remote.origin.url)
 BUILD_OUTPUT=build/_output
