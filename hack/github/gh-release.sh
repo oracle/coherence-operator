@@ -52,7 +52,7 @@ gh release delete v${VERSION} --yes || true
 gh release create v${VERSION} --draft \
     --verify-tag \
     --generate-notes \
-    --target ${RELEASE_TAG} \
+    --target ${RELEASE_BRANCH} \
     --latest \
     --notes-file "${RELEASE_ASSETS_DIR}/release-template.md"
 
