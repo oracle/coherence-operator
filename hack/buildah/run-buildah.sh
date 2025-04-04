@@ -80,6 +80,7 @@ else
   then
     $DOCKER_CMD volume create "${BUILDAH_VOLUME}"
   fi
+
   if [ "${MY_DOCKER_HOST}" == "" ]
   then
     DOCKER_HOST="${MY_DOCKER_HOST}"
