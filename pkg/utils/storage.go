@@ -185,6 +185,7 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 
 	r.EnsureGVK(in.manager.GetScheme())
 
+	hash := owner.GetGenerationString()
 	oldLatest := secret.Data[storeKeyLatest]
 	newLatest, err := json.Marshal(r)
 	if err != nil {
@@ -195,7 +196,7 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	if labels == nil {
 		labels = make(map[string]string)
 	}
-	labels[coh.LabelCoherenceHash] = owner.GetGenerationString()
+	labels[coh.LabelCoherenceHash] = hash
 	delete(labels, labelLegacy)
 
 	globalLabels := owner.CreateGlobalLabels()
@@ -225,6 +226,7 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 		// everything was updated successfully so update the storage state
 		in.previous = in.latest
 		in.latest = r
+		in.hash = &hash
 	}
 	return err
 }
