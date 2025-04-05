@@ -370,7 +370,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
-	hashMatches := in.HashLabelsMatch(current, storage)
+	hashMatches := deployment.HashLabelMatches(current)
 	if hashMatches {
 		// Nothing to patch, see if we need to do a rolling upgrade of Pods
 		// If the Operator is controlling the upgrade
