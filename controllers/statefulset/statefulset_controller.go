@@ -191,7 +191,12 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		result, err = in.createStatefulSet(ctx, deployment, storage, logger)
 	default:
 		// Both StatefulSet and deployment exists so this is maybe an update
-		result, err = in.updateStatefulSet(ctx, deployment, stsCurrent, storage, logger)
+		// Check to see whether the hashes match
+		if !deployment.HashLabelMatches(stsCurrent) {
+			// The hash label on the current STS does not match the has for the Coherence resource
+			// so there is possibly something to update
+			result, err = in.updateStatefulSet(ctx, deployment, stsCurrent, storage, logger)
+		}
 	}
 
 	var updated *coh.Coherence
@@ -335,11 +340,17 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 		// scale up - if also updating we do the rolling upgrade first followed by the
 		// scale up so that we do not do a rolling upgrade of the bigger scaled up cluster
 
-		// try the patch first
-		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
-		if err == nil && !result.Requeue {
-			// there was nothing else to patch, so we can do the scale up
+		if in.IsVersionAnnotationBefore(current, "3.5.0") {
+			// current sts was created by an Operator version < 3.5.0 so just scale
+			// then leave the patch until after scaling up
 			result, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
+		} else {
+			// try the patch first
+			result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
+			if err == nil && !result.Requeue {
+				// there was nothing else to patch, so we can do the scale up
+				result, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
+			}
 		}
 	case currentReplicas > desiredReplicas:
 		// scale down - if also updating we scale down followed by a rolling upgrade so that
@@ -359,7 +370,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
-	hashMatches := in.HashLabelsMatch(current, storage)
+	hashMatches := deployment.HashLabelMatches(current)
 	if hashMatches {
 		// Nothing to patch, see if we need to do a rolling upgrade of Pods
 		// If the Operator is controlling the upgrade

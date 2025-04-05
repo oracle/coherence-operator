@@ -73,12 +73,6 @@ func (in *CoherenceJob) Default(_ context.Context, obj runtime.Object) error {
 	}
 
 	SetCommonDefaults(coh)
-
-	// apply a label with the hash of the spec - ths must be the last action here to make sure that
-	// any modifications to the spec field are included in the hash
-	if hash, applied := EnsureJobHashLabel(coh); applied {
-		webhookLogger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
-	}
 	return nil
 }
 

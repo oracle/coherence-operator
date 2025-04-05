@@ -63,12 +63,6 @@ func (in *Coherence) Default(_ context.Context, obj runtime.Object) error {
 		spec.SetReplicas(spec.GetReplicas())
 	}
 	SetCommonDefaults(coh)
-
-	// apply a label with the hash of the spec - ths must be the last action here to make sure that
-	// any modifications to the spec field are included in the hash
-	if hash, applied := EnsureCoherenceHashLabel(coh); applied {
-		webhookLogger.Info(fmt.Sprintf("Applied %s label", LabelCoherenceHash), "hash", hash)
-	}
 	return nil
 }
 
@@ -130,9 +124,6 @@ func SetCommonDefaults(in CoherenceResource) {
 		// this is an update
 		logger.Info("Updating defaults for existing resource")
 	}
-
-	// apply the Operator version annotation
-	in.AddAnnotation(AnnotationOperatorVersion, operator.GetVersion())
 }
 
 // The path in this annotation MUST match the const below

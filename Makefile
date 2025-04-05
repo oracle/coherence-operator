@@ -728,14 +728,27 @@ $(BUILD_TARGETS)/java: $(JAVA_FILES)
 .PHONY: helm-chart
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz   ## Build the Coherence Operator Helm chart
 
+CRD_TEMPLATE := $(BUILD_HELM)/coherence-operator/templates/crd.yaml
 $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize
 # Copy the Helm chart from the source location to the distribution folder
-	-mkdir -p $(BUILD_HELM)
+	-mkdir -p $(BUILD_HELM)/temp
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/helm -o $(BUILD_HELM)/temp
+	rm $(CRD_TEMPLATE) || true
+	echo "{{- if (eq .Values.installCrd true) }}" > $(CRD_TEMPLATE)
+	cat  $(BUILD_HELM)/temp/apiextensions.k8s.io_v1_customresourcedefinition_coherence.coherence.oracle.com.yaml >> $(CRD_TEMPLATE)
+	printf "\n{{- if (eq .Values.allowCoherenceJobs true) }}\n" >> $(CRD_TEMPLATE)
+	echo "---" >> $(CRD_TEMPLATE)
+	cat  $(BUILD_HELM)/temp/apiextensions.k8s.io_v1_customresourcedefinition_coherencejob.coherence.oracle.com.yaml >> $(CRD_TEMPLATE)
+	echo "" >> $(CRD_TEMPLATE)
+	echo "{{- end }}" >> $(CRD_TEMPLATE)
+	echo "{{- end }}" >> $(CRD_TEMPLATE)
 	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
 # Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
 	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
+	rm -rf $(BUILD_HELM)/temp
+
 
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.
@@ -1388,9 +1401,10 @@ e2e-k3d-test: export LOCAL_STORAGE_RESTART := $(LOCAL_STORAGE_RESTART)
 e2e-k3d-test: export VERSION := $(VERSION)
 e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
+e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-k3d-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
-e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy install-crds ensure-pull-secret ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
 
@@ -1413,7 +1427,7 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy install-crds ensure-pull-secret  ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
@@ -1429,7 +1443,7 @@ e2e-helm-test: export COHERENCE_IMAGE_REGISTRY := $(COHERENCE_IMAGE_REGISTRY)
 e2e-helm-test: export COHERENCE_IMAGE_NAME := $(COHERENCE_IMAGE_NAME)
 e2e-helm-test: export COHERENCE_IMAGE_TAG := $(COHERENCE_IMAGE_TAG)
 e2e-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz uninstall-crds reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -1446,7 +1460,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
+e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets ensure-pull-secret deploy-and-wait  ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -1488,7 +1502,7 @@ run-prometheus-test: gotestsum
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
-compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
+compatibility-test: undeploy build-all-images helm-chart undeploy clean-namespace reset-namespace ensure-pull-secret gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
 
 .PHONY: just-compatibility-test
 just-compatibility-test: export CGO_ENABLED = 0
@@ -1544,7 +1558,7 @@ certification-test: install-certification     ## Run the Operator Kubernetes ver
 # Install the Operator prior to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets deploy-and-wait
+install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets ensure-pull-secret deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
@@ -1742,8 +1756,8 @@ cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
-install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) create -f -
+install-crds: prepare-deploy  ## Install the CRDs
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd-small | $(KUBECTL_CMD) apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
@@ -1757,6 +1771,22 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
+
+
+.PHONY: helm-patch-crd
+helm-patch-crd:
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-name": "operator"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-namespace": "operator-test"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-name": "operator"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-namespace": "operator-test"}}}'
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -1899,19 +1929,21 @@ endef
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## Undeploy the Coherence Operator
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize uninstall-webhooks  ## Undeploy the Coherence Operator
 	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) delete -f - || true
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
-	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
-	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	@echo "Undeploy Coherence Operator completed"
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
 
+.PHONY: uninstall-webhooks
+uninstall-webhooks:
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
+	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
+	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tail the deployed operator logs.
