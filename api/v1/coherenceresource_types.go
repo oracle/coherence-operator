@@ -309,22 +309,19 @@ func (in *Coherence) CreateGlobalAnnotations() map[string]string {
 // deployment (StatefulSet).
 func (in *Coherence) CreateAnnotations() map[string]string {
 	annotations := in.CreateGlobalAnnotations()
-
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
 	if in.Spec.StatefulSetAnnotations != nil {
-		if annotations == nil {
-			annotations = make(map[string]string)
-		}
 		for k, v := range in.Spec.StatefulSetAnnotations {
 			annotations[k] = v
 		}
 	} else if in.Annotations != nil {
-		if annotations == nil {
-			annotations = make(map[string]string)
-		}
 		for k, v := range in.Annotations {
 			annotations[k] = v
 		}
 	}
+	annotations[AnnotationOperatorVersion] = operator.GetVersion()
 	return annotations
 }
 
@@ -383,18 +380,7 @@ func (in *Coherence) GetWKA() string {
 	return in.Spec.Coherence.GetWKA(in)
 }
 
-// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
-// if the version annotation is present. If the version annotation is not present this method
-// returns empty string and false.
-func (in *Coherence) GetVersionAnnotation() (string, bool) {
-	if in == nil || in.Annotations == nil {
-		return "", false
-	}
-	version, found := in.Annotations[AnnotationOperatorVersion]
-	return version, found
-}
-
-// IsBeforeVersion returns true if this Coherence resource Operator version annotation value is
+// IsBeforeVersion returns true if this Coherence resource Operator version value is
 // before the specified version, or is not set.
 // The version parameter must be a valid SemVer value.
 func (in *Coherence) IsBeforeVersion(version string) bool {
@@ -402,13 +388,35 @@ func (in *Coherence) IsBeforeVersion(version string) bool {
 		version = "v" + version
 	}
 
-	if actual, found := in.GetVersionAnnotation(); found {
+	actual := in.Status.Version
+	if actual != "" {
 		if actual[0] != 'v' {
 			actual = "v" + actual
 		}
 		return semver.Compare(actual, version) < 0
 	}
-	return true
+
+	// status version is blank, check for a legacy annotation
+	av, found := in.Annotations[AnnotationOperatorVersion]
+	if found {
+		return semver.Compare(av, version) < 0
+	}
+	// Neither status version nor legacy version, so this is a new resource
+	return false
+}
+
+func (in *Coherence) GetGenerationString() string {
+	return fmt.Sprintf("%d", in.Generation)
+}
+
+func (in *Coherence) HashLabelMatches(m metav1.Object) bool {
+	hash := in.GetGenerationString()
+	actual, found := m.GetLabels()[LabelCoherenceHash]
+	return found && hash == actual
+}
+
+func (in *Coherence) UpdateStatusVersion(v string) {
+	in.Status.Version = v
 }
 
 // ----- CoherenceStatefulSetResourceSpec type -----------------------------------------------------
@@ -798,6 +806,9 @@ type CoherenceResourceStatus struct {
 	// +patchMergeKey=pod
 	// +patchStrategy=merge
 	JobProbes []CoherenceJobProbeStatus `json:"jobProbes,omitempty"`
+	// The Operator version that last processed this resource
+	// +optional
+	Version string `json:"version,omitempty"`
 }
 
 // SetCondition sets the current Status Condition
@@ -1043,6 +1054,12 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment CoherenceResourc
 	t := deployment.GetType()
 	if in.Type != t {
 		in.Type = t
+		updated = true
+	}
+
+	v := operator.GetVersion()
+	if in.Version != v {
+		in.Version = v
 		updated = true
 	}
 

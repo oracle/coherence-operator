@@ -154,12 +154,6 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// The request is an add or update
 
-	// Ensure the hash label is present (it should have been added by the web-hook, so this should be a no-op).
-	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
-	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
-		return ctrl.Result{Requeue: true}, err
-	}
-
 	if deployment.Spec.AllowUnsafeDelete != nil && *deployment.Spec.AllowUnsafeDelete {
 		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
 			err := in.ensureFinalizerRemoved(ctx, deployment)
@@ -224,7 +218,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// ensure that the state store exists
-	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
+	storage, err := utils.NewStorageForOwner(request.NamespacedName, in.GetManager(), deployment)
 	if err != nil {
 		err = errors.Wrap(err, "obtaining desired state store")
 		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
@@ -232,8 +226,32 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
-	hash := deployment.GetLabels()[coh.LabelCoherenceHash]
-	storeHash, _ := storage.GetHash()
+	// create the result
+	result := ctrl.Result{Requeue: false}
+
+	hash := deployment.GetGenerationString()
+	if storage.CheckHashMatches(hash) || deployment.IsBeforeVersion("3.5.0") {
+		if deployment.IsBeforeVersion("3.5.0") {
+			err = in.UpdateDeploymentStatusHash(ctx, types.NamespacedName{Name: deployment.GetName(), Namespace: deployment.GetNamespace()}, hash)
+			if err != nil {
+				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+					fmt.Sprintf("failed to update status hash: %s", err.Error()))
+				return result, errors.Wrap(err, "failed to update status hash")
+			}
+			// The resource was an older version so reset the hash on the storage
+			err = storage.ResetHash(deployment)
+			if err != nil {
+				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+					fmt.Sprintf("failed to update storage hash: %s", err.Error()))
+				return result, errors.Wrap(err, "failed to update storage hash")
+			}
+			// we need to re-queue the event
+			result.Requeue = true
+		}
+		// nothing to do as the Coherence resource has not changed
+		return result, nil
+	}
+
 	var desiredResources coh.Resources
 
 	desiredResources, err = getDesiredResources(deployment, storage, log)
@@ -241,10 +259,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
-	// create the result
-	result := ctrl.Result{Requeue: false}
-
-	log.Info("Reconciling Coherence resource secondary resources", "hash", hash, "store", storeHash)
+	log.Info("Reconciling Coherence resource secondary resources", "hash", hash)
 
 	// make the deployment the owner of all the secondary resources about to be reconciled
 	if err := desiredResources.SetController(deployment, in.GetManager().GetScheme()); err != nil {
@@ -252,28 +267,12 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// set the hash on all the secondary resources to match the deployment's hash
-	desiredResources.SetHashLabels(hash)
+	desiredResources.SetHashLabels(hash, operator.GetVersion())
 
 	// update the store to have the desired state as the latest state.
 	if err = storage.Store(desiredResources, deployment); err != nil {
 		err = errors.Wrap(err, "storing latest state in state store")
 		return reconcile.Result{}, err
-	}
-
-	// Ensure the version annotation is present (it should have been added by the web-hook, so this should be a no-op).
-	// The hash may not have been added if the Coherence resource was added/modified when the Operator was uninstalled.
-	applied, err := in.ensureVersionAnnotationApplied(ctx, deployment)
-	if err != nil {
-		// We failed to update the Coherence resource
-		in.GetEventRecorder().Eventf(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
-			fmt.Sprintf("failed to ensure version annotation applied: %s", err.Error()))
-		return ctrl.Result{}, err
-	}
-	if applied {
-		// We updated the Coherence resource, so requeue the event
-		in.GetEventRecorder().Eventf(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated,
-			"applied version annotation")
-		return ctrl.Result{Requeue: true}, nil
 	}
 
 	// process the secondary resources in the order they should be created
@@ -346,68 +345,6 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.Cli
 
 // GetReconciler returns this reconciler.
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
-
-// ensureHashApplied ensures that the hash label is present in the Coherence resource, patching it if required
-// Returns true if the hash label was applied to the Coherence resource, or false if the label was already present
-func (in *CoherenceReconciler) ensureHashApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	currentHash := ""
-	labels := c.GetLabels()
-	if len(labels) > 0 {
-		currentHash = labels[coh.LabelCoherenceHash]
-	}
-
-	// Re-fetch the Coherence resource to ensure we have the most recent copy
-	latest := c.DeepCopy()
-	hash, _ := coh.EnsureCoherenceHashLabel(latest)
-
-	if currentHash != hash {
-		if c.IsBeforeVersion("3.4.2") {
-			// Before 3.4.2 there was a bug calculating the hash in the defaulting web-hook
-			// This would cause the hashes to be different here, when in fact they should not be
-			// If the Coherence resource being processes has no version annotation, or a version
-			// prior to 3.4.2 then we return as if the hashes matched
-			if labels == nil {
-				labels = make(map[string]string)
-			}
-			labels[coh.LabelCoherenceHash] = hash
-			c.SetLabels(labels)
-			return false, nil
-		}
-		callback := func() {
-			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "newHash", hash, "currentHash", currentHash)
-		}
-
-		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
-		if err != nil {
-			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with hash", c.Namespace, c.Name)
-		}
-		return applied, nil
-	}
-	return false, nil
-}
-
-// ensureVersionAnnotationApplied ensures that the version annotation is present in the Coherence resource, patching it if required
-func (in *CoherenceReconciler) ensureVersionAnnotationApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	currentVersion, _ := c.GetVersionAnnotation()
-	operatorVersion := operator.GetVersion()
-
-	if currentVersion != operatorVersion {
-		// make a copy of the Coherence resource to use in the three-way patch
-		latest := c.DeepCopy()
-		latest.AddAnnotation(coh.AnnotationOperatorVersion, operatorVersion)
-
-		callback := func() {
-			in.Log.Info(fmt.Sprintf("Applied %s annotation", coh.AnnotationOperatorVersion), "value", operatorVersion)
-		}
-
-		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
-		if err != nil {
-			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with operatorVersion annotation", c.Namespace, c.Name)
-		}
-		return applied, nil
-	}
-	return false, nil
-}
 
 // ensureFinalizerApplied ensures the finalizer is applied to the Coherence resource
 func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {

@@ -751,6 +751,7 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 	helm lint $(BUILD_HELM)/coherence-operator
 	helm package $(BUILD_HELM)/coherence-operator --destination $(BUILD_HELM)
 	rm -rf $(BUILD_HELM)/temp
+
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.
 # This is done because the Helm charts can be large and processing every file
@@ -1757,8 +1758,8 @@ cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
-install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) create -f -
+install-crds: prepare-deploy  ## Install the CRDs
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd-small | $(KUBECTL_CMD) apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
@@ -1772,6 +1773,22 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
+
+
+.PHONY: helm-patch-crd
+helm-patch-crd:
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-name": "operator"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-namespace": "operator-test"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-name": "operator"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-namespace": "operator-test"}}}'
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -1914,19 +1931,21 @@ endef
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## Undeploy the Coherence Operator
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize uninstall-webhooks  ## Undeploy the Coherence Operator
 	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) delete -f - || true
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
-	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
-	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	@echo "Undeploy Coherence Operator completed"
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
 
+.PHONY: uninstall-webhooks
+uninstall-webhooks:
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
+	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
+	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tail the deployed operator logs.

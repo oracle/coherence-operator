@@ -29,19 +29,6 @@ func TestJobDefaultReplicasIsSet(t *testing.T) {
 	g.Expect(*c.Spec.Replicas).To(Equal(coh.DefaultJobReplicas))
 }
 
-func TestJobAddVersionAnnotation(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	c := coh.CoherenceJob{}
-	err := c.Default(context.Background(), &c)
-	g.Expect(err).To(BeNil())
-	g.Expect(c.Annotations).NotTo(BeNil())
-	g.Expect(c.Annotations[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
-	g.Expect(c.Spec).NotTo(BeNil())
-	replicas := c.Spec.CoherenceResourceSpec.Replicas
-	g.Expect(*replicas).To(Equal(coh.DefaultJobReplicas))
-}
-
 func TestJobShouldAddFinalizer(t *testing.T) {
 	g := NewGomegaWithT(t)
 	c := coh.CoherenceJob{}

@@ -154,9 +154,14 @@ func (in *ReconcileJob) ReconcileAllResourceOfKind(ctx context.Context, request 
 		return reconcile.Result{}, err
 	default:
 		// Both Job and deployment exists so this is maybe an update
-		result, err = in.updateJob(ctx, deployment, jobCurrent.DeepCopy(), storage, logger)
-		if err == nil {
-			statuses, err = in.maybeExecuteProbe(ctx, jobCurrent, deployment, logger)
+		// Check to see whether the hashes match
+		if !deployment.HashLabelMatches(jobCurrent) {
+			// The hash label on the current Job does not match the has for the Coherence resource
+			// so there is possibly something to update
+			result, err = in.updateJob(ctx, deployment, jobCurrent.DeepCopy(), storage, logger)
+			if err == nil {
+				statuses, err = in.maybeExecuteProbe(ctx, jobCurrent, deployment, logger)
+			}
 		}
 	}
 

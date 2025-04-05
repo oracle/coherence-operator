@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,6 +27,7 @@ var log = logf.Log.WithName("Storage")
 const (
 	storeKeyLatest   = "latest"
 	storeKeyPrevious = "previous"
+	labelLegacy      = coh.LabelCoherenceHash + "-legacy"
 )
 
 type Storage interface {
@@ -41,28 +42,40 @@ type Storage interface {
 	// Destroy will destroy the store
 	Destroy()
 	// GetHash will return the hash label of the owning resource
-	GetHash() (string, bool)
+	GetHash() string
 	// IsJob returns true if the Coherence deployment is a Job
 	IsJob(reconcile.Request) bool
+	// ResetHash sets the hash for the stprage
+	ResetHash(owner coh.CoherenceResource) error
+	// CheckHashMatches verifies the specified hash against the storage hash
+	CheckHashMatches(hash string) bool
+	// CheckObjectHashLabelMatches verifies the specified hash label against the storage hash
+	CheckObjectHashLabelMatches(o metav1.Object) bool
 }
 
 // NewStorage creates a new storage for the given key.
 func NewStorage(key client.ObjectKey, mgr manager.Manager) (Storage, error) {
-	return newStorage(key, mgr)
+	return newStorage(key, mgr, nil)
 }
 
-func newStorage(key client.ObjectKey, mgr manager.Manager) (Storage, error) {
+// NewStorageForOwner creates a new storage for the given key.
+func NewStorageForOwner(key client.ObjectKey, mgr manager.Manager, owner coh.CoherenceResource) (Storage, error) {
+	return newStorage(key, mgr, owner)
+}
+
+func newStorage(key client.ObjectKey, mgr manager.Manager, owner coh.CoherenceResource) (Storage, error) {
 	store := &secretStore{manager: mgr, key: key}
-	err := store.loadVersions()
+	err := store.loadVersions(owner)
 	return store, err
 }
 
 type secretStore struct {
-	manager  manager.Manager
-	key      client.ObjectKey
-	latest   coh.Resources
-	previous coh.Resources
-	hash     *string
+	manager    manager.Manager
+	key        client.ObjectKey
+	latest     coh.Resources
+	previous   coh.Resources
+	hash       *string
+	legacyHash *string
 }
 
 func (in *secretStore) IsJob(request reconcile.Request) bool {
@@ -93,11 +106,11 @@ func (in *secretStore) GetName() string {
 	return in.key.Name
 }
 
-func (in *secretStore) GetHash() (string, bool) {
+func (in *secretStore) GetHash() string {
 	if in == nil || in.hash == nil {
-		return "", false
+		return ""
 	}
-	return *in.hash, true
+	return *in.hash
 }
 
 func (in *secretStore) Destroy() {
@@ -119,6 +132,42 @@ func (in *secretStore) GetPrevious() coh.Resources {
 		return coh.Resources{}
 	}
 	return in.previous
+}
+
+func (in *secretStore) CheckObjectHashLabelMatches(o metav1.Object) bool {
+	actual, found := o.GetLabels()[coh.LabelCoherenceHash]
+	return found && in.CheckHashMatches(actual)
+}
+
+func (in *secretStore) CheckHashMatches(hash string) bool {
+	if in == nil {
+		return false
+	}
+	if in.hash != nil && *in.hash == hash {
+		return true
+	}
+	if in.legacyHash != nil && *in.legacyHash == hash {
+		return true
+	}
+	return false
+}
+
+func (in *secretStore) ResetHash(owner coh.CoherenceResource) error {
+	secret, exists, err := in.getSecret()
+	if err != nil {
+		// an error occurred other than NotFound
+		return err
+	}
+	labels := secret.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	legacy, found := labels[coh.LabelCoherenceHash]
+	if found {
+		labels[labelLegacy] = legacy
+	}
+	labels[coh.LabelCoherenceHash] = owner.GetGenerationString()
+	return in.save(owner, secret, exists)
 }
 
 func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error {
@@ -146,7 +195,8 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	if labels == nil {
 		labels = make(map[string]string)
 	}
-	labels[coh.LabelCoherenceHash] = owner.GetLabels()[coh.LabelCoherenceHash]
+	labels[coh.LabelCoherenceHash] = owner.GetGenerationString()
+	delete(labels, labelLegacy)
 
 	globalLabels := owner.CreateGlobalLabels()
 	for k, v := range globalLabels {
@@ -169,6 +219,19 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	secret.Data[storeKeyLatest] = newLatest
 	secret.Data[storeKeyPrevious] = oldLatest
 
+	err = in.save(owner, secret, exists)
+
+	if err == nil {
+		// everything was updated successfully so update the storage state
+		in.previous = in.latest
+		in.latest = r
+	}
+	return err
+}
+
+func (in *secretStore) save(owner coh.CoherenceResource, secret *corev1.Secret, exists bool) error {
+	var err error
+
 	if !exists {
 		// the resource does not exist so set the deployment as the controller/owner and create it
 		err = controllerutil.SetControllerReference(owner, secret, in.manager.GetScheme())
@@ -181,16 +244,10 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 		// the store secret exists so update it
 		err = in.manager.GetClient().Update(context.TODO(), secret)
 	}
-
-	if err == nil {
-		// everything was updated successfully so update the storage state
-		in.previous = in.latest
-		in.latest = r
-	}
 	return err
 }
 
-func (in *secretStore) loadVersions() error {
+func (in *secretStore) loadVersions(owner coh.CoherenceResource) error {
 	secret, exists, err := in.getSecret()
 	if err != nil {
 		// an error occurred other than NotFound
@@ -214,10 +271,17 @@ func (in *secretStore) loadVersions() error {
 			}
 		}
 
-		if hashValue, found := secret.GetLabels()[coh.LabelCoherenceHash]; found {
+		labels := secret.GetLabels()
+		if hashValue, found := labels[coh.LabelCoherenceHash]; found {
 			in.hash = &hashValue
 		} else {
 			in.hash = nil
+		}
+
+		if hashValue, found := labels[labelLegacy]; found {
+			in.legacyHash = &hashValue
+		} else {
+			in.legacyHash = nil
 		}
 	}
 	return nil

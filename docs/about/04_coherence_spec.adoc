@@ -380,6 +380,7 @@ m| conditions | The status conditions. m| Conditions | false
 m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
 m| actionsExecuted | ActionsExecuted tracks whether actions were executed m| bool | false
 m| jobProbes | &#160; m| []<<CoherenceJobProbeStatus,CoherenceJobProbeStatus>> | false
+m| version | The Operator version that last processed this resource m| string | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -487,6 +488,9 @@ CoherenceUtilsSpec defines the settings for the Coherence Operator utilities ima
 |===
 | Field | Description | Type | Required
 m| imagePullPolicy | Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images m| &#42;https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy | false
+m| image | Image is used to set the utils image used in Coherence Pods. +
+ +
+Deprecated: This field is deprecated and no longer used, any value set will be ignored. m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
