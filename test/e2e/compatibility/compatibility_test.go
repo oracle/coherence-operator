@@ -11,7 +11,9 @@ import (
 	"fmt"
 	. "github.com/onsi/gomega"
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helm"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
@@ -56,6 +58,11 @@ func TestCompatibility(t *testing.T) {
 	// dump the before upgrade state
 	dir := fmt.Sprintf("%s-%s-before", t.Name(), version)
 	helper.DumpState(testContext, ns, dir)
+
+	if semver.Compare("v"+version, "v3.5.0") < 0 {
+		// upgrading from a pre-3.5.0 version so we need to patch the CRDs
+		helm.PatchAllCRDs(t, g, name, ns)
+	}
 
 	// Upgrade to this version
 	UpgradeToCurrentVersion(t, g, ns, name)

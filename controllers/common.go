@@ -42,6 +42,7 @@ func checkHash(deployment coh.CoherenceResource, phase coh.ConditionType, storag
 				desiredResources = storage.GetLatest()
 				log.Info("Ignoring hash difference for pre-3.5.0 resource", "hash", hash, "store", storeHash)
 			}
+
 		}
 	} else {
 		// storage state was saved with the current hash so is already in the desired state

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
+	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io"
 	appsv1 "k8s.io/api/apps/v1"
@@ -21,9 +22,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/scheme"
+	"os"
 	"os/exec"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"strings"
+	"testing"
 )
 
 func findContainer(name string, d *appsv1.Deployment) *corev1.Container {
@@ -250,4 +253,24 @@ func getGVKFromList(list runtime.Object, scheme *runtime.Scheme) (schema.GroupVe
 	// we need the non-list GVK, so chop off the "List" from the end of the kind
 	gvk.Kind = gvk.Kind[:len(gvk.Kind)-4]
 	return gvk, nil
+}
+
+func PatchAllCRDs(t *testing.T, g *GomegaWithT, name, namespace string) {
+	patchCRD(t, g, "coherence.coherence.oracle.com", name, namespace)
+	patchCRD(t, g, "coherencejob.coherence.oracle.com", name, namespace)
+}
+
+func patchCRD(t *testing.T, g *GomegaWithT, crd, name, namespace string) {
+	applyPatch(t, g, crd, "{\"metadata\": {\"labels\": {\"app.kubernetes.io/managed-by\": \"Helm\"}}}")
+	applyPatch(t, g, crd, fmt.Sprintf("{\"metadata\": {\"annotations\": {\"meta.helm.sh/release-name\": \"%s\"}}}", name))
+	applyPatch(t, g, crd, fmt.Sprintf("{\"metadata\": {\"annotations\": {\"meta.helm.sh/release-namespace\": \"%s\"}}}", namespace))
+}
+
+func applyPatch(t *testing.T, g *GomegaWithT, name, patch string) {
+	cmd := exec.Command("kubectl", "patch", "customresourcedefinition", name, patch)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	t.Logf("Helm upgrade to current Operator version - patching CRDs\n")
+	err := cmd.Run()
+	g.Expect(err).NotTo(HaveOccurred())
 }
