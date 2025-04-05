@@ -13,8 +13,10 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
+	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -180,16 +182,7 @@ func (in *CommonReconciler) updateDeploymentStatusCondition(ctx context.Context,
 		updated := deployment.DeepCopyResource()
 		status := updated.GetStatus()
 		if status.SetCondition(deployment, c) {
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.GetName(), updated, deployment)
-			if err != nil {
-				return errors.Wrap(err, "creating Coherence resource status patch")
-			}
-			if patch != nil {
-				err = in.GetClient().Status().Patch(ctx, deployment, patch)
-				if err != nil {
-					return errors.Wrap(err, "updating Coherence resource status")
-				}
-			}
+			err = in.PatchStatus(ctx, deployment, updated)
 		}
 	}
 	return err
@@ -214,16 +207,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusHash(ctx context.Context, key 
 		if deployment.Status.Hash != hash {
 			updated := deployment.DeepCopy()
 			updated.Status.Hash = hash
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
-			if err != nil {
-				return errors.Wrap(err, "creating Coherence resource status patch")
-			}
-			if patch != nil {
-				err = in.GetClient().Status().Patch(ctx, deployment, patch)
-				if err != nil {
-					return errors.Wrap(err, "updating Coherence resource status")
-				}
-			}
+			err = in.PatchStatus(ctx, deployment, updated)
 		}
 	}
 	return err
@@ -275,19 +259,48 @@ func (in *CommonReconciler) UpdateDeploymentStatusActionsState(ctx context.Conte
 		if deployment.Status.ActionsExecuted != actionExecuted {
 			updated := deployment.DeepCopy()
 			updated.Status.ActionsExecuted = actionExecuted
-			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
-			if err != nil {
-				return errors.Wrap(err, "creating Coherence resource status patch")
-			}
-			if patch != nil {
-				err = in.GetClient().Status().Patch(ctx, deployment, patch)
-				if err != nil {
-					return errors.Wrap(err, "updating Coherence resource status")
-				}
-			}
+			err = in.PatchStatus(ctx, deployment, updated)
 		}
 	}
 	return err
+}
+
+func (in *CommonReconciler) PatchStatus(ctx context.Context, deployment, updated coh.CoherenceResource) error {
+	updated.UpdateStatusVersion(operator.GetVersion())
+	patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.GetName(), updated, deployment)
+	if err != nil {
+		return errors.Wrap(err, "creating Coherence resource status patch")
+	}
+	if patch != nil {
+		err = in.GetClient().Status().Patch(ctx, deployment, patch)
+		if err != nil {
+			return errors.Wrap(err, "updating Coherence resource status")
+		}
+	}
+	return nil
+}
+
+// IsVersionAnnotationBefore returns true if the specified object
+// has a version annotation with a version before the specified version
+// or has no version annotation.
+func (in *CommonReconciler) IsVersionAnnotationBefore(m metav1.Object, version string) bool {
+	a := m.GetAnnotations()
+	if a != nil {
+		v, found := a[coh.AnnotationOperatorVersion]
+		if found && v != "" {
+			if v == version {
+				return false
+			}
+			if version[0] != 'v' {
+				version = "v" + version
+			}
+			if v[0] != 'v' {
+				v = "v" + v
+			}
+			return semver.Compare(v, version) < 0
+		}
+	}
+	return true
 }
 
 // CanCreate determines whether any specified start quorum has been met.
@@ -767,9 +780,11 @@ func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Con
 
 // HashLabelsMatch determines whether the Coherence Hash label on the specified Object matches the hash on the storage.
 func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage utils.Storage) bool {
-	storageHash, storageHashFound := storage.GetHash()
 	objectHash, objectHashFound := o.GetLabels()[coh.LabelCoherenceHash]
-	return storageHashFound == objectHashFound && storageHash == objectHash
+	if objectHashFound {
+		return storage.CheckHashMatches(objectHash)
+	}
+	return false
 }
 
 // ReconcileSingleResource reconciles a specific resource.

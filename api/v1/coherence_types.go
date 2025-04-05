@@ -3072,7 +3072,7 @@ func (in Resources) SetController(object runtime.Object, scheme *runtime.Scheme)
 }
 
 // SetHashLabels sets the hash label on all the resources.
-func (in Resources) SetHashLabels(hash string) {
+func (in Resources) SetHashLabels(hash, version string) {
 	for _, r := range in.Items {
 		if r.Spec != nil {
 			labels := r.Spec.GetLabels()
@@ -3081,6 +3081,13 @@ func (in Resources) SetHashLabels(hash string) {
 			}
 			labels[LabelCoherenceHash] = hash
 			r.Spec.SetLabels(labels)
+
+			ann := r.Spec.GetAnnotations()
+			if ann == nil {
+				ann = make(map[string]string)
+			}
+			ann[AnnotationOperatorVersion] = version
+			r.Spec.SetAnnotations(ann)
 		}
 	}
 }

@@ -210,11 +210,15 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 	selector[coh.LabelComponent] = coh.LabelComponentCoherencePod
 	podTemplate := createMinimalExpectedPodSpec(deployment)
 
+	annotations := make(map[string]string)
+	annotations[coh.AnnotationOperatorVersion] = operator.GetVersion()
+
 	// The StatefulSet
 	sts := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   deployment.Name,
-			Labels: labels,
+			Name:        deployment.Name,
+			Labels:      labels,
+			Annotations: annotations,
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas: ptr.To(spec.GetReplicas()),

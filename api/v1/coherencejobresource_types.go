@@ -7,6 +7,7 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/mod/semver"
 	batchv1 "k8s.io/api/batch/v1"
@@ -313,22 +314,19 @@ func (in *CoherenceJob) GetWKA() string {
 	return in.Spec.Coherence.GetWKA(in)
 }
 
-// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
-// if the version annotation is present. If the version annotation is not present this method
-// returns empty string and false.
-func (in *CoherenceJob) GetVersionAnnotation() (string, bool) {
-	if in == nil || in.Annotations == nil {
-		return "", false
-	}
-	version, found := in.Annotations[AnnotationOperatorVersion]
-	return version, found
-}
-
 // IsBeforeVersion returns true if this Coherence resource Operator version annotation value is
 // before the specified version, or is not set.
 // The version parameter must be a valid SemVer value.
 func (in *CoherenceJob) IsBeforeVersion(version string) bool {
-	if actual, found := in.GetVersionAnnotation(); found {
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
+	actual := in.Status.Version
+	if actual != "" {
+		if actual[0] != 'v' {
+			actual = "v" + actual
+		}
 		return semver.Compare(actual, version) < 0
 	}
 	return true
@@ -345,6 +343,20 @@ func (in *CoherenceJob) GetWkaIPFamily() corev1.IPFamily {
 // GetHeadlessServiceIPFamily always returns an empty array as this is not applicable to Jobs.
 func (in *CoherenceJob) GetHeadlessServiceIPFamily() []corev1.IPFamily {
 	return nil
+}
+
+func (in *CoherenceJob) GetGenerationString() string {
+	return fmt.Sprintf("%d", in.Generation)
+}
+
+func (in *CoherenceJob) HashLabelMatches(m metav1.Object) bool {
+	hash := in.GetGenerationString()
+	actual, found := m.GetLabels()[LabelCoherenceHash]
+	return found && hash == actual
+}
+
+func (in *CoherenceJob) UpdateStatusVersion(v string) {
+	in.Status.Version = v
 }
 
 // ----- CoherenceJobList type ----------------------------------------------
