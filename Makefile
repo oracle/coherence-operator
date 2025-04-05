@@ -33,7 +33,7 @@ COMPATIBLE_SELECTOR ?= control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.30
+KUBERNETES_DOC_VERSION=v1.32
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
@@ -48,7 +48,13 @@ OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(V
 OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
 OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
 OPERATOR_BASE_IMAGE     ?= scratch
-OLM_IMAGE_REGISTRY      ?= $(OPERATOR_IMAGE_REGISTRY)
+
+# The registry we release (push) the operator images to, which can be different to the registry
+# used to build and test the operator.
+OPERATOR_RELEASE_REGISTRY ?= $(OPERATOR_IMAGE_REGISTRY)
+OPERATOR_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
+OPERATOR_RELEASE_ARM      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
+OPERATOR_RELEASE_AMD      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
@@ -80,6 +86,7 @@ TEST_COHERENCE_GID     ?= $(COHERENCE_GROUP_ID)
 
 # The minimum certified OpenShift version the Operator runs on
 OPENSHIFT_MIN_VERSION   := v4.15
+OPENSHIFT_MAX_VERSION   := v4.18
 OPENSHIFT_COMPONENT_PID := 67b738ef88736e8a179ac976
 
 # The current working directory
@@ -158,6 +165,8 @@ SKIP_SPRING_CNBP                     ?= false
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
 # ----------------------------------------------------------------------------------------------------------------------
+OLM_IMAGE_REGISTRY  ?= $(OPERATOR_RELEASE_REGISTRY)
+
 # CHANNELS define the bundle channels used in the Operator Lifecycle Manager bundle.
 CHANNELS := stable
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
@@ -182,12 +191,6 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMAGE := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release build options
-# ----------------------------------------------------------------------------------------------------------------------
-RELEASE_DRY_RUN  ?= true
-PRE_RELEASE      ?= true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Testing properties
@@ -458,6 +461,7 @@ $(BUILD_PROPS):
 	@mkdir -p $(TOOLS_BIN)
 	@mkdir -p $(TOOLS_MANIFESTS)
 	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
+	printf "$(OPENSHIFT_MIN_VERSION)-$(OPENSHIFT_MAX_VERSION)" > $(BUILD_OUTPUT)/openshift-version.txt
 	# create build.properties
 	rm -f $(BUILD_PROPS)
 	printf "COHERENCE_IMAGE=$(COHERENCE_IMAGE)\n\
@@ -733,9 +737,8 @@ $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(
 	-mkdir -p $(BUILD_HELM)
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
 	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
-# Package the chart into a .tr.gz - we don't use helm package as the version might not be SEMVER
 	helm lint $(BUILD_HELM)/coherence-operator
-	tar -C $(BUILD_HELM)/coherence-operator -czf $(BUILD_HELM)/coherence-operator-$(VERSION).tgz .
+	helm package $(BUILD_HELM)/coherence-operator --destination $(BUILD_HELM)
 
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.
@@ -990,7 +993,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	@echo "  com.redhat.openshift.versions: $(OPENSHIFT_MIN_VERSION)" >> $(BUNDLE_DIRECTORY)/metadata/annotations.yaml
 	@echo "" >> bundle.Dockerfile
 	@echo "# OpenShift labels" >> bundle.Dockerfile
-	@echo "LABEL com.redhat.openshift.versions=$(OPENSHIFT_MIN_VERSION)" >> bundle.Dockerfile
+	@echo "LABEL com.redhat.openshift.versions=\"$(OPENSHIFT_MIN_VERSION)-$(OPENSHIFT_MAX_VERSION)\"" >> bundle.Dockerfile
 	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY)
@@ -1000,8 +1003,7 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=categories --optional-values=k8s-version=1.26
 	rm -rf $(BUNDLE_BUILD) || true
 	mkdir -p $(BUNDLE_BUILD)/coherence-operator/$(VERSION) || true
-	cp -R $(BUNDLE_DIRECTORY)/. $(BUNDLE_BUILD)/coherence-operator/$(VERSION)
-	rm $(BUNDLE_BUILD)/coherence-operator/$(VERSION)/ci.yaml || true
+	sh $(SCRIPTS_DIR)/bundle.sh
 	tar -C $(BUNDLE_BUILD) -czf $(BUILD_OUTPUT)/coherence-operator-bundle.tar.gz .
 	rm -rf bundle_tmp*
 
@@ -1051,6 +1053,7 @@ catalog-build: opm ## Build a catalog image (the bundle image must have been pus
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: catalog-build ## Push a catalog image.
+	@echo "Pushing catalog image $(CATALOG_IMAGE)"
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(CATALOG_IMAGE)
 
 .PHONY: scorecard
@@ -2272,29 +2275,15 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Install yq
 # ----------------------------------------------------------------------------------------------------------------------
-YQ         = $(TOOLS_BIN)/yq
-YQ_VERSION = v4.44.3
+YQ = $(TOOLS_BIN)/yq
 
-.PHONY: yq-install
-yq-install: $(TOOLS_BIN)/yq  ## Install yq (defaults to the latest version, can be changed by setting YQ_VERSION)
-	$(YQ) version
+.PHONY: get-yq
+get-yq: $(TOOLS_BIN)/yq  ## Install yq (defaults to the latest version, can be changed by setting YQ_VERSION)
 
 $(TOOLS_BIN)/yq:
 	mkdir -p $(TOOLS_BIN) || true
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_amd64 -o $(TOOLS_BIN)/yq
-else
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_darwin_arm64 -o $(TOOLS_BIN)/yq
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -o $(TOOLS_BIN)/yq
-else
-	curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_arm64 -o $(TOOLS_BIN)/yq
-endif
-endif
-	chmod +x $(TOOLS_BIN)/yq
+	sh $(SCRIPTS_DIR)/tools/get-yq.sh
+	$(YQ) --version
 
 # ======================================================================================================================
 # Kubernetes Cert Manager targets
@@ -2472,7 +2461,57 @@ KUSTOMIZE = $(TOOLS_BIN)/kustomize
 kustomize: $(TOOLS_BIN)/kustomize ## Download kustomize locally if necessary.
 
 $(TOOLS_BIN)/kustomize:
+	mkdir -p $(TOOLS_BIN) || true
 	test -s $(TOOLS_BIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header $(GH_AUTH) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(TOOLS_BIN); }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download kubectl
+# ----------------------------------------------------------------------------------------------------------------------
+
+.PHONY: get-kubectl
+get-kubectl: $(TOOLS_BIN)/kubectl ## Download kubectl to the build/tools/bin directory
+
+$(TOOLS_BIN)/kubectl:
+	mkdir -p $(TOOLS_BIN) || true
+	sh $(SCRIPTS_DIR)/tools/get-kubectl.sh
+	$(TOOLS_BIN)/kubectl version --client=true
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download the GitHub CLI
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: get-gh
+get-gh: $(TOOLS_BIN)/gh ## Download GitHub CLI to the build/tools/bin directory
+
+$(TOOLS_BIN)/gh:
+	mkdir -p $(TOOLS_BIN) || true
+	sh $(SCRIPTS_DIR)/github/get-gh.sh
+	$(TOOLS_BIN)/gh version
+
+# ----------------------------------------------------------------------------------------------------------------------
+# download Helm
+# ----------------------------------------------------------------------------------------------------------------------
+HELM_VERSION=3.17.2
+
+.PHONY: get-helm
+get-helm: $(TOOLS_BIN)/helm ## Download Helm to the build/tools/bin directory
+
+$(TOOLS_BIN)/helm:
+	mkdir -p $(TOOLS_BIN) || true
+	sh $(SCRIPTS_DIR)/tools/get-helm.sh
+	$(TOOLS_BIN)/helm version
+
+# ----------------------------------------------------------------------------------------------------------------------
+# download the Tekton CLI
+# ----------------------------------------------------------------------------------------------------------------------
+TEKTON_VERSION=0.40.0
+
+.PHONY: get-tekton
+get-tekton: $(TOOLS_BIN)/tkn ## Download Tekton to the build/tools/bin directory
+
+$(TOOLS_BIN)/tkn:
+	mkdir -p $(TOOLS_BIN) || true
+	sh $(SCRIPTS_DIR)/tools/get-tekton.sh
+	$(TOOLS_BIN)/tkn version
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download the Coherence CLI
@@ -2504,24 +2543,9 @@ $(BUILD_BIN_ARM64)/cohctl:
 oc: $(TOOLS_BIN)/oc
 
 $(TOOLS_BIN)/oc: ## Download OpenShift oc CLI
-	mkdir -p oc-tmp || true
 	mkdir -p $(TOOLS_BIN) || true
-ifeq (Darwin, $(UNAME_S))
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz -o oc-tmp/openshift-client.tar.gz
-else
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/stable/openshift-client-mac-arm64.tar.gz -o oc-tmp/openshift-client.tar.gz
-endif
-else
-ifeq (x86_64, $(UNAME_M))
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz -o oc-tmp/openshift-client.tar.gz
-else
-	curl -Ls https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/stable/openshift-client-linux.tar.gz -o oc-tmp/openshift-client.tar.gz
-endif
-endif
-	cd oc-tmp && tar -xvf openshift-client.tar.gz
-	mv oc-tmp/oc $(TOOLS_BIN)/oc
-	chmod +x $(TOOLS_BIN)/oc
+	sh $(SCRIPTS_DIR)/openshift/get-oc.sh
+	$(TOOLS_BIN)/oc version --client=true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download gotestsum
@@ -2550,13 +2574,6 @@ test-examples: build-examples
 # Push the Operator Docker image
 # ----------------------------------------------------------------------------------------------------------------------
 PUSH_ARGS ?=
-
-# The registry we release (push) the operator images to, which can be different to the registry
-# used to build and test the operator.
-OPERATOR_RELEASE_REGISTRY ?= $(OPERATOR_IMAGE_REGISTRY)
-OPERATOR_RELEASE_IMAGE    := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
-OPERATOR_RELEASE_ARM      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
-OPERATOR_RELEASE_AMD      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
 
 .PHONY: push-operator-image
 push-operator-image: $(BUILD_TARGETS)/build-operator
@@ -2841,7 +2858,7 @@ $(TOOLS_BIN)/golangci-lint:
 # Display the full version string for the artifacts that would be built.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: version
-version:
+version: $(BUILD_PROPS)
 	@echo ${VERSION}
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2890,28 +2907,10 @@ serve-docs:
 ##@ Release Targets
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Pre-Release Tasks
-# Update the version numbers in the documentation to be the version about to be released
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: pre-release
-pre-release:
-	$(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' README.md
-	find docs \( -name '*.adoc' -o -name '*.md' \) -exec $(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
-	find examples \( -name '*.adoc' -o -name '*.md' -o -name '*.yaml' \) -exec $(SED) 's/$(subst .,\.,$(PREV_VERSION))/$(VERSION)/g' {} +
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Post-Release Tasks
-# Update the version numbers
-#post-release: check-new-version new-version manifests generate build-all-images
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: post-release
-post-release: check-new-version new-version
-
-# ----------------------------------------------------------------------------------------------------------------------
 # Release the Coherence Operator dashboards
 # ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release-dashboards
-release-dashboards:
+.PHONY: package-dashboards
+package-dashboards: ## package the Grafana and Kibana dashboards
 	@echo "Releasing Dashboards $(VERSION)"
 	mkdir -p $(BUILD_OUTPUT)/dashboards/$(VERSION) || true
 	tar -czvf $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz  dashboards/
@@ -2919,109 +2918,6 @@ release-dashboards:
 		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-grafana-dashboards.yaml
 	$(KUBECTL_CMD) create configmap coherence-kibana-dashboards --from-file=dashboards/kibana \
 		--dry-run=client -o yaml > $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-kibana-dashboards.yaml
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator to the gh-pages branch.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release-ghpages
-release-ghpages:  helm-chart docs release-dashboards
-	mkdir -p /tmp/coherence-operator || true
-	cp -R $(BUILD_OUTPUT) /tmp/coherence-operator
-	cp $(BUILD_OUTPUT)/dashboards/$(VERSION)/coherence-dashboards.tar.gz /tmp/coherence-operator/_output/coherence-dashboards.tar.gz
-	git stash save --keep-index --include-untracked || true
-	git stash drop || true
-	git checkout --track origin/gh-pages
-	git config pull.rebase true
-	git pull
-	mkdir -p dashboards || true
-	rm -rf dashboards/$(VERSION) || true
-	mv $(BUILD_OUTPUT)/dashboards/$(VERSION)/ dashboards/
-	git add dashboards/$(VERSION)/*
-ifeq (true, $(PRE_RELEASE))
-	mkdir -p docs-unstable || true
-	rm -rf docs-unstable/$(VERSION)/ || true
-	mv $(BUILD_OUTPUT)/docs/ docs-unstable/$(VERSION)/
-	ls -ls docs-unstable
-
-	mkdir -p charts-unstable || true
-	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts-unstable/
-	helm repo index charts-unstable --url https://oracle.github.io/coherence-operator/charts-unstable
-	git add charts-unstable/coherence-operator-$(VERSION).tgz
-	git add charts-unstable/index.yaml
-	ls -ls charts-unstable
-
-	git add docs-unstable/*
-	git status
-else
-	rm -rf dashboards/latest || true
-	cp -R dashboards/$(VERSION) dashboards/latest
-	git add -A dashboards/latest/*
-	mkdir docs/$(VERSION) || true
-	rm -rf docs/$(VERSION)/ || true
-	mv $(BUILD_OUTPUT)/docs/ docs/$(VERSION)/
-	rm -rf docs/latest
-	cp -R docs/$(VERSION) docs/latest
-	git add -A docs/*
-
-	ls -ls docs
-
-	mkdir -p charts || true
-	cp $(BUILD_HELM)/coherence-operator-$(VERSION).tgz charts/
-	helm repo index charts --url https://oracle.github.io/coherence-operator/charts
-	git add charts/coherence-operator-$(VERSION).tgz
-	git add charts/index.yaml
-	ls -ls charts
-
-	git status
-endif
-	git clean -d -f
-	git status
-	git commit -m "Release Coherence Operator version: $(VERSION)"
-	git log -1
-ifeq (true, $(RELEASE_DRY_RUN))
-	@echo "release dry-run - would have pushed Helm chart and docs $(VERSION) to gh-pages"
-else
-	git push origin gh-pages
-endif
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator snapshot documentation.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: push-snapshot-docs
-push-snapshot-docs: $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests docs
-	rm -rf /tmp/coherence-operator || true
-	mkdir -p /tmp/coherence-operator || true
-	cp -R $(BUILD_OUTPUT)/ /tmp/coherence-operator
-	ls -al /tmp/coherence-operator
-	git stash save --keep-index --include-untracked || true
-	git stash drop || true
-	git checkout --track origin/gh-pages
-	git config pull.rebase true
-	git pull
-	rm -rf docs/snapshot
-	mv /tmp/coherence-operator/_output/docs/ docs/snapshot/
-	ls -al docs/
-	git add -A docs/snapshot/*
-	git status
-	git clean -d -f
-	git status
-	git commit -m "Release Coherence Operator snapshot docs $(VERSION)"
-	git log -1
-	git push origin gh-pages
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Release the Coherence Operator.
-# ----------------------------------------------------------------------------------------------------------------------
-.PHONY: release
-release: ## Release the Operator
-ifeq (true, $(RELEASE_DRY_RUN))
-release: build-all-images release-ghpages
-	@echo "release dry-run: would have pushed images"
-else
-release: build-all-images push-release-images release-ghpages
-endif
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Update the Operator version and all references to the previous version
