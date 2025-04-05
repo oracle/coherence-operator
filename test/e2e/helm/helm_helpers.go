@@ -267,7 +267,7 @@ func patchCRD(t *testing.T, g *GomegaWithT, crd, name, namespace string) {
 }
 
 func applyPatch(t *testing.T, g *GomegaWithT, name, patch string) {
-	cmd := exec.Command("kubectl", "patch", "customresourcedefinition", name, patch)
+	cmd := exec.Command("kubectl", "patch", "customresourcedefinition", name, "--patch", patch)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	t.Logf("Helm upgrade to current Operator version - patching CRDs\n")
