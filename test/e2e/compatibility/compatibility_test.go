@@ -144,7 +144,6 @@ func UpgradeToCurrentVersion(t *testing.T, g *GomegaWithT, ns, name string) {
 	cmd := exec.Command("helm", "upgrade",
 		"--set", "image="+helper.GetOperatorImage(),
 		"--set", "defaultCoherenceUtilsImage="+helper.GetOperatorImage(),
-		"--set", "installCrd=false",
 		"--namespace", ns, "--wait", name, chart)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
