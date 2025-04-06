@@ -2212,7 +2212,7 @@ K3D_REGISTRY_PORT     ?= 12345
 K3D_INTERNAL_REGISTRY := k3d-$(K3D_REGISTRY).localhost:$(K3D_REGISTRY_PORT)
 
 .PHONY: k3d
-k3d: $(TOOLS_BIN)/k3d k3d-create k3d-load-operator create-namespace  ## Run a default k3d cluster
+k3d: $(TOOLS_BIN)/k3d k3d-create k3d-load-operator k3d-load-coherence create-namespace  ## Run a default k3d cluster
 
 .PHONY: k3d-create
 k3d-create: $(TOOLS_BIN)/k3d ## Create the k3d cluster

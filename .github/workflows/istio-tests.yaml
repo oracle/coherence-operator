@@ -128,6 +128,7 @@ jobs:
     - name: Istio Tests
       shell: bash
       run: |
+        make reset-namespace
         ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
         make deploy
         make e2e-client-test
