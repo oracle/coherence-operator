@@ -117,18 +117,21 @@ func ensureV1CRD(ctx context.Context, logger logr.Logger, cl client.Client, file
 }
 
 // EnsureVersionForAllCRDs ensures that the required CRD version is present
-func EnsureVersionForAllCRDs(ctx context.Context, scheme *runtime.Scheme, cl client.Client) error {
-	if err := ensureVersionForCRD(ctx, scheme, cl, "coherence.coherence.oracle.com"); err != nil {
+func EnsureVersionForAllCRDs(ctx context.Context, scheme *runtime.Scheme, cl client.Client, required string) error {
+	if required == "" {
+		required = operator.GetVersion()
+	}
+	if err := ensureVersionForCRD(ctx, scheme, cl, "coherence.coherence.oracle.com", required); err != nil {
 		return err
 	}
-	if err := ensureVersionForCRD(ctx, scheme, cl, "coherencejob.coherence.oracle.com"); err != nil {
+	if err := ensureVersionForCRD(ctx, scheme, cl, "coherencejob.coherence.oracle.com", required); err != nil {
 		return err
 	}
 	return nil
 }
 
 // ensureCRDVersion ensures that the required CRD version is present
-func ensureVersionForCRD(ctx context.Context, scheme *runtime.Scheme, cl client.Client, name string) error {
+func ensureVersionForCRD(ctx context.Context, scheme *runtime.Scheme, cl client.Client, name, required string) error {
 	label := "app.kubernetes.io/version"
 	if err := crdv1.AddToScheme(scheme); err != nil {
 		return err
@@ -141,8 +144,12 @@ func ensureVersionForCRD(ctx context.Context, scheme *runtime.Scheme, cl client.
 	if !found {
 		return errors.New("cannot verify CRD version, label " + name + " not found in CRD" + name)
 	}
-	v = "v" + v
-	required := "v" + operator.GetVersion()
+	if v[0] != 'v' {
+		v = "v" + v
+	}
+	if required[0] != 'v' {
+		required = "v" + required
+	}
 	if semver.Compare(v, required) < 0 {
 		return errors.New("crd " + name + " is version " + v + " but must be a minimum of " + required)
 	}

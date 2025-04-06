@@ -65,10 +65,10 @@ type CoherenceResource interface {
 	GetType() CoherenceType
 	// GetWKA returns the host name Coherence should for WKA.
 	GetWKA() string
-	// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
+	// GetOperatorVersion if the returns the value of the Operator version and true,
 	// if the version annotation is present. If the version annotation is not present this method
 	// returns empty string and false.
-	GetVersionAnnotation() (string, bool)
+	GetOperatorVersion() (string, bool)
 	// IsBeforeVersion returns true if this Coherence resource Operator version annotation value is
 	// before the specified version, or is not set.
 	// The version parameter must be a valid SemVer value.

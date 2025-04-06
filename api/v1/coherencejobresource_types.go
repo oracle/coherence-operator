@@ -314,14 +314,18 @@ func (in *CoherenceJob) GetWKA() string {
 	return in.Spec.Coherence.GetWKA(in)
 }
 
-// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
-// if the version annotation is present. If the version annotation is not present this method
+// GetOperatorVersion if the returns the value of the Operator version and true,
+// if the version is present. If the version is not present this method
 // returns empty string and false.
-func (in *CoherenceJob) GetVersionAnnotation() (string, bool) {
-	if in == nil || in.Annotations == nil {
+func (in *CoherenceJob) GetOperatorVersion() (string, bool) {
+	if in == nil {
 		return "", false
 	}
-	version, found := in.Annotations[AnnotationOperatorVersion]
+	found := true
+	version := in.Status.Version
+	if version == "" {
+		version, found = in.Annotations[AnnotationOperatorVersion]
+	}
 	return version, found
 }
 
@@ -329,7 +333,7 @@ func (in *CoherenceJob) GetVersionAnnotation() (string, bool) {
 // before the specified version, or is not set.
 // The version parameter must be a valid SemVer value.
 func (in *CoherenceJob) IsBeforeVersion(version string) bool {
-	if actual, found := in.GetVersionAnnotation(); found {
+	if actual, found := in.GetOperatorVersion(); found {
 		return semver.Compare(actual, version) < 0
 	}
 	return true
@@ -343,7 +347,7 @@ func (in *CoherenceJob) IsBeforeOrSameVersion(version string) bool {
 		version = "v" + version
 	}
 
-	if actual, found := in.GetVersionAnnotation(); found {
+	if actual, found := in.GetOperatorVersion(); found {
 		if actual[0] != 'v' {
 			actual = "v" + actual
 		}
