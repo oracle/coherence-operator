@@ -113,12 +113,6 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 
 	// The request is an add or update
 
-	// Ensure the hash label is present (it should have been added by the web-hook, so this should be a no-op).
-	// The hash may not have been added if the CoherenceJob resource was added/modified when the Operator was uninstalled.
-	if hashApplied, err := in.ensureHashApplied(ctx, deployment); hashApplied || err != nil {
-		return ctrl.Result{Requeue: true}, err
-	}
-
 	spec, _ := deployment.GetJobResourceSpec()
 
 	// ensure that the deployment has an initial status
@@ -159,7 +153,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
-	hash := deployment.GetLabels()[coh.LabelCoherenceHash]
+	hash := deployment.GetGenerationString()
 	storeHash, _ := storage.GetHash()
 	var desiredResources coh.Resources
 
@@ -167,6 +161,9 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	if err != nil {
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
+
+	// Ensure the version is present.
+	deployment.UpdateStatusVersion(operator.GetVersion())
 
 	// create the result
 	result := ctrl.Result{Requeue: false}
@@ -185,12 +182,6 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	if err = storage.Store(desiredResources, deployment); err != nil {
 		err = errors.Wrap(err, "storing latest state in state store")
 		return reconcile.Result{}, err
-	}
-
-	// Ensure the version annotation is present (it should have been added by the web-hook, so this should be a no-op).
-	// The hash may not have been added if the CoherenceJob resource was added/modified when the Operator was uninstalled.
-	if applied, err := in.ensureVersionAnnotationApplied(ctx, deployment); applied || err != nil {
-		return ctrl.Result{Requeue: true}, err
 	}
 
 	// process the secondary resources in the order they should be created
@@ -263,67 +254,6 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.
 }
 
 func (in *CoherenceJobReconciler) GetReconciler() reconcile.Reconciler { return in }
-
-// ensureHashApplied ensures that the hash label is present in the CoherenceJob resource, patching it if required
-func (in *CoherenceJobReconciler) ensureHashApplied(ctx context.Context, c *coh.CoherenceJob) (bool, error) {
-	currentHash := ""
-	labels := c.GetLabels()
-	if len(labels) > 0 {
-		currentHash = labels[coh.LabelCoherenceHash]
-	}
-
-	// Re-fetch the CoherenceJob resource to ensure we have the most recent copy
-	latest := c.DeepCopy()
-	hash, _ := coh.EnsureJobHashLabel(latest)
-
-	if currentHash != hash {
-		if c.IsBeforeVersion("3.4.2") {
-			// Before 3.4.2 there was a bug calculating the has in the defaulting web-hook
-			// This would cause the hashes to be different here, when in fact they should not be
-			// If the CoherenceJob resource being processes has no version annotation, or a version
-			// prior to 3.4.2 then we return as if the hashes matched
-			if labels == nil {
-				labels = make(map[string]string)
-			}
-			labels[coh.LabelCoherenceHash] = hash
-			c.SetLabels(labels)
-			return false, nil
-		}
-		callback := func() {
-			in.Log.Info(fmt.Sprintf("Applied %s label", coh.LabelCoherenceHash), "newHash", hash, "currentHash", currentHash)
-		}
-
-		applied, err := in.ThreeWayPatchWithCallback(ctx, c.GetName(), c, c, latest, callback)
-		if err != nil {
-			return false, errors.Wrapf(err, "failed to update CoherenceJob resource %s/%s with hash", c.GetNamespace(), c.GetName())
-		}
-		return applied, nil
-	}
-	return false, nil
-}
-
-// ensureVersionAnnotationApplied ensures that the version annotation is present in the CoherenceJob resource, patching it if required
-func (in *CoherenceJobReconciler) ensureVersionAnnotationApplied(ctx context.Context, c coh.CoherenceResource) (bool, error) {
-	currentVersion, _ := c.GetVersionAnnotation()
-	operatorVersion := operator.GetVersion()
-
-	if currentVersion != operatorVersion {
-		// make a copy of the CoherenceJob resource to use in the three-way patch
-		latest := c.DeepCopyResource()
-		latest.AddAnnotation(coh.AnnotationOperatorVersion, operatorVersion)
-
-		callback := func() {
-			in.Log.Info(fmt.Sprintf("Applied %s annotation", coh.AnnotationOperatorVersion), "value", operatorVersion)
-		}
-
-		applied, err := in.ThreeWayPatchWithCallback(ctx, c.GetName(), c, c, latest, callback)
-		if err != nil {
-			return false, errors.Wrapf(err, "failed to update CoherenceJob resource %s/%s with operatorVersion annotation", c.GetNamespace(), c.GetName())
-		}
-		return applied, nil
-	}
-	return false, nil
-}
 
 // ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
 func (in *CoherenceJobReconciler) ensureOperatorSecret(ctx context.Context, deployment *coh.CoherenceJob, c client.Client, log logr.Logger) error {

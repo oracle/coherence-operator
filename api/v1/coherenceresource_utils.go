@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
+	"golang.org/x/mod/semver"
 	"io"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -112,5 +113,38 @@ func ensureV1CRD(ctx context.Context, logger logr.Logger, cl client.Client, file
 		return errors.Wrapf(err, "checking for existing Coherence CRD %s", newCRD.Name)
 	}
 
+	return nil
+}
+
+// EnsureVersionForAllCRDs ensures that the required CRD version is present
+func EnsureVersionForAllCRDs(ctx context.Context, scheme *runtime.Scheme, cl client.Client) error {
+	if err := ensureVersionForCRD(ctx, scheme, cl, "coherence.coherence.oracle.com"); err != nil {
+		return err
+	}
+	if err := ensureVersionForCRD(ctx, scheme, cl, "coherencejob.coherence.oracle.com"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ensureCRDVersion ensures that the required CRD version is present
+func ensureVersionForCRD(ctx context.Context, scheme *runtime.Scheme, cl client.Client, name string) error {
+	label := "app.kubernetes.io/version"
+	if err := crdv1.AddToScheme(scheme); err != nil {
+		return err
+	}
+	crd := crdv1.CustomResourceDefinition{}
+	if err := cl.Get(ctx, client.ObjectKey{Name: name}, &crd); err != nil {
+		return err
+	}
+	v, found := crd.GetLabels()[label]
+	if !found {
+		return errors.New("cannot verify CRD version, label " + name + " not found in CRD" + name)
+	}
+	v = "v" + v
+	required := "v" + operator.GetVersion()
+	if semver.Compare(v, required) < 0 {
+		return errors.New("crd " + name + " is version " + v + " but must be a minimum of " + required)
+	}
 	return nil
 }

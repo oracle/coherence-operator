@@ -771,7 +771,7 @@ manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition a
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(MANIFEST_FILES) $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen get-yq
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd/bases
@@ -779,9 +779,11 @@ config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(A
 	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd-small/bases
-	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
-	$(KUSTOMIZE) build config/crd -o $(BUILD_ASSETS)/
-	cd config/crd-small && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd/bases/coherence.oracle.com_coherence.yaml
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd/bases/coherence.oracle.com_coherencejob.yaml
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd-small/bases/coherence.oracle.com_coherence.yaml
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd-small/bases/coherence.oracle.com_coherencejob.yaml
+	$(KUSTOMIZE) build config/crd-small -o $(BUILD_ASSETS)/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -2087,7 +2089,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.32.0@sha256:c48c62eac5da28cdadcf560d1d8616cfa6783b58f0d94cf63ad1bf49600cb027"
+KIND_IMAGE     ?= "kindest/node:v1.32.2@sha256:f226345927d7e348497136874b6d207e0b32cc52154ad8323129352923a3142f"
 CALICO_TIMEOUT ?= 300s
 KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
 

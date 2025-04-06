@@ -1,4 +1,4 @@
-# Copyright 2019, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2025, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -37,6 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.4.3
         - 3.4.2
         - 3.4.1
         - 3.4.0
@@ -45,10 +46,11 @@ jobs:
         - 3.3.3
         - 3.3.2
         - 3.3.1
-        - 3.3.0
-        - 3.2.11
-        - 3.2.10
         include:
+        - compatibilityVersion: 3.4.3
+          coherence-image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1"
+          compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.32.2@sha256:f226345927d7e348497136874b6d207e0b32cc52154ad8323129352923a3142f
         - compatibilityVersion: 3.4.2
           coherence-image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1"
           compatibilitySelector: control-plane=coherence
@@ -81,18 +83,6 @@ jobs:
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
-        - compatibilityVersion: 3.3.0
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
-        - compatibilityVersion: 3.2.11
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb
-        - compatibilityVersion: 3.2.10
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb
 
     steps:
     - uses: actions/checkout@v4

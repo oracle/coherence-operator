@@ -13,6 +13,7 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -214,6 +215,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusHash(ctx context.Context, key 
 		if deployment.Status.Hash != hash {
 			updated := deployment.DeepCopy()
 			updated.Status.Hash = hash
+			updated.Status.Version = operator.GetVersion()
 			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")

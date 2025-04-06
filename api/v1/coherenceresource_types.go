@@ -411,6 +411,37 @@ func (in *Coherence) IsBeforeVersion(version string) bool {
 	return true
 }
 
+// IsBeforeOrSameVersion returns true if this Coherence resource Operator version annotation value is
+// the same or before the specified version, or is not set.
+// The version parameter must be a valid SemVer value.
+func (in *Coherence) IsBeforeOrSameVersion(version string) bool {
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
+	if actual, found := in.GetVersionAnnotation(); found {
+		if actual[0] != 'v' {
+			actual = "v" + actual
+		}
+		return semver.Compare(actual, version) <= 0
+	}
+	return true
+}
+
+func (in *Coherence) GetGenerationString() string {
+	return fmt.Sprintf("%d", in.Generation)
+}
+
+func (in *Coherence) HashLabelMatches(m metav1.Object) bool {
+	hash := in.GetGenerationString()
+	actual, found := m.GetLabels()[LabelCoherenceHash]
+	return found && hash == actual
+}
+
+func (in *Coherence) UpdateStatusVersion(v string) {
+	in.Status.Version = v
+}
+
 // ----- CoherenceStatefulSetResourceSpec type -----------------------------------------------------
 
 // CoherenceStatefulSetResourceSpec defines the specification of a Coherence resource. A Coherence resource is
@@ -798,6 +829,9 @@ type CoherenceResourceStatus struct {
 	// +patchMergeKey=pod
 	// +patchStrategy=merge
 	JobProbes []CoherenceJobProbeStatus `json:"jobProbes,omitempty"`
+	// The version of the Operator that last processed this resource
+	// +optional
+	Version string `json:"version,omitempty"`
 }
 
 // SetCondition sets the current Status Condition
@@ -1043,6 +1077,12 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment CoherenceResourc
 	t := deployment.GetType()
 	if in.Type != t {
 		in.Type = t
+		updated = true
+	}
+
+	v := operator.GetVersion()
+	if in.Version != v {
+		in.Version = v
 		updated = true
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,7 @@ package v1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -72,6 +73,10 @@ type CoherenceResource interface {
 	// before the specified version, or is not set.
 	// The version parameter must be a valid SemVer value.
 	IsBeforeVersion(version string) bool
+	// IsBeforeOrSameVersion returns true if this Coherence resource Operator version annotation value is
+	// the same or before the specified version, or is not set.
+	// The version parameter must be a valid SemVer value.
+	IsBeforeOrSameVersion(version string) bool
 	// GetSpec returns this resource's CoherenceResourceSpec
 	GetSpec() *CoherenceResourceSpec
 	// GetJobResourceSpec returns this resource's CoherenceJobResourceSpec.
@@ -104,4 +109,11 @@ type CoherenceResource interface {
 	GetGlobalSpec() *GlobalSpec
 	// GetInitResources returns the optional resource requirements for the init container
 	GetInitResources() *corev1.ResourceRequirements
+	// GetGenerationString returns the resource metadata generation as a string
+	GetGenerationString() string
+	// HashLabelMatches determines whether the hash label on the specified metav1.Object
+	// matched the generation string of this resource
+	HashLabelMatches(m metav1.Object) bool
+	// UpdateStatusVersion update the version field of the status
+	UpdateStatusVersion(v string)
 }
