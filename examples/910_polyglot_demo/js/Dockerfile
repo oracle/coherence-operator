@@ -7,13 +7,17 @@
 
 FROM node:18-alpine
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /usr/src/app
 
-COPY package*.json ./
-COPY main.js ./
+COPY --chown=appuser:appgroup package*.json ./
+COPY --chown=appuser:appgroup main.js ./
 
-RUN npm install
+RUN npm install --ignore-scripts
+RUN chown -R appuser:appgroup /usr/src/app
 
+USER appuser
 EXPOSE 8080
 
 CMD [ "node", "main.js" ]

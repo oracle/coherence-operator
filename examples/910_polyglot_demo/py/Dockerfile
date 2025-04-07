@@ -7,8 +7,16 @@
 
 FROM python:3.11-slim
 
-ADD main.py .
-RUN pip install coherence-client==2.0.0 Quart
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
+WORKDIR /app
+COPY --chown=appuser:appgroup main.py .
+
+RUN pip install --no-cache-dir coherence-client==2.0.0 Quart
+
+RUN chown -R appuser:appgroup /app
+
+USER appuser
 
 CMD ["python3", "./main.py"]
 
