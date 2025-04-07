@@ -1,0 +1,14 @@
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: demo-cluster  # <1>
+spec:
+  replicas: 3 # <2>
+  image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1-java17" # <3>
+  coherence:
+    management: # <4>
+      enabled: true
+  ports:
+    - name: grpc # <5>
+      port: 1408
+    - name: management

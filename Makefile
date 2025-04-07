@@ -907,6 +907,9 @@ copyright:  ## Check copyright headers
 	  -X tools.go \
 	  -X .tpl \
 	  -X .txt \
+	  -X node_modules \
+	  -X venv \
+	  -X runner \
 	  -X .yaml \
 	  -X pkg/data/assets/ \
 	  -X zz_generated.

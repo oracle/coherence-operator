@@ -61,3 +61,10 @@ bundle.Dockerfile
 hack/istio*/
 /java/certs/
 .flattened-pom.xml
+
+# Examples noise
+node_modules
+.coh-history
+.cohql-history
+runner
+venv
