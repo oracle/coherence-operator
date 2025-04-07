@@ -14,6 +14,8 @@ WORKDIR /usr/src/app
 COPY --chown=appuser:appgroup package*.json ./
 COPY --chown=appuser:appgroup main.js ./
 
+RUN chmod 444 package*.json main.js
+
 RUN npm install --ignore-scripts
 RUN chown -R appuser:appgroup /usr/src/app
 
