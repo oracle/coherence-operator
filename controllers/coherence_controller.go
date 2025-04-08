@@ -226,20 +226,34 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
+	// create the result
+	result := ctrl.Result{Requeue: false}
+
 	hash := deployment.GetGenerationString()
 	storeHash, _ := storage.GetHash()
 	var desiredResources coh.Resources
+
+	if hash == storeHash && deployment.IsBeforeOrSameVersion("3.4.3") {
+		deployment.UpdateStatusVersion(operator.GetVersion())
+		if err = storage.ResetHash(deployment); err != nil {
+			return result, errors.Wrap(err, "error updating storage status hash")
+		}
+		hashNew := deployment.GetGenerationString()
+		if err = in.UpdateDeploymentStatusHash(ctx, request.NamespacedName, hashNew); err != nil {
+			return result, errors.Wrap(err, "error updating deployment status hash")
+		}
+		return result, nil
+	}
+
+	if hash == storeHash {
+		// nothing to do
+		return result, nil
+	}
 
 	desiredResources, err = getDesiredResources(deployment, storage, log)
 	if err != nil {
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
-
-	// Ensure the version is present
-	deployment.UpdateStatusVersion(operator.GetVersion())
-
-	// create the result
-	result := ctrl.Result{Requeue: false}
 
 	log.Info("Reconciling Coherence resource secondary resources", "hash", hash, "store", storeHash)
 
@@ -256,6 +270,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		err = errors.Wrap(err, "storing latest state in state store")
 		return reconcile.Result{}, err
 	}
+
+	// Ensure the version is present
+	deployment.UpdateStatusVersion(operator.GetVersion())
 
 	// process the secondary resources in the order they should be created
 	var failures []Failure
@@ -457,7 +474,8 @@ func watchSecondaryResource(mgr ctrl.Manager, s reconciler.SecondaryResourceReco
 	}
 
 	// Create a new controller
-	c, err := controller.New(s.GetControllerName(), s.GetManager(), controller.Options{Reconciler: s.GetReconciler()})
+	opts := controller.Options{Reconciler: s.GetReconciler(), MaxConcurrentReconciles: 1}
+	c, err := controller.New(s.GetControllerName(), s.GetManager(), opts)
 	if err != nil {
 		return err
 	}

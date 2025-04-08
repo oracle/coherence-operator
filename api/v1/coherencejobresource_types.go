@@ -370,6 +370,13 @@ func (in *CoherenceJob) GetHeadlessServiceIPFamily() []corev1.IPFamily {
 }
 
 func (in *CoherenceJob) GetGenerationString() string {
+	// If this is a version 3.4.3 resource or earlier look for the hash label
+	// If that is not found use the generation
+	if in.IsBeforeOrSameVersion("3.4.3") {
+		if h, found := in.GetLabels()[LabelCoherenceHash]; found {
+			return h
+		}
+	}
 	return fmt.Sprintf("%d", in.Generation)
 }
 

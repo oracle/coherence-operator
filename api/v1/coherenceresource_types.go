@@ -433,6 +433,13 @@ func (in *Coherence) IsBeforeOrSameVersion(version string) bool {
 }
 
 func (in *Coherence) GetGenerationString() string {
+	// If this is a version 3.4.3 resource or earlier look for the hash label
+	// If that is not found use the generation
+	if in.IsBeforeOrSameVersion("3.4.3") {
+		if h, found := in.GetLabels()[LabelCoherenceHash]; found {
+			return h
+		}
+	}
 	return fmt.Sprintf("%d", in.Generation)
 }
 
@@ -652,6 +659,9 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 		PodManagementPolicy: appsv1.ParallelPodManagement,
 		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 			Type: strategy,
+			RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+				Partition: ptr.To(int32(0)),
+			},
 		},
 		RevisionHistoryLimit: ptr.To(int32(5)),
 		ServiceName:          deployment.GetHeadlessServiceName(),

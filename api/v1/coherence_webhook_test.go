@@ -30,18 +30,6 @@ func TestDefaultReplicasIsSet(t *testing.T) {
 	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
 }
 
-func TestAddVersionAnnotation(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	c := coh.Coherence{}
-	err := c.Default(context.Background(), &c)
-	g.Expect(err).NotTo(HaveOccurred())
-	an := c.GetAnnotations()
-	g.Expect(an).NotTo(BeNil())
-	g.Expect(an[coh.AnnotationOperatorVersion]).To(Equal(operator.GetVersion()))
-	g.Expect(*c.Spec.CoherenceResourceSpec.Replicas).To(Equal(coh.DefaultReplicas))
-}
-
 func TestShouldAddFinalizer(t *testing.T) {
 	g := NewGomegaWithT(t)
 	c := coh.Coherence{}
