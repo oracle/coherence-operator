@@ -380,7 +380,6 @@ m| conditions | The status conditions. m| Conditions | false
 m| hash | Hash is the hash of the latest applied Coherence spec m| string | false
 m| actionsExecuted | ActionsExecuted tracks whether actions were executed m| bool | false
 m| jobProbes | &#160; m| []<<CoherenceJobProbeStatus,CoherenceJobProbeStatus>> | false
-m| version | The version of the Operator that last processed this resource m| string | false
 |===
 
 <<Table of Contents,Back to TOC>>

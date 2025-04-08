@@ -216,7 +216,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusHash(ctx context.Context, key 
 		if deployment.Status.Hash != hash {
 			updated := deployment.DeepCopy()
 			updated.Status.Hash = hash
-			updated.Status.Version = operator.GetVersion()
+			updated.Status.SetVersion(operator.GetVersion())
 			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")

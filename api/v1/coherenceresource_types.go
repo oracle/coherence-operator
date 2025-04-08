@@ -53,6 +53,7 @@ const (
 	ConditionTypeFailed         ConditionType = "Failed"
 	ConditionTypeStopped        ConditionType = "Stopped"
 	ConditionTypeCompleted      ConditionType = "Completed"
+	ConditionTypeVersioned      ConditionType = "Versioned"
 
 	CoherenceTypeUnknown     CoherenceType = "Unknown"
 	CoherenceTypeStatefulSet CoherenceType = "StatefulSet"
@@ -390,8 +391,11 @@ func (in *Coherence) GetOperatorVersion() (string, bool) {
 	if in == nil {
 		return "", false
 	}
+	version := ""
 	found := true
-	version := in.Status.Version
+	if c := in.Status.Conditions.GetCondition(ConditionTypeVersioned); c != nil {
+		version = c.Message
+	}
 	if version == "" {
 		version, found = in.Annotations[AnnotationOperatorVersion]
 	}
@@ -450,7 +454,11 @@ func (in *Coherence) HashLabelMatches(m metav1.Object) bool {
 }
 
 func (in *Coherence) UpdateStatusVersion(v string) {
-	in.Status.Version = v
+	in.Status.Conditions.SetCondition(Condition{
+		Type:    ConditionTypeVersioned,
+		Status:  corev1.ConditionTrue,
+		Message: v,
+	})
 }
 
 // ----- CoherenceStatefulSetResourceSpec type -----------------------------------------------------
@@ -634,35 +642,43 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 
 	// Work out the StatefulSet rolling upgrade strategy based on the
 	// value of the Coherence spec RollingUpdateStrategy field
-	var strategy appsv1.StatefulSetUpdateStrategyType
+	var updateStrategy appsv1.StatefulSetUpdateStrategy
+
 	if in.RollingUpdateStrategy == nil {
 		// Nothing set, so default to a normal StatefulSet rolling upgrade one Pod at a time
-		strategy = appsv1.RollingUpdateStatefulSetStrategyType
+		updateStrategy = appsv1.StatefulSetUpdateStrategy{
+			Type: appsv1.RollingUpdateStatefulSetStrategyType,
+			RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+				Partition: ptr.To(int32(0)),
+			},
+		}
 	} else {
 		// A strategy has been set in the Coherence spec
 		rollStrategy := *in.RollingUpdateStrategy
 		if rollStrategy == UpgradeByPod {
 			// UpgradeByPod is the same as the default StatefulSet strategy
-			strategy = appsv1.RollingUpdateStatefulSetStrategyType
+			updateStrategy = appsv1.StatefulSetUpdateStrategy{
+				Type: appsv1.RollingUpdateStatefulSetStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+					Partition: ptr.To(int32(0)),
+				},
+			}
 		} else {
 			// One of our custom strategies has been chosen, so we set the
 			// StatefulSet strategy to OnDelete as the Operator will control
 			// the rolling update
-			strategy = appsv1.OnDeleteStatefulSetStrategyType
+			updateStrategy = appsv1.StatefulSetUpdateStrategy{
+				Type: appsv1.OnDeleteStatefulSetStrategyType,
+			}
 		}
 	}
 
 	// Add the component label
 	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
 	sts.Spec = appsv1.StatefulSetSpec{
-		Replicas:            &replicas,
-		PodManagementPolicy: appsv1.ParallelPodManagement,
-		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
-			Type: strategy,
-			RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
-				Partition: ptr.To(int32(0)),
-			},
-		},
+		Replicas:             &replicas,
+		PodManagementPolicy:  appsv1.ParallelPodManagement,
+		UpdateStrategy:       updateStrategy,
 		RevisionHistoryLimit: ptr.To(int32(5)),
 		ServiceName:          deployment.GetHeadlessServiceName(),
 		Selector: &metav1.LabelSelector{
@@ -843,9 +859,6 @@ type CoherenceResourceStatus struct {
 	// +patchMergeKey=pod
 	// +patchStrategy=merge
 	JobProbes []CoherenceJobProbeStatus `json:"jobProbes,omitempty"`
-	// The version of the Operator that last processed this resource
-	// +optional
-	Version string `json:"version,omitempty"`
 }
 
 // SetCondition sets the current Status Condition
@@ -1094,13 +1107,18 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment CoherenceResourc
 		updated = true
 	}
 
-	v := operator.GetVersion()
-	if in.Version != v {
-		in.Version = v
+	if in.SetVersion(operator.GetVersion()) {
 		updated = true
 	}
-
 	return updated
+}
+
+func (in *CoherenceResourceStatus) SetVersion(v string) bool {
+	return in.Conditions.SetCondition(Condition{
+		Type:    ConditionTypeVersioned,
+		Status:  corev1.ConditionTrue,
+		Message: v,
+	})
 }
 
 func (in *CoherenceResourceStatus) FindJobProbeStatus(pod string) CoherenceJobProbeStatus {

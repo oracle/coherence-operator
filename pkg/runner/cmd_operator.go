@@ -292,9 +292,4 @@ func initialiseOperator(ctx context.Context, v *version.Version, cl client.Clien
 			os.Exit(1)
 		}
 	}
-	// Ensure the minimum installed CRD version
-	if err := coh.EnsureVersionForAllCRDs(ctx, scheme, cl, "3.5.0"); err != nil {
-		opLog.Error(err, "Failed to verify CRD versions")
-		os.Exit(1)
-	}
 }

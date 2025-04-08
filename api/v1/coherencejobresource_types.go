@@ -321,8 +321,11 @@ func (in *CoherenceJob) GetOperatorVersion() (string, bool) {
 	if in == nil {
 		return "", false
 	}
+	version := ""
 	found := true
-	version := in.Status.Version
+	if c := in.Status.Conditions.GetCondition(ConditionTypeVersioned); c != nil {
+		version = c.Message
+	}
 	if version == "" {
 		version, found = in.Annotations[AnnotationOperatorVersion]
 	}
@@ -387,7 +390,11 @@ func (in *CoherenceJob) HashLabelMatches(m metav1.Object) bool {
 }
 
 func (in *CoherenceJob) UpdateStatusVersion(v string) {
-	in.Status.Version = v
+	in.Status.Conditions.SetCondition(Condition{
+		Type:    ConditionTypeVersioned,
+		Status:  corev1.ConditionTrue,
+		Message: v,
+	})
 }
 
 // ----- CoherenceJobList type ----------------------------------------------
