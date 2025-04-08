@@ -263,7 +263,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// set the hash on all the secondary resources to match the deployment's hash
-	desiredResources.SetHashLabels(hash)
+	desiredResources.SetHashLabelAndAnnotations(hash)
 
 	// update the store to have the desired state as the latest state.
 	if err = storage.Store(desiredResources, deployment); err != nil {

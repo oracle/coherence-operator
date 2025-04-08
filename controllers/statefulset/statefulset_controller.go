@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/events"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -114,14 +115,14 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	}
 
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
-	logger.Info("Reconciling StatefulSet for deployment")
+	logger.Info("Reconciling StatefulSet")
 
 	// Fetch the StatefulSet's current state
 	stsCurrent, stsExists, err := in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
 	if err != nil {
-		logger.Info("Finished reconciling StatefulSet for deployment. Error getting StatefulSet", "error", err.Error())
+		logger.Info("Finished reconciling StatefulSet. Error getting StatefulSet", "error", err.Error())
 		in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonReconciling,
-			"error getting statefulset for deployment %s, %s", request.Name, err.Error())
+			"error getting StatefulSet %s, %s", request.Name, err.Error())
 		return result, errors.Wrapf(err, "getting StatefulSet %s/%s", request.Namespace, request.Name)
 	}
 
@@ -184,6 +185,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		} else {
 			// The StatefulSet and parent resource has been deleted so no more to do
 			_, err = in.updateDeploymentStatus(ctx, request)
+			logger.Info("Finished reconciling StatefulSet")
 			return reconcile.Result{}, err
 		}
 	case !stsExists:
@@ -204,13 +206,12 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		}
 	}
 
-	if err != nil {
+	if err == nil {
+		logger.Info("Finished reconciling StatefulSet")
+	} else {
 		logger.Info("Finished reconciling StatefulSet with error", "error", err.Error())
-		return result, err
 	}
-
-	logger.Info("Finished reconciling StatefulSet for deployment")
-	return result, nil
+	return result, err
 }
 
 // execActions executes actions
@@ -331,20 +332,30 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 	currentReplicas := in.getReplicas(current)
 
 	if currentReplicas != desiredReplicas {
-		// If scaling up and the existing StatefulSet was created by an earlier Operator version then we
-		// patch the StatefulSet rather than scale. This will stop an instant upgrade of the new Pods.
+		// If scaling and the existing StatefulSet was created by an earlier Operator version then we
+		// patch the StatefulSet rather than scale. This will stop an instant upgrade of the Pods.
 		if in.IsVersionAnnotationEqualOrBefore(current, "3.4.3") {
 			if desired.Spec.UpdateStrategy.RollingUpdate == nil {
 				desired.Spec.UpdateStrategy.RollingUpdate = &appsv1.RollingUpdateStatefulSetStrategy{}
 			}
-			// set the rolling upgrade partition to the current replica count so any
-			// existing Pods should not be changed
 			desired.Spec.UpdateStrategy.RollingUpdate.Partition = &currentReplicas
-			result, err = in.patchAndScaleStatefulSet(ctx, deployment, current, desired, storage, logger)
-			return result, err
+			desired.Annotations[coh.AnnotationOperatorVersion] = operator.GetVersion()
+			if currentReplicas < desiredReplicas {
+				// Scaling up
+				// set the rolling upgrade partition to the current replica count so any
+				// existing Pods should not be changed
+				result, err = in.patchAndScaleStatefulSet(ctx, deployment, current, desired, storage, logger)
+				// nothing left to do so return
+				return result, err
+			}
+			// else scaling down, patch with the current replicas then requeue to trigger the scale
+			result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
+			if err != nil {
+				return result, err
+			}
 		}
 
-		// do the scale first
+		// do the scale
 		_, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
 		// requeue the request so that we do any upgrade next time around
 		result.Requeue = true
@@ -428,8 +439,8 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 	errorList := coh.ValidateStatefulSetUpdate(desired, original)
 	if len(errorList) > 0 {
 		msg := fmt.Sprintf("upddates to the statefuleset would have been invalid, the update will not be re-queued: %v", errorList)
-		events := in.GetEventRecorder()
-		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
+		evts := in.GetEventRecorder()
+		evts.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
 		return reconcile.Result{Requeue: false}, errors.New(msg)
 	}
 
@@ -562,12 +573,12 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 
 // suspendServices suspends Coherence services in the target deployment.
 func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) probe.ServiceSuspendStatus {
-	probe := probe.CoherenceProbe{
+	p := probe.CoherenceProbe{
 		Client:        in.GetClient(),
 		Config:        in.GetManager().GetConfig(),
 		EventRecorder: events.NewOwnedEventRecorder(deployment, in.GetEventRecorder()),
 	}
-	return probe.SuspendServices(ctx, deployment, current)
+	return p.SuspendServices(ctx, deployment, current)
 }
 
 // Scale will scale a StatefulSet up or down
