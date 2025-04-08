@@ -245,11 +245,6 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return result, nil
 	}
 
-	if hash == storeHash {
-		// nothing to do
-		return result, nil
-	}
-
 	desiredResources, err = getDesiredResources(deployment, storage, log)
 	if err != nil {
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
@@ -280,8 +275,12 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
 			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
+		} else if r.Requeue {
+			result.Requeue = true
+			if r.RequeueAfter != 0 {
+				result.RequeueAfter = r.RequeueAfter
+			}
 		}
-		result.Requeue = result.Requeue || r.Requeue
 	}
 
 	if len(failures) > 0 {

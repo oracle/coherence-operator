@@ -207,9 +207,9 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	}
 
 	if err == nil {
-		logger.Info("Finished reconciling StatefulSet")
+		logger.Info("Finished reconciling StatefulSet", "Requeue", result.Requeue, "RequeueAfter", result.RequeueAfter)
 	} else {
-		logger.Info("Finished reconciling StatefulSet with error", "error", err.Error())
+		logger.Info("Finished reconciling StatefulSet with error", "Error", err.Error())
 	}
 	return result, err
 }
@@ -380,7 +380,7 @@ func (in *ReconcileStatefulSet) patchAndScaleStatefulSet(ctx context.Context, de
 // Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, allowScale bool, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
-	in.GetLog().Info("Patching stateful set, checked hash", "Match", hashMatches, "namespace", current.GetNamespace(), "name", current.GetName())
+	in.GetLog().Info("Maybe patching stateful set, checked hash", "Match", hashMatches, "namespace", current.GetNamespace(), "name", current.GetName())
 	if hashMatches {
 		// Nothing to patch, see if we need to do a rolling upgrade of Pods
 		// if the Operator is controlling the upgrade

@@ -2223,6 +2223,7 @@ k3d-load-operator: $(TOOLS_BIN)/k3d  ## Load the Operator images into the k3d cl
 
 .PHONY: k3d-load-coherence
 k3d-load-coherence: $(TOOLS_BIN)/k3d  ## Load the Coherence images into the k3d cluster
+	$(DOCKER_CMD) pull $(COHERENCE_IMAGE)
 	$(TOOLS_BIN)/k3d image import $(COHERENCE_IMAGE) -c $(K3D_CLUSTER)
 
 .PHONY: k3d-load-all

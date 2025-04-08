@@ -16,6 +16,7 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	"io"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -142,8 +143,8 @@ func TestSuspendServicesOnScaleDownToZero(t *testing.T) {
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
 	err = testContext.Client.Get(ctx, c.GetNamespacedName(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
-	c.SetReplicas(0)
-	err = testContext.Client.Update(ctx, &c)
+	patch := client.RawPatch(types.MergePatchType, []byte(`{"spec":{"replicas":0}}`))
+	err = testContext.Client.Patch(testContext.Context, &c, patch)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The Operator should suspend services and delete the StatefulSet causing its deletion timestamp to be set
@@ -199,8 +200,8 @@ func TestNotSuspendServicesOnScaleDownToZeroIfSuspendDisabled(t *testing.T) {
 	// re-fetch the latest Coherence state and scale down to zero, which should cause services to be suspended
 	err = testContext.Client.Get(ctx, c.GetNamespacedName(), &c)
 	g.Expect(err).NotTo(HaveOccurred())
-	c.SetReplicas(0)
-	err = testContext.Client.Update(ctx, &c)
+	patch := client.RawPatch(types.MergePatchType, []byte(`{"spec":{"replicas":0}}`))
+	err = testContext.Client.Patch(testContext.Context, &c, patch)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// The Operator should suspend services and delete the StatefulSet causing its deletion timestamp to be set
@@ -303,10 +304,17 @@ func removeAllFinalizers(o client.Object) error {
 	k := helper.ObjectKey(o)
 	o.DeepCopyObject()
 	if err := testContext.Client.Get(ctx, k, o); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
 	patch := client.RawPatch(types.MergePatchType, []byte(`{"metadata":{"finalizers":[]}}`))
-	return testContext.Client.Patch(ctx, o, patch)
+	err := testContext.Client.Patch(ctx, o, patch)
+	if errors.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
 func removeAllFinalizersLoggingErrors(t *testing.T, o client.Object) {
