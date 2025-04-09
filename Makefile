@@ -732,13 +732,25 @@ $(BUILD_TARGETS)/java: $(JAVA_FILES)
 .PHONY: helm-chart
 helm-chart: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz   ## Build the Coherence Operator Helm chart
 
+CRD_TEMPLATE := $(BUILD_HELM)/coherence-operator/templates/crd.yaml
 $(BUILD_HELM)/coherence-operator-$(VERSION).tgz: $(BUILD_PROPS) $(HELM_FILES) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize
 # Copy the Helm chart from the source location to the distribution folder
-	-mkdir -p $(BUILD_HELM)
+	-mkdir -p $(BUILD_HELM)/temp
 	cp -R ./helm-charts/coherence-operator $(BUILD_HELM)
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/helm -o $(BUILD_HELM)/temp
+	rm $(CRD_TEMPLATE) || true
+	echo "{{- if (eq .Values.installCrd true) }}" > $(CRD_TEMPLATE)
+	cat  $(BUILD_HELM)/temp/apiextensions.k8s.io_v1_customresourcedefinition_coherence.coherence.oracle.com.yaml >> $(CRD_TEMPLATE)
+	printf "\n{{- if (eq .Values.allowCoherenceJobs true) }}\n" >> $(CRD_TEMPLATE)
+	echo "---" >> $(CRD_TEMPLATE)
+	cat  $(BUILD_HELM)/temp/apiextensions.k8s.io_v1_customresourcedefinition_coherencejob.coherence.oracle.com.yaml >> $(CRD_TEMPLATE)
+	echo "" >> $(CRD_TEMPLATE)
+	echo "{{- end }}" >> $(CRD_TEMPLATE)
+	echo "{{- end }}" >> $(CRD_TEMPLATE)
 	$(call replaceprop,$(BUILD_HELM)/coherence-operator/Chart.yaml $(BUILD_HELM)/coherence-operator/values.yaml $(BUILD_HELM)/coherence-operator/templates/deployment.yaml $(BUILD_HELM)/coherence-operator/templates/rbac.yaml)
 	helm lint $(BUILD_HELM)/coherence-operator
 	helm package $(BUILD_HELM)/coherence-operator --destination $(BUILD_HELM)
+	rm -rf $(BUILD_HELM)/temp
 
 # ---------------------------------------------------------------------------
 # Do a search and replace of properties in selected files in the Helm charts.

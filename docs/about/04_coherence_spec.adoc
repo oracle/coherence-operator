@@ -487,6 +487,9 @@ CoherenceUtilsSpec defines the settings for the Coherence Operator utilities ima
 |===
 | Field | Description | Type | Required
 m| imagePullPolicy | Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images m| &#42;https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy | false
+m| image | Image is used to set the utils image used in Coherence Pods. +
+ +
+Deprecated: This field is deprecated and no longer used, any value set will be ignored. m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>

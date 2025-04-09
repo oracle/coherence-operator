@@ -105,7 +105,6 @@ jobs:
         sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
 
     - name: Start KinD Cluster
-#     Start a KinD K8s cluster with single worker node
       shell: bash
       run: |
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
@@ -119,7 +118,6 @@ jobs:
         make all
 
     - name: Load Images to KinD
-#     Load the images just built to the KinD cluster
       shell: bash
       run: |
         make kind-load
@@ -130,8 +128,9 @@ jobs:
     - name: Istio Tests
       shell: bash
       run: |
-        make deploy
+        make reset-namespace
         ISTIO_VERSION=${{ matrix.istioVersion }} make install-istio
+        make deploy
         make e2e-client-test
         make e2e-test
         make undeploy

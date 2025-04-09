@@ -880,6 +880,11 @@ type CoherenceUtilsSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/containers/images#updating-images
 	// +optional
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+	// Image is used to set the utils image used in Coherence Pods.
+	//
+	// Deprecated: This field is deprecated and no longer used, any value set will be ignored.
+	// +optional
+	Image *string `json:"image,omitempty"`
 }
 
 // EnsureImage ensures that the image value is set.
