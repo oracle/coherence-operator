@@ -294,7 +294,7 @@ func addTestFinalizer(o client.Object) error {
 	if err := testContext.Client.Get(ctx, k, o); err != nil {
 		return err
 	}
-	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{"metadata":{"finalizers":[%s]}}`, testFinalizer)))
+	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{"metadata":{"finalizers":["%s"]}}`, testFinalizer)))
 	return testContext.Client.Patch(ctx, o, patch)
 }
 
