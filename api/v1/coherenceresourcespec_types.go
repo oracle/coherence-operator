@@ -384,7 +384,7 @@ func (in *CoherenceResourceSpec) GetHealthPort() int32 {
 
 // GetDefaultScalingProbe returns a default Scaling probe
 func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
-	timeout := 10
+	timeout := 30
 
 	probe := Probe{
 		TimeoutSeconds: &timeout,
