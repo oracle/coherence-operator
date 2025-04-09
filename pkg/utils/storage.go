@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/patching"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -37,24 +38,24 @@ type Storage interface {
 	// GetPrevious obtains the deployment resources for the version prior to the specified version
 	GetPrevious() coh.Resources
 	// Store will store the deployment resources, this will create a new version in the store
-	Store(coh.Resources, coh.CoherenceResource) error
+	Store(context.Context, coh.Resources, coh.CoherenceResource) error
 	// Destroy will destroy the store
 	Destroy()
 	// GetHash will return the hash label of the owning resource
 	GetHash() (string, bool)
 	// ResetHash resets the hash to match the Coherence resource
-	ResetHash(owner coh.CoherenceResource) error
+	ResetHash(context.Context, coh.CoherenceResource) error
 	// IsJob returns true if the Coherence deployment is a Job
 	IsJob(reconcile.Request) bool
 }
 
 // NewStorage creates a new storage for the given key.
-func NewStorage(key client.ObjectKey, mgr manager.Manager) (Storage, error) {
-	return newStorage(key, mgr)
+func NewStorage(key client.ObjectKey, mgr manager.Manager, patcher patching.ResourcePatcher) (Storage, error) {
+	return newStorage(key, mgr, patcher)
 }
 
-func newStorage(key client.ObjectKey, mgr manager.Manager) (Storage, error) {
-	store := &secretStore{manager: mgr, key: key}
+func newStorage(key client.ObjectKey, mgr manager.Manager, patcher patching.ResourcePatcher) (Storage, error) {
+	store := &secretStore{manager: mgr, key: key, patcher: patcher}
 	err := store.loadVersions()
 	return store, err
 }
@@ -65,6 +66,7 @@ type secretStore struct {
 	latest   coh.Resources
 	previous coh.Resources
 	hash     *string
+	patcher  patching.ResourcePatcher
 }
 
 func (in *secretStore) IsJob(request reconcile.Request) bool {
@@ -123,8 +125,8 @@ func (in *secretStore) GetPrevious() coh.Resources {
 	return in.previous
 }
 
-func (in *secretStore) ResetHash(owner coh.CoherenceResource) error {
-	secret, exists, err := in.getSecret()
+func (in *secretStore) ResetHash(ctx context.Context, owner coh.CoherenceResource) error {
+	secret, _, err := in.getSecret()
 	if err != nil {
 		// an error occurred other than NotFound
 		return err
@@ -136,27 +138,27 @@ func (in *secretStore) ResetHash(owner coh.CoherenceResource) error {
 	hash := owner.GetGenerationString()
 	labels[coh.LabelCoherenceHash] = hash
 	in.hash = &hash
-	return in.save(owner, secret, exists)
+	return in.save(ctx, owner, secret)
 }
 
-func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error {
-	secret, exists, err := in.getSecret()
+func (in *secretStore) Store(ctx context.Context, res coh.Resources, owner coh.CoherenceResource) error {
+	secret, _, err := in.getSecret()
 	if err != nil {
 		// an error occurred other than NotFound
 		return err
 	}
 
-	r.Version = in.latest.Version + 1
+	res.Version = in.latest.Version + 1
 
 	if secret.Data == nil {
 		secret.Data = make(map[string][]byte)
 	}
 
-	r.EnsureGVK(in.manager.GetScheme())
+	res.EnsureGVK(in.manager.GetScheme())
 
 	hash := owner.GetGenerationString()
 	oldLatest := secret.Data[storeKeyLatest]
-	newLatest, err := json.Marshal(r)
+	newLatest, err := json.Marshal(res)
 	if err != nil {
 		return err
 	}
@@ -188,31 +190,33 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	secret.Data[storeKeyLatest] = newLatest
 	secret.Data[storeKeyPrevious] = oldLatest
 
-	err = in.save(owner, secret, exists)
+	err = in.save(ctx, owner, secret)
 
 	if err == nil {
 		// everything was updated successfully so update the storage state
 		in.previous = in.latest
-		in.latest = r
+		in.latest = res
 		in.hash = &hash
 	}
 	return err
 }
 
-func (in *secretStore) save(owner coh.CoherenceResource, secret *corev1.Secret, exists bool) error {
+func (in *secretStore) save(ctx context.Context, owner coh.CoherenceResource, desired *corev1.Secret) error {
 	var err error
+
+	current, exists, err := in.getSecret()
 
 	if !exists {
 		// the resource does not exist so set the deployment as the controller/owner and create it
-		err = controllerutil.SetControllerReference(owner, secret, in.manager.GetScheme())
+		err = controllerutil.SetControllerReference(owner, desired, in.manager.GetScheme())
 		if err != nil {
-			err = errors.Wrap(err, fmt.Sprintf("setting resource owner/controller in state store %s/%s", secret.Namespace, secret.Name))
+			err = errors.Wrap(err, fmt.Sprintf("setting resource owner/controller in state store %s/%s", desired.Namespace, desired.Name))
 		} else {
-			err = in.manager.GetClient().Create(context.TODO(), secret)
+			err = in.manager.GetClient().Create(context.TODO(), desired)
 		}
 	} else {
 		// the store secret exists so update it
-		err = in.manager.GetClient().Update(context.TODO(), secret)
+		_, err = in.patcher.TwoWayPatch(ctx, desired.Name, current, desired)
 	}
 	return err
 }

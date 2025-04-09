@@ -13,6 +13,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/patching"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -72,7 +73,7 @@ func (in *ReconcileJob) Reconcile(ctx context.Context, request reconcile.Request
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
+	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager(), in.GetPatcher())
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -305,7 +306,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.SetCreationTimestamp(current.GetCreationTimestamp())
 	// create the patch to see whether there is anything to update
-	patch, data, err := in.CreateThreeWayPatch(current.GetName(), original, desired, current, reconciler.PatchIgnore)
+	patch, data, err := in.CreateThreeWayPatch(current.GetName(), original, desired, current, patching.PatchIgnore)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "failed to create patch for Job/%s", current.GetName())
 	}
