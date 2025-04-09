@@ -54,7 +54,7 @@ const (
 	FlagCoherenceImage        = "coherence-image"
 	FlagCRD                   = "install-crd"
 	FlagJobCRD                = "install-job-crd"
-	FlagEnableCoherenceJobs   = "enabled-jobs"
+	FlagEnableCoherenceJobs   = "enable-jobs"
 	FlagDevMode               = "coherence-dev-mode"
 	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"

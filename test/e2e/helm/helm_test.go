@@ -160,7 +160,7 @@ func TestDisableJobCRD(t *testing.T) {
 	g.Expect(c).NotTo(BeNil())
 
 	g.Expect(c.Args).NotTo(BeNil())
-	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--enabled-jobs=false"))
+	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--enable-jobs=false"))
 }
 
 func TestSetOnlySameNamespace(t *testing.T) {
