@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/pkg/errors"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -3066,8 +3067,8 @@ func (in Resources) SetController(object runtime.Object, scheme *runtime.Scheme)
 	return nil
 }
 
-// SetHashLabels sets the hash label on all the resources.
-func (in Resources) SetHashLabels(hash string) {
+// SetHashLabelAndAnnotations sets the hash label on all the resources.
+func (in Resources) SetHashLabelAndAnnotations(hash string) {
 	for _, r := range in.Items {
 		if r.Spec != nil {
 			labels := r.Spec.GetLabels()
@@ -3076,6 +3077,12 @@ func (in Resources) SetHashLabels(hash string) {
 			}
 			labels[LabelCoherenceHash] = hash
 			r.Spec.SetLabels(labels)
+			annotations := r.Spec.GetAnnotations()
+			if annotations == nil {
+				annotations = make(map[string]string)
+			}
+			annotations[AnnotationOperatorVersion] = operator.GetVersion()
+			r.Spec.SetAnnotations(annotations)
 		}
 	}
 }

@@ -771,7 +771,7 @@ manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition a
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(MANIFEST_FILES) $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen get-yq
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd/bases
@@ -779,9 +779,11 @@ config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(A
 	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd-small/bases
-	cd config/crd && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
-	$(KUSTOMIZE) build config/crd -o $(BUILD_ASSETS)/
-	cd config/crd-small && $(KUSTOMIZE) edit add label "app.kubernetes.io/version:$(VERSION)" -f
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd/bases/coherence.oracle.com_coherence.yaml
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd/bases/coherence.oracle.com_coherencejob.yaml
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd-small/bases/coherence.oracle.com_coherence.yaml
+	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd-small/bases/coherence.oracle.com_coherencejob.yaml
+	$(KUSTOMIZE) build config/crd-small -o $(BUILD_ASSETS)/
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate the config.json file used by the Operator for default configuration values
@@ -1228,7 +1230,7 @@ oc-login:
 test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
-test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate gotestsum  ## Run the Operator unit tests
+test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate install-crds gotestsum  ## Run the Operator unit tests
 	@echo "Running operator tests"
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
 	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./pkg/...
@@ -1393,7 +1395,7 @@ e2e-k3d-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-k3d-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-k3d-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 e2e-k3d-test: export SKIP_SPRING_CNBP := $(SKIP_SPRING_CNBP)
-e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
+e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy install-crds ensure-pull-secret ## Run the Operator end-to-end 'local' functional tests using a local Operator instance
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-k3d-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/large-cluster/...
 
@@ -1416,7 +1418,7 @@ e2e-client-test: export VERSION := $(VERSION)
 e2e-client-test: export MVN_VERSION := $(MVN_VERSION)
 e2e-client-test: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 e2e-client-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy   ## Run the end-to-end Coherence client tests using a local Operator deployment
+e2e-client-test: build-client-image reset-namespace create-ssl-secrets gotestsum undeploy install-crds ensure-pull-secret  ## Run the end-to-end Coherence client tests using a local Operator deployment
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-client-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/clients/...
 
@@ -1432,7 +1434,7 @@ e2e-helm-test: export COHERENCE_IMAGE_REGISTRY := $(COHERENCE_IMAGE_REGISTRY)
 e2e-helm-test: export COHERENCE_IMAGE_NAME := $(COHERENCE_IMAGE_NAME)
 e2e-helm-test: export COHERENCE_IMAGE_TAG := $(COHERENCE_IMAGE_TAG)
 e2e-helm-test: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
-e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
+e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz uninstall-crds reset-namespace gotestsum  ## Run the Operator Helm chart end-to-end functional tests
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-helm-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/helm/...
 
@@ -1449,7 +1451,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz re
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
-e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets deploy-and-wait   ## Run the Operator metrics/Prometheus end-to-end functional tests
+e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets ensure-pull-secret deploy-and-wait  ## Run the Operator metrics/Prometheus end-to-end functional tests
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \
@@ -1491,7 +1493,7 @@ run-prometheus-test: gotestsum
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
-compatibility-test: undeploy build-all-images $(BUILD_HELM)/coherence-operator-$(VERSION).tgz undeploy clean-namespace reset-namespace gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
+compatibility-test: undeploy build-all-images helm-chart undeploy clean-namespace reset-namespace ensure-pull-secret gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
 
 .PHONY: just-compatibility-test
 just-compatibility-test: export CGO_ENABLED = 0
@@ -1547,7 +1549,7 @@ certification-test: install-certification     ## Run the Operator Kubernetes ver
 # Install the Operator prior to running compatibility tests.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-certification
-install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets deploy-and-wait
+install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies reset-namespace create-ssl-secrets ensure-pull-secret deploy-and-wait
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator certification tests.
@@ -1745,8 +1747,8 @@ cleanup-coherence-compatibility: undeploy uninstall-crds clean-namespace
 # configured to use.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: install-crds
-install-crds: prepare-deploy uninstall-crds  ## Install the CRDs
-	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) create -f -
+install-crds: prepare-deploy  ## Install the CRDs
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd-small | $(KUBECTL_CMD) apply -f -
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall CRDs from Kubernetes.
@@ -1760,6 +1762,22 @@ uninstall-crds: $(BUILD_TARGETS)/manifests  ## Uninstall the CRDs
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
+
+
+.PHONY: helm-patch-crd
+helm-patch-crd:
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-name": "operator"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherence.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-namespace": "operator-test"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-name": "operator"}}}'
+	$(KUBECTL_CMD) patch customresourcedefinition coherencejob.coherence.oracle.com \
+		--patch '{"metadata": {"annotations": {"meta.helm.sh/release-namespace": "operator-test"}}}'
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -1902,19 +1920,21 @@ endef
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize  ## Undeploy the Coherence Operator
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize uninstall-webhooks  ## Undeploy the Coherence Operator
 	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) delete -f - || true
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
-	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
-	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-operator-pull-secret || true
 	@echo "Undeploy Coherence Operator completed"
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
 
+.PHONY: uninstall-webhooks
+uninstall-webhooks:
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
+	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
+	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tail the deployed operator logs.
@@ -2087,7 +2107,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.32.0@sha256:c48c62eac5da28cdadcf560d1d8616cfa6783b58f0d94cf63ad1bf49600cb027"
+KIND_IMAGE     ?= "kindest/node:v1.32.2@sha256:f226345927d7e348497136874b6d207e0b32cc52154ad8323129352923a3142f"
 CALICO_TIMEOUT ?= 300s
 KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
 
@@ -2181,7 +2201,7 @@ K3D_REGISTRY_PORT     ?= 12345
 K3D_INTERNAL_REGISTRY := k3d-$(K3D_REGISTRY).localhost:$(K3D_REGISTRY_PORT)
 
 .PHONY: k3d
-k3d: $(TOOLS_BIN)/k3d k3d-create k3d-load-operator create-namespace  ## Run a default k3d cluster
+k3d: $(TOOLS_BIN)/k3d k3d-create k3d-load-operator k3d-load-coherence create-namespace  ## Run a default k3d cluster
 
 .PHONY: k3d-create
 k3d-create: $(TOOLS_BIN)/k3d ## Create the k3d cluster
@@ -2203,6 +2223,7 @@ k3d-load-operator: $(TOOLS_BIN)/k3d  ## Load the Operator images into the k3d cl
 
 .PHONY: k3d-load-coherence
 k3d-load-coherence: $(TOOLS_BIN)/k3d  ## Load the Coherence images into the k3d cluster
+	$(DOCKER_CMD) pull $(COHERENCE_IMAGE)
 	$(TOOLS_BIN)/k3d image import $(COHERENCE_IMAGE) -c $(K3D_CLUSTER)
 
 .PHONY: k3d-load-all

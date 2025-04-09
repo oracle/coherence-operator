@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -42,6 +42,8 @@ type Storage interface {
 	Destroy()
 	// GetHash will return the hash label of the owning resource
 	GetHash() (string, bool)
+	// ResetHash resets the hash to match the Coherence resource
+	ResetHash(owner coh.CoherenceResource) error
 	// IsJob returns true if the Coherence deployment is a Job
 	IsJob(reconcile.Request) bool
 }
@@ -121,6 +123,22 @@ func (in *secretStore) GetPrevious() coh.Resources {
 	return in.previous
 }
 
+func (in *secretStore) ResetHash(owner coh.CoherenceResource) error {
+	secret, exists, err := in.getSecret()
+	if err != nil {
+		// an error occurred other than NotFound
+		return err
+	}
+	labels := secret.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	hash := owner.GetGenerationString()
+	labels[coh.LabelCoherenceHash] = hash
+	in.hash = &hash
+	return in.save(owner, secret, exists)
+}
+
 func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error {
 	secret, exists, err := in.getSecret()
 	if err != nil {
@@ -136,6 +154,7 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 
 	r.EnsureGVK(in.manager.GetScheme())
 
+	hash := owner.GetGenerationString()
 	oldLatest := secret.Data[storeKeyLatest]
 	newLatest, err := json.Marshal(r)
 	if err != nil {
@@ -146,7 +165,7 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	if labels == nil {
 		labels = make(map[string]string)
 	}
-	labels[coh.LabelCoherenceHash] = owner.GetLabels()[coh.LabelCoherenceHash]
+	labels[coh.LabelCoherenceHash] = hash
 
 	globalLabels := owner.CreateGlobalLabels()
 	for k, v := range globalLabels {
@@ -169,6 +188,20 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	secret.Data[storeKeyLatest] = newLatest
 	secret.Data[storeKeyPrevious] = oldLatest
 
+	err = in.save(owner, secret, exists)
+
+	if err == nil {
+		// everything was updated successfully so update the storage state
+		in.previous = in.latest
+		in.latest = r
+		in.hash = &hash
+	}
+	return err
+}
+
+func (in *secretStore) save(owner coh.CoherenceResource, secret *corev1.Secret, exists bool) error {
+	var err error
+
 	if !exists {
 		// the resource does not exist so set the deployment as the controller/owner and create it
 		err = controllerutil.SetControllerReference(owner, secret, in.manager.GetScheme())
@@ -180,12 +213,6 @@ func (in *secretStore) Store(r coh.Resources, owner coh.CoherenceResource) error
 	} else {
 		// the store secret exists so update it
 		err = in.manager.GetClient().Update(context.TODO(), secret)
-	}
-
-	if err == nil {
-		// everything was updated successfully so update the storage state
-		in.previous = in.latest
-		in.latest = r
 	}
 	return err
 }

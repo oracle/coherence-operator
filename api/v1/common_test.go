@@ -223,9 +223,14 @@ func createMinimalExpectedStatefulSet(deployment *coh.Coherence) *appsv1.Statefu
 			},
 			ServiceName:          deployment.GetHeadlessServiceName(),
 			RevisionHistoryLimit: ptr.To(int32(5)),
-			UpdateStrategy:       appsv1.StatefulSetUpdateStrategy{Type: appsv1.RollingUpdateStatefulSetStrategyType},
-			PodManagementPolicy:  appsv1.ParallelPodManagement,
-			Template:             podTemplate,
+			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
+				Type: appsv1.RollingUpdateStatefulSetStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+					Partition: ptr.To(int32(0)),
+				},
+			},
+			PodManagementPolicy: appsv1.ParallelPodManagement,
+			Template:            podTemplate,
 		},
 		Status: appsv1.StatefulSetStatus{
 			Replicas: 0,

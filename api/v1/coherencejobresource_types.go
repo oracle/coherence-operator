@@ -7,6 +7,7 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/mod/semver"
 	batchv1 "k8s.io/api/batch/v1"
@@ -313,23 +314,47 @@ func (in *CoherenceJob) GetWKA() string {
 	return in.Spec.Coherence.GetWKA(in)
 }
 
-// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
-// if the version annotation is present. If the version annotation is not present this method
+// GetOperatorVersion if the returns the value of the Operator version and true,
+// if the version is present. If the version is not present this method
 // returns empty string and false.
-func (in *CoherenceJob) GetVersionAnnotation() (string, bool) {
-	if in == nil || in.Annotations == nil {
+func (in *CoherenceJob) GetOperatorVersion() (string, bool) {
+	if in == nil {
 		return "", false
 	}
-	version, found := in.Annotations[AnnotationOperatorVersion]
+	version := ""
+	found := true
+	if c := in.Status.Conditions.GetCondition(ConditionTypeVersioned); c != nil {
+		version = c.Message
+	}
+	if version == "" {
+		version, found = in.Annotations[AnnotationOperatorVersion]
+	}
 	return version, found
 }
 
-// IsBeforeVersion returns true if this Coherence resource Operator version annotation value is
+// IsBeforeVersion returns true if this CoherenceJob resource Operator version annotation value is
 // before the specified version, or is not set.
 // The version parameter must be a valid SemVer value.
 func (in *CoherenceJob) IsBeforeVersion(version string) bool {
-	if actual, found := in.GetVersionAnnotation(); found {
+	if actual, found := in.GetOperatorVersion(); found {
 		return semver.Compare(actual, version) < 0
+	}
+	return true
+}
+
+// IsBeforeOrSameVersion returns true if this CoherenceJob resource Operator version annotation value is
+// the same or before the specified version, or is not set.
+// The version parameter must be a valid SemVer value.
+func (in *CoherenceJob) IsBeforeOrSameVersion(version string) bool {
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
+	if actual, found := in.GetOperatorVersion(); found {
+		if actual[0] != 'v' {
+			actual = "v" + actual
+		}
+		return semver.Compare(actual, version) <= 0
 	}
 	return true
 }
@@ -345,6 +370,31 @@ func (in *CoherenceJob) GetWkaIPFamily() corev1.IPFamily {
 // GetHeadlessServiceIPFamily always returns an empty array as this is not applicable to Jobs.
 func (in *CoherenceJob) GetHeadlessServiceIPFamily() []corev1.IPFamily {
 	return nil
+}
+
+func (in *CoherenceJob) GetGenerationString() string {
+	// If this is a version 3.4.3 resource or earlier look for the hash label
+	// If that is not found use the generation
+	if in.IsBeforeOrSameVersion("3.4.3") {
+		if h, found := in.GetLabels()[LabelCoherenceHash]; found {
+			return h
+		}
+	}
+	return fmt.Sprintf("%d", in.Generation)
+}
+
+func (in *CoherenceJob) HashLabelMatches(m metav1.Object) bool {
+	hash := in.GetGenerationString()
+	actual, found := m.GetLabels()[LabelCoherenceHash]
+	return found && hash == actual
+}
+
+func (in *CoherenceJob) UpdateStatusVersion(v string) {
+	in.Status.Conditions.SetCondition(Condition{
+		Type:    ConditionTypeVersioned,
+		Status:  corev1.ConditionTrue,
+		Message: v,
+	})
 }
 
 // ----- CoherenceJobList type ----------------------------------------------

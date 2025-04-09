@@ -53,6 +53,7 @@ const (
 	ConditionTypeFailed         ConditionType = "Failed"
 	ConditionTypeStopped        ConditionType = "Stopped"
 	ConditionTypeCompleted      ConditionType = "Completed"
+	ConditionTypeVersioned      ConditionType = "Versioned"
 
 	CoherenceTypeUnknown     CoherenceType = "Unknown"
 	CoherenceTypeStatefulSet CoherenceType = "StatefulSet"
@@ -383,14 +384,21 @@ func (in *Coherence) GetWKA() string {
 	return in.Spec.Coherence.GetWKA(in)
 }
 
-// GetVersionAnnotation if the returns the value of the Operator version annotation and true,
-// if the version annotation is present. If the version annotation is not present this method
+// GetOperatorVersion if the returns the value of the Operator version and true,
+// if the version is present. If the version is not present this method
 // returns empty string and false.
-func (in *Coherence) GetVersionAnnotation() (string, bool) {
-	if in == nil || in.Annotations == nil {
+func (in *Coherence) GetOperatorVersion() (string, bool) {
+	if in == nil {
 		return "", false
 	}
-	version, found := in.Annotations[AnnotationOperatorVersion]
+	version := ""
+	found := true
+	if c := in.Status.Conditions.GetCondition(ConditionTypeVersioned); c != nil {
+		version = c.Message
+	}
+	if version == "" {
+		version, found = in.Annotations[AnnotationOperatorVersion]
+	}
 	return version, found
 }
 
@@ -402,13 +410,55 @@ func (in *Coherence) IsBeforeVersion(version string) bool {
 		version = "v" + version
 	}
 
-	if actual, found := in.GetVersionAnnotation(); found {
+	if actual, found := in.GetOperatorVersion(); found {
 		if actual[0] != 'v' {
 			actual = "v" + actual
 		}
 		return semver.Compare(actual, version) < 0
 	}
 	return true
+}
+
+// IsBeforeOrSameVersion returns true if this Coherence resource Operator version annotation value is
+// the same or before the specified version, or is not set.
+// The version parameter must be a valid SemVer value.
+func (in *Coherence) IsBeforeOrSameVersion(version string) bool {
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
+	if actual, found := in.GetOperatorVersion(); found {
+		if actual[0] != 'v' {
+			actual = "v" + actual
+		}
+		return semver.Compare(actual, version) <= 0
+	}
+	return true
+}
+
+func (in *Coherence) GetGenerationString() string {
+	// If this is a version 3.4.3 resource or earlier look for the hash label
+	// If that is not found use the generation
+	if in.IsBeforeOrSameVersion("3.4.3") {
+		if h, found := in.GetLabels()[LabelCoherenceHash]; found {
+			return h
+		}
+	}
+	return fmt.Sprintf("%d", in.Generation)
+}
+
+func (in *Coherence) HashLabelMatches(m metav1.Object) bool {
+	hash := in.GetGenerationString()
+	actual, found := m.GetLabels()[LabelCoherenceHash]
+	return found && hash == actual
+}
+
+func (in *Coherence) UpdateStatusVersion(v string) {
+	in.Status.Conditions.SetCondition(Condition{
+		Type:    ConditionTypeVersioned,
+		Status:  corev1.ConditionTrue,
+		Message: v,
+	})
 }
 
 // ----- CoherenceStatefulSetResourceSpec type -----------------------------------------------------
@@ -592,32 +642,43 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 
 	// Work out the StatefulSet rolling upgrade strategy based on the
 	// value of the Coherence spec RollingUpdateStrategy field
-	var strategy appsv1.StatefulSetUpdateStrategyType
+	var updateStrategy appsv1.StatefulSetUpdateStrategy
+
 	if in.RollingUpdateStrategy == nil {
 		// Nothing set, so default to a normal StatefulSet rolling upgrade one Pod at a time
-		strategy = appsv1.RollingUpdateStatefulSetStrategyType
+		updateStrategy = appsv1.StatefulSetUpdateStrategy{
+			Type: appsv1.RollingUpdateStatefulSetStrategyType,
+			RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+				Partition: ptr.To(int32(0)),
+			},
+		}
 	} else {
 		// A strategy has been set in the Coherence spec
 		rollStrategy := *in.RollingUpdateStrategy
 		if rollStrategy == UpgradeByPod {
 			// UpgradeByPod is the same as the default StatefulSet strategy
-			strategy = appsv1.RollingUpdateStatefulSetStrategyType
+			updateStrategy = appsv1.StatefulSetUpdateStrategy{
+				Type: appsv1.RollingUpdateStatefulSetStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+					Partition: ptr.To(int32(0)),
+				},
+			}
 		} else {
 			// One of our custom strategies has been chosen, so we set the
 			// StatefulSet strategy to OnDelete as the Operator will control
 			// the rolling update
-			strategy = appsv1.OnDeleteStatefulSetStrategyType
+			updateStrategy = appsv1.StatefulSetUpdateStrategy{
+				Type: appsv1.OnDeleteStatefulSetStrategyType,
+			}
 		}
 	}
 
 	// Add the component label
 	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
 	sts.Spec = appsv1.StatefulSetSpec{
-		Replicas:            &replicas,
-		PodManagementPolicy: appsv1.ParallelPodManagement,
-		UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
-			Type: strategy,
-		},
+		Replicas:             &replicas,
+		PodManagementPolicy:  appsv1.ParallelPodManagement,
+		UpdateStrategy:       updateStrategy,
 		RevisionHistoryLimit: ptr.To(int32(5)),
 		ServiceName:          deployment.GetHeadlessServiceName(),
 		Selector: &metav1.LabelSelector{
@@ -1046,7 +1107,18 @@ func (in *CoherenceResourceStatus) ensureInitialized(deployment CoherenceResourc
 		updated = true
 	}
 
+	if in.SetVersion(operator.GetVersion()) {
+		updated = true
+	}
 	return updated
+}
+
+func (in *CoherenceResourceStatus) SetVersion(v string) bool {
+	return in.Conditions.SetCondition(Condition{
+		Type:    ConditionTypeVersioned,
+		Status:  corev1.ConditionTrue,
+		Message: v,
+	})
 }
 
 func (in *CoherenceResourceStatus) FindJobProbeStatus(pod string) CoherenceJobProbeStatus {

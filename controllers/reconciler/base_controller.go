@@ -13,8 +13,10 @@ import (
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
+	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -214,6 +216,7 @@ func (in *CommonReconciler) UpdateDeploymentStatusHash(ctx context.Context, key 
 		if deployment.Status.Hash != hash {
 			updated := deployment.DeepCopy()
 			updated.Status.Hash = hash
+			updated.Status.SetVersion(operator.GetVersion())
 			patch, err := in.CreateTwoWayPatchOfType(types.MergePatchType, deployment.Name, updated, deployment)
 			if err != nil {
 				return errors.Wrap(err, "creating Coherence resource status patch")
@@ -288,6 +291,29 @@ func (in *CommonReconciler) UpdateDeploymentStatusActionsState(ctx context.Conte
 		}
 	}
 	return err
+}
+
+// IsVersionAnnotationEqualOrBefore returns true if the specified object
+// has a version annotation with a version the same as ot before the
+// specified version or has no version annotation.
+func (in *CommonReconciler) IsVersionAnnotationEqualOrBefore(m metav1.Object, version string) bool {
+	a := m.GetAnnotations()
+	if a != nil {
+		v, found := a[coh.AnnotationOperatorVersion]
+		if found && v != "" {
+			if v == version {
+				return true
+			}
+			if version[0] != 'v' {
+				version = "v" + version
+			}
+			if v[0] != 'v' {
+				v = "v" + v
+			}
+			return semver.Compare(v, version) <= 0
+		}
+	}
+	return true
 }
 
 // CanCreate determines whether any specified start quorum has been met.
@@ -769,6 +795,7 @@ func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Con
 func (in *ReconcileSecondaryResource) HashLabelsMatch(o metav1.Object, storage utils.Storage) bool {
 	storageHash, storageHashFound := storage.GetHash()
 	objectHash, objectHashFound := o.GetLabels()[coh.LabelCoherenceHash]
+	in.logger.Info("Checking hash", "ObjectName", o.GetName(), "ObjectKind", in.Kind.Name(), "StorageHash", storageHash, "StorageHashFound", storageHashFound, "ObjectHash", objectHash, "ObjectHashFound", objectHashFound)
 	return storageHashFound == objectHashFound && storageHash == objectHash
 }
 

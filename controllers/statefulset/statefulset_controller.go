@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/events"
+	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
@@ -114,14 +115,14 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	}
 
 	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name)
-	logger.Info("Reconciling StatefulSet for deployment")
+	logger.Info("Reconciling StatefulSet")
 
 	// Fetch the StatefulSet's current state
 	stsCurrent, stsExists, err := in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
 	if err != nil {
-		logger.Info("Finished reconciling StatefulSet for deployment. Error getting StatefulSet", "error", err.Error())
+		logger.Info("Finished reconciling StatefulSet. Error getting StatefulSet", "error", err.Error())
 		in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonReconciling,
-			"error getting statefulset for deployment %s, %s", request.Name, err.Error())
+			"error getting StatefulSet %s, %s", request.Name, err.Error())
 		return result, errors.Wrapf(err, "getting StatefulSet %s/%s", request.Namespace, request.Name)
 	}
 
@@ -184,6 +185,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		} else {
 			// The StatefulSet and parent resource has been deleted so no more to do
 			_, err = in.updateDeploymentStatus(ctx, request)
+			logger.Info("Finished reconciling StatefulSet")
 			return reconcile.Result{}, err
 		}
 	case !stsExists:
@@ -204,13 +206,12 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		}
 	}
 
-	if err != nil {
-		logger.Info("Finished reconciling StatefulSet with error", "error", err.Error())
-		return result, err
+	if err == nil {
+		logger.Info("Finished reconciling StatefulSet", "Requeue", result.Requeue, "RequeueAfter", result.RequeueAfter)
+	} else {
+		logger.Info("Finished reconciling StatefulSet with error", "Error", err.Error())
 	}
-
-	logger.Info("Finished reconciling StatefulSet for deployment")
-	return result, nil
+	return result, err
 }
 
 // execActions executes actions
@@ -330,26 +331,35 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 	desiredReplicas := in.getReplicas(desired)
 	currentReplicas := in.getReplicas(current)
 
-	switch {
-	case currentReplicas < desiredReplicas:
-		// scale up - if also updating we do the rolling upgrade first followed by the
-		// scale up so that we do not do a rolling upgrade of the bigger scaled up cluster
-
-		// try the patch first
-		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
-		if err == nil && !result.Requeue {
-			// there was nothing else to patch, so we can do the scale up
-			result, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
+	if currentReplicas != desiredReplicas {
+		// If scaling and the existing StatefulSet was created by an earlier Operator version then we
+		// patch the StatefulSet rather than scale. This will stop an instant upgrade of the Pods.
+		if in.IsVersionAnnotationEqualOrBefore(current, "3.4.3") {
+			if desired.Spec.UpdateStrategy.RollingUpdate == nil {
+				desired.Spec.UpdateStrategy.RollingUpdate = &appsv1.RollingUpdateStatefulSetStrategy{}
+			}
+			desired.Spec.UpdateStrategy.RollingUpdate.Partition = &currentReplicas
+			desired.Annotations[coh.AnnotationOperatorVersion] = operator.GetVersion()
+			if currentReplicas < desiredReplicas {
+				// Scaling up
+				// set the rolling upgrade partition to the current replica count so any
+				// existing Pods should not be changed
+				result, err = in.patchAndScaleStatefulSet(ctx, deployment, current, desired, storage, logger)
+				// nothing left to do so return
+				return result, err
+			}
+			// else scaling down, patch with the current replicas then requeue to trigger the scale
+			result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
+			if err != nil {
+				return result, err
+			}
 		}
-	case currentReplicas > desiredReplicas:
-		// scale down - if also updating we scale down followed by a rolling upgrade so that
-		// we do the rolling upgrade on the smaller scaled down cluster.
 
-		// do the scale down
+		// do the scale
 		_, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
 		// requeue the request so that we do any upgrade next time around
 		result.Requeue = true
-	default:
+	} else {
 		// just an update
 		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
 	}
@@ -357,33 +367,56 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 	return result, err
 }
 
-// Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
+// Patch the StatefulSet if required, but do not change the replica count, returning a bool to indicate whether a patch was applied.
 func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+	return in.maybePatchStatefulSet(ctx, deployment, current, desired, storage, false, logger)
+}
+
+// Patch the StatefulSet if required, including allowing scaling, returning a bool to indicate whether a patch was applied.
+func (in *ReconcileStatefulSet) patchAndScaleStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, logger logr.Logger) (reconcile.Result, error) {
+	return in.maybePatchStatefulSet(ctx, deployment, current, desired, storage, true, logger)
+}
+
+// Patch the StatefulSet if required, returning a bool to indicate whether a patch was applied.
+func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deployment coh.CoherenceResource, current, desired *appsv1.StatefulSet, storage utils.Storage, allowScale bool, logger logr.Logger) (reconcile.Result, error) {
 	hashMatches := in.HashLabelsMatch(current, storage)
+	in.GetLog().Info("Maybe patching stateful set, checked hash", "Match", hashMatches, "namespace", current.GetNamespace(), "name", current.GetName())
 	if hashMatches {
 		// Nothing to patch, see if we need to do a rolling upgrade of Pods
-		// If the Operator is controlling the upgrade
+		// if the Operator is controlling the upgrade
 		p := probe.CoherenceProbe{Client: in.GetClient(), Config: in.GetManager().GetConfig()}
 		strategy := GetUpgradeStrategy(deployment, p)
 		if strategy.IsOperatorManaged() {
-			// The Operator is managing the rolling upgrade
+			// The Operator is managing the rolling upgrade, not the StatefulSet
+			in.GetLog().Info("Operator managed upgrade", "namespace", current.GetNamespace(), "name", current.GetName())
 			if current.Spec.Replicas == nil {
+				// The StatefulSet replicas is nil (which should never actually be the case using the Operator,
+				// but someone could have manually hacked it). In this case a StatefulSet defaults to a
+				// single replica.
 				if current.Status.ReadyReplicas != 1 || current.Status.CurrentReplicas != 1 {
+					// The StatefulSet has a single replica which is not ready, so nothing to do...
 					return reconcile.Result{}, nil
 				}
 			} else {
+				// Check whether the updated replica count matches the ready replica count
 				replicas := *current.Spec.Replicas
 				if (current.Status.CurrentReplicas+current.Status.UpdatedReplicas) != replicas || current.Status.ReadyReplicas != replicas {
+					// Not all the updated Pods are ready so nothing else to do...
 					return reconcile.Result{}, nil
 				}
 			}
 
 			if current.Status.CurrentRevision == current.Status.UpdateRevision {
+				// The StatefulSet is fully updated, nothing else to fo
 				return reconcile.Result{}, nil
 			}
 
+			// If we get here there are still Pods to be updated
+			in.GetLog().Info("Operator managed upgrade, starting rolling upgrade", "namespace", current.GetNamespace(), "name", current.GetName())
 			return strategy.RollingUpgrade(ctx, current, deployment.GetWkaServiceName(), in.GetClientSet().KubeClient)
 		}
+		// nothing to do...
+		return reconcile.Result{}, nil
 	}
 
 	resource, _ := storage.GetPrevious().GetResource(coh.ResourceTypeStatefulSet, current.GetName())
@@ -406,15 +439,17 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 	errorList := coh.ValidateStatefulSetUpdate(desired, original)
 	if len(errorList) > 0 {
 		msg := fmt.Sprintf("upddates to the statefuleset would have been invalid, the update will not be re-queued: %v", errorList)
-		events := in.GetEventRecorder()
-		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
+		evts := in.GetEventRecorder()
+		evts.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
 		return reconcile.Result{Requeue: false}, errors.New(msg)
 	}
 
-	// We NEVER change the replicas or Status in an update.
-	// Replicas is handled by scaling, so we always set the desired replicas to match the current replicas
-	desired.Spec.Replicas = current.Spec.Replicas
-	original.Spec.Replicas = current.Spec.Replicas
+	// Replicas is normally handled by scaling, so we set the desired replicas to match the current replicas
+	// but in some Operator upgrade scenarios it is allowed
+	if !allowScale {
+		desired.Spec.Replicas = current.Spec.Replicas
+		original.Spec.Replicas = current.Spec.Replicas
+	}
 
 	// We NEVER patch finalizers
 	original.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
@@ -538,12 +573,12 @@ func (in *ReconcileStatefulSet) patchStatefulSet(ctx context.Context, deployment
 
 // suspendServices suspends Coherence services in the target deployment.
 func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) probe.ServiceSuspendStatus {
-	probe := probe.CoherenceProbe{
+	p := probe.CoherenceProbe{
 		Client:        in.GetClient(),
 		Config:        in.GetManager().GetConfig(),
 		EventRecorder: events.NewOwnedEventRecorder(deployment, in.GetEventRecorder()),
 	}
-	return probe.SuspendServices(ctx, deployment, current)
+	return p.SuspendServices(ctx, deployment, current)
 }
 
 // Scale will scale a StatefulSet up or down
@@ -631,7 +666,7 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment co
 	logger := in.GetLog().WithValues("Namespace", deployment.GetNamespace(), "Name", deployment.GetName())
 	logger.Info("Scaling StatefulSet", "Replicas", replicas)
 
-	events := in.GetEventRecorder()
+	evts := in.GetEventRecorder()
 
 	// Update this Coherence resource's status
 	status := deployment.GetStatus()
@@ -645,6 +680,33 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment co
 	// Create the desired state
 	stsDesired := &appsv1.StatefulSet{}
 	sts.DeepCopyInto(stsDesired)
+
+	// we need to requeue if scaling down in case we need to then do a patch/upgrade
+	var currentReplicas int32
+	if stsDesired.Spec.Replicas != nil {
+		currentReplicas = *stsDesired.Spec.Replicas
+	} else {
+		currentReplicas = 1
+	}
+	scaleDown := currentReplicas > replicas
+
+	if stsDesired.Spec.UpdateStrategy.Type == appsv1.RollingUpdateStatefulSetStrategyType {
+		// The StatefulSet is using RollingUpdate as its update strategy.
+		// We do not want any scaling to trigger an update of the existing cluster members so
+		// we set the rolling update partition to be the replica count.
+		// K8s will then scale up with the existing settings.
+		// Once scaling has finished the rolling upgrade of the cluster will take place.
+		if stsDesired.Spec.UpdateStrategy.RollingUpdate == nil {
+			stsDesired.Spec.UpdateStrategy.RollingUpdate = &appsv1.RollingUpdateStatefulSetStrategy{}
+		}
+		if scaleDown {
+			// set the partition to the target replica count
+			stsDesired.Spec.UpdateStrategy.RollingUpdate.Partition = ptr.To(replicas)
+		} else {
+			stsDesired.Spec.UpdateStrategy.RollingUpdate.Partition = ptr.To(currentReplicas)
+		}
+	}
+
 	stsDesired.Spec.Replicas = &replicas
 
 	// ThreeWayPatch theStatefulSet to trigger it to scale
@@ -652,15 +714,15 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment co
 	if err != nil {
 		// send a failed scale event
 		msg := fmt.Sprintf("failed to scale StatefulSet %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
-		events.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
+		evts.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
 		return reconcile.Result{}, errors.Wrap(err, msg)
 	}
 
 	// send a successful scale event
 	msg := fmt.Sprintf("scaled StatefulSet %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
-	events.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
+	evts.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{Requeue: scaleDown}, nil
 }
 
 // updateDeploymentStatus updates the Coherence resource's status.
