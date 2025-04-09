@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -180,7 +180,7 @@ func TestGlobalLabels(t *testing.T) {
 	data, ok := deployments["global-label"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'global-label' deployment")
 
-	storage, err := utils.NewStorage(data.GetNamespacedName(), testContext.Manager)
+	storage, err := utils.NewStorage(data.GetNamespacedName(), testContext.Manager, testContext.Patcher)
 	g.Expect(err).NotTo(HaveOccurred())
 	latest := storage.GetLatest()
 	for _, res := range latest.Items {
@@ -205,7 +205,7 @@ func TestGlobalAnnotations(t *testing.T) {
 	data, ok := deployments["global-annotation"]
 	g.Expect(ok).To(BeTrue(), "did not find expected 'global-annotation' deployment")
 
-	storage, err := utils.NewStorage(data.GetNamespacedName(), testContext.Manager)
+	storage, err := utils.NewStorage(data.GetNamespacedName(), testContext.Manager, testContext.Patcher)
 	g.Expect(err).NotTo(HaveOccurred())
 	latest := storage.GetLatest()
 	for _, res := range latest.Items {

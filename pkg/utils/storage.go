@@ -205,6 +205,9 @@ func (in *secretStore) save(ctx context.Context, owner coh.CoherenceResource, de
 	var err error
 
 	current, exists, err := in.getSecret()
+	if err != nil {
+		return err
+	}
 
 	if !exists {
 		// the resource does not exist so set the deployment as the controller/owner and create it

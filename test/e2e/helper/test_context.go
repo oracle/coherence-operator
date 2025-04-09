@@ -14,6 +14,7 @@ import (
 	"github.com/oracle/coherence-operator/controllers"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/patching"
 	oprest "github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -21,6 +22,7 @@ import (
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"net/http"
@@ -53,6 +55,7 @@ type TestContext struct {
 	namespaces    []string
 	RestServer    oprest.Server
 	RestEndpoints map[string]func(w http.ResponseWriter, r *http.Request)
+	Patcher       patching.ResourcePatcher
 }
 
 func (in *TestContext) Logf(format string, a ...interface{}) {
@@ -277,6 +280,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 
 	ep := make(map[string]func(w http.ResponseWriter, r *http.Request))
 
+	p := patching.NewResourcePatcher(k8sManager, ctrl.Log, types.StrategicMergePatchType)
 	return TestContext{
 		Config:        k8sCfg,
 		Client:        k8sClient,
@@ -288,5 +292,6 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 		stop:          stop,
 		Cancel:        cancel,
 		RestEndpoints: ep,
+		Patcher:       p,
 	}, nil
 }
