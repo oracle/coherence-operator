@@ -23,7 +23,6 @@ import (
 	"k8s.io/utils/ptr"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"testing"
 	"time"
 )
@@ -295,8 +294,8 @@ func addTestFinalizer(o client.Object) error {
 	if err := testContext.Client.Get(ctx, k, o); err != nil {
 		return err
 	}
-	controllerutil.AddFinalizer(o, testFinalizer)
-	return testContext.Client.Update(ctx, o)
+	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{"metadata":{"finalizers":[%s]}}`, testFinalizer)))
+	return testContext.Client.Patch(ctx, o, patch)
 }
 
 func removeAllFinalizers(o client.Object) error {
