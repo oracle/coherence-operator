@@ -729,7 +729,7 @@ deploymentAnnotations:
 
 By default, the Operator will install both CRDs, `Coherence` and `CoherenceJob`.
 If support for `CoherenceJob` is not required then it can be excluded from being installed setting the
-Operator command line parameter `--install-job-crd` to `false`.
+Operator command line parameter `--enable-jobs` to `false`.
 
 When installing with Helm, the `allowCoherenceJobs` value can be set to `false` to disable support for `CoherenceJob`
 resources (the default value is `true`).

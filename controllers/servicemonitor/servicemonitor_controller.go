@@ -74,7 +74,7 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
 
-	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
+	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager(), in.GetPatcher())
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -222,7 +222,7 @@ func (in *ReconcileServiceMonitor) UpdateServiceMonitor(ctx context.Context, nam
 	}
 
 	logger.Info("Patching ServiceMonitor")
-	_, err = in.monClient.ServiceMonitors(namespace).Patch(ctx, name, in.GetPatchType(), data, metav1.PatchOptions{})
+	_, err = in.monClient.ServiceMonitors(namespace).Patch(ctx, name, in.GetPatcher().GetPatchType(), data, metav1.PatchOptions{})
 	if err != nil {
 		// Patch or update failed - resort to an update with retry as sometimes custom resource (like ServiceMonitor) cannot be patched
 		count := 1

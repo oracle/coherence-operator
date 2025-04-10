@@ -8,12 +8,12 @@ package reconciler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
+	"github.com/oracle/coherence-operator/pkg/patching"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
@@ -23,10 +23,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/strategicpatch"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -39,9 +36,6 @@ import (
 
 //goland:noinspection GoUnusedConst
 const (
-	// PatchIgnore - If the patch json is this we can skip the patch.
-	PatchIgnore = "{\"metadata\":{\"creationTimestamp\":null},\"status\":{\"replicas\":0}}"
-
 	// EventReasonCreated is the reason description for a created event.
 	EventReasonCreated string = "Created"
 	// EventReasonUpdated is the reason description for an updated event.
@@ -73,7 +67,7 @@ type BaseReconciler interface {
 	GetEventRecorder() record.EventRecorder
 	GetLog() logr.Logger
 	GetReconciler() reconcile.Reconciler
-	SetPatchType(patchType types.PatchType)
+	GetPatcher() patching.ResourcePatcher
 }
 
 // CommonReconciler is a base controller structure.
@@ -84,7 +78,7 @@ type CommonReconciler struct {
 	locks     map[types.NamespacedName]bool
 	mutex     *sync.Mutex
 	logger    logr.Logger
-	patchType types.PatchType
+	patcher   patching.ResourcePatcher
 }
 
 func (in *CommonReconciler) GetControllerName() string       { return in.name }
@@ -92,22 +86,24 @@ func (in *CommonReconciler) GetManager() manager.Manager     { return in.mgr }
 func (in *CommonReconciler) GetClient() client.Client        { return in.mgr.GetClient() }
 func (in *CommonReconciler) GetClientSet() clients.ClientSet { return in.clientSet }
 func (in *CommonReconciler) GetMutex() *sync.Mutex           { return in.mutex }
-func (in *CommonReconciler) GetPatchType() types.PatchType   { return in.patchType }
-func (in *CommonReconciler) SetPatchType(pt types.PatchType) { in.patchType = pt }
 func (in *CommonReconciler) GetEventRecorder() record.EventRecorder {
 	return in.mgr.GetEventRecorderFor(in.name)
 }
 func (in *CommonReconciler) GetLog() logr.Logger {
 	return in.logger
 }
+func (in *CommonReconciler) GetPatcher() patching.ResourcePatcher {
+	return in.patcher
+}
 
 func (in *CommonReconciler) SetCommonReconciler(name string, mgr manager.Manager, cs clients.ClientSet) {
+	logger := logf.Log.WithName(name)
 	in.name = name
 	in.mgr = mgr
 	in.clientSet = cs
 	in.mutex = commonMutex
-	in.logger = logf.Log.WithName(name)
-	in.patchType = types.StrategicMergePatchType
+	in.logger = logger
+	in.patcher = patching.NewResourcePatcher(mgr, logger, types.StrategicMergePatchType)
 }
 
 // Lock attempts to lock the requested resource.
@@ -317,6 +313,8 @@ func (in *CommonReconciler) IsVersionAnnotationEqualOrBefore(m metav1.Object, ve
 }
 
 // CanCreate determines whether any specified start quorum has been met.
+//
+//goland:noinspection GoDfaConstantCondition
 func (in *CommonReconciler) CanCreate(ctx context.Context, deployment coh.CoherenceResource) (bool, string) {
 	spec := deployment.GetSpec()
 	if len(spec.StartQuorum) == 0 {
@@ -370,7 +368,7 @@ func (in *CommonReconciler) CanCreate(ctx context.Context, deployment coh.Cohere
 
 // TwoWayPatch performs a two-way merge patch on the resource.
 func (in *CommonReconciler) TwoWayPatch(ctx context.Context, name string, current, desired client.Object) (bool, error) {
-	patch, err := in.CreateTwoWayPatch(name, desired, current, PatchIgnore)
+	patch, err := in.CreateTwoWayPatch(name, desired, current, patching.PatchIgnore)
 	if err != nil {
 		kind := current.GetObjectKind().GroupVersionKind().Kind
 		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
@@ -392,148 +390,37 @@ func (in *CommonReconciler) TwoWayPatch(ctx context.Context, name string, curren
 
 // CreateTwoWayPatch creates a two-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateTwoWayPatch(name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
-	return in.CreateTwoWayPatchOfType(in.patchType, name, desired, current, ignore...)
+	return in.patcher.CreateTwoWayPatch(name, desired, current, ignore...)
 }
 
 // CreateTwoWayPatchOfType creates a two-way patch between the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateTwoWayPatchOfType(patchType types.PatchType, name string, desired, current runtime.Object, ignore ...string) (client.Patch, error) {
-	currentData, err := json.Marshal(current)
-	if err != nil {
-		return nil, errors.Wrap(err, "serializing current configuration")
-	}
-	desiredData, err := json.Marshal(desired)
-	if err != nil {
-		return nil, errors.Wrap(err, "serializing desired configuration")
-	}
-
-	// Get a versioned object
-	versionedObject := in.asVersioned(desired)
-
-	patchMeta, err := strategicpatch.NewPatchMetaFromStruct(versionedObject)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create patch metadata from object")
-	}
-
-	data, err := strategicpatch.CreateTwoWayMergePatchUsingLookupPatchMeta(currentData, desiredData, patchMeta)
-	if err != nil {
-		return nil, errors.Wrap(err, "creating three-way patch")
-	}
-
-	// check whether the patch counts as no-patch
-	ignore = append(ignore, "{}")
-	for _, s := range ignore {
-		if string(data) == s {
-			// empty patch
-			return nil, err
-		}
-	}
-
-	// log the patch
-	kind := current.GetObjectKind().GroupVersionKind().Kind
-
-	in.GetLog().V(2).Info(fmt.Sprintf("Created patch for %s/%s\n%s", kind, name, string(data)))
-
-	return client.RawPatch(patchType, data), nil
+	return in.patcher.CreateTwoWayPatchOfType(patchType, name, desired, current, ignore...)
 }
 
 // ThreeWayPatch performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
 func (in *CommonReconciler) ThreeWayPatch(ctx context.Context, name string, current, original, desired client.Object) (bool, error) {
-	return in.ThreeWayPatchWithCallback(ctx, name, current, original, desired, nil)
+	return in.patcher.ThreeWayPatch(ctx, name, current, original, desired)
 }
 
 // ThreeWayPatchWithCallback performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
 func (in *CommonReconciler) ThreeWayPatchWithCallback(ctx context.Context, name string, current, original, desired client.Object, callback func()) (bool, error) {
-	kind := current.GetObjectKind().GroupVersionKind().Kind
-	// fix the CreationTimestamp so that it is not in the patch
-	desired.(metav1.Object).SetCreationTimestamp(current.(metav1.Object).GetCreationTimestamp())
-	// create the patch
-	patch, data, err := in.CreateThreeWayPatch(name, original, desired, current, PatchIgnore)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to create patch for %s/%s", kind, name)
-	}
-
-	if patch == nil {
-		// nothing to patch so just return
-		return false, nil
-	}
-
-	return in.ApplyThreeWayPatchWithCallback(ctx, name, current, patch, data, callback)
+	return in.patcher.ThreeWayPatchWithCallback(ctx, name, current, original, desired, callback)
 }
 
 // ApplyThreeWayPatchWithCallback performs a three-way merge patch on the resource returning true if a patch was required otherwise false.
 func (in *CommonReconciler) ApplyThreeWayPatchWithCallback(ctx context.Context, name string, current client.Object, patch client.Patch, data []byte, callback func()) (bool, error) {
-	kind := current.GetObjectKind().GroupVersionKind().Kind
-
-	// execute any callback
-	if callback != nil {
-		callback()
-	}
-
-	in.GetLog().WithValues().Info(fmt.Sprintf("Patching %s/%s", kind, name), "Patch", string(data))
-	err := in.GetManager().GetClient().Patch(ctx, current, patch)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to patch  %s/%s with %s", kind, name, string(data))
-	}
-
-	return true, nil
+	return in.patcher.ApplyThreeWayPatchWithCallback(ctx, name, current, patch, data, callback)
 }
 
 // CreateThreeWayPatch creates a three-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateThreeWayPatch(name string, original, desired, current runtime.Object, ignore ...string) (client.Patch, []byte, error) {
-	data, err := in.CreateThreeWayPatchData(original, desired, current)
-	if err != nil {
-		return nil, data, errors.Wrap(err, "creating three-way patch")
-	}
-
-	// check whether the patch counts as no-patch
-	ignore = append(ignore, "{}")
-	for _, s := range ignore {
-		if string(data) == s {
-			// empty patch
-			return nil, data, err
-		}
-	}
-
-	// log the patch
-	kind := current.GetObjectKind().GroupVersionKind().Kind
-	in.GetLog().Info(fmt.Sprintf("Created patch for %s/%s", kind, name), "Patch", string(data))
-
-	return client.RawPatch(in.patchType, data), data, nil
+	return in.patcher.CreateThreeWayPatch(name, original, desired, current, ignore...)
 }
 
 // CreateThreeWayPatchData creates a three-way patch between the original state, the current state and the desired state of a k8s resource.
 func (in *CommonReconciler) CreateThreeWayPatchData(original, desired, current runtime.Object) ([]byte, error) {
-	originalData, err := json.Marshal(original)
-	if err != nil {
-		return nil, errors.Wrap(err, "serializing original configuration")
-	}
-	currentData, err := json.Marshal(current)
-	if err != nil {
-		return nil, errors.Wrap(err, "serializing current configuration")
-	}
-	desiredData, err := json.Marshal(desired)
-	if err != nil {
-		return nil, errors.Wrap(err, "serializing desired configuration")
-	}
-
-	// Get a versioned object
-	versionedObject := in.asVersioned(desired)
-
-	patchMeta, err := strategicpatch.NewPatchMetaFromStruct(versionedObject)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create patch metadata from object")
-	}
-
-	return strategicpatch.CreateThreeWayMergePatch(originalData, desiredData, currentData, patchMeta, true)
-}
-
-// asVersioned converts the given object into a runtime.Template with the correct group and version set.
-func (in *CommonReconciler) asVersioned(obj runtime.Object) runtime.Object {
-	var gv = runtime.GroupVersioner(schema.GroupVersions(scheme.Scheme.PrioritizedVersionsAllGroups()))
-	if obj, err := runtime.ObjectConvertor(scheme.Scheme).ConvertToVersion(obj, gv); err == nil {
-		return obj
-	}
-	return obj
+	return in.patcher.CreateThreeWayPatchData(original, desired, current)
 }
 
 // HandleErrAndRequeue is the common error handler
@@ -832,7 +719,7 @@ func (in *ReconcileSecondaryResource) ReconcileSingleResource(ctx context.Contex
 	}
 
 	if storage == nil && owner != nil {
-		if storage, err = utils.NewStorage(owner.GetNamespacedName(), in.GetManager()); err != nil {
+		if storage, err = utils.NewStorage(owner.GetNamespacedName(), in.GetManager(), in.GetPatcher()); err != nil {
 			return err
 		}
 	}

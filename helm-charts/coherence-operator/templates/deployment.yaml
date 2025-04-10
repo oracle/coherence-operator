@@ -5,8 +5,15 @@ kind: Secret
 metadata:
   name: {{ default "coherence-webhook-server-cert" .Values.webhookCertSecret }}
   namespace: {{ .Release.Namespace }}
-{{- if (.Values.globalLabels) }}
   labels:
+    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/instance: coherence-operator-manager
+    app.kubernetes.io/version: "${VERSION}"
+    app.kubernetes.io/component: webhook-cert
+    app.kubernetes.io/part-of: coherence-operator
+    app.kubernetes.io/managed-by: helm
+{{- if (.Values.globalLabels) }}
 {{ toYaml .Values.globalLabels | indent 4 }}
 {{- end }}
 {{- if (.Values.globalAnnotations) }}
@@ -158,14 +165,13 @@ spec:
 {{- end }}
 {{- if (eq .Values.clusterRoles false) }}
         - --enable-webhook=false
-        - --install-crd=false
 {{- else }}
 {{- if (eq .Values.webhooks false) }}
         - --enable-webhook=false
 {{- end }}
 {{- end }}
 {{- if (eq .Values.allowCoherenceJobs false) }}
-        - --install-job-crd=false
+        - --enable-jobs=false
 {{- end }}
 {{- if (.Values.globalLabels) }}
 {{- range $k, $v := .Values.globalLabels }}
@@ -202,10 +208,14 @@ spec:
 {{- else }}
           value: {{ printf "%s/%s:%s" .Values.defaultCoherenceImage.registry .Values.defaultCoherenceImage.name .Values.defaultCoherenceImage.tag | quote }}
 {{- end }}
+{{- if .Values.rackLabel }}
         - name: RACK_LABEL
           value: {{ .Values.rackLabel | quote }}
+{{- end }}
+{{- if .Values.siteLabel }}
         - name: SITE_LABEL
           value: {{ .Values.siteLabel | quote }}
+{{- end }}
         - name: OPERATOR_IMAGE
 {{- if kindIs "string" .Values.image }}
           value: {{ .Values.image | quote }}

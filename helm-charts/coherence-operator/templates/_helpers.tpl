@@ -34,16 +34,3 @@ Create chart name and version as used by the chart label.
 {{- define "coherence-operator.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
-
-{{/*
-Create the release labels.
-These are a common set of labels applied to all of the resources
-generated from this chart.
-*/}}
-{{- define "coherence-operator.release_labels" }}
-heritage: {{ .Release.Service | quote }}
-release: {{ .Release.Name | quote }}
-chart: {{ template "coherence-operator.chart" . }}
-app: {{ template "coherence-operator.name" . }}
-component: coherence-operator
-{{- end }}

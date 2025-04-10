@@ -147,7 +147,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	}
 
 	// ensure that the state store exists
-	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager())
+	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager(), in.GetPatcher())
 	if err != nil {
 		err = errors.Wrap(err, "obtaining desired state store")
 		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
@@ -162,7 +162,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 
 	if hash == storeHash && deployment.IsBeforeOrSameVersion("3.4.3") {
 		deployment.UpdateStatusVersion(operator.GetVersion())
-		if err = storage.ResetHash(deployment); err != nil {
+		if err = storage.ResetHash(ctx, deployment); err != nil {
 			return result, errors.Wrap(err, "error updating storage status hash")
 		}
 		hashNew := deployment.GetGenerationString()
@@ -193,7 +193,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	desiredResources.SetHashLabelAndAnnotations(hash)
 
 	// update the store to have the desired state as the latest state.
-	if err = storage.Store(desiredResources, deployment); err != nil {
+	if err = storage.Store(ctx, desiredResources, deployment); err != nil {
 		err = errors.Wrap(err, "storing latest state in state store")
 		return reconcile.Result{}, err
 	}
@@ -252,7 +252,7 @@ func (in *CoherenceJobReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.
 
 	in.reconcilers = reconcilers
 	in.SetCommonReconciler(jobControllerName, mgr, cs)
-	in.SetPatchType(types.MergePatchType)
+	in.GetPatcher().SetPatchType(types.MergePatchType)
 
 	template := &coh.CoherenceJob{}
 

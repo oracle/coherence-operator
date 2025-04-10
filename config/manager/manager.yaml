@@ -61,7 +61,6 @@ spec:
         args:
           - operator
           - --enable-leader-election
-          - --install-crd=false
         envFrom:
           - configMapRef:
               name: env-vars
