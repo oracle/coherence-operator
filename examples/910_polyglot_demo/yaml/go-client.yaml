@@ -1,0 +1,52 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: go-client-http
+  labels:
+    app: go-client
+    coherence-language: go
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: go-client
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: go-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-client
+  template:
+    metadata:
+      labels:
+        app: go-client
+    spec:
+      containers:
+        - name: go-client
+          image: polyglot-client-go:1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: COHERENCE_SERVER_ADDRESS
+              value: "demo-cluster-grpc:1408"
+            - name: COHERENCE_READY_TIMEOUT
+              value: "60000"
+          resources:
+            requests:
+              memory: "512Mi"
+            limits:
+              memory: "512Mi"
+          ports:
+            - containerPort: 8080
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - all
+            readOnlyRootFilesystem: true

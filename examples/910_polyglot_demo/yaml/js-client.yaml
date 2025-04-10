@@ -1,0 +1,52 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: js-client-http
+  labels:
+    app: js-client
+    coherence-language: go
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: js-client
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: js-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: js-client
+  template:
+    metadata:
+      labels:
+        app: js-client
+    spec:
+      containers:
+        - name: js-client
+          image: polyglot-client-js:1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: COHERENCE_SERVER_ADDRESS
+              value: "demo-cluster-grpc:1408"
+            - name: COHERENCE_READY_TIMEOUT
+              value: "60000"
+          resources:
+            requests:
+              memory: "512Mi"
+            limits:
+              memory: "512Mi"
+          ports:
+            - containerPort: 8080
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - all
+            readOnlyRootFilesystem: true

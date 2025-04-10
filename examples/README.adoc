@@ -108,3 +108,13 @@ Istio Support
 Deploying the Coherence demo application.
 --
 ====
+
+[PILLARS]
+====
+[CARD]
+.Polyglot Client Demo
+[link=examples/910_polyglot_demo/README.adoc]
+--
+Deploy Python, JavaScript or Go applications using the Operator.
+--
+====
