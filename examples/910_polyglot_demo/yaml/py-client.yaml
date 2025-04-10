@@ -38,9 +38,9 @@ spec:
               value: "60000"
           resources:
             requests:
-              memory: "2Gi"
+              memory: "512Mi"
             limits:
-              memory: "2Gi"
+              memory: "512Mi"
           ports:
             - containerPort: 8080
           securityContext:

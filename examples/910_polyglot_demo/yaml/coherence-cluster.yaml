@@ -3,6 +3,10 @@ kind: Coherence
 metadata:
   name: demo-cluster  # <1>
 spec:
+  jvm:
+    memory:
+      initialHeapSize: 1g
+      maxHeapSize: 1g
   replicas: 3 # <2>
   image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1-java17" # <3>
   coherence:
