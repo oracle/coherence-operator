@@ -97,7 +97,7 @@ namespace/coherence-demo created
 [#pre-3]
 ==== Install the Coherence Operator
 
-TIP: The Coherence Operator is installed installed into a namespace called `coherence`. To change this see the documentation below.
+TIP: The Coherence Operator is installed into a namespace called `coherence`. To change this see the documentation below.
 
 [source,bash]
 ----
@@ -270,6 +270,29 @@ docker push ghcr.io/username/repo/polyglot-client-go:1.0.0
 * link:yaml/py-client.yaml[py-client.yaml]
 * link:yaml/js-client.yaml[js-client.yaml]
 * link:yaml/go-client.yaml[go-client.yaml]
+
+3. Create a secret if your repository is not public:
++
+If the repository you are pushing to is not public, you will need to create a pull secret, and add this to the deployment yaml for each client.
++
+[source,bash]
+----
+kubectl create secret docker-registry my-pull-secret \
+    --docker-server=ghcr.io \
+    --docker-username="<username>" --docker-password="<password>" \
+    --docker-email="<email>" -n coherence-demo
+----
++
+In each of the client deployment files, above add `imagePullSecrets` after the image. For example in the go-client:
++
+[source,yaml]
+----
+        - name: go-client
+          image: ghcr.io/username/repo/polyglot-client-go:1.0.0
+          imagePullPolicy: IfNotPresent
+          imagePullSecrets:
+            - name: my-pull-secret
+---
 
 [#dep-4]
 ==== 4. Deploy the Coherence Cluster
