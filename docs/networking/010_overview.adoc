@@ -7,6 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Overview
+:description: Coherence Operator Documentation - Networking Overview
+:keywords: oracle coherence, kubernetes, operator, networking, network
 
 == Overview
 

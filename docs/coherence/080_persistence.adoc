@@ -1,12 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 
 = Coherence Persistence
+:description: Coherence Operator Documentation - Configure Coherence Persistence
+:keywords: oracle coherence, kubernetes, operator, documentation, configure Coherence Persistence, persistence
 
 Coherence persistence is a set of tools and technologies that manage the persistence and recovery of Coherence
 distributed caches. Cached data can be persisted so that it can be quickly recovered after a catastrophic failure

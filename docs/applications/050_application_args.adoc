@@ -7,6 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Set Application Arguments
+:description: Coherence Operator Documentation - Set Application Arguments
+:keywords: oracle coherence, kubernetes, operator, documentation, set application arguments
 
 == Set Application Arguments
 
