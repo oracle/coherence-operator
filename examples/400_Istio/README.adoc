@@ -6,6 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 = Using Coherence with Istio
+:description: Coherence Operator Documentation - Coherence with Istio Example
+:keywords: oracle coherence, kubernetes, operator, istio, example
 
 == Using Coherence with Istio
 

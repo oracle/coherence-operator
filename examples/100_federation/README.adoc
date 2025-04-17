@@ -6,6 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence Federation
+:description: Coherence Operator Documentation - Coherence Federation Example
+:keywords: oracle coherence, kubernetes, operator, federation, OCI, Oracle Cloud Infrastructure, example
 
 == Coherence Federation
 
