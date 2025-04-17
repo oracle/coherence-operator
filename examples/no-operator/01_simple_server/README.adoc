@@ -1,11 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 = A Simple Coherence Cluster
+:description: Coherence Operator Documentation - A Simple Coherence Cluster Without the Operator
+:keywords: oracle coherence, kubernetes, operator, simple cluster, without operator
 
 == A Simple Coherence Cluster in Kubernetes
 

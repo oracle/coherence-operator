@@ -1,11 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 = Enabling Coherence Metrics
+:description: Coherence Operator Documentation - Enabling Coherence Metrics Without the Operator
+:keywords: oracle coherence, kubernetes, operator, metrics, without operator
 
 == Enabling Coherence Metrics
 

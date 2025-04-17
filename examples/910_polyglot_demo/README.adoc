@@ -6,6 +6,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 = Polyglot Client Demo
+:description: Coherence Operator Documentation - Polyglot Client Demo Example
+:keywords: oracle coherence, kubernetes, operator, polyglot, grpc, python, javascript, golang, go, example
 
 == Polyglot Client Demo
 

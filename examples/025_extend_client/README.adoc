@@ -1,11 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2022, Oracle and/or its affiliates.
+    Copyright (c) 2022, 205 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence Extend Clients
+:description: Coherence Operator Documentation - Coherence Extend Clients Example
+:keywords: oracle coherence, kubernetes, operator, extend client, coherence extend, example
 
 == Coherence Extend Clients
 
