@@ -7,6 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Coherence Operator Installation
+:description: Coherence Operator Documentation - Coherence Operator Installation
+:keywords: oracle coherence, kubernetes, operator, documentation, Coherence Operator Installation
 
 The Coherence Operator is available as an image from the GitHub container registry `container-registry.oracle.com/middleware/coherence-operator:{operator-version}` that can
 easily be installed into a Kubernetes cluster.

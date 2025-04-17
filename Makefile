@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2019, 2025, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -2935,7 +2935,7 @@ test-docs: docs
 serve-docs:
 	@echo "Serving documentation on http://localhost:8080"
 	cd $(BUILD_OUTPUT)/docs; \
-	python -m SimpleHTTPServer 8080
+	python3 -m http.server 8080
 
 # ======================================================================================================================
 # Release targets

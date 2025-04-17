@@ -7,6 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Spring Boot Applications
+:description: Coherence Operator Documentation - Spring Boot Applications
+:keywords: oracle coherence, kubernetes, operator, documentation, Spring Boot Applications
 
 == Spring Boot Applications
 

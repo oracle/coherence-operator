@@ -7,6 +7,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Obtain Coherence Images
+:description: Coherence Operator Documentation - Obtain Coherence Images
+:keywords: oracle coherence, kubernetes, operator, documentation, Obtain Coherence Images, images
+
 
 For most use-cases we expect the developer to provide a suitable Coherence application image to be
 run by the operator. For POCs, demos and experimentation the Coherence Operator uses the OSS Coherence CE image

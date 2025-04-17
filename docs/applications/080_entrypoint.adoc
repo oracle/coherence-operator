@@ -7,6 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Run an Image Entry Point
+:description: Coherence Operator Documentation - Run an Image Entry Point
+:keywords: oracle coherence, kubernetes, operator, documentation, Run an Image Entry Point
 
 == Run an Image Entry Point
 

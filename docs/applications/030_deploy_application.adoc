@@ -7,6 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 = Deploy Coherence Applications
+:description: Coherence Operator Documentation - Deploy Coherence Applications
+:keywords: oracle coherence, kubernetes, operator, documentation, Deploy Coherence Applications
 
 == Deploy Coherence Applications
 

@@ -1,12 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2025 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 
 = Set the Working Directory
+:description: Coherence Operator Documentation - Set the Working Directory
+:keywords: oracle coherence, kubernetes, operator, documentation, Set the Working Directory
 
 == Set the Working Directory
 

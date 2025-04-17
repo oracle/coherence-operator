@@ -1,12 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 
 = Cache Configuration File
+:description: Coherence Operator Documentation - Set the Cache Configuration File
+:keywords: oracle coherence, kubernetes, operator, documentation, Cache Configuration File, cache configuration
 
 == Set the Cache Configuration File Name
 

@@ -1,12 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2025 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
 ///////////////////////////////////////////////////////////////////////////////
 
 = Overview
+:description: Coherence Operator Documentation - Coherence Settings
+:keywords: oracle coherence, kubernetes, operator, documentation, coherence settings
 
 The `Coherence` resource has a number of fields to configure the behaviour of `Coherence`,
 these fields are in the `spec.coherence` section of the CRD.
