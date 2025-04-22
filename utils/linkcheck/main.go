@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -274,7 +274,7 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	fmt.Printf("%s", urlToGet)
 
 	var netClient = &http.Client{
-		Timeout: time.Second * 30,
+		Timeout: time.Minute * 1,
 	}
 
 	if resp, err = netClient.Get(urlToGet.String()); err != nil {
