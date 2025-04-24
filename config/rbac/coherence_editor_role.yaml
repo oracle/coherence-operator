@@ -28,3 +28,11 @@ rules:
       - coherence/status
     verbs:
       - get
+  - apiGroups:
+      - coherence.oracle.com
+    resources:
+      - coherence/scale
+    verbs:
+      - get
+      - patch
+      - update
