@@ -13,7 +13,10 @@ TOOLS_BIN=${ROOT_DIR}/build/tools/bin
 UNAME_S=$(uname -s)
 UNAME_M=$(uname -m)
 
-TEKTON_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+if [ "${TEKTON_VERSION}" == "" ]
+then
+  TEKTON_VERSION=0.40.0
+fi
 
 if [ "Darwin" = "${UNAME_S}" ]; then
   echo "Downloading Tekton ${VERSION} ${UNAME_S} ${UNAME_M}"
