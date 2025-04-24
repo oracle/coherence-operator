@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: operator-ci-run-
+spec:
+  pipelineRef:
+    name: operator-ci
+  workspaces:
+    - name: shared-data
+      persistentVolumeClaim:
+        claimName: operator-ci-pvc
+    - name: dockerconfig
+      secret:
+        secretName: container-auth-json
+    - name: git-credentials
+      secret:
+        secretName: github-ssh-credentials
+  taskRunSpecs:
+    - pipelineTaskName: git-clone
+      podTemplate:
+        securityContext:
+          fsGroup: 65532
+  timeouts:
+    pipeline: "2h3m0s"
+    tasks: "2h0m0s"
+  params:
+    - name: repo-url
+      value: git@github.com:thegridman/coherence-operator.git
+    - name: revision
+      value: tekton
+    - name: builder-image-prefix
+      value: "iad.ocir.io/odx-stateservice/tekton/builder"
+    - name: env-configmap
+      value: os-cert-config
+    - name: oci-tenancy-ocid
+      value: "ocid1.tenancy.oc1..aaaaaaaaztkccp2ubbxhhuftzvouv6t3b4sfencpgvsicrtmhwprk2mgahjq"
+    - name: oci-user-ocid
+      value: "ocid1.user.oc1..aaaaaaaa6vuuuw4vx3etfnugb6r34uyy2ovu2hbqivmazxylohc633pflkla"
+    - name: oci-region
+      value: "us-phoenix-1"
+    - name: oci-cli-secret
+      value: oci-cli-secret
+
