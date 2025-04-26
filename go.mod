@@ -1,5 +1,13 @@
 module github.com/oracle/coherence-operator
 
+// NOTE: This is the go language version, NOT the compiler version.
+//
+// This controls the *minimum* required go version and therefore available Go
+// language features.
+//
+// See ./.go-version for the go compiler version used when building binaries
+//
+// https://go.dev/doc/modules/gomod-ref#go
 go 1.24.2
 
 require (

@@ -35,6 +35,22 @@ PROJECT_URL = https://github.com/oracle/coherence-operator
 
 KUBERNETES_DOC_VERSION=v1.32
 
+# ========================= Setup Go With Gimme ================================
+# go version to use for build etc.
+# setup correct go version with gimme
+GOTOOLCHAIN:=$(shell . hack/golang/gotoolchain.sh && echo "$${GOTOOLCHAIN}")
+PATH:=$(shell . hack/golang/setup-go.sh && echo "$${PATH}")
+# go1.9+ can autodetect GOROOT, but if some other tool sets it ...
+GOROOT:=
+# enable modules
+GO111MODULE=on
+# disable CGO by default for static binaries
+CGO_ENABLED=0
+export PATH GOROOT GO111MODULE CGO_ENABLED GOTOOLCHAIN
+# work around broken PATH export
+SPACE:=$(subst ,, )
+SHELL:=env PATH=$(subst $(SPACE),\$(SPACE),$(PATH)) $(SHELL)
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
@@ -561,9 +577,9 @@ $(BUILD_TARGETS)/delve-image:
 
 $(BUILD_BIN)/runner-debug: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	mkdir -p $(BUILD_BIN_AMD64) || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_AMD64)/runner-debug ./runner
+	GOOS=linux GOARCH=amd64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_AMD64)/runner-debug ./runner
 	mkdir -p $(BUILD_BIN_ARM64)/linux || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner-debug ./runner
+	GOOS=linux GOARCH=arm64 GO111MODULE=on go build -gcflags "-N -l" -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner-debug ./runner
 ifeq (x86_64, $(UNAME_M))
 	cp -f $(BUILD_BIN_AMD64)/runner-debug $(BUILD_BIN)/runner-debug
 else
@@ -706,9 +722,9 @@ build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
 $(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
 	mkdir -p $(BUILD_BIN_AMD64) || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN_AMD64)/runner ./runner
+	GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN_AMD64)/runner ./runner
 	mkdir -p $(BUILD_BIN_ARM64)/linux || true
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner ./runner
+	GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner ./runner
 ifeq (x86_64, $(UNAME_M))
 	cp -f $(BUILD_BIN_AMD64)/runner $(BUILD_BIN)/runner
 else
@@ -1242,7 +1258,6 @@ oc-login:
 # Executes the Go unit tests that do not require a k8s cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: test-operator
-test-operator: export CGO_ENABLED = 0
 test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate install-crds gotestsum  ## Run the Operator unit tests
@@ -1293,7 +1308,6 @@ $(TOOLS_BIN)/k8s: $(TOOLS_BIN)/setup-envtest
 # is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-local-test
-e2e-local-test: export CGO_ENABLED = 0
 e2e-local-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-local-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
 e2e-local-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
@@ -1345,7 +1359,6 @@ e2e-test: prepare-e2e-test ## Run the Operator end-to-end 'remote' functional te
 prepare-e2e-test: reset-namespace create-ssl-secrets ensure-pull-secret deploy-and-wait
 
 .PHONY: run-e2e-test
-run-e2e-test: export CGO_ENABLED = 0
 run-e2e-test: export TEST_SSL_SECRET := $(TEST_SSL_SECRET)
 run-e2e-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-e2e-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
@@ -1381,7 +1394,6 @@ run-e2e-test: gotestsum  ## Run the Operator 'remote' end-to-end functional test
 # is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: e2e-k3d-test
-e2e-k3d-test: export CGO_ENABLED = 0
 e2e-k3d-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-k3d-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
 e2e-k3d-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
@@ -1417,7 +1429,6 @@ e2e-k3d-test: reset-namespace create-ssl-secrets gotestsum undeploy install-crds
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the end-to-end Coherence client tests.
 # ----------------------------------------------------------------------------------------------------------------------
-e2e-client-test: export CGO_ENABLED = 0
 e2e-client-test: export CLIENT_CLASSPATH := $(CURRDIR)/java/operator-test-client/target/operator-test-client-$(MVN_VERSION).jar:$(CURRDIR)/java/operator-test-client/target/lib/*
 e2e-client-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 e2e-client-test: export OPERATOR_NAMESPACE_CLIENT := $(OPERATOR_NAMESPACE_CLIENT)
@@ -1475,7 +1486,6 @@ e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets ensur
 	; exit $$rc
 
 .PHONY: run-prometheus-test
-run-prometheus-test: export CGO_ENABLED = 0
 run-prometheus-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE := $(TEST_APPLICATION_IMAGE)
 run-prometheus-test: export TEST_APPLICATION_IMAGE_HELIDON := $(TEST_APPLICATION_IMAGE_HELIDON)
@@ -1511,7 +1521,6 @@ run-prometheus-test: gotestsum
 compatibility-test: undeploy build-all-images helm-chart undeploy clean-namespace reset-namespace ensure-pull-secret gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
 
 .PHONY: just-compatibility-test
-just-compatibility-test: export CGO_ENABLED = 0
 just-compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 just-compatibility-test: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
 just-compatibility-test: export BUILD_OUTPUT := $(BUILD_OUTPUT)
@@ -1572,7 +1581,6 @@ install-certification: $(BUILD_TARGETS)/build-operator prepare-network-policies 
 # Note that the namespace will be created if it does not exist.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-certification
-run-certification: export CGO_ENABLED = 0
 run-certification: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-certification: export CLUSTER_NAMESPACE := $(CLUSTER_NAMESPACE)
 run-certification: export BUILD_OUTPUT := $(BUILD_OUTPUT)
@@ -1729,7 +1737,6 @@ install-coherence-compatibility: $(BUILD_TARGETS)/build-operator reset-namespace
 # Note that the namespace will be created if it does not exist.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: run-coherence-compatibility
-run-coherence-compatibility: export CGO_ENABLED = 0
 run-coherence-compatibility: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)
 run-coherence-compatibility: export TEST_COMPATIBILITY_IMAGE := $(TEST_COMPATIBILITY_IMAGE)
 run-coherence-compatibility: export IMAGE_PULL_SECRETS := $(IMAGE_PULL_SECRETS)
