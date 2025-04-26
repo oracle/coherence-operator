@@ -902,6 +902,7 @@ copyright:  ## Check copyright headers
 	  -X .factories \
 	  -X hack/codestyle/copyright.txt \
 	  -X hack/codestyle/intellij-codestyle.xml \
+	  -X hack/gimme/ \
 	  -X hack/install-cohctl.sh \
 	  -X hack/istio- \
 	  -X hack/sdk/ \
