@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  generateName: operator-ci-run-
+  name: NAME_PLACEHOLDER
 spec:
   pipelineRef:
     name: operator-ci
@@ -25,9 +25,9 @@ spec:
     tasks: "2h0m0s"
   params:
     - name: repo-url
-      value: git@github.com:thegridman/coherence-operator.git
+      value: GIT_REPO_PLACEHOLDER
     - name: revision
-      value: tekton
+      value: REVISION_PLACEHOLDER
     - name: builder-image-prefix
       value: "iad.ocir.io/odx-stateservice/tekton/builder"
     - name: env-configmap
