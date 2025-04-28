@@ -6,8 +6,6 @@
 
 package com.oracle.coherence.k8s.testing.spring;
 
-import java.util.logging.Logger;
-
 import com.tangosol.util.MapListener;
 
 import org.springframework.boot.SpringApplication;
