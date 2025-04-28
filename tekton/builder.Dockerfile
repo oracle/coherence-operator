@@ -9,7 +9,7 @@ RUN dnf install oracle-java-jdk-release-el* -y \
     && dnf install jdk-21-headful -y \
     && dnf install make which git -y
 
-RUN curl -Ls https://go.dev/dl/$GoVersion.linux-$GoArch.tar.gz -o go-linux.tar.gz \
+RUN curl -Ls https://go.dev/dl/go$GoVersion.linux-$GoArch.tar.gz -o go-linux.tar.gz \
     && rm -rf /usr/local/go \
     && tar -C /usr/local -xzf go-linux.tar.gz \
     && rm go-linux.tar.gz \

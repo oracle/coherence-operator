@@ -44,7 +44,7 @@ spec:
           BUILD_ARCH=amd64
         fi
         DOCKER_FILE_SHA1SUM=$(sha1sum "${SOURCE_DIRECTORY}/tekton/builder.Dockerfile")
-        OPERATOR_GO_VERSION=$(sed -n -e 's/^toolchain \(.*\)$/\1/p' ${SOURCE_DIRECTORY}/go.mod)
+        OPERATOR_GO_VERSION=$(cat ${SOURCE_DIRECTORY}/.go-version)
         readarray -d ' ' -t DOCKER_FILE_SHA <<< "${DOCKER_FILE_SHA1SUM}"
         LATEST_GO=$(curl -s 'https://go.dev/VERSION?m=text' | head -n 1)
         BUILDER_IMAGE_NAME="${PARAM_BUILDER_IMAGE_PREFIX}:${DOCKER_FILE_SHA}-${OPERATOR_GO_VERSION}-${BUILD_ARCH}"
