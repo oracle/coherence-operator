@@ -11,8 +11,12 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 
-import org.springframework.context.annotation.Bean;
-
+/**
+ * A simple {@link MapListener}.
+ *
+ * @param <K>  the cache key
+ * @param <V>  the cache value
+ */
 public class MapListenerBean<K, V>
         implements MapListener<K, V> {
 

@@ -43,6 +43,14 @@ public class StorageApplication {
         return arguments;
     }
 
+    /**
+     * Return an instance of a {@link com.tangosol.util.MapListener} bean.
+     *
+     * @param <K>  the cache key type
+     * @param <V>  the cache value type
+     *
+     * @return an instance of a {@link com.tangosol.util.MapListener} bean
+     */
     @Bean(name = "mapListenerBean")
     public <K, V> MapListener<K, V> createListener() {
         return new MapListenerBean<>();
