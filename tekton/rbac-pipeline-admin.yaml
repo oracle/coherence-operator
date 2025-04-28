@@ -9,4 +9,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: pipeline
-    namespace: coherence-cert
+    namespace: NAMESPACE_HOLDER
