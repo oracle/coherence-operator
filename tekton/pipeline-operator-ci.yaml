@@ -154,7 +154,7 @@ spec:
         - name: IMAGE
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
         - name: BUILD_EXTRA_ARGS
-          value: "--build-arg GoArch=$(tasks.setup-env.results.BUILD_ARCH)"
+          value: "--build-arg GoArch=$(tasks.setup-env.results.BUILD_ARCH) --build-arg GoVersion=$(tasks.setup-env.results.OPERATOR_GO_VERSION)"
         - name: httpProxy
           value: $(params.httpProxy)
         - name: httpsProxy
