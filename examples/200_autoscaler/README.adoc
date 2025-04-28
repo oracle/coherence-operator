@@ -112,10 +112,10 @@ cd coherence-operator/examples
 
 ==== Prerequisites
 * Java 11+ JDK either https://adoptopenjdk.net/[OpenJDK] or https://www.oracle.com/java/technologies/javase-downloads.html[Oracle JDK]
-* https://docs.docker.com/install/[Docker] version 17.03+.
-* https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version v1.13.0+ .
-* Access to a Kubernetes v1.14.0+ cluster.
-* https://helm.sh/docs/intro/install/[Helm] version 3.2.4+
+* A suitable container platform such as Podman or Docker.
+* Access to a Kubernetes cluster running a currently supported Kubernetes version.
+* https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl].
+* https://helm.sh/docs/intro/install/[Helm].
 
 Building the project requires https://maven.apache.org[Maven] version 3.6.0+.
 The commands below use the Maven Wrapper to run the commands, which will install Maven if it is not

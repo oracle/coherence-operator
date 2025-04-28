@@ -10,7 +10,7 @@
 
 == Install On Tanzu
 
-If using https://tanzucommunityedition.io[VMWare Tanzu] the Coherence Operator can be installed as a package.
+If using https://www.vmware.com/products/app-platform/tanzu[VMWare Tanzu] the Coherence Operator can be installed as a package.
 Under the covers, Tanzu uses the https://carvel.dev[Carvel] tool set to deploy packages.
 The Carvel tools can be used outside Tanzu, so the Coherence Operator repo and package images could also be deployed
 using a standalone Carvel https://carvel.dev/kapp-controller/[kapp-controller].

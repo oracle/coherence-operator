@@ -47,8 +47,8 @@ You can use `kubectl create` for any of the examples to install that one directl
 Ensure you have the following software installed:
 
 * Java 11+ JDK either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
-* https://docs.docker.com/install/[Docker] version 17.03+.
-* Access to a Kubernetes v1.14.0+ cluster.
+* A suitable container platform such as Podman or Docker.
+* Access to a Kubernetes cluster running a currently supported Kubernetes version.
 * https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl] version matching your Kubernetes cluster.
 
 NOTE: This example requires Java 11+ because it creates a Helidon web application and Helidon requires Java 11+. Coherence and running Coherence in Kubernetes only requires Java 8+.
