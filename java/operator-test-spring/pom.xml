@@ -25,6 +25,8 @@
   <properties>
     <cnbp-image-name>${project.artifactId}-cnbp:${project.version}</cnbp-image-name>
     <coherence.test.base.image>gcr.io/distroless/java21-debian12</coherence.test.base.image>
+
+    <coherence.spring.version>4.3.0</coherence.spring.version>
   </properties>
 
   <dependencyManagement>
@@ -49,6 +51,11 @@
       <artifactId>coherence-json</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.oracle.coherence.spring</groupId>
+      <artifactId>coherence-spring-boot-starter</artifactId>
+      <version>${coherence.spring.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
       <version>${version.lib.spring}</version>
@@ -63,6 +70,11 @@
 
   <build>
     <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <targetPath>${project.build.directory}/classes</targetPath>
+        <filtering>true</filtering>
+      </resource>
       <resource>
         <directory>src/main/docker</directory>
         <targetPath>${project.build.directory}</targetPath>

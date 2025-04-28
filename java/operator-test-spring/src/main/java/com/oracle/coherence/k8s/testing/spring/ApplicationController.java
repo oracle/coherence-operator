@@ -10,13 +10,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
+import com.oracle.coherence.spring.configuration.annotation.CoherenceCache;
+
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.Session;
 import com.tangosol.net.partition.SimplePartitionKey;
+import com.tangosol.util.MapListener;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -31,12 +34,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApplicationController {
 
     /**
-     * The name of the canary cache.
+     * The canary cache.
      */
-    public static final String CACHE_NAME_CANARY = "canary";
-
-    @Autowired
-    private Session session;
+    @CoherenceCache(name = "canary")
+    private NamedCache<SimplePartitionKey, String> canaryCache;
 
     @Autowired
     @Qualifier("commandLineArguments")
@@ -59,10 +60,9 @@ public class ApplicationController {
      */
     @RequestMapping("/canaryCheck")
     public String canaryCheck() {
-        NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
-        DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+        DistributedCacheService service = (DistributedCacheService) canaryCache.getCacheService();
         int nPart = service.getPartitionCount();
-        int nSize = cache.size();
+        int nSize = canaryCache.size();
 
         if (nSize != nPart) {
             throw new CanaryFailure(nSize, nPart);
@@ -77,8 +77,7 @@ public class ApplicationController {
      */
     @RequestMapping("/canaryClear")
     public String canaryClear() {
-        NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
-        cache.truncate();
+        canaryCache.truncate();
         return "OK";
     }
 
@@ -89,13 +88,12 @@ public class ApplicationController {
      */
     @RequestMapping("/canaryStart")
     public String canaryStart() {
-        NamedCache<SimplePartitionKey, String> cache = session.getCache(CACHE_NAME_CANARY);
-        DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+        DistributedCacheService service = (DistributedCacheService) canaryCache.getCacheService();
         int nPart = service.getPartitionCount();
 
         for (int i = 0; i < nPart; i++) {
             SimplePartitionKey key = SimplePartitionKey.getPartitionKey(i);
-            cache.put(key, "data");
+            canaryCache.put(key, "data");
         }
 
         return "OK";
