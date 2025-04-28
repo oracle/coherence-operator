@@ -1,0 +1,620 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Install Using Helm
+
+== Install Using Helm
+
+
+For more flexibility the simplest way to install the Coherence Operator is to use the Helm chart.
+This ensures that all the correct resources will be created in Kubernetes.
+
+[WARNING]
+====
+**Helm Upgrades**
+
+Now that the Coherence Operator no longer installs the CRDs when it starts, the CRDs are
+installed as part of the Helm chart. This works ok when installing the operator for the first
+time into a Kubernetes cluster. If the Helm chart is being used to upgrade an existing install
+of an earlier Coherence Operator version, or the CRDs already exist, then the installation
+can fail with an error message similar to this:
+
+`Error: INSTALLATION FAILED: Unable to continue with install: CustomResourceDefinition "coherence.coherence.oracle.com" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "operator"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "default"`
+
+This is because Helm will refuse to overwrite any resources that it did not originally install.
+
+In this case the CRDs have to be installed manually from the CRD manifest files before the
+Helm install or upgrade can be performed.
+The Helm install or upgrade then needs to set the `installCrd` value to `false` so that the CRDs
+are not installed as part of the Helm chart install.
+====
+
+=== Add the Coherence Helm Repository
+
+Add the `coherence` helm repository using the following commands:
+
+[source,bash]
+----
+helm repo add coherence https://oracle.github.io/coherence-operator/charts
+
+helm repo update
+----
+
+NOTE: To avoid confusion, the URL `https://oracle.github.io/coherence-operator/charts` is a Helm repo, it is not
+a website you open in a browser. You may think we shouldn't have to say this, but you'd be surprised.
+
+=== Install the Coherence Operator Helm chart
+
+Once the Coherence Helm repo has been configured the Coherence Operator can be installed using a normal Helm 3
+install command:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \      <1>
+    coherence \                    <2>
+    coherence/coherence-operator
+----
+
+<1> where `<namespace>` is the namespace that the Coherence Operator will be installed into.
+<2> `coherence` is the name of this Helm installation.
+
+[#helm-operator-image]
+=== Set the Operator Image
+
+The Helm chart uses a default Operator image from
+`container-registry.oracle.com/middleware/coherence-operator:{operator-version}`.
+If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
+Either set the individual `image.registry`, `image.name` and `image.tag` values, or set the whole image name by setting the `image` value.
+
+For example, if the Operator image has been deployed into a private registry named `foo.com` but
+with the same image name `coherence-operator` and tag `{operator-version}` as the default image,
+then just the `image.registry` needs to be specified.
+
+In the example below, the image used to run the Operator will be `foo.com/coherence-operator:{operator-version}`.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set image.registry=foo.com \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+All three of the image parts can be specified individually using `--set` options.
+In the example below, the image used to run the Operator will
+be `foo.com/operator:1.2.3`.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set image.registry=foo.com \
+    --set image.name=operator \
+    --set image.tag=1.2.3
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+Alternatively, the image can be set using a single `image` value.
+For example, the command below will set the Operator image to `images.com/coherence-operator:0.1.2`.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set image=images.com/coherence-operator:0.1.2 \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+[#helm-pull-secrets]
+=== Image Pull Secrets
+
+If the image is to be pulled from a secure repository that requires credentials then the image pull secrets
+can be specified.
+See the Kubernetes documentation on https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/[Pulling from a Private Registry].
+
+==== Add Pull Secrets Using a Values File
+
+Create a values file that specifies the secrets, for example the `private-repo-values.yaml` file below:
+
+[source,yaml]
+.private-repo-values.yaml
+----
+imagePullSecrets:
+- name: registry-secrets
+----
+
+Now use that file in the Helm install command:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    -f private-repo-values.yaml <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+<1> the `private-repo-values.yaml` values fle will be used by Helm to inject the settings into the Operator deployment
+
+==== Add Pull Secrets Using --set
+
+Although the `imagePullSecrets` field in the values file is an array of `name` to value pairs it is possible to set
+these values with the normal Helm `--set` parameter.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set imagePullSecrets[0].name=registry-secrets <1>
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+<1> this creates the same imagePullSecrets as the values file above.
+
+=== Change the Operator Replica Count
+
+To change the replica count when installing the Operator using Helm, the `replicas` value can be set.
+
+For example, to change the replica count from 3 to 1, the `--set replicas=1` option can be used.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set replicas=1
+    coherence \
+    coherence/coherence-operator
+----
+
+[#helm-watch-ns]
+=== Set the Watch Namespaces
+
+To set the watch namespaces when installing with helm set the `watchNamespaces` value, for example:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set watchNamespaces=payments,catalog,customers \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+The `payments`, `catalog` and `customers` namespaces will be watched by the Operator.
+
+==== Set the Watch Namespace to the Operator's Install Namespace
+
+When installing the Operator using the Helm chart, there is a convenience value that can be set if the
+Operator should only monitor the same namespace that it is installed into.
+By setting the `onlySameNamespace` value to `true` the watch namespace will be set to the installation namespace.
+If the `onlySameNamespace` value is set to `true` then any value set for the `watchNamespaces` value will be ignored.
+
+For example, the command below will set `onlySameNamespace` to true, and the Operator will be installed into,
+and only monitor the `coh-testing` namespace.
+
+[source,bash]
+----
+helm install  \
+    --namespace coh-testing \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+In the example below, the `onlySameNamespace` is set to true, so the Operator will be installed into,
+and only monitor the `coh-testing` namespace. Even though the `watchNamespaces` value is set, it will be ignored.
+
+[source,bash]
+----
+helm install  \
+    --namespace coh-testing \
+    --set watchNamespaces=payments,catalog,customers \
+    --set onlySameNamespace=true \
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+[#helm-sec-context]
+=== Install the Operator with a Security Context
+
+The Operator container can be configured with a Pod `securityContext` or a container `securityContext`,
+so that it runs as a non-root user.
+
+This can be done using a values file:
+
+*Set the Pod securityContext*
+
+[source,yaml]
+.security-values.yaml
+----
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+----
+
+*Set the Container securityContext*
+
+[source,yaml]
+.security-values.yaml
+----
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+----
+
+Then the `security-values.yaml` values file above can be used in the Helm install command.
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --values security-values.yaml \
+    coherence \
+    coherence/coherence-operator
+----
+
+Alternatively, the Pod or container `securityContext` values can be set on the command line as `--set` parameters:
+
+*Set the Pod securityContext*
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set podSecurityContext.runAsNonRoot=true \
+    --set podSecurityContext.runAsUser=1000 \
+    coherence \
+    coherence/coherence-operator
+----
+
+*Set the Container securityContext*
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set securityContext.runAsNonRoot=true \
+    --set securityContext.runAsUser=1000 \
+    coherence \
+    coherence/coherence-operator
+----
+
+[#helm-labels]
+=== Set Additional Labels
+
+When installing the Operator with Helm, it is possible to set additional labels to be applied to the Operator Pods
+and to the Operator Deployment.
+
+==== Adding Pod Labels
+
+To add labels to the Operator Pods set the `labels` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `labels` will only apply the additional labels to the Operator Pods, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set labels.one=value-one \
+    --set labels.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional labels `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: coherence-operator
+  labels:
+    one: value-one
+    two: value-two
+----
+
+The same labels could also be specified in a values file:
+
+[source]
+.add-labels-values.yaml
+----
+labels:
+  one: value-one
+  two: value-two
+----
+
+==== Adding Deployment Labels
+
+To add labels to the Operator Deployment set the `deploymentLabels` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `deploymentLabels` will only apply the additional labels to the Deployment, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set deploymentLabels.one=value-one \
+    --set deploymentLabels.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional labels `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coherence-operator
+  labels:
+    one: value-one
+    two: value-two
+----
+
+The same labels could also be specified in a values file:
+
+[source]
+.add-labels-values.yaml
+----
+deploymentLabels:
+  one: value-one
+  two: value-two
+----
+
+
+[#helm-annotations]
+=== Set Additional Annotations
+
+When installing the Operator with Helm, it is possible to set additional annotations to be applied to the Operator Pods
+and to the Operator Deployment.
+
+==== Adding Pod Annotations
+
+To add annotations to the Operator Pods set the `annotations` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `annotations` will only apply the additional annotations to the Operator Pods, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set annotations.one=value-one \
+    --set annotations.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional annotations `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: coherence-operator
+  annotations:
+    one: value-one
+    two: value-two
+----
+
+The same annotations could also be specified in a values file:
+
+[source]
+.add-annotations-values.yaml
+----
+annotations:
+  one: value-one
+  two: value-two
+----
+
+==== Adding Deployment Annotations
+
+To add annotations to the Operator Deployment set the `deploymentAnnotations` value, either on the command line using `--set` or in the values file.
+
+[NOTE]
+====
+Setting `deploymentAnnotations` will only apply the additional annotations to the Deployment, they will not be applied to any other resource created by the Helm chart.
+====
+
+For example, using the command line:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set deploymentAnnotations.one=value-one \
+    --set deploymentAnnotations.two=value-two \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above would add the following additional annotations `one` and `two` to the Operator Pod as shown below:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coherence-operator
+  annotations:
+    one: value-one
+    two: value-two
+----
+
+The same annotations could also be specified in a values file:
+
+[source]
+.add-annotations-values.yaml
+----
+deploymentAnnotations:
+  one: value-one
+  two: value-two
+----
+
+[#helm-job]
+=== CoherenceJob CRD Support
+
+By default, the Operator will install both CRDs, `Coherence` and `CoherenceJob`.
+If support for `CoherenceJob` is not required then it can be excluded from being installed setting the
+Operator command line parameter `--install-job-crd` to `false`.
+
+When installing with Helm, the `allowCoherenceJobs` value can be set to `false` to disable support for `CoherenceJob`
+resources (the default value is `true`).
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set allowCoherenceJobs=false \
+    coherence \
+    coherence/coherence-operator
+----
+
+
+[#helm-upgrade]
+== Upgrade the Coherence Operator Using Helm
+
+If the Coherence operator was originally installed using Helm then it can be upgraded to a new
+version using a newer Helm chart.
+
+To upgrade to the latest version of the Coherence operator simply use the Helm upgrade command as
+shown below.
+
+[source,bash]
+----
+helm upgrade  \
+    --namespace <namespace> \
+    coherence \
+    coherence/coherence-operator
+----
+
+The command above will use all the default configurations, but the usual methods of applying
+values to the install can be used.
+
+[#helm-upgrade-350]
+=== Upgrading From pre-3.5.0 Versions
+
+Before version 3.5.0 of the Coherence operator, the operator used to install the CRDs
+when it started. In 3.5.0 this behaviour was changed and the operator no longer installs
+the CRDs, these must be installed along with the operator. The 3.5.0 and above Helm chart
+includes the CRDs.
+
+This causes an issue when performing a Helm upgrade from a pre-3.5.0 version because Helm
+did not install the CRDs. When attempting an upgrade Helm will display an error similar to
+the one below:
+
+[source]
+----
+Error: INSTALLATION FAILED: Unable to continue with install: CustomResourceDefinition
+"coherence.coherence.oracle.com" in namespace "" exists and cannot be imported into the
+current release: invalid ownership metadata; label validation error: missing key
+"app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error:
+missing key "meta.helm.sh/release-name": must be set to "operator"; annotation validation
+error: missing key "meta.helm.sh/release-namespace": must be set to "default"
+----
+
+This is because Helm will refuse to overwrite any resources that it did not originally install.
+There are a few options to work around this.
+
+[WARNING]
+====
+As a work-around to the issue, you should not uninstall the existing CRDs.
+Any running Coherence clusters being managed by the Operator will be deleted
+if the CRDs are deleted.
+====
+
+==== Continue to install the CRDs manually
+
+The CRDs can be installed manually from the manifest yaml files as described
+in the documentation section <<docs/installation/011_install_manifests.adoc#manual-crd,Manually Install the CRDs>>
+The Helm install or upgrade then needs to set the `installCrd` value to `false` so that the CRDs
+are not installed as part of the Helm chart install.
+
+[WARNING]
+====
+The CRDs for the new version _MUST_ be installed _BEFORE_ running the Helm upgrade.
+====
+
+[source,bash]
+----
+helm upgrade  \
+    --namespace <namespace> \
+    --set installCrd=false
+    coherence \
+    coherence/coherence-operator
+----
+
+==== Patch the CRDs So Helm Manages Them
+
+The CRDs can be patched with the required labels and annotations so that Helm thinks it
+originally installed them and will then update them.
+
+The commands below can be used to patch the CRDs:
+
+[source,bash]
+----
+export HELM_RELEASE=operator
+export HELM_NAMESPACE=coherence
+kubectl patch customresourcedefinition coherence.coherence.oracle.com \
+    --patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+kubectl patch customresourcedefinition coherence.coherence.oracle.com \
+    --patch "{\"metadata\": {\"annotations\": {\"meta.helm.sh/release-name\": \"$HELM_RELEASE\"}}}"
+kubectl patch customresourcedefinition coherence.coherence.oracle.com \
+    --patch "{\"metadata\": {\"annotations\": {\"meta.helm.sh/release-namespace\": \"$HELM_NAMESPACE\"}}}"
+kubectl patch customresourcedefinition coherencejob.coherence.oracle.com \
+    --patch '{"metadata": {"labels": {"app.kubernetes.io/managed-by": "Helm"}}}'
+kubectl patch customresourcedefinition coherencejob.coherence.oracle.com \
+    --patch "{\"metadata\": {\"annotations\": {\"meta.helm.sh/release-name\": \"$HELM_RELEASE\"}}}"
+kubectl patch customresourcedefinition coherencejob.coherence.oracle.com \
+    --patch "{\"metadata\": {\"annotations\": {\"meta.helm.sh/release-namespace\": \"$HELM_NAMESPACE\"}}}"
+----
+
+The first line exports the name of the Helm release being upgraded.
+The second line exports the name of the Kubernetes namespace the operator was installed into.
+
+After patching as described above the operator can be upgraded with a normal Helm upgrade command:
+
+[source,bash]
+----
+helm upgrade  \
+    --namespace $HELM_NAMESPACE \
+    $HELM_RELEASE \
+    coherence/coherence-operator
+----
+
+
+[#helm-uninstall]
+== Uninstall the Coherence Operator Helm chart
+
+To uninstall the operator:
+[source,bash]
+----
+helm delete coherence-operator --namespace <namespace>
+----
+

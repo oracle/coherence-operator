@@ -1,0 +1,135 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Install Using Manifests
+
+== Install Using Manifests
+
+If you want the default Coherence Operator installation then the simplest solution is use `kubectl` to
+apply the manifests from the Operator release.
+
+[NOTE]
+====
+As of v3.5.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
+when installing with the manifest yaml.
+====
+
+The following command will install the Operator. This assumes that the Kubernetes account being used to perform
+the installation has all the RBAC permissions required to install all the resource types in the yaml file.
+
+[source,bash]
+----
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator.yaml
+----
+
+This will create a namespace called `coherence` and install the CRDs and the Operator into the namespace,
+along with all the required `ClusterRole` and `RoleBinding` resources. The `coherence` namespace can be changed by
+downloading and editing the yaml file.
+
+In some restricted environments, a Kubernetes user might not have RBAC permissions to install CRDs.
+In this case the `coherence-operator.yaml` file will need to be edited to remove the two CRDs from the
+beginning of the file. The CRDs *_must be manually installed before the Operator is installed_*, as described
+below in <<manual-crd,Manually Install the CRDs>>.
+
+[NOTE]
+====
+Because the `coherence-operator.yaml` manifest also creates the namespace, the corresponding `kubectl delete`
+command will _remove the namespace and everything deployed to it_! If you do not want this behaviour you should edit
+the `coherence-operator.yaml` to remove the namespace section from the start of the file.
+====
+
+Instead of using a hard coded version in the command above you can find the latest Operator version using `curl`:
+
+[source,bash]
+----
+export VERSION=$(curl -s \
+  https://api.github.com/repos/oracle/coherence-operator/releases/latest \
+  | grep '"name": "v' \
+  | cut -d '"' -f 4 \
+  | cut -b 2-10)
+----
+
+Then download with:
+[source,bash]
+----
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/${VERSION}/coherence-operator.yaml
+----
+
+[#manifest-restrict]
+== Installing Without Cluster Roles
+
+The default install for the Operator is to have one Operator deployment that manages all Coherence resources across
+all the namespaces in a Kubernetes cluster. This requires the Operator to have cluster role RBAC permissions
+to manage and monitor all the resources.
+
+Sometimes, for security reasons or for example in a shared Kubernetes cluster this is not desirable.
+The Operator can therefore be installed with plain namespaced scoped roles and role bindings.
+The Operator release includes a single yaml file named `coherence-operator-restricted.yaml` that may be used to install
+the Operator into a single namespace without any cluster roles.
+
+The Operator installed with this yaml
+
+* will not use WebHooks
+* will not look-up Node labels for Coherence site and rack configurations
+
+[NOTE]
+====
+As of v3.5.0 of the Operator the `coherence-operator-restricted.yaml` also installs the two CRDs that the Operator uses.
+In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
+when installing with the manifest yaml.
+====
+
+The following command will install the Operator. This assumes that the Kubernetes account being used to perform
+the installation has all the RBAC permissions required to install all the resource types in the yaml file.
+
+[source,bash]
+----
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-restricted.yaml
+----
+[IMPORTANT]
+====
+In some restricted environments, a Kubernetes user might not have RBAC permissions to install CRDs.
+In this case the `coherence-operator.yaml` file will need to be edited to remove the two CRDs from the
+beginning of the file. The CRDs *_must be manually installed before the Operator is installed_*, as described
+below in <<manual-crd,Manually Install the CRDs>>.
+====
+
+[#manual-crd]
+== Manually Install the CRDs
+
+Although by default the Operator will install its CRDs, they can be manually installed into Kubernetes.
+This may be required where the Operator is running with restricted permissions as described above.
+
+The Operator release artifacts include small versions of the two CRDs which can be installed with the following commands:
+
+[source,bash]
+----
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence.oracle.com_coherence_small.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherencejob.oracle.com_coherence_small.yaml
+----
+
+The small versions of the CRDs are identical to the full versions but hav a cut down OpenAPI spec with a lot of comments
+removed so that the CRDs are small enough to be installed with `kubectl apply`
+
+== Change the Operator Replica Count
+
+When installing with single manifest yaml file, the replica count can be changed by editing the yaml file itself
+to change the occurrence of `replicas: 3` in the manifest yaml to `replicas: 1`
+
+For example, this could be done using `sed`
+[source,bash]
+----
+sed -i -e 's/replicas: 3/replicas: 1/g' coherence-operator.yaml
+----
+
+Or on MacOS, where `sed` is slightly different:
+[source,bash]
+----
+sed -i '' -e 's/replicas: 3/replicas: 1/g' coherence-operator.yaml
+----

@@ -1,0 +1,143 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Install Using Kustomize
+
+== Install Using Kustomize
+
+
+If you want to use yaml directly to install the operator, with something like `kubectl`, you can use the manifest files
+published with the GitHub release at this link:
+https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz[3.5.0 Manifests]
+
+These manifest files are for use with a tool called Kustomize, which is built into `kubectl`
+see the documentation here: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+
+[NOTE]
+====
+As of v3.5.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
+when installing with the manifest yaml.
+====
+
+Download the
+https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz[3.5.0 Manifests]
+from the release page and unpack the file, which should produce a directory called `manifests` with a structure like this:
+
+[source]
+----
+manifests
+    default
+        config.yaml
+        kustomization.yaml
+    manager
+        kustomization.yaml
+        manager.yaml
+        service.yaml
+    rbac
+        coherence_editor_role.yaml
+        coherence_viewer_role.yaml
+        kustomization.yaml
+        leader_election_role.yaml
+        leader_election_role_binding.yaml
+        role.yaml
+        role_binding.yaml
+----
+
+There are two ways to use these manifest files, either install using `kustomize` or generate the yaml and manually
+install with `kubectl`.
+
+NOTE: All the commands below are run from a console in the `manifests/` directory from the extracted file above.
+
+=== Install with Kustomize
+
+If you have Kustomize installed (or can install it from https://github.com/kubernetes-sigs/kustomize) you can use
+Kustomize to configure the yaml and install.
+
+==== Change the Operator Replica Count
+
+To change the replica count using Kustomize a patch file needs to be applied.
+The Operator manifests include a patch file, named `manager/single-replica-patch.yaml`, that changes the replica count from 3 to 1. This patch can be applied with the following Kustomize command.
+
+[source,bash]
+----
+cd ./manager && kustomize edit add patch \
+  --kind Deployment --name controller-manager \
+  --path single-replica-patch.yaml
+----
+
+
+==== Set Image Names
+If you need to use different iamge names from the defaults `kustomize` can be used to specify different names:
+
+Change the name of the Operator image by running the command below, changing the image name to the registry and image name
+that you are using for the Operator, for example if you have the images in a custom registry
+[source,bash]
+----
+cd ./manager && kustomize edit set image controller=myregistry/coherence-operator:3.5.0
+----
+
+Change the name of the Operator image by running the command below, changing the image name to the registry and image name
+that you are using for the Operator utilities image
+[source,bash]
+----
+cd ./manager && kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.5.0
+----
+
+Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
+does not need to change.
+[source,bash]
+----
+cd ./manager && $(GOBIN)/kustomize edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
+----
+
+Set the namespace to install into, the example below sets the namespace to `coherence-test`:
+[source,bash]
+----
+cd ./default && /kustomize edit set namespace coherence-test
+----
+
+==== Install
+
+The Operator requires a `Secret` for its web-hook certificates. This `Secret` needs to exist but can be empty.
+The `Secret` must be in the same namespace that the Operator will be deployed to.
+For example, if the Operator namespace is `coherence-test`, then the `Secret` can be created with this command:
+
+[source,bash]
+----
+kubectl -n coherence-test create secret generic coherence-webhook-server-cert
+----
+
+The Operator can now be installed by running the following command from the `manifests` directory:
+[source,bash]
+----
+kustomize build ./default | kubectl apply -f -
+----
+
+=== Generate Yaml - Install with Kubectl
+
+Instead of using Kustomize to modify and install the Operator we can use `kubectl` to generate the yaml from the manifests.
+You can then edit this yaml and manually deploy it with `kubectl`.
+
+Run the following command from the `manifests` directory:
+[source,bash]
+----
+kubectl create --dry-run -k default/ -o yaml > operator.yaml
+----
+
+This will create a file in the `manifests` directory called `operator.yaml` that contains all the yaml required
+to install the Operator. You can then edit this yaml to change image names or add other settings.
+
+The Operator can be installed using the generated yaml.
+
+For example if the Operator is to be deployed to the `coherence-test` namespace:
+[source,bash]
+----
+kubectl -n coherence-test create secret generic coherence-webhook-server-cert
+kubectl -n coherence-test create -f operator.yaml
+----

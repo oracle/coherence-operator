@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Install Using OLM
+
+== Install Using OLM
+
+The https://olm.operatorframework.io[Operator Lifecycle Manager] (OLM) can be used to install the Coherence Operator.
+
+As part of the Coherence Operator release bundle and catalog images are pushed to the release image registry.
+These images can be used to deploy the operator on Kubernetes clusters that are running OLM.
+
+The Coherence Operator is not currently available on Operator Hub, but the required resource files can be created
+manually to install the operator into Kubernetes.
+
+=== Install The Coherence Operator CatalogSource
+
+Create a yaml manifest that will install the Coherence Operator CatalogSource as shown below.
+
+[source,yaml]
+.operator-catalog-source.yaml
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: coherence-operator-catalog
+  namespace: olm
+spec:
+  displayName: Oracle Coherence Operators
+  image: ghcr.io/oracle/coherence-operator-catalog:latest
+  publisher: Oracle Corporation
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 60m
+----
+
+Install the CatalogSource into the `olm` namespace using the following command:
+
+[source,bash]
+----
+kubectl apply -f operator-catalog-source.yaml
+----
+
+Running the following command should list the catalog sources installed in the `olm` namespace, including the Coherence
+catalog source.
+
+[source,bash]
+----
+kubectl -n olm get catalogsource
+----
+
+The Coherence catalog source Pod should eventually be ready, which can be verified with the following command:
+
+[source,bash]
+----
+POD=$(kubectl -n olm get pod -l olm.catalogSource=coherence-operator-catalog)
+kubectl -n olm wait --for condition=ready --timeout 480s $(POD)
+----
+
+
+

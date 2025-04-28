@@ -1,0 +1,91 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Install On Tanzu
+
+== Install On Tanzu
+
+If using https://tanzucommunityedition.io[VMWare Tanzu] the Coherence Operator can be installed as a package.
+Under the covers, Tanzu uses the https://carvel.dev[Carvel] tool set to deploy packages.
+The Carvel tools can be used outside Tanzu, so the Coherence Operator repo and package images could also be deployed
+using a standalone Carvel https://carvel.dev/kapp-controller/[kapp-controller].
+
+The Coherence Operator release published two images required to deploy the Operator as a Tanzu package.
+
+* `ghcr.io/oracle/coherence-operator-package:{operator-version}` - the Coherence Operator package
+* `ghcr.io/oracle/coherence-operator-repo:{operator-version}` - the Coherence Operator repository
+
+=== Install the Coherence Repository
+
+The first step to deploy the Coherence Operator package in Tanzu is to add the repository.
+This can be done using the Tanzu CLI.
+
+[source,bash]
+----
+tanzu package repository add coherence-repo \
+    --url ghcr.io/oracle/coherence-operator-repo:3.5.0 \
+    --namespace coherence \
+    --create-namespace
+----
+
+The installed repositories can be listed using the CLI:
+
+[source,bash]
+----
+tanzu package repository list --namespace coherence
+----
+
+which should display something like the following
+[source,bash]
+----
+NAME            REPOSITORY                              TAG  STATUS               DETAILS
+coherence-repo  ghcr.io/oracle/coherence-operator-repo  1h   Reconcile succeeded
+----
+
+The available packages in the Coherence repository can also be displayed using the CLI
+
+[source,bash]
+----
+tanzu package available list --namespace coherence
+----
+
+which should include the Operator package, `coherence-operator.oracle.github.com` something like the following
+[source,bash]
+----
+NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.5.0
+----
+
+=== Install the Coherence Operator Package
+
+Once the Coherence Operator repository has been installed, the `coherence-operator.oracle.github.com` package can be installed, which will install the Coherence Operator itself.
+
+[source,bash]
+----
+tanzu package install coherence \
+    --package-name coherence-operator.oracle.github.com \
+    --version 3.5.0 \
+    --namespace coherence
+----
+
+The Tanzu CLI will display the various steps it is going through to install the package and if all goes well, finally display `Added installed package 'coherence'`
+The packages installed in the `coherence` namespace can be displayed using the CLI.
+
+[source,bash]
+----
+tanzu package installed list --namespace coherence
+----
+
+which should display the Coherence Operator package.
+[source,bash]
+----
+NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
+coherence  coherence-operator.oracle.github.com  3.5.0            Reconcile succeeded
+----
+
+The Operator is now installed and ready to mage Coherence clusters.
