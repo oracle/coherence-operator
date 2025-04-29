@@ -1,5 +1,28 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>Redirecting to https://docs.coherence.community/coherence-operator/docs/latest/</title>
-<meta http-equiv="refresh" content="0; URL=https://docs.coherence.community/coherence-operator/docs/latest/">
-<link rel="canonical" href="https://docs.coherence.community/coherence-operator/docs/latest/">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <link rel="canonical" href="https://docs.coherence.community/coherence-operator/docs/latest/">
+  <script>
+    function doRedirect() {
+      const base = "https://docs.coherence.community/coherence-operator/docs/latest/";
+      if (location.hash.startsWith('#/')) {
+        // Remove '#/' and insert 'docs/' before the rest
+        const path = location.hash.substring(2);
+        const newUrl = base + "docs/" + path;
+        window.location.replace(newUrl);
+      } else {
+        // No special hash, just redirect to the base URL
+        window.location.replace(base);
+      }
+    }
+
+    window.addEventListener('load', doRedirect);
+  </script>
+</head>
+<body>
+  <p>Redirecting to https://docs.coherence.community...</p>
+</body>
+</html>
+
