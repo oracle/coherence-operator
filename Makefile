@@ -77,8 +77,8 @@ OPERATOR_RELEASE_AMD      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME)
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 14.1.2-0-1
-COHERENCE_CE_LATEST   ?= 24.09.2
+COHERENCE_VERSION_LTS ?= 14.1.2-0-2
+COHERENCE_CE_LATEST   ?= 25.03.1
 
 # The default Coherence image the Operator will run if no image is specified
 COHERENCE_IMAGE_REGISTRY ?= $(ORACLE_REGISTRY)
