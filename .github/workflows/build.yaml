@@ -132,6 +132,7 @@ jobs:
     - name: Bundle Tests
       shell: bash
       run: |
+        make build-runner
         make scorecard
         make catalog-build
 
