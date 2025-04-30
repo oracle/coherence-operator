@@ -7,5 +7,5 @@ spec:
   channel: stable
   name: coherence-operator
   source: coherence-operator-catalog
-  sourceNamespace: olm
+  sourceNamespace: NAMESPACE_PLACEHOLDER
   installPlanApproval: Automatic

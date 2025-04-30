@@ -69,7 +69,7 @@
         <version.lib.junit.jupiter>5.7.2</version.lib.junit.jupiter>
         <version.lib.mockito>3.10.0</version.lib.mockito>
         <version.lib.protobuf>3.25.5</version.lib.protobuf>
-        <version.lib.spring>3.4.4</version.lib.spring>
+        <version.lib.spring>3.4.5</version.lib.spring>
 
         <version.lib.gson.fire>1.8.4</version.lib.gson.fire>
         <version.lib.gson>2.8.9</version.lib.gson>

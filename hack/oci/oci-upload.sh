@@ -1,10 +1,10 @@
+#!/usr/bin/env sh
 #
 # Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
 
-#!/usr/bin/env sh
 
 UPLOAD_TIMESTAMP=$(date +"%Y%m%d%H%M")
 FILE_NAME=pipelinerun-${UPLOAD_TIMESTAMP}.tgz

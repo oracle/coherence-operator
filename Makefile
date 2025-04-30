@@ -1067,20 +1067,23 @@ $(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 
 # The image tag given to the resulting catalog image
 CATALOG_IMAGE_NAME := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-catalog
-CATALOG_IMAGE      := $(CATALOG_IMAGE_NAME):latest
+CATALOG_TAG        ?= latest
+CATALOG_IMAGE      := $(CATALOG_IMAGE_NAME):$(CATALOG_TAG)
 
 # Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
-# This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
+# This is effectively the same thing that will happen in the OpenShift community operator repo
+# This recipe invokes 'opm' in 'basic' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm ## Build a catalog image (the bundle image must have been pushed first).
+catalog-build: opm $(TOOLS_BIN)/yq ## Build a catalog image (the bundle image must have been pushed first).
 	rm -rf catalog || true
 	mkdir -p catalog
 	rm catalog.Dockerfile || true
 	$(OPM) generate dockerfile catalog
-	cp $(SCRIPTS_DIR)/olm/olm-catalog-template.yaml $(BUILD_OUTPUT)/olm-catalog-template.yaml
-	printf "    - Image: $(BUNDLE_IMAGE)" >> $(BUILD_OUTPUT)/olm-catalog-template.yaml
-	$(OPM) alpha render-template semver -o yaml < $(BUILD_OUTPUT)/olm-catalog-template.yaml > catalog/operator.yaml
+	cp $(SCRIPTS_DIR)/olm/catalog-template.yaml $(BUILD_OUTPUT)/catalog/catalog-template.yaml
+	yq -i e 'select(.schema == "olm.template.basic").entries[] |= select(.schema == "olm.channel" and .name == "stable").entries += [{"name" : "coherence-operator.v$(VERSION)", "replaces": "coherence-operator.v$(PREV_VERSION)"}]' $(BUILD_OUTPUT)/catalog/catalog-template.yaml
+	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(BUNDLE_IMAGE)"}]' $(BUILD_OUTPUT)/catalog/catalog-template.yaml
+	$(OPM) alpha render-template basic -o yaml $(BUILD_OUTPUT)/catalog/catalog-template.yaml > catalog/operator.yaml
 	$(OPM) validate catalog
 	$(DOCKER_CMD) build --load -f catalog.Dockerfile -t $(CATALOG_IMAGE) .
 
@@ -1129,30 +1132,47 @@ endif
 
 .PHONY: olm-undeploy-catalog
 olm-undeploy-catalog: ## Undeploy the Operator Catalog from OLM
-	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) delete catalogsource coherence-operator-catalog
+	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) delete catalogsource coherence-operator-catalog || true
 
-
-.PHONY: wait-for-olm-deploy
-wait-for-olm-deploy: export POD=$(shell $(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) get pod -l olm.catalogSource=coherence-operator-catalog -o name)
-wait-for-olm-deploy: ## Wait for the Operator Catalog to be deployed into OLM
+.PHONY: wait-for-olm-catalog-deploy
+wait-for-olm-catalog-deploy: export POD=$(shell $(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) get pod -l olm.catalogSource=coherence-operator-catalog -o name)
+wait-for-olm-catalog-deploy: ## Wait for the Operator Catalog to be deployed into OLM
 	echo "Operator Catalog Source Pods:"
 	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) get pod -l olm.catalogSource=coherence-operator-catalog
 	echo "Waiting for Operator Catalog Source to be ready. Pod: $(POD)"
 	$(KUBECTL_CMD) -n $(CATALOG_SOURCE_NAMESPACE) wait --for condition=ready --timeout 480s $(POD)
 
 .PHONY: olm-deploy
-olm-deploy: ## Deploy the Operator into the coherence namespace using OLM
-	$(KUBECTL_CMD) create ns coherence || true
-	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/olm/operator-group.yaml
-	$(KUBECTL_CMD) -n coherence apply -f $(SCRIPTS_DIR)/olm/operator-subscription.yaml
+olm-deploy: ## Deploy the Operator into the test namespace using OLM
+	cp $(SCRIPTS_DIR)/olm/operator-group.yaml $(BUILD_OUTPUT)/catalog/operator-group.yaml
+	$(SED) -e 's^NAMESPACE_PLACEHOLDER^$(CATALOG_SOURCE_NAMESPACE)^g' $(BUILD_OUTPUT)/catalog/operator-group.yaml
+	cp $(SCRIPTS_DIR)/olm/operator-subscription.yaml $(BUILD_OUTPUT)/catalog/operator-subscription.yaml
+	$(SED) -e 's^NAMESPACE_PLACEHOLDER^$(CATALOG_SOURCE_NAMESPACE)^g' $(BUILD_OUTPUT)/catalog/operator-subscription.yaml
+	$(KUBECTL_CMD) create ns $(OPERATOR_NAMESPACE) || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(BUILD_OUTPUT)/catalog/operator-group.yaml
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(BUILD_OUTPUT)/catalog/operator-subscription.yaml
 	sleep 10
-	$(KUBECTL_CMD) -n coherence get ip
-	$(KUBECTL_CMD) -n coherence get csv
-	$(KUBECTL_CMD) -n coherence wait --for condition=available  deployment/coherence-operator-controller-manager -timeout 480s
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get ip
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) get csv
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) wait --for condition=available deployment/coherence-operator-controller-manager --timeout 480s
 
 .PHONY: olm-undeploy
 olm-undeploy: ## Undeploy the Operator that was installed with OLM
-	$(KUBECTL_CMD) -n coherence delete csv coherence-operator.v$(VERSION)
+	$(KUBECTL_CMD) -n coherence delete csv coherence-operator.v$(VERSION) || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(BUILD_OUTPUT)/catalog/operator-group.yaml || true
+	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) apply -f $(BUILD_OUTPUT)/catalog/operator-subscription.yaml || true
+
+.PHONY: olm-e2e-test
+olm-e2e-test: export MF = $(MAKEFLAGS)
+olm-e2e-test: prepare-olm-e2e-test ## Run the Operator end-to-end 'remote' functional tests using an Operator deployed with OLM in k8s
+	$(MAKE) run-e2e-test $${MF} \
+	; rc=$$? \
+	; $(MAKE) olm-undeploy $${MF} \
+	; $(MAKE) delete-namespace $${MF} \
+	; exit $$rc
+
+.PHONY: prepare-olm-e2e-test
+prepare-olm-e2e-test: reset-namespace create-ssl-secrets ensure-pull-secret olm-deploy
 
 # ======================================================================================================================
 # Targets to run a local container registry
@@ -2978,7 +2998,8 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 	find config \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	find helm-charts \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	$(SED) -e 's/<revision>$(subst .,\.,$(VERSION))<\/revision>/<revision>$(NEXT_VERSION)<\/revision>/g' java/pom.xml
-	printf "    - Image: $(BUNDLE_IMAGE)" >> $(SCRIPTS_DIR)/olm/olm-catalog-template.yaml
+	yq -i e 'select(.schema == "olm.template.basic").entries[] |= select(.schema == "olm.channel" and .name == "stable").entries += [{"name" : "coherence-operator.v$(VERSION)", "replaces": "coherence-operator.v$(PREV_VERSION)"}]' $(SCRIPTS_DIR)/olm/olm-catalog-template.yaml
+	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(BUNDLE_IMAGE)"}]' $(SCRIPTS_DIR)/olm/olm-catalog-template.yaml
 
 
 GIT_BRANCH="version-update-$(VERSION)"
