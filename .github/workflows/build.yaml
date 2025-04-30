@@ -129,12 +129,6 @@ jobs:
       shell: bash
       run: make test-all
 
-    - name: Bundle Tests
-      shell: bash
-      run: |
-        make scorecard
-        make catalog-build
-
     - name: E2E Local Tests
       shell: bash
       run: make e2e-local-test

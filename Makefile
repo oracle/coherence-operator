@@ -1074,8 +1074,8 @@ CATALOG_IMAGE      := $(CATALOG_IMAGE_NAME):$(CATALOG_TAG)
 # This is effectively the same thing that will happen in the OpenShift community operator repo
 # This recipe invokes 'opm' in 'basic' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
-.PHONY: catalog-build
-catalog-build: opm $(TOOLS_BIN)/yq ## Build a catalog image (the bundle image must have been pushed first).
+.PHONY: catalog-prepare
+catalog-prepare: opm $(TOOLS_BIN)/yq ## Build a catalog image (the bundle image must have been pushed first).
 	rm -rf catalog || true
 	mkdir -p catalog
 	rm catalog.Dockerfile || true
@@ -1086,6 +1086,10 @@ catalog-build: opm $(TOOLS_BIN)/yq ## Build a catalog image (the bundle image mu
 	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(BUNDLE_IMAGE)"}]' $(BUILD_OUTPUT)/catalog/catalog-template.yaml
 	$(OPM) alpha render-template basic -o yaml $(BUILD_OUTPUT)/catalog/catalog-template.yaml > catalog/operator.yaml
 	$(OPM) validate catalog
+	$(DOCKER_CMD) build --load -f catalog.Dockerfile -t $(CATALOG_IMAGE) .
+
+.PHONY: catalog-build
+catalog-build: catalog-prepare ## Build a catalog image (the bundle image must have been pushed first).
 	$(DOCKER_CMD) build --load -f catalog.Dockerfile -t $(CATALOG_IMAGE) .
 
 # Push the catalog image.
