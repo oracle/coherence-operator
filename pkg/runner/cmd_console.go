@@ -58,6 +58,10 @@ func console(details *run_details.RunDetails, args []string, v *viper.Viper) {
 	details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "false")
 	details.AddSystemPropertyArg(v1.SysPropCoherenceHealthHttpPort, "0")
 	details.AddSystemPropertyArg(v1.SysPropCoherenceGrpcEnabled, "false")
-	details.AddDiagnosticOption("-XX:NativeMemoryTracking=off")
+	details.AddArg("-XX:NativeMemoryTracking=off")
+	details.AddArg("-XshowSettings:none")
+	details.AddArg("-XX:-PrintCommandLineFlags")
+	details.AddArg("-XX:-PrintFlagsFinal")
+
 	details.MainArgs = args
 }

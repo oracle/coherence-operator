@@ -1080,6 +1080,7 @@ catalog-build: opm $(TOOLS_BIN)/yq ## Build a catalog image (the bundle image mu
 	mkdir -p catalog
 	rm catalog.Dockerfile || true
 	$(OPM) generate dockerfile catalog
+	mkdir -p $(BUILD_OUTPUT)/catalog || true
 	cp $(SCRIPTS_DIR)/olm/catalog-template.yaml $(BUILD_OUTPUT)/catalog/catalog-template.yaml
 	yq -i e 'select(.schema == "olm.template.basic").entries[] |= select(.schema == "olm.channel" and .name == "stable").entries += [{"name" : "coherence-operator.v$(VERSION)", "replaces": "coherence-operator.v$(PREV_VERSION)"}]' $(BUILD_OUTPUT)/catalog/catalog-template.yaml
 	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(BUNDLE_IMAGE)"}]' $(BUILD_OUTPUT)/catalog/catalog-template.yaml
