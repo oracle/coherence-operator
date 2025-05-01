@@ -1,6 +1,0 @@
-Schema: olm.semver
-GenerateMajorChannels: true
-GenerateMinorChannels: false
-Stable:
-  Bundles:
-    - Image: ghcr.io/oracle/coherence-operator-bundle:3.4.3

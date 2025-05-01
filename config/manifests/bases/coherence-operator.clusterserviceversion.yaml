@@ -39,6 +39,22 @@ spec:
       displayName: Coherence
       kind: Coherence
       name: coherence.coherence.oracle.com
+      resources:
+      - kind: StatefulSet
+        name: coherence-cluster
+        version: v1
+      specDescriptors:
+      - description: The desired number of member Pods for the cluster.
+        displayName: Replicas
+        path: replicas
+      statusDescriptors:
+      - description: The desired number of member Pods for the deployment.
+        displayName: Replicas
+        path: replicas
+      - displayName: ReadyReplicas
+        path: readyReplicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:readyReplicas
       version: v1
     - description: |-
         CoherenceJob is the top level schema for the CoherenceJob API and custom resource definition (CRD)
@@ -46,6 +62,22 @@ spec:
       displayName: Coherence Job
       kind: CoherenceJob
       name: coherencejob.coherence.oracle.com
+      resources:
+      - kind: Job
+        name: coherence-job
+        version: v1
+      specDescriptors:
+      - description: The desired number of Pods for the job.
+        displayName: Replicas
+        path: replicas
+      statusDescriptors:
+      - description: The desired number of Pods for the job.
+        displayName: Replicas
+        path: replicas
+      - displayName: ReadyReplicas
+        path: readyReplicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:readyReplicas
       version: v1
   description: |
     The Oracle Coherence Kubernetes Operator enables easy management of Coherence clusters in a Kubernetes environment.

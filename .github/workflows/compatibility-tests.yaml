@@ -163,6 +163,10 @@ jobs:
       shell: bash
       run: |
         make kind-load
+        make remove-all-images
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+        df -h
 
     - name: Compatibility Tests
       shell: bash
