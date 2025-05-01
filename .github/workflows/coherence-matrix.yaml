@@ -231,6 +231,10 @@ jobs:
         echo "Loading Images to Kind"
         make kind-load
         make kind-load-compatibility
+        make remove-all-images
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+        df -h
         echo "Running Coherence Compatibility Tests"
         export TEST_LOGS_DIR=build/_output/test-logs/${{ matrix.matrixName }}
         make coherence-compatibility-test 

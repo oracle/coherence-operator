@@ -2359,9 +2359,7 @@ $(TOOLS_BIN)/yq:
 # ======================================================================================================================
 ##@ Cert Manager
 
-CERT_MANAGER_VERSION ?= v1.8.0
-# Get latest version...
-#  curl -s -H "Accept: application/vnd.github.v3+json" --header $(GH_AUTH) https://api.github.com/repos/cert-manager/cert-manager/releases | jq '.[0].tag_name' |  tr -d '"'
+CERT_MANAGER_VERSION ?= v1.17.2
 
 .PHONY: install-cmctl
 install-cmctl: $(TOOLS_BIN)/cmctl ## Install the Cert Manager CLI into $(TOOLS_BIN)
@@ -2369,19 +2367,18 @@ install-cmctl: $(TOOLS_BIN)/cmctl ## Install the Cert Manager CLI into $(TOOLS_B
 CMCTL = $(TOOLS_BIN)/cmctl
 $(TOOLS_BIN)/cmctl:
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cmctl-$${OS}-$${ARCH}.tar.gz  --header $(GH_AUTH)
-	tar xzf cmctl.tar.gz
+		curl -fsSL -o cmctl https://github.com/cert-manager/cmctl/releases/latest/download/cmctl_${OS}_${ARCH}
+	chmod +x cmctl
 	mv cmctl $(TOOLS_BIN)
-	rm cmctl.tar.gz
 
 .PHONY: install-cert-manager
 install-cert-manager: $(TOOLS_BIN)/cmctl ## Install Cert manager into the Kubernetes cluster
-	$(KUBECTL_CMD) apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yam
+	$(KUBECTL_CMD) apply -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yaml
 	$(CMCTL) check api --wait=10m
 
 .PHONY: uninstall-cert-manager
 uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
-	$(KUBECTL_CMD) delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yam
+	$(KUBECTL_CMD) delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yaml
 
 
 # ======================================================================================================================
