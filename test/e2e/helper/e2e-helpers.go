@@ -219,32 +219,6 @@ func WaitForCoherenceJobCondition(ctx TestContext, namespace, name string, condi
 	return job, err
 }
 
-// WaitForEndpoints waits for Enpoints for a Service to be created.
-//
-//goland:noinspection GoUnusedExportedFunction
-func WaitForEndpoints(ctx TestContext, namespace, service string, retryInterval, timeout time.Duration) (*corev1.Endpoints, error) {
-	var ep *corev1.Endpoints
-
-	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
-		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, service, metav1.GetOptions{})
-		if err != nil {
-			if apierrors.IsNotFound(err) {
-				ctx.Logf("Waiting for availability of Endpoints %s - NotFound", service)
-				return false, nil
-			}
-			ctx.Logf("Waiting for availability of %s Endpoints - %s", service, err.Error())
-			return false, err
-		}
-		return true, nil
-	})
-
-	if err != nil && ep != nil {
-		d, _ := json.MarshalIndent(ep, "", "    ")
-		ctx.Logf("Error waiting for Endpoints%s", string(d))
-	}
-	return ep, err
-}
-
 // WaitForJobCompletion waits for a specified k8s Job to complete.
 func WaitForJobCompletion(ctx TestContext, namespace, name string, retryInterval, timeout time.Duration) error {
 	k8s := ctx.KubeClient
