@@ -15,7 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 23,
+  "id": 10,
   "links": [
     {
       "icon": "dashboard",
@@ -116,6 +116,7 @@
     },
     {
       "datasource": "prometheus",
+      "description": "The total connections over the last 5 minutes",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -167,7 +168,10 @@
       "type": "stat"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -219,7 +223,9 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_grpc_named_cache_proxy_task_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})",
+          "editorMode": "code",
+          "expr": "sum(coherence_grpc_proxy_task_backlog{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -227,7 +233,10 @@
       "type": "stat"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -279,7 +288,9 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_grpc_named_cache_proxy_error_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})",
+          "editorMode": "code",
+          "expr": "sum(coherence_grpc_proxy_error_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -287,7 +298,10 @@
       "type": "stat"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -308,10 +322,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
@@ -373,7 +383,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Request Count"
+                "value": "Received Count"
               },
               {
                 "id": "unit",
@@ -640,7 +650,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_proxy_messages_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member)    ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -651,7 +661,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_grpc_named_cache_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member)",
+          "expr": "sum(coherence_grpc_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (member)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -697,7 +707,10 @@
       "type": "table"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -783,20 +796,25 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "exemplar": false,
+          "expr": "sum(coherence_grpc_proxy_messages_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_proxy_messages_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "Received",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Requests - All Members",
+      "title": "Messages Received - All Members",
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -882,7 +900,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_grpc_named_cache_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_named_cache_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_grpc_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -891,11 +909,14 @@
           "refId": "A"
         }
       ],
-      "title": "Responses - All Members",
+      "title": "Responses Sent - All Members",
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -940,8 +961,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -980,7 +1000,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_proxy_messages_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_proxy_messages_received_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -989,11 +1009,14 @@
           "refId": "A"
         }
       ],
-      "title": "Requests - By Member",
+      "title": "Messages Received  - By Member",
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1038,8 +1061,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1078,7 +1100,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_proxy_responses_sent_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1087,11 +1109,14 @@
           "refId": "A"
         }
       ],
-      "title": "Responses - By Members",
+      "title": "Responses Sent - By Members",
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1136,8 +1161,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1176,7 +1200,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "coherence_grpc_named_cache_proxy_error_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_error_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_proxy_error_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_proxy_error_request_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1189,7 +1213,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+       
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1234,8 +1261,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1274,7 +1300,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "coherence_grpc_named_cache_proxy_task_timeout_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_task_timeout_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_proxy_task_timeout_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_proxy_task_timeout_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1297,8 +1323,15 @@
     "list": [
       {
         "current": {
+          "isNone": true,
+          "selected": false,
+          "text": "None",
+          "value": ""
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+         
+        },
         "definition": "label_values(coherence_cluster_size,namespace)",
         "hide": 0,
         "includeAll": false,
@@ -1318,9 +1351,14 @@
       },
       {
         "current": {
-          "selected": true
+          "selected": false,
+          "text": "main-grpc",
+          "value": "main-grpc"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+         
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1345,7 +1383,9 @@
         "current": {
           "selected": false
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1400,6 +1440,6 @@
   "timezone": "",
   "title": "Coherence gRPC Proxy Summary Dashboard",
   "uid": "coh-grpc-proxy-summary",
-  "version": 3,
+  "version": 5,
   "weekStart": ""
 }
