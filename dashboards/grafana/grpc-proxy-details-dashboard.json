@@ -15,7 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 6,
+  "id": 20,
   "links": [
     {
       "icon": "dashboard",
@@ -128,6 +128,7 @@
     },
     {
       "datasource": "prometheus",
+      "description": "The connections over the last 5 minutes",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -179,7 +180,9 @@
       "type": "stat"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -231,7 +234,9 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_grpc_named_cache_proxy_task_backlog{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"})",
+          "editorMode": "code",
+          "expr": "sum(coherence_grpc_proxy_task_backlog{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"})",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -239,7 +244,9 @@
       "type": "stat"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -291,7 +298,9 @@
       "targets": [
         {
           "datasource": "prometheus",
-          "expr": "sum(coherence_grpc_named_cache_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"})",
+          "editorMode": "code",
+          "expr": "sum(coherence_grpc_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"})",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -624,7 +633,9 @@
       "type": "table"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -710,7 +721,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_grpc_named_cache_proxy_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_named_cache_proxy_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_grpc_proxy_messages_received_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_proxy_messages_received_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -719,11 +730,13 @@
           "refId": "A"
         }
       ],
-      "title": "Requests",
+      "title": "Messages Received",
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -809,7 +822,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "sum(coherence_grpc_named_cache_proxy_responses_sent_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_named_cache_proxy_responses_sent_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
+          "expr": "sum(coherence_grpc_proxy_responses_sent_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"}) - sum(coherence_grpc_proxy_responses_sent_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval) > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -818,11 +831,13 @@
           "refId": "A"
         }
       ],
-      "title": "Responses",
+      "title": "Responses Sent",
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -907,7 +922,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "coherence_grpc_named_cache_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_error_request_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_proxy_task_backlog{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_proxy_task_backlog{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -920,7 +935,9 @@
       "type": "timeseries"
     },
     {
-      "datasource": "prometheus",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1005,7 +1022,7 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "coherence_grpc_named_cache_proxy_task_timeout_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_named_cache_proxy_task_timeout_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
+          "expr": "coherence_grpc_proxy_task_timeout_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} - coherence_grpc_proxy_task_timeout_count{member=\"${MemberName}\",cluster=\"${ClusterName:raw}\"} offset $__interval > 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1028,8 +1045,13 @@
     "list": [
       {
         "current": {
+          "selected": false,
+          "text": "None",
+          "value": ""
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "label_values(coherence_cluster_size,namespace)",
         "hide": 0,
         "includeAll": false,
@@ -1049,9 +1071,13 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
+          "text": "main-grpc",
+          "value": "main-grpc"
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1074,9 +1100,11 @@
       },
       {
         "current": {
-          "selected": false
+          "selected": false,
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "",
         "hide": 2,
         "includeAll": false,
@@ -1101,7 +1129,9 @@
         "current": {
           "selected": false
         },
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "prometheus"
+        },
         "definition": "label_values(coherence_service_member_count{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}, member)",
         "hide": 0,
         "includeAll": false,
