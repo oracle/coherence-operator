@@ -287,11 +287,14 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	}
 
 	if strings.HasPrefix(urlStr, "https://github.com") {
-		if token, found := os.LookupEnv("GH_TOKEN"); found {
+		if token, found := os.LookupEnv("GH_TOKEN"); found && token != "" {
 			// Create a Bearer string by appending string access token
 			var bearer = "Bearer " + token
 			// add authorization header to the req
 			req.Header.Add("Authorization", bearer)
+			fmt.Printf("URL is GitHub GH_TOKEN is set")
+		} else {
+			fmt.Printf("URL is GitHub but no auth token in GH_TOKEN")
 		}
 	}
 
@@ -303,7 +306,11 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 
 	// Check if request was successful
 	if resp.StatusCode != 200 {
-		fmt.Printf(" FAILED response: %d\n", resp.StatusCode)
+		body := ""
+		if content, err = io.ReadAll(resp.Body); err == nil {
+			body = string(content)
+		}
+		fmt.Printf(" FAILED response: %d %s\n", resp.StatusCode, body)
 		return 1
 	}
 
