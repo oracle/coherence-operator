@@ -277,7 +277,25 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 		Timeout: time.Minute * 1,
 	}
 
-	if resp, err = netClient.Get(urlToGet.String()); err != nil {
+	urlStr := urlToGet.String()
+
+	// Create a new request using http
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		fmt.Printf(" FAILED error: %v\n", err)
+		return 1
+	}
+
+	if strings.HasPrefix(urlStr, "https://github.com") {
+		if token, found := os.LookupEnv("GH_TOKEN"); found {
+			// Create a Bearer string by appending string access token
+			var bearer = "Bearer " + token
+			// add authorization header to the req
+			req.Header.Add("Authorization", bearer)
+		}
+	}
+
+	if resp, err = netClient.Do(req); err != nil {
 		fmt.Printf(" FAILED error: %v\n", err)
 		return 1
 	}
