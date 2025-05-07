@@ -60,10 +60,6 @@ kind-load-images: ## Load images into kind
 .PHONY: create-all-images
 create-all-images: create-go-image create-js-image create-py-image ## Create all images
 
-.PHONY: push-image
-push-image: ## Push the docker image
-	docker push $(IMAGE_REGISTRY)/$(DOCS_IMAGE):$(DOCS_VERSION)
-
 # ======================================================================================================================
 # Deploy targets
 # ======================================================================================================================
