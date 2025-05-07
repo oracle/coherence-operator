@@ -304,13 +304,13 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	}
 	defer resp.Body.Close()
 
-	// Check if request was successful
+	// Check if the request was successful
 	if resp.StatusCode != 200 {
 		body := ""
 		if content, err = io.ReadAll(resp.Body); err == nil {
 			body = string(content)
 		}
-		fmt.Printf(" FAILED response: %d %s\n", resp.StatusCode, body)
+		fmt.Printf(" FAILED response: %d\n%v\n%s\n", resp.StatusCode, body, resp.Header)
 		return 1
 	}
 
