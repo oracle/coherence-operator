@@ -292,9 +292,9 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 			var bearer = "Bearer " + token
 			// add authorization header to the req
 			req.Header.Add("Authorization", bearer)
-			fmt.Printf("URL is GitHub GH_TOKEN is set")
+			fmt.Print(" (URL is GitHub, GH_TOKEN is set)")
 		} else {
-			fmt.Printf("URL is GitHub but no auth token in GH_TOKEN")
+			fmt.Print(" (URL is GitHub, but no auth token in GH_TOKEN)")
 		}
 	}
 
@@ -302,6 +302,24 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 		fmt.Printf(" FAILED error: %v\n", err)
 		return 1
 	}
+
+	if resp.StatusCode == 429 {
+		for i := 0; i < 10; i++ {
+			_ = resp.Body.Close()
+			fmt.Println(" received 429 status waiting for one minute")
+			time.Sleep(1 * time.Minute)
+
+			if resp, err = netClient.Do(req); err != nil {
+				fmt.Printf(" FAILED error: %v\n", err)
+				return 1
+			}
+
+			if resp.StatusCode != 429 {
+				break
+			}
+		}
+	}
+
 	defer resp.Body.Close()
 
 	// Check if the request was successful
