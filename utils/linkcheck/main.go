@@ -19,6 +19,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -277,15 +278,65 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 		Timeout: time.Minute * 1,
 	}
 
-	if resp, err = netClient.Get(urlToGet.String()); err != nil {
+	urlStr := urlToGet.String()
+
+	// Create a new request using http
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
 		fmt.Printf(" FAILED error: %v\n", err)
 		return 1
 	}
+
+	if strings.HasPrefix(urlStr, "https://github.com") {
+		if token, found := os.LookupEnv("GH_TOKEN"); found && token != "" {
+			// Create a Bearer string by appending string access token
+			var bearer = "Bearer " + token
+			// add authorization header to the req
+			req.Header.Add("Authorization", bearer)
+			fmt.Print(" (URL is GitHub, GH_TOKEN is set)")
+		} else {
+			fmt.Print(" (URL is GitHub, but no auth token in GH_TOKEN)")
+		}
+	}
+
+	if resp, err = netClient.Do(req); err != nil {
+		fmt.Printf(" FAILED error: %v\n", err)
+		return 1
+	}
+
+	retryCount := 10
+	if retryCountStr, found := os.LookupEnv("LINK_CHECK_RETRY_COUNT"); found {
+		if c, err := strconv.Atoi(retryCountStr); err == nil {
+			retryCount = c
+		}
+	}
+
+	if resp.StatusCode == 429 {
+		for i := 0; i < retryCount; i++ {
+			_ = resp.Body.Close()
+			fmt.Println(" received 429 status waiting for one minute")
+			time.Sleep(1 * time.Minute)
+
+			if resp, err = netClient.Do(req); err != nil {
+				fmt.Printf(" FAILED error: %v\n", err)
+				return 1
+			}
+
+			if resp.StatusCode != 429 {
+				break
+			}
+		}
+	}
+
 	defer resp.Body.Close()
 
-	// Check if request was successful
+	// Check if the request was successful
 	if resp.StatusCode != 200 {
-		fmt.Printf(" FAILED response: %d\n", resp.StatusCode)
+		body := ""
+		if content, err = io.ReadAll(resp.Body); err == nil {
+			body = string(content)
+		}
+		fmt.Printf(" FAILED response: %d\n%v\n%s\n", resp.StatusCode, body, resp.Header)
 		return 1
 	}
 
