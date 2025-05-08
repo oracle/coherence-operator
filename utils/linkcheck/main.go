@@ -19,6 +19,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -303,8 +304,15 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 		return 1
 	}
 
+	retryCount := 10
+	if retryCountStr, found := os.LookupEnv("LINK_CHECK_RETRY_COUNT"); found {
+		if c, err := strconv.Atoi(retryCountStr); err == nil {
+			retryCount = c
+		}
+	}
+
 	if resp.StatusCode == 429 {
-		for i := 0; i < 10; i++ {
+		for i := 0; i < retryCount; i++ {
 			_ = resp.Body.Close()
 			fmt.Println(" received 429 status waiting for one minute")
 			time.Sleep(1 * time.Minute)
