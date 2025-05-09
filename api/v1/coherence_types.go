@@ -2320,6 +2320,19 @@ type ReadinessProbeSpec struct {
 	// Minimum consecutive failures for the probe to be considered failed after having succeeded.
 	// +optional
 	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
+	// TerminationGracePeriodSeconds is the optional duration in seconds the pod needs to terminate gracefully
+	// upon probe failure.
+	// The grace period is the duration in seconds after the processes running in the pod are sent
+	// a termination signal and the time when the processes are forcibly halted with a kill signal.
+	// Set this value longer than the expected cleanup time for your process.
+	// If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this
+	// value overrides the value provided by the pod spec.
+	// Value must be non-negative integer. The value zero indicates stop immediately via
+	// the kill signal (no opportunity to shut down).
+	// This is a beta field and requires enabling ProbeTerminationGracePeriod feature gate.
+	// The minimum value is 1. spec.terminationGracePeriodSeconds is used if unset.
+	// +optional
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
 // ProbeHandler is the definition of a probe handler.
@@ -2371,6 +2384,7 @@ func (in *ReadinessProbeSpec) UpdateProbeSpec(port int32, path string, probe *co
 		if in.TimeoutSeconds != nil {
 			probe.TimeoutSeconds = *in.TimeoutSeconds
 		}
+		probe.TerminationGracePeriodSeconds = in.TerminationGracePeriodSeconds
 	}
 }
 

@@ -797,3 +797,33 @@ func TestCreateStatefulUsingJava8(t *testing.T) {
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestCreateStatefulSetWithMinReadySeconds(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		MinReadySeconds: ptr.To(int32(19)),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.MinReadySeconds = 19
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithMinReadySecondsSetToZero(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		MinReadySeconds: ptr.To(int32(0)),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.MinReadySeconds = 0
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}

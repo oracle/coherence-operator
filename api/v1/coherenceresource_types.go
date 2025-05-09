@@ -677,6 +677,7 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 	sts.Labels[LabelComponent] = LabelComponentCoherenceStatefulSet
 	sts.Spec = appsv1.StatefulSetSpec{
 		Replicas:             &replicas,
+		MinReadySeconds:      in.GetMinReadySeconds(),
 		PodManagementPolicy:  appsv1.ParallelPodManagement,
 		UpdateStrategy:       updateStrategy,
 		RevisionHistoryLimit: ptr.To(int32(5)),
