@@ -290,6 +290,11 @@ type CoherenceResourceSpec struct {
 	// Cannot be updated.
 	// +optional
 	Lifecycle *corev1.Lifecycle `json:"lifecycle,omitempty"`
+	// Minimum number of seconds for which a newly created pod should be ready
+	// without any of its container crashing for it to be considered available.
+	// Defaults to 0 (pod will be considered available as soon as it is ready)
+	// +optional
+	MinReadySeconds *int32 `json:"minReadySeconds,omitempty"`
 }
 
 // Action is an action to execute when the StatefulSet becomes ready.
@@ -397,6 +402,15 @@ func (in *CoherenceResourceSpec) GetDefaultScalingProbe() *Probe {
 	}
 
 	return probe.DeepCopy()
+}
+
+// GetMinReadySeconds returns the minReadySeconds value or zero if
+// minReadySeconds is not configured.
+func (in *CoherenceResourceSpec) GetMinReadySeconds() int32 {
+	if in == nil || in.MinReadySeconds == nil {
+		return 0
+	}
+	return *in.MinReadySeconds
 }
 
 // GetCoherencePersistence returns the Coherence PersistenceSpec or nil if

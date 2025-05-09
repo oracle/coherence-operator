@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"testing"
 )
 
@@ -37,11 +38,12 @@ func TestCreateStatefulSetWithEmptyReadinessProbeSpec(t *testing.T) {
 func TestCreateStatefulSetWithReadinessProbeSpec(t *testing.T) {
 
 	probe := coh.ReadinessProbeSpec{
-		InitialDelaySeconds: int32Ptr(10),
-		TimeoutSeconds:      int32Ptr(20),
-		PeriodSeconds:       int32Ptr(30),
-		SuccessThreshold:    int32Ptr(40),
-		FailureThreshold:    int32Ptr(50),
+		InitialDelaySeconds:           int32Ptr(10),
+		TimeoutSeconds:                int32Ptr(20),
+		PeriodSeconds:                 int32Ptr(30),
+		SuccessThreshold:              int32Ptr(40),
+		FailureThreshold:              int32Ptr(50),
+		TerminationGracePeriodSeconds: ptr.To(int64(1234)),
 	}
 
 	spec := coh.CoherenceResourceSpec{
@@ -62,11 +64,12 @@ func TestCreateStatefulSetWithReadinessProbeSpec(t *testing.T) {
 			},
 			TCPSocket: nil,
 		},
-		InitialDelaySeconds: 10,
-		TimeoutSeconds:      20,
-		PeriodSeconds:       30,
-		SuccessThreshold:    40,
-		FailureThreshold:    50,
+		InitialDelaySeconds:           10,
+		TimeoutSeconds:                20,
+		PeriodSeconds:                 30,
+		SuccessThreshold:              40,
+		FailureThreshold:              50,
+		TerminationGracePeriodSeconds: ptr.To(int64(1234)),
 	}
 
 	// assert that the StatefulSet is as expected
