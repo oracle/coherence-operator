@@ -1,4 +1,4 @@
-# Copyright 2022, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2022, 2025, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -81,6 +81,7 @@ jobs:
     - name: Image Scan
       shell: bash
       run:  |
+        sh ./hack/golang/govulncheck.sh
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         export TRIVY_CACHE=$GITHUB_WORKSPACE/.cache/trivy
         make trivy-scan
