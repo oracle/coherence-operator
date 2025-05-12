@@ -352,6 +352,7 @@ m| topologySpreadConstraints | TopologySpreadConstraints describes how a group o
 m| rackLabel | RackLabel is an optional Node label to use for the value of the Coherence member's rack name. The default labels to use are determined by the Operator. m| &#42;string | false
 m| siteLabel | SiteLabel is an optional Node label to use for the value of the Coherence member's site name The default labels to use are determined by the Operator. m| &#42;string | false
 m| lifecycle | Lifecycle applies actions that the management system should take in response to container lifecycle events. Cannot be updated. m| &#42;https://{k8s-doc-link}/#lifecycle-v1-core[corev1.Lifecycle] | false
+m| minReadySeconds | Minimum number of seconds for which a newly created pod should be ready without any of its container crashing for it to be considered available. Defaults to 0 (pod will be considered available as soon as it is ready) m| &#42;int32 | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -868,6 +869,7 @@ m| timeoutSeconds | Number of seconds after which the probe times out. More info
 m| periodSeconds | How often (in seconds) to perform the probe. m| &#42;int32 | false
 m| successThreshold | Minimum consecutive successes for the probe to be considered successful after having failed. m| &#42;int32 | false
 m| failureThreshold | Minimum consecutive failures for the probe to be considered failed after having succeeded. m| &#42;int32 | false
+m| terminationGracePeriodSeconds | TerminationGracePeriodSeconds is the optional duration in seconds the pod needs to terminate gracefully upon probe failure. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this value overrides the value provided by the pod spec. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). This is a beta field and requires enabling ProbeTerminationGracePeriod feature gate. The minimum value is 1. spec.terminationGracePeriodSeconds is used if unset. m| &#42;int64 | false
 |===
 
 <<Table of Contents,Back to TOC>>

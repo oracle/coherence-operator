@@ -2155,7 +2155,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.32.2@sha256:f226345927d7e348497136874b6d207e0b32cc52154ad8323129352923a3142f"
+KIND_IMAGE     ?= "kindest/node:v1.33.0@sha256:91e9ed777db80279c22d1d1068c091b899b2078506e4a0f797fbf6e397c0b0b2"
 CALICO_TIMEOUT ?= 300s
 KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
 
@@ -2373,12 +2373,11 @@ $(TOOLS_BIN)/cmctl:
 
 .PHONY: install-cert-manager
 install-cert-manager: $(TOOLS_BIN)/cmctl ## Install Cert manager into the Kubernetes cluster
-	$(KUBECTL_CMD) apply -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yaml
-	$(CMCTL) check api --wait=10m
+	$(SCRIPTS_DIR)/cert-manager/install-cert-manager.sh
 
 .PHONY: uninstall-cert-manager
 uninstall-cert-manager: ## Uninstall Cert manager from the Kubernetes cluster
-	$(KUBECTL_CMD) delete -f https://github.com/cert-manager/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yaml
+	$(SCRIPTS_DIR)/cert-manager/uninstall-cert-manager.sh
 
 
 # ======================================================================================================================
@@ -3048,3 +3047,24 @@ endif
 	rm -f licensed.tar.gz
 	mv ./licensed $(TOOLS_BIN)/licensed
 	chmod +x $(TOOLS_BIN)/licensed
+
+
+
+SHELL_SCRIPT ?=
+.PHONY: run-script
+run-script:
+	chmod +x $(SHELL_SCRIPT)
+	$(SHELL_SCRIPT)
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Export various properties
+# ----------------------------------------------------------------------------------------------------------------------
+export VERSION OPERATOR_IMAGE COHERENCE_IMAGE KUBECTL_CMD \
+  BUILD_OUTPUT BUILD_BIN BUILD_DEPLOY BUILD_HELM BUILD_MANIFESTS SCRIPTS_DIR TEST_LOGS_DIR \
+  TOOLS_BIN MVN_VERSION CERT_MANAGER_VERSION \
+  OPERATOR_NAMESPACE CLUSTER_NAMESPACE OPERATOR_NAMESPACE_CLIENT BUILD_OUTPUT TEST_APPLICATION_IMAGE \
+  TEST_APPLICATION_IMAGE_CLIENT TEST_APPLICATION_IMAGE_HELIDON TEST_APPLICATION_IMAGE_HELIDON_3 \
+  TEST_APPLICATION_IMAGE_HELIDON_2 SKIP_SPRING_CNBP TEST_APPLICATION_IMAGE_SPRING TEST_APPLICATION_IMAGE_SPRING_FAT \
+  TEST_APPLICATION_IMAGE_SPRING_CNBP TEST_APPLICATION_IMAGE_SPRING_2 TEST_APPLICATION_IMAGE_SPRING_FAT_2 \
+  TEST_APPLICATION_IMAGE_SPRING_CNBP_2 TEST_COHERENCE_IMAGE IMAGE_PULL_SECRETS COHERENCE_OPERATOR_SKIP_SITE \
+  TEST_IMAGE_PULL_POLICY TEST_STORAGE_CLASS GO_TEST_FLAGS_E2E TEST_ASSET_KUBECTL LOCAL_STORAGE_RESTART

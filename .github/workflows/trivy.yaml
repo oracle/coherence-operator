@@ -81,7 +81,6 @@ jobs:
     - name: Image Scan
       shell: bash
       run:  |
-        make build-operator-images
         sh ./hack/golang/govulncheck.sh
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         export TRIVY_CACHE=$GITHUB_WORKSPACE/.cache/trivy
