@@ -53,14 +53,6 @@
 </v-card-text>
 </v-card>
 </v-flex>
-</v-layout>
-</v-container>
-</v-flex>
-</v-layout>
-<v-layout row wrap class="mb-5">
-<v-flex xs12>
-<v-container fluid grid-list-md class="pa-0">
-<v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
 <router-link to="/examples/025_extend_client/README"><div class="card__link-hover"/>
@@ -74,6 +66,14 @@
 </v-card-text>
 </v-card>
 </v-flex>
+</v-layout>
+</v-container>
+</v-flex>
+</v-layout>
+<v-layout row wrap class="mb-5">
+<v-flex xs12>
+<v-container fluid grid-list-md class="pa-0">
+<v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
 <router-link to="#examples/020_deployment/README.adoc" @click.native="this.scrollFix('#examples/020_deployment/README.adoc')"><div class="card__link-hover"/>
@@ -122,10 +122,18 @@
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>This is a simple Coherence federation example. The federation feature requires Coherence Grid Edition.</p>
+<p>This example shows configuring federation using Oracle Cloud. (OCI) The federation feature requires Coherence Grid Edition.</p>
 </v-card-text>
 </v-card>
 </v-flex>
+</v-layout>
+</v-container>
+</v-flex>
+</v-layout>
+<v-layout row wrap class="mb-5">
+<v-flex xs12>
+<v-container fluid grid-list-md class="pa-0">
+<v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
 <router-link to="/examples/200_autoscaler/README"><div class="card__link-hover"/>
@@ -165,14 +173,6 @@
 </v-card-text>
 </v-card>
 </v-flex>
-</v-layout>
-</v-container>
-</v-flex>
-</v-layout>
-<v-layout row wrap class="mb-5">
-<v-flex xs12>
-<v-container fluid grid-list-md class="pa-0">
-<v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
 <router-link to="/examples/900_demo/README"><div class="card__link-hover"/>
@@ -183,6 +183,27 @@
 <v-card-text class="caption">
 <p></p>
 <p>Deploying the Coherence demo application.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+</v-layout>
+</v-container>
+</v-flex>
+</v-layout>
+<v-layout row wrap class="mb-5">
+<v-flex xs12>
+<v-container fluid grid-list-md class="pa-0">
+<v-layout row wrap class="pillars">
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/910_polyglot_demo/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Polyglot Client Demo</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Deploy Python, JavaScript or Go applications using the Operator.</p>
 </v-card-text>
 </v-card>
 </v-flex>
