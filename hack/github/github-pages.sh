@@ -7,48 +7,59 @@
 
 set -o -v errexit
 
-ROOT_DIR=$(pwd)
-GITHUB_REPO=$(git config --get remote.origin.url)
-GITHUB_REPO=https://github.com/oracle/coherence-operator.git
-BUILD_OUTPUT=${ROOT_DIR}/build/_output
-BUILD_GH_PAGES="${ROOT_DIR}/gh-pages"
-VERSION=$(cat "${BUILD_OUTPUT}/version.txt")
+if [ "${WORKSPACE}" == "" ]
+then
+  WORKSPACE=$(pwd)
+fi
 
-@echo "ROOT_DIR="${ROOT_DIR}""
+if [ "${OPERATOR_VERSION}" == "" ]
+then
+  OPERATOR_VERSION=$(cat "${BUILD_OUTPUT}/OPERATOR_VERSION.txt")
+fi
+
+GITHUB_REPO=https://github.com/oracle/coherence-operator.git
+BUILD_OUTPUT=${WORKSPACE}/build/_output
+BUILD_GH_PAGES="${WORKSPACE}/gh-pages"
+
+@echo "WORKSPACE="${WORKSPACE}""
 @echo "GITHUB_REPO=${GITHUB_REPO}"
-@echo "VERSION=${VERSION}"
+@echo "OPERATOR_VERSION=${OPERATOR_VERSION}"
 
 rm -rf ${BUILD_GH_PAGES}
-git clone -b gh-pages --single-branch ${GITHUB_REPO} "${ROOT_DIR}/gh-pages"
+git clone -b gh-pages --single-branch ${GITHUB_REPO} "${WORKSPACE}/gh-pages"
 cd ${BUILD_GH_PAGES}
 
+GIT_ORIGIN=$(git config remote.origin.url)
+GIT_URL=$(echo ${GIT_ORIGIN} | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
+git remote set-url origin "${GIT_URL}"
+
 mkdir -p ${BUILD_GH_PAGES}/dashboards || true
-rm -rf ${BUILD_GH_PAGES}/dashboards/${VERSION} || true
-cp -R ${BUILD_OUTPUT}/dashboards/${VERSION} ${BUILD_GH_PAGES}/dashboards/
-git add dashboards/${VERSION}/*
+rm -rf ${BUILD_GH_PAGES}/dashboards/${OPERATOR_VERSION} || true
+cp -R ${BUILD_OUTPUT}/dashboards/${OPERATOR_VERSION} ${BUILD_GH_PAGES}/dashboards/
+git add dashboards/${OPERATOR_VERSION}/*
 rm -rf ${BUILD_GH_PAGES}/dashboards/latest || true
-cp -R ${BUILD_GH_PAGES}/dashboards/${VERSION} ${BUILD_GH_PAGES}/dashboards/latest
+cp -R ${BUILD_GH_PAGES}/dashboards/${OPERATOR_VERSION} ${BUILD_GH_PAGES}/dashboards/latest
 git add -A dashboards/latest/*
 
-mkdir ${BUILD_GH_PAGES}/docs/${VERSION} || true
-rm -rf ${BUILD_GH_PAGES}/docs/${VERSION}/ || true
-cp -R ${BUILD_OUTPUT}/docs ${BUILD_GH_PAGES}/docs/${VERSION}/
+mkdir ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION} || true
+rm -rf ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION}/ || true
+cp -R ${BUILD_OUTPUT}/docs ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION}/
 rm -rf ${BUILD_GH_PAGES}/docs/latest
-cp -R ${BUILD_GH_PAGES}/docs/${VERSION} ${BUILD_GH_PAGES}/docs/latest
+cp -R ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION} ${BUILD_GH_PAGES}/docs/latest
 git add -A docs/*
 
 mkdir -p ${BUILD_GH_PAGES}/charts || true
-cp ${BUILD_OUTPUT}/helm-charts/coherence-operator-${VERSION}.tgz ${BUILD_GH_PAGES}/charts/
+cp ${BUILD_OUTPUT}/helm-charts/coherence-operator-${OPERATOR_VERSION}.tgz ${BUILD_GH_PAGES}/charts/
 helm repo index charts --url https://oracle.github.io/coherence-operator/charts
-git add charts/coherence-operator-${VERSION}.tgz
+git add charts/coherence-operator-${OPERATOR_VERSION}.tgz
 git add charts/index.yaml
 
 git clean -d -f
 
 git status
 
-git commit -m "Release Coherence Operator version: ${VERSION}"
+git commit -m "Release Coherence Operator version: ${OPERATOR_VERSION}"
 git log -1
 git push origin gh-pages
 
-cd ${ROOT_DIR}
+cd ${WORKSPACE}

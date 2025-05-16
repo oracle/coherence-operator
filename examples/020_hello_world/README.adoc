@@ -21,7 +21,7 @@ image:GitHub-Mark-32px.png[] The complete source code for this example is in the
 === Install the Operator
 
 If you have not already done so, you need to install the Coherence Operator.
-There are a few simple ways to do this as described in the <<docs/installation/01_installation.adoc,Installation Guide>>
+There are a few simple ways to do this as described in the <<docs/installation/001_installation.adoc,Installation Guide>>
 
 === A Default Coherence Cluster
 

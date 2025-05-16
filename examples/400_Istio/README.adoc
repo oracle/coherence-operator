@@ -164,7 +164,7 @@ kubectl -n coherence apply istio-operator.yaml
 ----
 
 You can then install the operator using your preferred method in the
-Operator <<docs/installation/01_installation.adoc,Installation Guide>>.
+Operator <<docs/installation/001_installation.adoc,Installation Guide>>.
 
 After installed operator, use the following command to confirm the operator is running:
 
