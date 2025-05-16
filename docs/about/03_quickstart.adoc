@@ -15,7 +15,7 @@ to install a simple Coherence cluster.
 
 == Prerequisites
 
-Ensure that the <<docs/installation/01_installation.adoc,Coherence Operator prerequisites>> are available.
+Ensure that the <<docs/installation/001_installation.adoc,Coherence Operator prerequisites>> are available.
 
 == 1. Install the Coherence Operator
 
@@ -71,7 +71,7 @@ or with Helm v2
 helm install --namespace coherence-test  --name operator coherence/coherence-operator
 ----
 
-See the <<docs/installation/01_installation.adoc, full install guide>> for more details.
+See the <<docs/installation/001_installation.adoc, full install guide>> for more details.
 
 
 == 2. Install a Coherence Deployment

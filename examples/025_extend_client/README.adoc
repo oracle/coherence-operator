@@ -31,7 +31,7 @@ If you have not already done so, you should build the image from that example, s
 ==== Install the Operator
 
 If you have not already done so, you need to install the Coherence Operator.
-There are a few simple ways to do this as described in the <<docs/installation/01_installation.adoc,Installation Guide>>
+There are a few simple ways to do this as described in the <<docs/installation/001_installation.adoc,Installation Guide>>
 
 
 == The Client Application

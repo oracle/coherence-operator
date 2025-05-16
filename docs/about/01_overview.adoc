@@ -23,7 +23,7 @@ Quick start guide to running your first Coherence cluster using the Coherence Op
 
 [CARD]
 .Install
-[icon=fa-save,link=docs/installation/01_installation.adoc]
+[icon=fa-save,link=docs/installation/001_installation.adoc]
 --
 Installing and running the Coherence Operator.
 --

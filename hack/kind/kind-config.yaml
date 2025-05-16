@@ -2,6 +2,23 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+            extraArgs:
+              enable-admission-plugins: PodTopologyLabels,MutatingAdmissionWebhook,ValidatingAdmissionWebhook
   - role: worker
+    labels:
+      topology.kubernetes.io/zone: zone-one
+      topology.kubernetes.io/region: one
   - role: worker
+    labels:
+      topology.kubernetes.io/zone: zone-two
+      topology.kubernetes.io/region: two
   - role: worker
+    labels:
+      topology.kubernetes.io/zone: zone-three
+      topology.kubernetes.io/region: three
+featureGates:
+  PodTopologyLabelsAdmission: true
