@@ -133,7 +133,7 @@ When you see the following message, you can continue.
 deployment.apps/coherence-operator-controller-manager condition met
 ----
 
-See the <<docs/installation/01_installation.adoc,Installation Guide>> for more information about installing the Coherence Operator.
+See the <<docs/installation/001_installation.adoc,Installation Guide>> for more information about installing the Coherence Operator.
 
 [#pre-4]
 ==== Download Additional Software (Optional)
@@ -183,9 +183,9 @@ include::go/Dockerfile[tag=dockerfile]
 
 You can view the source of each of the language clients here:
 
-* link:py/main.py[py/main.py]
-* link:js/main.js[js/main.js]
-* link:go/main.go[go/main.go]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/py/main.py[py/main.py]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/js/main.js[js/main.js]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/go/main.go[go/main.go]
 
 [#dep-2]
 ==== Build the Example images
@@ -269,9 +269,9 @@ docker push ghcr.io/username/repo/polyglot-client-go:1.0.0
 
 2. Modify the following files to change the image name accordingly in the following deployment yaml files:
 +
-* link:yaml/py-client.yaml[py-client.yaml]
-* link:yaml/js-client.yaml[js-client.yaml]
-* link:yaml/go-client.yaml[go-client.yaml]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/py-client.yaml[py-client.yaml]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/js-client.yaml[js-client.yaml]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/go-client.yaml[go-client.yaml]
 
 3. Create a secret if your repository is not public:
 +
@@ -294,7 +294,7 @@ In each of the client deployment files, above add `imagePullSecrets` after the i
           imagePullPolicy: IfNotPresent
           imagePullSecrets:
             - name: my-pull-secret
----
+----
 
 [#dep-4]
 ==== 4. Deploy the Coherence Cluster
@@ -363,9 +363,9 @@ are directly accessing cluster within Kubernetes.
 
 When we deploy the clients, the yaml used is shown below:
 
-* link:yaml/py-client.yaml[Python Client]
-* link:yaml/js-client.yaml[JavaScript Client]
-* link:yaml/go-client.yaml[Go Client]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/py-client.yaml[Python Client]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/js-client.yaml[JavaScript Client]
+* https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/go-client.yaml[Go Client]
 
 By default, the Python, JavaScript and Go clients connect to `localhost:1408` on startup, but you can specify the gRPC host and port to connect to in the
 code or use the `COHERENCE_SERVER_ADDRESS` environment variable to specify this which is more flexible.
