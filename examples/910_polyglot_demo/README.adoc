@@ -133,7 +133,7 @@ When you see the following message, you can continue.
 deployment.apps/coherence-operator-controller-manager condition met
 ----
 
-See the <<docs/installation/01_installation.adoc,Installation Guide>> for more information about installing the Coherence Operator.
+See the <<docs/installation/001_installation.adoc,Installation Guide>> for more information about installing the Coherence Operator.
 
 [#pre-4]
 ==== Download Additional Software (Optional)
