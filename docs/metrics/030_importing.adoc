@@ -14,7 +14,7 @@
 == Importing the Coherence Dashboards
 
 The Coherence Operator provides a set of dashboards for Coherence that may be imported into Grafana.
-The Coherence dashboards are explained in detail on the <<040_dashboards.adoc,Coherence Grafana Dashboards>> page.
+The Coherence dashboards are explained in detail on the <<docs/metrics/040_dashboards.adoc,Coherence Grafana Dashboards>> page.
 
 There are two ways to obtain the dashboards:
 

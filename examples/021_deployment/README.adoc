@@ -783,7 +783,7 @@ Note that the default credentials are specified in that section of the documenta
 ==== Import the Grafana Dashboards
 
 To import the Coherence Grafana dashboards follow the instructions in the Operator documentation section
-<<metrics/030_importing.adoc,Importing Grafana Dashboards>>.
+<<docs/metrics/030_importing.adoc,Importing Grafana Dashboards>>.
 
 After importing the dashboards into Grafana and with the port-forward still running the Coherence dashboards can be
 accessed at http://localhost:3000/d/coh-main/coherence-dashboard-main[localhost:3000/d/coh-main/coherence-dashboard-main]

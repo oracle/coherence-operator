@@ -48,7 +48,7 @@ See the links below for more information on various topics described above:
 * https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/create-cluster.htm[Creating OKE Clusters]
 * https://www.oracle.com/au/cloud/networking/dynamic-routing-gateway/[Dynamic Routing Gateway Documentation]
 * https://{commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Federation Documentation]
-* <<../installation/04_obtain_coherence_images.adoc,Obtaining Commercial Coherence Images>>
+* <<docs/installation/04_obtain_coherence_images.adoc,Obtaining Commercial Coherence Images>>
 
 [TIP]
 ====

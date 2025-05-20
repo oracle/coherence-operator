@@ -44,12 +44,12 @@ See the <<examples/400_Istio/README.adoc,Istio example>> for more details.
 
 There are a number of ways to install the Coherence Operator.
 
-* <<installation/011_install_manifests.adoc,Install using the yaml manifest file>>
-* <<installation/012_install_helm.adoc,Install using Helm>>
-* <<installation/013_install_kustomize.adoc,Install using Kustomize>>
-* <<installation/014_install_openshift.adoc,Install on OpenShift>>
-* <<installation/015_install_olm.adoc,Install using the Operator Lifecycle Manager (OLM)>>
-* <<installation/016_install_tanzu.adoc,Install on VMWare Tanzu>>
+* <<docs/installation/011_install_manifests.adoc,Install using the yaml manifest file>>
+* <<docs/installation/012_install_helm.adoc,Install using Helm>>
+* <<docs/installation/013_install_kustomize.adoc,Install using Kustomize>>
+* <<docs/installation/014_install_openshift.adoc,Install on OpenShift>>
+* <<docs/installation/015_install_olm.adoc,Install using the Operator Lifecycle Manager (OLM)>>
+* <<docs/installation/016_install_tanzu.adoc,Install on VMWare Tanzu>>
 
 
 [#ha]
