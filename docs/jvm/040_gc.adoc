@@ -105,6 +105,6 @@ spec:
 In the example above the `-XX:MaxGCPauseMillis=200` JVM argument will be added to the command line.
 
 NOTE: The `jvm.gc.args` field will add the provided arguments to the end of the command line exactly as they
-are in the args list. This field provides the same functionality as <<jvm/030_jvm_args.adoc,JVM Args>>
+are in the args list. This field provides the same functionality as <<docs/jvm/030_jvm_args.adoc,JVM Args>>
 but sometimes it might be useful to be able to separate the two gorups of arguments in the CRD spec.
 

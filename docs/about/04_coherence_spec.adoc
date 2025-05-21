@@ -302,9 +302,9 @@ see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotatio
 m| initContainers | List of additional initialization containers to add to the deployment's Pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ m| []https://{k8s-doc-link}/#container-v1-core[corev1.Container] | false
 m| sideCars | List of additional side-car containers to add to the deployment's Pod. m| []https://{k8s-doc-link}/#container-v1-core[corev1.Container] | false
 m| configMapVolumes | A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment's Pods and as a VolumeMount to all the containers and init-containers in the Pod. +
-see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
+see: <<docs/misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>> m| []<<ConfigMapVolumeSpec,ConfigMapVolumeSpec>> | false
 m| secretVolumes | A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment's Pods and as a VolumeMount to all the containers and init-containers in the Pod. +
-see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
+see: <<docs/misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>> m| []<<SecretVolumeSpec,SecretVolumeSpec>> | false
 m| volumes | Volumes defines extra volume mappings that will be added to the Coherence Pod. +
   The content of this yaml should match the normal k8s volumes section of a Pod definition + +
   as described in https://kubernetes.io/docs/concepts/storage/volumes/ + m| []https://{k8s-doc-link}/#volume-v1-core[corev1.Volume] | false
@@ -388,31 +388,31 @@ m| jobProbes | &#160; m| []<<CoherenceJobProbeStatus,CoherenceJobProbeStatus>> |
 === CoherenceSpec
 
 CoherenceSpec is the section of the CRD configures settings specific to Coherence. +
-see: <<coherence_settings/010_overview.adoc,Coherence Configuration>>
+see: <<docs/coherence_settings/010_overview.adoc,Coherence Configuration>>
 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
 m| cacheConfig | CacheConfig is the name of the cache configuration file to use +
-see: <<coherence_settings/030_cache_config.adoc,Configure Cache Config File>> m| &#42;string | false
+see: <<docs/coherence_settings/030_cache_config.adoc,Configure Cache Config File>> m| &#42;string | false
 m| overrideConfig | OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml +
-see: <<coherence_settings/040_override_file.adoc,Configure Operational Config File>> m| &#42;string | false
+see: <<docs/coherence_settings/040_override_file.adoc,Configure Operational Config File>> m| &#42;string | false
 m| storageEnabled | A boolean flag indicating whether members of this deployment are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel. +
-see: <<coherence_settings/050_storage_enabled.adoc,Configure Storage Enabled>> m| &#42;bool | false
+see: <<docs/coherence_settings/050_storage_enabled.adoc,Configure Storage Enabled>> m| &#42;bool | false
 m| persistence | Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data. +
-see: <<coherence_settings/080_persistence.adoc,Configure Persistence>> m| &#42;<<PersistenceSpec,PersistenceSpec>> | false
+see: <<docs/coherence_settings/080_persistence.adoc,Configure Persistence>> m| &#42;<<PersistenceSpec,PersistenceSpec>> | false
 m| logLevel | The Coherence log level, default being 5 (info level). +
-see: <<coherence_settings/060_log_level.adoc,Configure Coherence log level>> m| &#42;int32 | false
+see: <<docs/coherence_settings/060_log_level.adoc,Configure Coherence log level>> m| &#42;int32 | false
 m| management | Management configures Coherence management over REST Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4. +
-see: <<management_and_diagnostics/010_overview.adoc,Management & Diagnostics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
+see: <<docs/management_and_diagnostics/010_overview.adoc,Management & Diagnostics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
 m| metrics | Metrics configures Coherence metrics publishing Note: Coherence metrics publishing will is available in Coherence version >= 12.2.1.4. +
-see: <<metrics/010_overview.adoc,Metrics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
+see: <<docs/metrics/010_overview.adoc,Metrics>> m| &#42;<<PortSpecWithSSL,PortSpecWithSSL>> | false
 m| tracing | Tracing is used to configure Coherence distributed tracing functionality. m| &#42;<<CoherenceTracingSpec,CoherenceTracingSpec>> | false
 m| allowEndangeredForStatusHA | AllowEndangeredForStatusHA is a list of Coherence partitioned cache service names that are allowed to be in an endangered state when testing for StatusHA. Instances where a StatusHA check is performed include the readiness probe and when scaling a deployment. This field would not typically be used except in cases where a cache service is configured with a backup count greater than zero but it does not matter if caches in those services loose data due to member departure. Normally, such cache services would have a backup count of zero, which would automatically excluded them from the StatusHA check. m| []string | false
 m| excludeFromWKA | Exclude members of this deployment from being part of the cluster's WKA list. +
-see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;bool | false
+see: <<docs/coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;bool | false
 m| wka | Specify an existing Coherence deployment to be used for WKA. If an existing deployment is to be used for WKA the ExcludeFromWKA is implicitly set to true. +
-see: <<coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;<<CoherenceWKASpec,CoherenceWKASpec>> | false
+see: <<docs/coherence_settings/070_wka.adoc,Well Known Addressing>> m| &#42;<<CoherenceWKASpec,CoherenceWKASpec>> | false
 m| skipVersionCheck | Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4. The version check relies on the ability of the start script to find coherence.jar but if due to how the image has been built this check is failing then setting this flag to true will skip version checking and assume that the latest coherence.jar is being used. m| &#42;bool | false
 m| enableIpMonitor | Enables the Coherence IP Monitor feature. The Operator disables the IP Monitor by default. m| &#42;bool | false
 m| localPort | LocalPort sets the Coherence unicast port. When manually configuring unicast ports, a single port is specified and the second port is automatically selected. If either of the ports are not available, then the default behavior is to select the next available port. For example, if port 9000 is configured for the first port (port1) and it is not available, then the next available port is automatically selected. The second port (port2) is automatically opened and defaults to the next available port after port1 (port1 + 1 if available). m| &#42;int32 | false
@@ -515,7 +515,7 @@ m| ipFamily | IPFamily is the IP family to use for the WKA service (and also the
 === ConfigMapVolumeSpec
 
 ConfigMapVolumeSpec represents a ConfigMap that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
-see: <<misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>>
+see: <<docs/misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===
@@ -957,7 +957,7 @@ m| probe | The probe to use to determine whether a deployment is Phase HA. If no
 === SecretVolumeSpec
 
 SecretVolumeSpec represents a Secret that will be added to the deployment's Pods as an additional Volume and as a VolumeMount in the containers. +
-see: <<misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>>
+see: <<docs/misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes>>
 
 [cols="1,10,1,1"options="header"]
 |===

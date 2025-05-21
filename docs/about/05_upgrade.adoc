@@ -81,7 +81,7 @@ In Operator v2 there were multiple images defined, one for Coherence and one use
 Because of the application changes described only a single image now needs to be specified in the `image` field
 of the `CRD` spec.
 
-See the <<applications/010_overview.adoc,Applications>> section of the doecumentation for more details.
+See the <<docs/applications/010_overview.adoc,Applications>> section of the doecumentation for more details.
 
 
 == CRD Differences
@@ -89,7 +89,7 @@ See the <<applications/010_overview.adoc,Applications>> section of the doecument
 A lot of the fields in the `Coherence` CRD are the same as when defining a role in version 2.
 Whilst a number of new fields and features have been added in version 3, a handful of fields have moved,
 and a small number, that no longer made sense, have been removed.
-The <<about/04_coherence_spec.adoc,Coherence Spec>> page documents the full `Coherence` CRD, so it is
+The <<docs/about/04_coherence_spec.adoc,Coherence Spec>> page documents the full `Coherence` CRD, so it is
 simple to locate where a field might have moved to.
 
 
@@ -100,7 +100,7 @@ There are a lot of different ways to configure Fluentd and making the Operator a
 too much of a head-ache to do in a backwards compatible way.
 If a Fluentd side-car is required it can just be added to the `Coherence` resource spec as an additional container,
 so there is no limitation on the Fluentd configuration.
-See the <<logging/010_overview.adoc,Logging documentation>> for more examples.
+See the <<docs/logging/010_overview.adoc,Logging documentation>> for more examples.
 
 == Prometheus and Elasticsearch
 

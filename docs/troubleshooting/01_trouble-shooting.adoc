@@ -266,4 +266,4 @@ When Coherence starts a message similar to the following is displayed in the Coh
 ----
 
 This message is because the default behaviour of the Operator is to disable the Coherence IP Monitor,
-see the <<_coherence_operator_api_docs/coherence/090_ipmonitor.adoc,IP Monitor documentation>> for an explanation.
+see the <<docs/coherence/090_ipmonitor.adoc,IP Monitor documentation>> for an explanation.

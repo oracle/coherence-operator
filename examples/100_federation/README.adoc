@@ -48,7 +48,7 @@ See the links below for more information on various topics described above:
 * https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/create-cluster.htm[Creating OKE Clusters]
 * https://www.oracle.com/au/cloud/networking/dynamic-routing-gateway/[Dynamic Routing Gateway Documentation]
 * https://{commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Federation Documentation]
-* <<../installation/04_obtain_coherence_images.adoc,Obtaining Commercial Coherence Images>>
+* <<docs/installation/04_obtain_coherence_images.adoc,Obtaining Commercial Coherence Images>>
 
 [TIP]
 ====
@@ -139,7 +139,7 @@ For each of the OKE clusters, carry out the following
 ==== 1. Install the Coherence Operator
 
 To run the examples below, you will need to have installed the Coherence Operator,
-do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation[Installation Guide].
+do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/001_installation[Installation Guide].
 
 [source,bash]
 ----

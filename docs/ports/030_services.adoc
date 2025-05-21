@@ -136,7 +136,7 @@ spec:
 The `Coherence` resource CRD allows many other settings to be configured on the `Service`.
 These fields are identical to the corresponding fields in the Kubernetes `Service` spec.
 
-See the `Coherence` CRD <<about/04_coherence_spec.adoc#_servicespec,Service Spec>> documentation
+See the `Coherence` CRD <<docs/about/04_coherence_spec.adoc#_servicespec,Service Spec>> documentation
 and the Kubernetes
 https://{k8s-doc-link}/#servicespec-v1-core[Service API reference].
 

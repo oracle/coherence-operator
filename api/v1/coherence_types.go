@@ -386,16 +386,16 @@ type CloudNativeBuildPackSpec struct {
 // ----- CoherenceSpec struct -----------------------------------------------
 
 // CoherenceSpec is the section of the CRD configures settings specific to Coherence.
-// +coh:doc=coherence_settings/010_overview.adoc,Coherence Configuration
+// +coh:doc=docs/coherence_settings/010_overview.adoc,Coherence Configuration
 // +k8s:openapi-gen=true
 type CoherenceSpec struct {
 	// CacheConfig is the name of the cache configuration file to use
-	// +coh:doc=coherence_settings/030_cache_config.adoc,Configure Cache Config File
+	// +coh:doc=docs/coherence_settings/030_cache_config.adoc,Configure Cache Config File
 	// +optional
 	CacheConfig *string `json:"cacheConfig,omitempty"`
 	// OverrideConfig is name of the Coherence operational configuration override file,
 	// the default is tangosol-coherence-override.xml
-	// +coh:doc=coherence_settings/040_override_file.adoc,Configure Operational Config File
+	// +coh:doc=docs/coherence_settings/040_override_file.adoc,Configure Operational Config File
 	// +optional
 	OverrideConfig *string `json:"overrideConfig,omitempty"`
 	// A boolean flag indicating whether members of this deployment are storage enabled.
@@ -404,26 +404,26 @@ type CoherenceSpec struct {
 	// This flag is also used to configure the ScalingPolicy value if a value is not specified. If the
 	// StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is
 	// set to false scaling will be parallel.
-	// +coh:doc=coherence_settings/050_storage_enabled.adoc,Configure Storage Enabled
+	// +coh:doc=docs/coherence_settings/050_storage_enabled.adoc,Configure Storage Enabled
 	// +optional
 	StorageEnabled *bool `json:"storageEnabled,omitempty"`
 	// Persistence values configure the on-disc data persistence settings.
 	// The bool Enabled enables or disabled on disc persistence of data.
-	// +coh:doc=coherence_settings/080_persistence.adoc,Configure Persistence
+	// +coh:doc=docs/coherence_settings/080_persistence.adoc,Configure Persistence
 	// +optional
 	Persistence *PersistenceSpec `json:"persistence,omitempty"`
 	// The Coherence log level, default being 5 (info level).
-	// +coh:doc=coherence_settings/060_log_level.adoc,Configure Coherence log level
+	// +coh:doc=docs/coherence_settings/060_log_level.adoc,Configure Coherence log level
 	// +optional
 	LogLevel *int32 `json:"logLevel,omitempty"`
 	// Management configures Coherence management over REST
 	// Note: Coherence management over REST will is available in Coherence version >= 12.2.1.4.
-	// +coh:doc=management_and_diagnostics/010_overview.adoc,Management & Diagnostics
+	// +coh:doc=docs/management_and_diagnostics/010_overview.adoc,Management & Diagnostics
 	// +optional
 	Management *PortSpecWithSSL `json:"management,omitempty"`
 	// Metrics configures Coherence metrics publishing
 	// Note: Coherence metrics publishing will is available in Coherence version >= 12.2.1.4.
-	// +coh:doc=metrics/010_overview.adoc,Metrics
+	// +coh:doc=docs/metrics/010_overview.adoc,Metrics
 	// +optional
 	Metrics *PortSpecWithSSL `json:"metrics,omitempty"`
 	// Tracing is used to configure Coherence distributed tracing functionality.
@@ -442,13 +442,13 @@ type CoherenceSpec struct {
 	// +optional
 	AllowEndangeredForStatusHA []string `json:"allowEndangeredForStatusHA,omitempty"`
 	// Exclude members of this deployment from being part of the cluster's WKA list.
-	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
+	// +coh:doc=docs/coherence_settings/070_wka.adoc,Well Known Addressing
 	// +optional
 	ExcludeFromWKA *bool `json:"excludeFromWKA,omitempty"`
 	// Specify an existing Coherence deployment to be used for WKA.
 	// If an existing deployment is to be used for WKA the ExcludeFromWKA is
 	// implicitly set to true.
-	// +coh:doc=coherence_settings/070_wka.adoc,Well Known Addressing
+	// +coh:doc=docs/coherence_settings/070_wka.adoc,Well Known Addressing
 	// +optional
 	WKA *CoherenceWKASpec `json:"wka,omitempty"`
 	// Certain features rely on a version check prior to starting the server, e.g. metrics requires >= 12.2.1.4.
@@ -2558,7 +2558,7 @@ type StartQuorumStatus struct {
 
 // ConfigMapVolumeSpec represents a ConfigMap that will be added to the deployment's Pods as an
 // additional Volume and as a VolumeMount in the containers.
-// +coh:doc=misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes
+// +coh:doc=docs/misc_pod_settings/050_configmap_volumes.adoc,Add ConfigMap Volumes
 // +k8s:openapi-gen=true
 type ConfigMapVolumeSpec struct {
 	// The name of the ConfigMap to mount.
@@ -2680,7 +2680,7 @@ func (in *ConfigMapVolumeSpec) AddVolumeMounts(c *corev1.Container) {
 
 // SecretVolumeSpec represents a Secret that will be added to the deployment's Pods as an
 // additional Volume and as a VolumeMount in the containers.
-// +coh:doc=misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
+// +coh:doc=docs/misc_pod_settings/020_secret_volumes.adoc,Add Secret Volumes
 // +k8s:openapi-gen=true
 type SecretVolumeSpec struct {
 	// The name of the Secret to mount.
