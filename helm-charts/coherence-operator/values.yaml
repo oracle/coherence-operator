@@ -27,6 +27,11 @@ imagePullPolicy:
 # The operator runs HA by default, with one of the replicas assuming leadership.
 replicas: 3
 
+# progressDeadlineSeconds maps to the same field in the Operator deployment resource.
+# If not set, the default is 600 seconds
+# see: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds
+progressDeadlineSeconds: 600
+
 # imagePullSecrets provides support pulling images from private registries, the value references
 #   one or more secrets to be used when pulling images. Secrets must be manually created in the
 #   target namespace.

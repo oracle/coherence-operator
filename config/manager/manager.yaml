@@ -18,6 +18,7 @@ spec:
     matchLabels:
       control-plane: coherence
   replicas: 3
+  progressDeadlineSeconds: 600
   template:
     metadata:
       labels:
