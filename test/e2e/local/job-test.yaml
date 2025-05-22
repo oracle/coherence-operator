@@ -5,6 +5,7 @@ metadata:
 spec:
   cluster: test
   image: ${TEST_APPLICATION_IMAGE}
+  imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   restartPolicy: Never
   env:
     - name: APPLICATION_LIFETIME_SECONDS

@@ -6,6 +6,7 @@ spec:
   cluster: test
   replicas: 3
   image: ${TEST_APPLICATION_IMAGE}
+  imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   restartPolicy: Never
   readyAction:
     httpGet:

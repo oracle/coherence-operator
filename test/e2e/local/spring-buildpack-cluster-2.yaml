@@ -5,6 +5,7 @@ metadata:
 spec:
   replicas: 3
   image: ${TEST_APPLICATION_IMAGE_SPRING_CNBP_2}
+  imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   application:
     type: spring
     useImageEntryPoint: true
