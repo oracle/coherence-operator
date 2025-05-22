@@ -5,6 +5,7 @@ metadata:
 spec:
   replicas: 1
   image: ${TEST_APPLICATION_IMAGE}
+  imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   coherence:
     metrics:
       enabled: true
