@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/controllers/errorhandling"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/patching"
@@ -425,22 +426,39 @@ func (in *CommonReconciler) CreateThreeWayPatchData(original, desired, current r
 
 // HandleErrAndRequeue is the common error handler
 func (in *CommonReconciler) HandleErrAndRequeue(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, logger logr.Logger) (reconcile.Result, error) {
-	return in.Failed(ctx, err, deployment, msg, true, logger)
+	// Create an error handler if needed
+	errorHandler := in.getErrorHandler()
+
+	// Add caller information to the error if it's not already an OperationError
+	if err != nil && !isOperationError(err) {
+		callerInfo := errorhandling.GetCallerInfo(1)
+		err = errorhandling.WrapError(err, fmt.Sprintf("at %s", callerInfo))
+	}
+
+	return errorHandler.HandleError(ctx, err, deployment, msg)
+}
+
+// isOperationError checks if the error is an OperationError
+func isOperationError(err error) bool {
+	_, ok := err.(*errorhandling.OperationError)
+	return ok
 }
 
 // HandleErrAndFinish is the common error handler
 func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
-	return in.Failed(ctx, err, deployment, msg, false, logger)
-}
-
-// Failed is a common error handler
-// ToDo: we need to be able to add some form of back-off so that failures are re-queued with a growing back-off time
-func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)
-	} else {
-		logger.V(0).Info(msg + ": " + err.Error())
+		return reconcile.Result{Requeue: false}, nil
 	}
+
+	// Add caller information to the error if it's not already an OperationError
+	if !isOperationError(err) {
+		callerInfo := errorhandling.GetCallerInfo(1)
+		err = errorhandling.WrapError(err, fmt.Sprintf("at %s", callerInfo))
+	}
+
+	// For errors that should not be requeued, we still want to log and update status
+	logger.V(0).Info(msg + ": " + err.Error())
 
 	if deployment != nil {
 		// update the status to failed.
@@ -452,13 +470,59 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment co
 		}
 
 		// send a failure event
-		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "failed", msg)
+		in.GetEventRecorder().Event(deployment, corev1.EventTypeWarning, "Failed", msg+": "+err.Error())
+	}
+
+	// Return the error as a permanent error so it won't be requeued
+	if !isOperationError(err) {
+		err = errorhandling.NewOperationError("handle_error", err).
+			WithContext("requeue", "false").
+			WithContext("reason", "permanent")
+	}
+
+	return reconcile.Result{Requeue: false}, nil
+}
+
+// Failed is a common error handler (deprecated, use HandleErrAndRequeue instead)
+// This is kept for backward compatibility
+func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment coh.CoherenceResource, msg string, requeue bool, logger logr.Logger) (reconcile.Result, error) {
+	// Add caller information to the error if it's not already an OperationError
+	if err != nil && !isOperationError(err) {
+		callerInfo := errorhandling.GetCallerInfo(1)
+		err = errorhandling.WrapError(err, fmt.Sprintf("at %s", callerInfo))
 	}
 
 	if requeue {
-		return reconcile.Result{Requeue: true}, nil
+		return in.HandleErrAndRequeue(ctx, err, deployment, msg, logger)
 	}
-	return reconcile.Result{Requeue: false}, nil
+	if deployment != nil {
+		return in.HandleErrAndFinish(ctx, err, deployment.(*coh.Coherence), msg, logger)
+	}
+
+	// Fallback for nil deployment
+	if err == nil {
+		logger.V(0).Info(msg)
+	} else {
+		logger.V(0).Info(msg + ": " + err.Error())
+
+		// Wrap the error with context if it's not already an OperationError
+		if !isOperationError(err) {
+			err = errorhandling.NewOperationError("handle_error", err).
+				WithContext("requeue", fmt.Sprintf("%t", requeue)).
+				WithContext("deployment", "nil")
+		}
+	}
+
+	return reconcile.Result{Requeue: requeue}, err
+}
+
+// getErrorHandler returns an error handler for this reconciler
+func (in *CommonReconciler) getErrorHandler() *errorhandling.ErrorHandler {
+	return errorhandling.NewErrorHandler(
+		in.GetClient(),
+		in.GetLog().WithName("error-handler"),
+		in.GetEventRecorder(),
+	)
 }
 
 // FindOwningCoherenceResource finds the owning Coherence resource.

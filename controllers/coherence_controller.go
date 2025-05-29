@@ -11,23 +11,22 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/controllers/errorhandling"
+	"github.com/oracle/coherence-operator/controllers/finalizer"
 	"github.com/oracle/coherence-operator/controllers/predicates"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
+	"github.com/oracle/coherence-operator/controllers/resources"
 	"github.com/oracle/coherence-operator/controllers/secret"
 	"github.com/oracle/coherence-operator/controllers/servicemonitor"
 	"github.com/oracle/coherence-operator/controllers/statefulset"
+	"github.com/oracle/coherence-operator/controllers/status"
 	"github.com/oracle/coherence-operator/pkg/clients"
-	"github.com/oracle/coherence-operator/pkg/events"
 	"github.com/oracle/coherence-operator/pkg/operator"
-	"github.com/oracle/coherence-operator/pkg/probe"
-	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/oracle/coherence-operator/pkg/utils"
 	"github.com/pkg/errors"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/spf13/viper"
 	coreV1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -56,10 +55,13 @@ const (
 type CoherenceReconciler struct {
 	client.Client
 	reconciler.CommonReconciler
-	ClientSet   clients.ClientSet
-	Log         logr.Logger
-	Scheme      *runtime.Scheme
-	reconcilers []reconciler.SecondaryResourceReconciler
+	ClientSet        clients.ClientSet
+	Log              logr.Logger
+	Scheme           *runtime.Scheme
+	reconcilers      []reconciler.SecondaryResourceReconciler
+	finalizerManager *finalizer.FinalizerManager
+	statusManager    *status.StatusManager
+	resourcesManager *resources.OperatorSecretManager
 }
 
 // Failure is a simple holder for a named error
@@ -112,8 +114,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		// else... error reading the current deployment state from k8s.
 		msg := fmt.Sprintf("failed to find Coherence resource, %s", err.Error())
 		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed, msg)
-		// returning an error will requeue the event so we will try again ToDo: probably need som backoff here
-		return reconcile.Result{}, errors.Wrap(err, "getting Coherence resource")
+		// returning an error will requeue the event so we will try again
+		wrappedErr := errorhandling.NewGetResourceError(request.Name, request.Namespace, err)
+		return reconcile.Result{}, wrappedErr
 	}
 
 	// Check whether this is a deletion
@@ -126,7 +129,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// If the finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
 			in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonDeleted, "running finalizers")
-			if err := in.finalizeDeployment(ctx, deployment); err != nil {
+			if err := in.finalizerManager.FinalizeDeployment(ctx, deployment, in.MaybeFindStatefulSet); err != nil {
 				msg := fmt.Sprintf("failed to finalize Coherence resource, %s", err.Error())
 				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
 				log.Error(err, "Failed to remove finalizer")
@@ -134,8 +137,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			}
 			// Remove the finalizer. Once all finalizers have been
 			// removed, the object will be deleted.
-			controllerutil.RemoveFinalizer(deployment, coh.CoherenceFinalizer)
-			err := in.GetClient().Update(ctx, deployment)
+			err := in.finalizerManager.EnsureFinalizerRemoved(ctx, deployment)
 			if err != nil {
 				if apierrors.IsNotFound(err) {
 					log.Info("Failed to remove the finalizer from the Coherence resource, it looks like it had already been deleted")
@@ -143,7 +145,10 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 				}
 				msg := fmt.Sprintf("failed to remove finalizers from Coherence resource, %s", err.Error())
 				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
-				return ctrl.Result{}, errors.Wrap(err, "trying to remove finalizer from Coherence resource")
+				wrappedErr := errorhandling.NewOperationError("remove_finalizer", err).
+					WithContext("resource", deployment.GetName()).
+					WithContext("namespace", deployment.GetNamespace())
+				return ctrl.Result{}, wrappedErr
 			}
 		} else {
 			log.Info("Coherence resource deleted at " + deleteTime.String() + ", finalizer already removed")
@@ -156,9 +161,12 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	if deployment.Spec.AllowUnsafeDelete != nil && *deployment.Spec.AllowUnsafeDelete {
 		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
-			err := in.ensureFinalizerRemoved(ctx, deployment)
+			err := in.finalizerManager.EnsureFinalizerRemoved(ctx, deployment)
 			if err != nil && !apierrors.IsNotFound(err) {
-				return ctrl.Result{Requeue: true}, errors.Wrap(err, "failed to remove finalizer")
+				return ctrl.Result{Requeue: true}, errorhandling.NewOperationError("remove_finalizer", err).
+					WithContext("resource", deployment.GetName()).
+					WithContext("namespace", deployment.GetNamespace()).
+					WithContext("reason", "allow_unsafe_delete")
 			}
 			log.Info("Removed Finalizer from Coherence resource as AllowUnsafeDelete has been set to true")
 		} else {
@@ -167,7 +175,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	} else {
 		// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
 		// Coherence resource was added when the Operator was uninstalled)
-		if finalizerApplied, err := in.ensureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
+		if finalizerApplied, err := in.finalizerManager.EnsureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
 			var msg string
 			if err != nil {
 				msg = fmt.Sprintf("failed to add finalizers to Coherence resource, %s", err.Error())
@@ -182,7 +190,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// ensure that the deployment has an initial status
 	if deployment.Status.Phase == "" {
-		err := in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
+		err := in.statusManager.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeInitialized)
 		if err != nil {
 			// failed to set the status
 			return reconcile.Result{}, err
@@ -212,18 +220,20 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// ensure that the Operator configuration Secret exists
-	if err = in.ensureOperatorSecret(ctx, deployment, in.GetClient(), in.Log); err != nil {
-		err = errors.Wrap(err, "ensuring Operator configuration secret")
-		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
+	if err = in.resourcesManager.EnsureOperatorSecret(ctx, deployment); err != nil {
+		err = errorhandling.NewResourceError("ensure", "operator_secret", deployment.GetNamespace(), err)
+		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
 	// ensure that the state store exists
 	storage, err := utils.NewStorage(request.NamespacedName, in.GetManager(), in.GetPatcher())
 	if err != nil {
-		err = errors.Wrap(err, "obtaining desired state store")
+		err = errorhandling.NewOperationError("obtain_state_store", err).
+			WithContext("resource", deployment.GetName()).
+			WithContext("namespace", deployment.GetNamespace())
 		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
 			fmt.Sprintf("failed to obtain state store: %s", err.Error()))
-		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
+		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
 	// create the result
@@ -239,7 +249,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			return result, errors.Wrap(err, "error updating storage status hash")
 		}
 		hashNew := deployment.GetGenerationString()
-		if err = in.UpdateDeploymentStatusHash(ctx, request.NamespacedName, hashNew); err != nil {
+		if err = in.statusManager.UpdateDeploymentStatusHash(ctx, request.NamespacedName, hashNew); err != nil {
 			return result, errors.Wrap(err, "error updating deployment status hash")
 		}
 		return result, nil
@@ -247,13 +257,19 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	desiredResources, err = getDesiredResources(deployment, storage, log)
 	if err != nil {
-		return in.HandleErrAndRequeue(ctx, err, nil, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
+		err = errorhandling.NewOperationError("get_desired_resources", err).
+			WithContext("resource", deployment.GetName()).
+			WithContext("namespace", deployment.GetNamespace())
+		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(createResourcesFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}
 
 	log.Info("Reconciling Coherence resource secondary resources", "hash", hash, "store", storeHash)
 
 	// make the deployment the owner of all the secondary resources about to be reconciled
 	if err := desiredResources.SetController(deployment, in.GetManager().GetScheme()); err != nil {
+		err = errorhandling.NewOperationError("set_controller", err).
+			WithContext("resource", deployment.GetName()).
+			WithContext("namespace", deployment.GetNamespace())
 		return reconcile.Result{}, err
 	}
 
@@ -262,7 +278,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 
 	// update the store to have the desired state as the latest state.
 	if err = storage.Store(ctx, desiredResources, deployment); err != nil {
-		err = errors.Wrap(err, "storing latest state in state store")
+		err = errorhandling.NewOperationError("store_state", err).
+			WithContext("resource", deployment.GetName()).
+			WithContext("namespace", deployment.GetNamespace())
 		return reconcile.Result{}, err
 	}
 
@@ -288,19 +306,37 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		for _, failure := range failures {
 			log.Error(failure.Error, "Secondary Reconciler failed", "Reconciler", failure.Name)
 		}
-		return reconcile.Result{}, fmt.Errorf("one or more secondary resource reconcilers failed to reconcile")
+
+		// Create a composite error with context
+		err = errorhandling.NewOperationError("reconcile_secondary_resources", nil).
+			WithContext("resource", deployment.GetName()).
+			WithContext("namespace", deployment.GetNamespace()).
+			WithContext("failed_reconcilers", fmt.Sprintf("%d", len(failures)))
+
+		// Add the first failure as the underlying error
+		if len(failures) > 0 {
+			err.(*errorhandling.OperationError).Err = failures[0].Error
+		}
+
+		return reconcile.Result{}, err
 	}
 
 	// if replica count is zero update the status to Stopped
 	if deployment.GetReplicas() == 0 {
-		if err = in.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
-			return result, errors.Wrap(err, "error updating deployment status")
+		if err = in.statusManager.UpdateCoherenceStatusPhase(ctx, request.NamespacedName, coh.ConditionTypeStopped); err != nil {
+			return result, errorhandling.NewOperationError("update_status", err).
+				WithContext("resource", deployment.GetName()).
+				WithContext("namespace", deployment.GetNamespace()).
+				WithContext("status", string(coh.ConditionTypeStopped))
 		}
 	}
 
 	// Update the Status with the hash
-	if err = in.UpdateDeploymentStatusHash(ctx, request.NamespacedName, hash); err != nil {
-		return result, errors.Wrap(err, "error updating deployment status hash")
+	if err = in.statusManager.UpdateDeploymentStatusHash(ctx, request.NamespacedName, hash); err != nil {
+		return result, errorhandling.NewOperationError("update_status_hash", err).
+			WithContext("resource", deployment.GetName()).
+			WithContext("namespace", deployment.GetNamespace()).
+			WithContext("hash", hash)
 	}
 
 	log.Info("Finished reconciling Coherence resource", "requeue", result.Requeue, "after", result.RequeueAfter.String())
@@ -325,6 +361,24 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.Cli
 	in.SetCommonReconciler(controllerName, mgr, cs)
 	in.GetPatcher().SetPatchType(types.MergePatchType)
 
+	// Initialize the manager fields
+	in.finalizerManager = &finalizer.FinalizerManager{
+		Client:        mgr.GetClient(),
+		Log:           in.Log.WithName("finalizer"),
+		EventRecorder: in.GetEventRecorder(),
+		Patcher:       in.GetPatcher(),
+	}
+
+	in.statusManager = &status.StatusManager{
+		Client: mgr.GetClient(),
+		Log:    in.Log.WithName("status"),
+	}
+
+	in.resourcesManager = &resources.OperatorSecretManager{
+		Client: mgr.GetClient(),
+		Log:    in.Log.WithName("resources"),
+	}
+
 	template := &coh.Coherence{}
 
 	// Watch for changes to secondary resources
@@ -343,126 +397,6 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.Cli
 
 // GetReconciler returns this reconciler.
 func (in *CoherenceReconciler) GetReconciler() reconcile.Reconciler { return in }
-
-// ensureFinalizerApplied ensures the finalizer is applied to the Coherence resource
-func (in *CoherenceReconciler) ensureFinalizerApplied(ctx context.Context, c *coh.Coherence) (bool, error) {
-	if !controllerutil.ContainsFinalizer(c, coh.CoherenceFinalizer) {
-		// Re-fetch the Coherence resource to ensure we have the most recent copy
-		latest := &coh.Coherence{}
-		c.DeepCopyInto(latest)
-		controllerutil.AddFinalizer(latest, coh.CoherenceFinalizer)
-
-		callback := func() {
-			in.Log.Info("Added finalizer to Coherence resource", "Namespace", c.Namespace, "Name", c.Name, "Finalizer", coh.CoherenceFinalizer)
-		}
-
-		// Perform a three-way patch to apply the finalizer
-		applied, err := in.ThreeWayPatchWithCallback(ctx, c.Name, c, c, latest, callback)
-		if err != nil {
-			return false, errors.Wrapf(err, "failed to update Coherence resource %s/%s with finalizer", c.Namespace, c.Name)
-		}
-		return applied, nil
-	}
-	return false, nil
-}
-
-// ensureFinalizerApplied ensures the finalizer is removed from the Coherence resource
-func (in *CoherenceReconciler) ensureFinalizerRemoved(ctx context.Context, c *coh.Coherence) error {
-	if controllerutil.RemoveFinalizer(c, coh.CoherenceFinalizer) {
-		err := in.GetClient().Update(ctx, c)
-		if err != nil {
-			in.Log.Info("Failed to remove the finalizer from the Coherence resource, it looks like it had already been deleted")
-			return err
-		}
-	}
-	return nil
-}
-
-// finalizeDeployment performs any required finalizer tasks for the Coherence resource
-func (in *CoherenceReconciler) finalizeDeployment(ctx context.Context, c *coh.Coherence) error {
-	// determine whether we can skip service suspension
-	if viper.GetBool(operator.FlagSkipServiceSuspend) {
-		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
-			operator.FlagSkipServiceSuspend + " is set to true")
-		return nil
-	}
-	if !c.Spec.IsSuspendServicesOnShutdown() {
-		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
-			" Spec.SuspendServicesOnShutdown is set to false")
-		return nil
-	}
-	if c.GetReplicas() == 0 {
-		in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name +
-			" Spec.Replicas is zero")
-		return nil
-	}
-
-	in.Log.Info("Finalizing Coherence resource", "Namespace", c.Namespace, "Name", c.Name)
-	// Get the StatefulSet
-	sts, stsExists, err := in.MaybeFindStatefulSet(ctx, c.Namespace, c.Name)
-	if err != nil {
-		return errors.Wrapf(err, "getting StatefulSet %s/%s", c.Namespace, c.Name)
-	}
-	if stsExists {
-		if sts.Status.ReadyReplicas == 0 {
-			in.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name + " - No Pods are ready")
-		} else {
-			// Do service suspension...
-			p := probe.CoherenceProbe{
-				Client:        in.GetClient(),
-				Config:        in.GetManager().GetConfig(),
-				EventRecorder: events.NewOwnedEventRecorder(c, in.GetEventRecorder()),
-			}
-			if p.SuspendServices(ctx, c, sts) == probe.ServiceSuspendFailed {
-				return fmt.Errorf("failed to suspend services")
-			}
-		}
-	}
-	return nil
-}
-
-// ensureOperatorSecret ensures that the Operator configuration secret exists in the namespace.
-func (in *CoherenceReconciler) ensureOperatorSecret(ctx context.Context, deployment *coh.Coherence, c client.Client, log logr.Logger) error {
-	namespace := deployment.Namespace
-	s := &coreV1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        coh.OperatorConfigName,
-			Namespace:   namespace,
-			Labels:      deployment.CreateGlobalLabels(),
-			Annotations: deployment.CreateGlobalAnnotations(),
-		},
-	}
-
-	err := c.Get(ctx, types.NamespacedName{Name: coh.OperatorConfigName, Namespace: namespace}, s)
-	if err != nil && !apierrors.IsNotFound(err) {
-		return err
-	}
-
-	restHostAndPort := rest.GetServerHostAndPort()
-
-	oldValue := s.Data[coh.OperatorConfigKeyHost]
-	if oldValue == nil || string(oldValue) != restHostAndPort {
-		// data is different so create/update
-
-		if s.StringData == nil {
-			s.StringData = make(map[string]string)
-		}
-		s.StringData[coh.OperatorConfigKeyHost] = restHostAndPort
-
-		log.Info("Operator configuration updated", "Key", coh.OperatorConfigKeyHost, "OldValue", string(oldValue), "NewValue", restHostAndPort)
-		if apierrors.IsNotFound(err) {
-			// for some reason we're getting here even if the secret exists so delete it!!
-			_ = c.Delete(ctx, s)
-			log.Info("Creating configuration secret " + coh.OperatorConfigName)
-			err = c.Create(ctx, s)
-		} else {
-			log.Info("Updating configuration secret " + coh.OperatorConfigName)
-			err = c.Update(ctx, s)
-		}
-	}
-
-	return err
-}
 
 // watchSecondaryResource registers the secondary resource reconcilers to watch the resources to be reconciled
 func watchSecondaryResource(mgr ctrl.Manager, s reconciler.SecondaryResourceReconciler, owner coh.CoherenceResource) error {
