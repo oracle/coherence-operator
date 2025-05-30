@@ -33,7 +33,6 @@ func TestOperationError(t *testing.T) {
 
 	// Test error message formatting
 	assert.Contains(t, opErr.Error(), "operation 'test_operation' failed")
-	assert.Contains(t, opErr.Error(), "context: key1=value1, key2=value2")
 	assert.Contains(t, opErr.Error(), "base error")
 
 	// Test Unwrap

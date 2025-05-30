@@ -1,0 +1,129 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025 Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= TLS Cipher Suites
+:description: Coherence Operator Documentation - TLS Cipher Suites
+:keywords: oracle coherence, kubernetes, operator, documentation, TLS, cipher
+
+== TLS Cipher Suites
+
+The Coherence Operator uses TLS for various client connections and server sockets.
+TLS can support a number of cipher suites, some of which are deemed legacy and insecure.
+These insecure ciphers are usually only present for backwards compatability.
+
+The Coherence Operator is written in Go, and the ciphers supported are determined by the version og Go
+used to build the operator.
+Go splits ciphers into two lists a secure list and an insecure list, the insecure ciphers are disabled by default.
+
+Oracle Global Security has stricter requirements than the default Go cipher list.
+By default, the Coherence Operator enables only ciphers in Go's secure list, except for
+`TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` and `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, which are disabled.
+
+It is possible to enable or disable cipher suites when installing the Coherence Operator.
+The Coherence Operator has two command line flags which can be used to specify ciphers to be allowed or denied.
+
+
+* The `--cipher-allow-list` command line flag is used to specify cipher names to add to the allowed list.
+* The `--cipher-deny-list` command line flag is used to specify cipher names to add to the disabled list.
+
+Multiple ciphers can be enabled and disabled by specifying the relevant command line flag multiple times.
+
+If a cipher name is added to both the allow list and to the deny list, it will be disabled.
+
+[NOTE]
+====
+If either the `--cipher-allow-list` or `--cipher-deny-list` is set to a name that does not match any of the
+supported Go cipher names, the Operator will display an error in its log and will not start.
+See the https://pkg.go.dev/crypto/tls#pkg-constants[Go TLS package documentation] for a lost of valid names.
+====
+
+**Only Allow FIPS Ciphers**
+
+The Coherence Operator can be installed in FIPS mode to only support FIPS compliant ciphers,
+see the <<docs/installation/100_fips.adoc,FIPS modes>> documentation for details.
+
+How the command line flags are set depends on how the Coherence Operator is installed.
+
+=== Install Using Yaml Manifests
+
+If <<docs/installation/011_install_manifests.adoc,installing using the yaml manifests>>,
+the yaml must be edited to add the required flags:
+
+Find the `args:` section of the operator `Deployment` in the yaml file, it looks like this:
+
+[source,yaml]
+----
+        args:
+          - operator
+          - --enable-leader-election
+----
+
+then add the required allow or disallow flags. For example to allow `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`
+the args can be edited as shown below:
+
+[source,yaml]
+----
+        args:
+          - operator
+          - --enable-leader-election
+          - --cipher-allow-list=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+----
+
+To enable both `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` and `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` ciphers:
+
+[source,yaml]
+----
+        args:
+          - operator
+          - --enable-leader-election
+          - --cipher-allow-list=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+          - --cipher-allow-list=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+----
+
+
+
+=== Install Using Helm
+
+If <<docs/installation/012_install_helm.adoc,installing the operator using Helm>>
+The Coherence Operator Helm chart has a `cipherAllowList` field and `cipherDenyList` field in its values file.
+These values are Helm arrays and can be set to a list of ciphers to be enabled or disabled.
+
+The simplest way to set lists on the Helm command line is using the `--set-json` command line flag.
+For example to allow `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set-json='cipherAllowList=["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]'
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+To enable both `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` and `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` ciphers:
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set-json='cipherAllowList=["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"]'
+    coherence-operator \
+    coherence/coherence-operator
+----
+
+To disable `TLS_CHACHA20_POLY1305_SHA256`
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set-json='cipherDenyList=["TLS_CHACHA20_POLY1305_SHA256"]'
+    coherence-operator \
+    coherence/coherence-operator
+----
+

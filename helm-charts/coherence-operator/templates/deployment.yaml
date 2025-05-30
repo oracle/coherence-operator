@@ -178,11 +178,17 @@ spec:
 {{- range $k, $v := .Values.globalLabels }}
         - --global-label={{ $k }}={{ $v }}
 {{- end }}
+{{- end }}
 {{- if (.Values.globalAnnotations) }}
 {{- range $k, $v := .Values.globalAnnotations }}
         - --global-annotation={{ $k }}={{ $v }}
 {{- end }}
 {{- end }}
+{{- range .Values.cipherAllowList }}
+        - --cipher-allow-list={{ . }}
+{{- end }}
+{{- range .Values.cipherDenyList }}
+        - --cipher-deny-list={{ . }}
 {{- end }}
         command:
         - "/files/runner"
@@ -203,6 +209,20 @@ spec:
           value: coherence-operator-rest
         - name: CERT_TYPE
           value: {{ default "self-signed" .Values.webhookCertType | quote }}
+{{- if .Values.fips }}
+{{- if (eq .Values.fips "off") }}
+        - name: GODEBUG
+          value: fips140=off
+{{- else if (eq .Values.fips "on") }}
+        - name: GODEBUG
+          value: fips140=on
+{{- else if (eq .Values.fips "only") }}
+        - name: GODEBUG
+          value: fips140=only
+{{- else }}
+{{ fail (printf "Invalid fips value '%s', must be one of 'off', 'on', or 'only'" .Values.fips) }}
+{{- end }}
+{{- end }}
         - name: COHERENCE_IMAGE
 {{- if kindIs "string" .Values.defaultCoherenceImage }}
           value: {{ .Values.defaultCoherenceImage | quote }}

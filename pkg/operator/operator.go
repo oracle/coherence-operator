@@ -8,8 +8,10 @@
 package operator
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/data"
 	"github.com/spf13/cobra"
@@ -56,6 +58,8 @@ const (
 	FlagJobCRD                = "install-job-crd"
 	FlagEnableCoherenceJobs   = "enable-jobs"
 	FlagDevMode               = "coherence-dev-mode"
+	FlagCipherDenyList        = "cipher-deny-list"
+	FlagCipherAllowList       = "cipher-allow-list"
 	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"
 	FlagEnableHttp2           = "enable-http2"
@@ -290,6 +294,14 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		FlagGlobalLabel,
 		nil,
 		"A label to apply to all resources managed by the Operator (can be used multiple times)")
+	cmd.Flags().StringArray(
+		FlagCipherDenyList,
+		nil,
+		"A list of TLS cipher names to be disabled")
+	cmd.Flags().StringArray(
+		FlagCipherAllowList,
+		nil,
+		"A list of TLS cipher names to be enabled (if a cipher appears in this list and the deny list it will be disabled)")
 
 	// enable using dashed notation in flags and underscores in env
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
@@ -467,6 +479,99 @@ func GetGlobalLabels(v *viper.Viper) (map[string]string, error) {
 	return stringSliceToMap(args, FlagGlobalLabel)
 }
 
+// GetTlsCipherDenyList returns the names of the TLS cipher suites to be disabled.
+func GetTlsCipherDenyList(v *viper.Viper) []string {
+	return createCipherList(v.GetStringSlice(FlagCipherDenyList))
+}
+
+// GetTlsCipherAllowList returns the names of the TLS cipher suites to be enabled.
+func GetTlsCipherAllowList(v *viper.Viper) []string {
+	return createCipherList(v.GetStringSlice(FlagCipherAllowList))
+}
+
+func createCipherList(l []string) []string {
+	var list []string
+	for i := 0; i < len(l); i++ {
+		for _, s := range strings.Split(l[i], ",") {
+			list = append(list, strings.ToUpper(s))
+		}
+	}
+	return list
+}
+
+// DefaultCipherDenyList returns the default list of ciphers disabled by Oracle's policies.
+func DefaultCipherDenyList() []uint16 {
+	return []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA}
+}
+
+// NewCipherSuiteConfig returns a function that will configure the allowed cipher suites for a TLS configuration.
+func NewCipherSuiteConfig(v *viper.Viper, log logr.Logger) (func(c *tls.Config), error) {
+	var allowed []uint16
+	all := make(map[uint16]*tls.CipherSuite)
+	allByName := make(map[string]*tls.CipherSuite)
+
+	for _, cs := range tls.CipherSuites() {
+		all[cs.ID] = cs
+		allByName[cs.Name] = cs
+		allowed = append(allowed, cs.ID)
+	}
+
+	for _, cs := range tls.InsecureCipherSuites() {
+		all[cs.ID] = cs
+		allByName[cs.Name] = cs
+	}
+
+	allowed = RemoveAllFromUInt16Array(allowed, DefaultCipherDenyList()...)
+
+	denyList := GetTlsCipherDenyList(v)
+	allDenied := false
+	allowList := GetTlsCipherAllowList(v)
+
+	for _, name := range denyList {
+		if strings.ToUpper(name) == "ALL" {
+			// remove all allowed suites
+			allowed = make([]uint16, 0)
+			allDenied = true
+			break
+		}
+	}
+
+	if allDenied && len(allowList) == 0 {
+		return func(c *tls.Config) {},
+			fmt.Errorf("The --%s command line flag has denied all cipher suites but no allowed suites have been specified using the %s flag ", FlagCipherDenyList, FlagCipherAllowList)
+	}
+
+	for _, name := range allowList {
+		if cs, found := allByName[name]; found {
+			allowed = append(allowed, cs.ID)
+		} else {
+			return func(c *tls.Config) {},
+				fmt.Errorf("invalid --%s command line flag, %s is not a recognised cipher name (see https://pkg.go.dev/crypto/tls#pkg-constants)", FlagCipherAllowList, name)
+		}
+	}
+
+	if !allDenied {
+		for _, name := range denyList {
+			if cs, found := allByName[name]; found {
+				allowed = RemoveFromUInt16Array(allowed, cs.ID)
+			} else {
+				return func(c *tls.Config) {},
+					fmt.Errorf("invalid --%s command line flag, %s is not a recognised cipher name (see https://pkg.go.dev/crypto/tls#pkg-constants)", FlagCipherDenyList, name)
+			}
+		}
+	}
+
+	for i := range allowed {
+		if cs, found := all[allowed[i]]; found && cs.Insecure {
+			setupLog.Info("WARNING: An insecure cipher suite has been enabled %s", cs.Name)
+		}
+	}
+
+	return func(c *tls.Config) {
+		c.CipherSuites = allowed
+	}, nil
+}
+
 func GetExtraEnvVars() []string {
 	return GetViper().GetStringSlice(FlagEnvVar)
 }
@@ -495,4 +600,22 @@ func stringSliceToMap(args []string, flag string) (map[string]string, error) {
 		}
 	}
 	return m, nil
+}
+
+// RemoveAllFromUInt16Array removes all the specified values from a uint16 array, returning the updated array.
+func RemoveAllFromUInt16Array(arr []uint16, toRemove ...uint16) []uint16 {
+	for _, i := range toRemove {
+		arr = RemoveFromUInt16Array(arr, i)
+	}
+	return arr
+}
+
+// RemoveFromUInt16Array removes a value from a uint16 array, returning the updated array.
+func RemoveFromUInt16Array(arr []uint16, toRemove uint16) []uint16 {
+	for i, ui := range arr {
+		if ui == toRemove {
+			return append(arr[:i], arr[i+1:]...)
+		}
+	}
+	return arr
 }

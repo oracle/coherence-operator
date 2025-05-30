@@ -207,12 +207,12 @@ clusterRoles: true
 # nodeRoles controls whether the Helm chart will create RBAC ClusterRole and bindings for the Operator to
 # lookup cluster-wide Node information.
 # Setting this value clusterRoles and to false will mean that the Operator cannot look up Node labels that will be used
-# to set theCoherence site and rack values so Coherence cluster will be unable to automatically achieve site-safety.
+# to set the Coherence site and rack values so Coherence cluster will be unable to automatically achieve site-safety.
 # The default is true.
 nodeRoles: false
 # webhooks controls whether the Coherence Operator registers admission web-hooks for the Coherence resource.
 # If this is set to false, then it will be possible to install invalid Coherence resource into the Kubernetes
-# cluster, that may cause errors when the Operator tries to reconcile them, or worse the Operator may create
+# cluster. This may cause errors when the Operator tries to reconcile them, or worse, the Operator may create
 # other invalid Kubernetes resources that fail to run.
 webhooks: true
 
@@ -224,3 +224,9 @@ allowCoherenceJobs: true
 # If set to false, the Helm chart will not install the CRDs.
 # The CRDs must be manually installed before the Operator can be installed.
 installCrd: true
+
+cipherAllowList: []
+
+cipherDenyList: []
+
+fips:

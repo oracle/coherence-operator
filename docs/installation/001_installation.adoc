@@ -21,6 +21,10 @@ easily be installed into a Kubernetes cluster.
 * <<images,Coherence Operator Images>>
 * <<scope,Operator Scope - monitoring all or a fixed set of namespaces>>
 
+* <<docs/installation/090_tls_cipher.adoc,Configure TLS Cipher Suites>>
+
+* <<docs/installation/100_fips.adoc,FIPS Compliance>>
+
 [#prereq]
 === Prerequisites
 The prerequisites apply to all installation methods.
@@ -50,7 +54,6 @@ There are a number of ways to install the Coherence Operator.
 * <<docs/installation/014_install_openshift.adoc,Install on OpenShift>>
 * <<docs/installation/015_install_olm.adoc,Install using the Operator Lifecycle Manager (OLM)>>
 * <<docs/installation/016_install_tanzu.adoc,Install on VMWare Tanzu>>
-
 
 [#ha]
 === High Availability
