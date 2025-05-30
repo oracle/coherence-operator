@@ -563,7 +563,7 @@ func NewCipherSuiteConfig(v *viper.Viper, log logr.Logger) (func(c *tls.Config),
 
 	for i := range allowed {
 		if cs, found := all[allowed[i]]; found && cs.Insecure {
-			setupLog.Info("WARNING: An insecure cipher suite has been enabled %s", cs.Name)
+			setupLog.Info("WARNING: An insecure cipher suite has been enabled", "SuiteName", cs.Name)
 		}
 	}
 
