@@ -42,6 +42,13 @@ Deploying Coherence Applications using the Coherence Operator.
 Hints and tips to troubleshoot common issues.
 --
 
+[CARD]
+.FIPS
+[icon=widgets,link=docs/installation/100_fips.adoc]
+--
+FIPS Compliance
+--
+
 ====
 
 

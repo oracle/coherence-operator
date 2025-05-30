@@ -65,7 +65,7 @@ func operatorCommand(v *viper.Viper) *cobra.Command {
 		Short: "Run the Coherence Operator",
 		Long:  "Run the Coherence Operator",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return execute()
+			return execute(v)
 		},
 	}
 
@@ -74,7 +74,7 @@ func operatorCommand(v *viper.Viper) *cobra.Command {
 	return cmd
 }
 
-func execute() error {
+func execute(v *viper.Viper) error {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	setupLog.Info(fmt.Sprintf("Operator Coherence Image: %s", operator.GetDefaultCoherenceImage()))
@@ -94,12 +94,24 @@ func execute() error {
 	vpr := operator.GetViper()
 
 	var tlsOpts []func(*tls.Config)
+	suiteConfig, err := operator.NewCipherSuiteConfig(v, setupLog)
+	if err != nil {
+		return err
+	}
+	tlsOpts = append(tlsOpts, suiteConfig)
+
 	enableHTTP2 := vpr.GetBool(operator.FlagEnableHttp2)
 	if !enableHTTP2 {
 		tlsOpts = append(tlsOpts, disableHTTP2)
 	}
 
 	cfg := ctrl.GetConfigOrDie()
+	cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
+		t := rt.(*http.Transport)
+		suiteConfig(t.TLSClientConfig)
+		return rt
+	}
+
 	cs, err := clients.NewForConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "unable to create client set")
