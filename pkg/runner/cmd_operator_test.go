@@ -12,8 +12,13 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
 	"testing"
+)
+
+var (
+	testLog = ctrl.Log.WithName("test")
 )
 
 func TestBasicOperator(t *testing.T) {
@@ -154,7 +159,7 @@ func TestOperatorWithCipherAllowList(t *testing.T) {
 	g.Expect(len(l)).To(Equal(1))
 	g.Expect(l[0]).To(Equal(toAdd.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -206,7 +211,7 @@ func TestOperatorWithMultipleCipherAllowList(t *testing.T) {
 	g.Expect(l[0]).To(Equal(toAdd1.Name))
 	g.Expect(l[1]).To(Equal(toAdd2.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -241,7 +246,7 @@ func TestOperatorWithMultipleCommaDelimitedCipherAllowList(t *testing.T) {
 	g.Expect(l[0]).To(Equal(toAdd1.Name))
 	g.Expect(l[1]).To(Equal(toAdd2.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -274,7 +279,7 @@ func TestOperatorWithCipherDenyList(t *testing.T) {
 	g.Expect(len(l)).To(Equal(1))
 	g.Expect(l[0]).To(Equal(toRemove.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -326,7 +331,7 @@ func TestOperatorWithMultipleCipherDenyList(t *testing.T) {
 	g.Expect(l[0]).To(Equal(toRemove1.Name))
 	g.Expect(l[1]).To(Equal(toRemove2.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -361,7 +366,7 @@ func TestOperatorWithMultipleCommaDelimitedCipherDenyList(t *testing.T) {
 	g.Expect(l[0]).To(Equal(toRemove1.Name))
 	g.Expect(l[1]).To(Equal(toRemove2.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -401,7 +406,7 @@ func TestOperatorWithAllowListAndDenyList(t *testing.T) {
 	g.Expect(len(wl)).To(Equal(1))
 	g.Expect(wl[0]).To(Equal(toAdd.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -441,7 +446,7 @@ func TestOperatorWithAllowListAndDenyListSameCipher(t *testing.T) {
 	g.Expect(len(wl)).To(Equal(1))
 	g.Expect(wl[0]).To(Equal(cipher.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -480,7 +485,7 @@ func TestOperatorWithDenyAllCiphers(t *testing.T) {
 	g.Expect(len(wl)).To(Equal(1))
 	g.Expect(wl[0]).To(Equal(cipher.Name))
 
-	fn, err := operator.NewCipherSuiteConfig(e.V)
+	fn, err := operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).To(BeNil())
 	g.Expect(fn).NotTo(BeNil())
 	cfg := &tls.Config{}
@@ -511,7 +516,7 @@ func TestOperatorWithDenyAllCiphersButNoAllowList(t *testing.T) {
 	wl := operator.GetTlsCipherAllowList(e.V)
 	g.Expect(wl).To(BeNil())
 
-	_, err = operator.NewCipherSuiteConfig(e.V)
+	_, err = operator.NewCipherSuiteConfig(e.V, testLog)
 	g.Expect(err).NotTo(BeNil())
 }
 
