@@ -45,14 +45,14 @@ jobs:
           - v1.30
           - v1.29
         include:
+          - matrixName: v1.33
+            k8s: v1.33.1
           - matrixName: v1.32
-            k8s: v1.32.0
+            k8s: v1.32.5
           - matrixName: v1.31
-            k8s: v1.31.4
+            k8s: v1.31.9
           - matrixName: v1.30
-            k8s: v1.30.8
-          - matrixName: v1.29
-            k8s: v1.29.12
+            k8s: v1.30.13
 
     steps:
     - uses: actions/checkout@v4
