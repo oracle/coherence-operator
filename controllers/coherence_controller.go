@@ -293,11 +293,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
 			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
-		} else if r.Requeue {
-			result.Requeue = true
-			if r.RequeueAfter != 0 {
-				result.RequeueAfter = r.RequeueAfter
-			}
+		} else if r.RequeueAfter == 0 {
+			result.RequeueAfter = r.RequeueAfter
 		}
 	}
 
@@ -339,7 +336,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			WithContext("hash", hash)
 	}
 
-	log.Info("Finished reconciling Coherence resource", "requeue", result.Requeue, "after", result.RequeueAfter.String())
+	log.Info("Finished reconciling Coherence resource", "RequeueAfter", result.RequeueAfter)
 	return result, nil
 }
 

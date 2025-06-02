@@ -209,7 +209,13 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 		if err != nil {
 			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
 		}
-		result.Requeue = result.Requeue || r.Requeue
+		if r.RequeueAfter != 0 {
+			if result.RequeueAfter <= 0 {
+				result.RequeueAfter = r.RequeueAfter
+			} else {
+				result.RequeueAfter = min(result.RequeueAfter, r.RequeueAfter)
+			}
+		}
 	}
 
 	if len(failures) > 0 {
@@ -232,7 +238,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 		return result, errors.Wrap(err, "error updating deployment status hash")
 	}
 
-	log.Info("Finished reconciling CoherenceJob resource", "requeue", result.Requeue, "after", result.RequeueAfter.String())
+	log.Info("Finished reconciling CoherenceJob resource", "RequeueAfter", result.RequeueAfter.String())
 	return result, nil
 }
 
