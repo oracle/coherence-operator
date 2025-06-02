@@ -1,0 +1,81 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, 2025 Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= FIPS Compatibility
+:description: Coherence Operator Documentation - TLS Cipher Suites
+:keywords: oracle coherence, kubernetes, operator, documentation, TLS, cipher
+
+== FIPS Compatibility
+
+The Coherence Operator image uses an empty scratch image for its base image.
+This means that the Coherence Operator image is FIPS compatible and can be run in a FIPS compliant Kubernetes cluster.
+
+As the Coherence Operator is written in Go, it can use Go's built in FIPS support.
+To run the Coherence Operator in a FIPS compliant mode, it needs to be installed with the environment variable `GODEBUG`
+set to either `fips140=on` or `fips140=only`. This is explained in the Golang https://go.dev/doc/security/fips140[FIPS-140 documentation].
+
+How the `GODEBUG` environment variable is set depends on how the operator is installed.
+
+[NOTE]
+====
+Although the Coherence Operator image can easily be installed in a FIPS compliant mode, none of the default
+Oracle Coherence images used by the operator are FIPS complaint.
+The Oracle Coherence team does not currently publish FIPS compliant Coherence images.
+Coherence is FIPS compatible and correctly configured applications running in an image that has a FIPS
+compliant JDK and FIPS compliant base O/S will be FIPS complaint.
+Customers must build their own FIPS complaint Java and Coherence images, which the operator will then manage.
+====
+
+=== Install Using Yaml Manifests
+
+If <<docs/installation/011_install_manifests.adoc,installing using the yaml manifests>>,
+the yaml must be edited to add the `GODEBUG` environment variable to
+the operator deployments environment variables:
+
+Find the `env:` section of the operator `Deployment` in the yaml file, it looks like this:
+
+[source,yaml]
+----
+        env:
+        - name: OPERATOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+----
+
+then add the required `GODEBUG` value, for example
+
+[source,yaml]
+----
+        env:
+        - name: OPERATOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: GODEBUG
+          value: fips140=on
+----
+
+=== Install Using Helm
+
+If <<docs/installation/012_install_helm.adoc,installing the operator using Helm>>
+The Coherence Operator Helm chart has a `fips` field in its values file.
+This value is used to set the `GODEBUG` environment variables.
+The `fips` value is unset by default, if set it must be one of the values, "off", "on" or "only".
+If `fips` is set to any other value the chart will fail to install.
+
+For example, to install the operator with fips set to "on"
+
+[source,bash]
+----
+helm install  \
+    --namespace <namespace> \
+    --set fips=on
+    coherence-operator \
+    coherence/coherence-operator
+----

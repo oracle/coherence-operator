@@ -1544,7 +1544,7 @@ run-prometheus-test: gotestsum
 # These tests will use whichever k8s cluster the local environment is pointing to.
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: compatibility-test
-compatibility-test: undeploy build-all-images helm-chart undeploy clean-namespace reset-namespace ensure-pull-secret gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
+compatibility-test: undeploy helm-chart undeploy clean-namespace reset-namespace ensure-pull-secret gotestsum just-compatibility-test  ## Run the Operator backwards compatibility tests
 
 .PHONY: just-compatibility-test
 just-compatibility-test: export OPERATOR_NAMESPACE := $(OPERATOR_NAMESPACE)

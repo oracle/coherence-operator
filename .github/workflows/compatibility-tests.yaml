@@ -37,6 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.5.0
         - 3.4.3
         - 3.4.2
         - 3.4.1
@@ -45,8 +46,11 @@ jobs:
         - 3.3.4
         - 3.3.3
         - 3.3.2
-        - 3.3.1
         include:
+        - compatibilityVersion: 3.5.0
+          coherence-image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1"
+          compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.33.0@sha256:91e9ed777db80279c22d1d1068c091b899b2078506e4a0f797fbf6e397c0b0b2
         - compatibilityVersion: 3.4.3
           coherence-image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1"
           compatibilitySelector: control-plane=coherence
@@ -76,10 +80,6 @@ jobs:
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
         - compatibilityVersion: 3.3.2
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
-        - compatibilityVersion: 3.3.1
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.10"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
