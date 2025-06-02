@@ -40,10 +40,10 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
+          - v1.33
           - v1.32
           - v1.31
           - v1.30
-          - v1.29
         include:
           - matrixName: v1.33
             k8s: v1.33.1
