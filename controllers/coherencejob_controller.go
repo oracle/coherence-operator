@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strconv"
+	"time"
 
 	coh "github.com/oracle/coherence-operator/api/v1"
 )
@@ -208,13 +209,9 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
 			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
-		}
-		if r.RequeueAfter != 0 {
-			if result.RequeueAfter <= 0 {
-				result.RequeueAfter = r.RequeueAfter
-			} else {
-				result.RequeueAfter = min(result.RequeueAfter, r.RequeueAfter)
-			}
+			result.RequeueAfter = time.Minute
+		} else if r.RequeueAfter > 0 && (result.RequeueAfter <= 0 || r.RequeueAfter < result.RequeueAfter) {
+			result.RequeueAfter = r.RequeueAfter
 		}
 	}
 

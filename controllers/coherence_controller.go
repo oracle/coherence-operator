@@ -38,6 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strconv"
+	"time"
 )
 
 const (
@@ -293,7 +294,8 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		r, err := rec.ReconcileAllResourceOfKind(ctx, request, deployment, storage)
 		if err != nil {
 			failures = append(failures, Failure{Name: rec.GetControllerName(), Error: err})
-		} else if r.RequeueAfter == 0 {
+			result.RequeueAfter = time.Minute
+		} else if r.RequeueAfter > 0 && (result.RequeueAfter <= 0 || r.RequeueAfter < result.RequeueAfter) {
 			result.RequeueAfter = r.RequeueAfter
 		}
 	}
