@@ -208,7 +208,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	}
 
 	if err == nil {
-		logger.Info("Finished reconciling StatefulSet", "Requeue", result.Requeue, "RequeueAfter", result.RequeueAfter)
+		logger.Info("Finished reconciling StatefulSet", "RequeueAfter", result.RequeueAfter)
 	} else {
 		logger.Info("Finished reconciling StatefulSet with error", "Error", err.Error())
 	}
@@ -359,7 +359,7 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 		// do the scale
 		_, err = in.scale(ctx, deployment, current, currentReplicas, desiredReplicas)
 		// requeue the request so that we do any upgrade next time around
-		result.Requeue = true
+		result.RequeueAfter = time.Minute
 	} else {
 		// just an update
 		result, err = in.patchStatefulSet(ctx, deployment, current, desired, storage, logger)
