@@ -297,7 +297,7 @@ Alternatively specify a different garbage collector, ideally on a version of Jav
 >2024-07-01 14:43:55.410/3.785 Oracle Coherence GE 14.1.1.2206.10 (dev-jonathanknight) &lt;Warning&gt; (thread=Coherence, member=n/a): IPMonitor has been explicitly disabled, this is not a recommended practice and will result in a minimum death detection time of 300 seconds for failed machines or networks.</markup>
 
 <p>This message is because the default behaviour of the Operator is to disable the Coherence IP Monitor,
-see the <router-link to="#_coherence_operator_api_docs/coherence/090_ipmonitor.adoc" @click.native="this.scrollFix('#_coherence_operator_api_docs/coherence/090_ipmonitor.adoc')">IP Monitor documentation</router-link> for an explanation.</p>
+see the <router-link to="/docs/coherence/090_ipmonitor">IP Monitor documentation</router-link> for an explanation.</p>
 
 </div>
 </div>

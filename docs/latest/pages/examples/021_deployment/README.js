@@ -172,7 +172,7 @@ You also need to prefix the image name in the <code>yaml</code> files below.</p>
 <h2 id="install-operator">Install the Coherence Operator</h2>
 <div class="section">
 <p>Install the Coherence Operator using your preferred method in the Operator
-<a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation">Installation Guide</a></p>
+<a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/001_installation">Installation Guide</a></p>
 
 <p>Confirm the operator is running, for example if the operator is installed into the <code>coherence-example</code> namespace:</p>
 
@@ -924,7 +924,7 @@ Note that the default credentials are specified in that section of the documenta
 <h4 id="_import_the_grafana_dashboards">Import the Grafana Dashboards</h4>
 <div class="section">
 <p>To import the Coherence Grafana dashboards follow the instructions in the Operator documentation section
-<router-link to="#metrics/030_importing.adoc" @click.native="this.scrollFix('#metrics/030_importing.adoc')">Importing Grafana Dashboards</router-link>.</p>
+<router-link to="/docs/metrics/030_importing">Importing Grafana Dashboards</router-link>.</p>
 
 <p>After importing the dashboards into Grafana and with the port-forward still running the Coherence dashboards can be
 accessed at <a id="" title="" target="_blank" href="http://localhost:3000/d/coh-main/coherence-dashboard-main">localhost:3000/d/coh-main/coherence-dashboard-main</a></p>

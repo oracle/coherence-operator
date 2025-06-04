@@ -90,11 +90,11 @@ Prometheus <code>ServiceMonitor</code> to be created for the port if that port i
 
 <ul class="ulist">
 <li>
-<p><router-link to="#ports/030_services.adoc" @click.native="this.scrollFix('#ports/030_services.adoc')">Configure Services for Ports</router-link></p>
+<p><router-link to="/docs/ports/030_services">Configure Services for Ports</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#ports/040_servicemonitors.adoc" @click.native="this.scrollFix('#ports/040_servicemonitors.adoc')">Prometheus ServiceMonitors</router-link></p>
+<p><router-link to="/docs/ports/040_servicemonitors">Prometheus ServiceMonitors</router-link></p>
 
 </li>
 </ul>

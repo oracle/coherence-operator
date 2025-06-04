@@ -502,7 +502,7 @@ Various utilities are copied from the Operator image into the base.</p>
 <markup
 
 title="Dockerfile"
->FROM container-registry.oracle.com/middleware/coherence-operator:3.5.0 AS Builder
+>FROM container-registry.oracle.com/middleware/coherence-operator:3.5.1 AS Builder
 
 FROM container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
 COPY --from=Builder /files /files

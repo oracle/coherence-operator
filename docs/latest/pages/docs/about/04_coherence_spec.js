@@ -1006,14 +1006,14 @@ see: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/concepts
 <tr>
 <td class=""><code>configMapVolumes</code></td>
 <td class="">A list of ConfigMaps to add as volumes. Each entry in the list will be added as a ConfigMap Volume to the deployment&#8217;s Pods and as a VolumeMount to all the containers and init-containers in the Pod.<br>
-see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.native="this.scrollFix('#misc_pod_settings/050_configmap_volumes.adoc')">Add ConfigMap Volumes</router-link></td>
+see: <router-link to="#docs/misc_pod_settings/050_configmap_volumes.adoc" @click.native="this.scrollFix('#docs/misc_pod_settings/050_configmap_volumes.adoc')">Add ConfigMap Volumes</router-link></td>
 <td class=""><code>[]<router-link to="#_configmapvolumespec" @click.native="this.scrollFix('#_configmapvolumespec')">ConfigMapVolumeSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>secretVolumes</code></td>
 <td class="">A list of Secrets to add as volumes. Each entry in the list will be added as a Secret Volume to the deployment&#8217;s Pods and as a VolumeMount to all the containers and init-containers in the Pod.<br>
-see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native="this.scrollFix('#misc_pod_settings/020_secret_volumes.adoc')">Add Secret Volumes</router-link></td>
+see: <router-link to="#docs/misc_pod_settings/020_secret_volumes.adoc" @click.native="this.scrollFix('#docs/misc_pod_settings/020_secret_volumes.adoc')">Add Secret Volumes</router-link></td>
 <td class=""><code>[]<router-link to="#_secretvolumespec" @click.native="this.scrollFix('#_secretvolumespec')">SecretVolumeSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
@@ -1356,7 +1356,7 @@ Initialized:    The deployment has been accepted by the Kubernetes system. Creat
 <h3 id="_coherencespec">CoherenceSpec</h3>
 <div class="section">
 <p>CoherenceSpec is the section of the CRD configures settings specific to Coherence.<br>
-see: <router-link to="#coherence_settings/010_overview.adoc" @click.native="this.scrollFix('#coherence_settings/010_overview.adoc')">Coherence Configuration</router-link></p>
+see: <router-link to="#docs/coherence_settings/010_overview.adoc" @click.native="this.scrollFix('#docs/coherence_settings/010_overview.adoc')">Coherence Configuration</router-link></p>
 
 
 <div class="table__overflow elevation-1  ">
@@ -1379,49 +1379,49 @@ see: <router-link to="#coherence_settings/010_overview.adoc" @click.native="this
 <tr>
 <td class=""><code>cacheConfig</code></td>
 <td class="">CacheConfig is the name of the cache configuration file to use<br>
-see: <router-link to="#coherence_settings/030_cache_config.adoc" @click.native="this.scrollFix('#coherence_settings/030_cache_config.adoc')">Configure Cache Config File</router-link></td>
+see: <router-link to="#docs/coherence_settings/030_cache_config.adoc" @click.native="this.scrollFix('#docs/coherence_settings/030_cache_config.adoc')">Configure Cache Config File</router-link></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>overrideConfig</code></td>
 <td class="">OverrideConfig is name of the Coherence operational configuration override file, the default is tangosol-coherence-override.xml<br>
-see: <router-link to="#coherence_settings/040_override_file.adoc" @click.native="this.scrollFix('#coherence_settings/040_override_file.adoc')">Configure Operational Config File</router-link></td>
+see: <router-link to="#docs/coherence_settings/040_override_file.adoc" @click.native="this.scrollFix('#docs/coherence_settings/040_override_file.adoc')">Configure Operational Config File</router-link></td>
 <td class=""><code>&#42;string</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>storageEnabled</code></td>
 <td class="">A boolean flag indicating whether members of this deployment are storage enabled. This value will set the corresponding coherence.distributed.localstorage System property. If not specified the default value is true. This flag is also used to configure the ScalingPolicy value if a value is not specified. If the StorageEnabled field is not specified or is true the scaling will be safe, if StorageEnabled is set to false scaling will be parallel.<br>
-see: <router-link to="#coherence_settings/050_storage_enabled.adoc" @click.native="this.scrollFix('#coherence_settings/050_storage_enabled.adoc')">Configure Storage Enabled</router-link></td>
+see: <router-link to="#docs/coherence_settings/050_storage_enabled.adoc" @click.native="this.scrollFix('#docs/coherence_settings/050_storage_enabled.adoc')">Configure Storage Enabled</router-link></td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>persistence</code></td>
 <td class="">Persistence values configure the on-disc data persistence settings. The bool Enabled enables or disabled on disc persistence of data.<br>
-see: <router-link to="#coherence_settings/080_persistence.adoc" @click.native="this.scrollFix('#coherence_settings/080_persistence.adoc')">Configure Persistence</router-link></td>
+see: <router-link to="#docs/coherence_settings/080_persistence.adoc" @click.native="this.scrollFix('#docs/coherence_settings/080_persistence.adoc')">Configure Persistence</router-link></td>
 <td class=""><code>&#42;<router-link to="#_persistencespec" @click.native="this.scrollFix('#_persistencespec')">PersistenceSpec</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>logLevel</code></td>
 <td class="">The Coherence log level, default being 5 (info level).<br>
-see: <router-link to="#coherence_settings/060_log_level.adoc" @click.native="this.scrollFix('#coherence_settings/060_log_level.adoc')">Configure Coherence log level</router-link></td>
+see: <router-link to="#docs/coherence_settings/060_log_level.adoc" @click.native="this.scrollFix('#docs/coherence_settings/060_log_level.adoc')">Configure Coherence log level</router-link></td>
 <td class=""><code>&#42;int32</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>management</code></td>
 <td class="">Management configures Coherence management over REST Note: Coherence management over REST will is available in Coherence version &gt;= 12.2.1.4.<br>
-see: <router-link to="#management_and_diagnostics/010_overview.adoc" @click.native="this.scrollFix('#management_and_diagnostics/010_overview.adoc')">Management &amp; Diagnostics</router-link></td>
+see: <router-link to="#docs/management_and_diagnostics/010_overview.adoc" @click.native="this.scrollFix('#docs/management_and_diagnostics/010_overview.adoc')">Management &amp; Diagnostics</router-link></td>
 <td class=""><code>&#42;<router-link to="#_portspecwithssl" @click.native="this.scrollFix('#_portspecwithssl')">PortSpecWithSSL</router-link></code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>metrics</code></td>
 <td class="">Metrics configures Coherence metrics publishing Note: Coherence metrics publishing will is available in Coherence version &gt;= 12.2.1.4.<br>
-see: <router-link to="#metrics/010_overview.adoc" @click.native="this.scrollFix('#metrics/010_overview.adoc')">Metrics</router-link></td>
+see: <router-link to="/docs/metrics/010_overview">Metrics</router-link></td>
 <td class=""><code>&#42;<router-link to="#_portspecwithssl" @click.native="this.scrollFix('#_portspecwithssl')">PortSpecWithSSL</router-link></code></td>
 <td class="">false</td>
 </tr>
@@ -1440,14 +1440,14 @@ see: <router-link to="#metrics/010_overview.adoc" @click.native="this.scrollFix(
 <tr>
 <td class=""><code>excludeFromWKA</code></td>
 <td class="">Exclude members of this deployment from being part of the cluster&#8217;s WKA list.<br>
-see: <router-link to="#coherence_settings/070_wka.adoc" @click.native="this.scrollFix('#coherence_settings/070_wka.adoc')">Well Known Addressing</router-link></td>
+see: <router-link to="#docs/coherence_settings/070_wka.adoc" @click.native="this.scrollFix('#docs/coherence_settings/070_wka.adoc')">Well Known Addressing</router-link></td>
 <td class=""><code>&#42;bool</code></td>
 <td class="">false</td>
 </tr>
 <tr>
 <td class=""><code>wka</code></td>
 <td class="">Specify an existing Coherence deployment to be used for WKA. If an existing deployment is to be used for WKA the ExcludeFromWKA is implicitly set to true.<br>
-see: <router-link to="#coherence_settings/070_wka.adoc" @click.native="this.scrollFix('#coherence_settings/070_wka.adoc')">Well Known Addressing</router-link></td>
+see: <router-link to="#docs/coherence_settings/070_wka.adoc" @click.native="this.scrollFix('#docs/coherence_settings/070_wka.adoc')">Well Known Addressing</router-link></td>
 <td class=""><code>&#42;<router-link to="#_coherencewkaspec" @click.native="this.scrollFix('#_coherencewkaspec')">CoherenceWKASpec</router-link></code></td>
 <td class="">false</td>
 </tr>
@@ -1783,7 +1783,7 @@ Deprecated: This field is deprecated and no longer used, any value set will be i
 <h3 id="_configmapvolumespec">ConfigMapVolumeSpec</h3>
 <div class="section">
 <p>ConfigMapVolumeSpec represents a ConfigMap that will be added to the deployment&#8217;s Pods as an additional Volume and as a VolumeMount in the containers.<br>
-see: <router-link to="#misc_pod_settings/050_configmap_volumes.adoc" @click.native="this.scrollFix('#misc_pod_settings/050_configmap_volumes.adoc')">Add ConfigMap Volumes</router-link></p>
+see: <router-link to="#docs/misc_pod_settings/050_configmap_volumes.adoc" @click.native="this.scrollFix('#docs/misc_pod_settings/050_configmap_volumes.adoc')">Add ConfigMap Volumes</router-link></p>
 
 
 <div class="table__overflow elevation-1  ">
@@ -3227,7 +3227,7 @@ NOTE: This field maps the the -XX:MinRAMPercentage JVM option and will be incomp
 <h3 id="_secretvolumespec">SecretVolumeSpec</h3>
 <div class="section">
 <p>SecretVolumeSpec represents a Secret that will be added to the deployment&#8217;s Pods as an additional Volume and as a VolumeMount in the containers.<br>
-see: <router-link to="#misc_pod_settings/020_secret_volumes.adoc" @click.native="this.scrollFix('#misc_pod_settings/020_secret_volumes.adoc')">Add Secret Volumes</router-link></p>
+see: <router-link to="#docs/misc_pod_settings/020_secret_volumes.adoc" @click.native="this.scrollFix('#docs/misc_pod_settings/020_secret_volumes.adoc')">Add Secret Volumes</router-link></p>
 
 
 <div class="table__overflow elevation-1  ">

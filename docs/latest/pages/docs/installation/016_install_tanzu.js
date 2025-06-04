@@ -11,11 +11,11 @@ using a standalone Carvel <a id="" title="" target="_blank" href="https://carvel
 
 <ul class="ulist">
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-package:3.5.0</code> - the Coherence Operator package</p>
+<p><code>ghcr.io/oracle/coherence-operator-package:3.5.1</code> - the Coherence Operator package</p>
 
 </li>
 <li>
-<p><code>ghcr.io/oracle/coherence-operator-repo:3.5.0</code> - the Coherence Operator repository</p>
+<p><code>ghcr.io/oracle/coherence-operator-repo:3.5.1</code> - the Coherence Operator repository</p>
 
 </li>
 </ul>
@@ -29,7 +29,7 @@ This can be done using the Tanzu CLI.</p>
 lang="bash"
 
 >tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.5.0 \
+    --url ghcr.io/oracle/coherence-operator-repo:3.5.1 \
     --namespace coherence \
     --create-namespace</markup>
 
@@ -61,7 +61,7 @@ lang="bash"
 lang="bash"
 
 >NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
-coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.5.0</markup>
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.5.1</markup>
 
 </div>
 
@@ -74,7 +74,7 @@ lang="bash"
 
 >tanzu package install coherence \
     --package-name coherence-operator.oracle.github.com \
-    --version 3.5.0 \
+    --version 3.5.1 \
     --namespace coherence</markup>
 
 <p>The Tanzu CLI will display the various steps it is going through to install the package and if all goes well, finally display <code>Added installed package 'coherence'</code>
@@ -91,7 +91,7 @@ lang="bash"
 lang="bash"
 
 >NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
-coherence  coherence-operator.oracle.github.com  3.5.0            Reconcile succeeded</markup>
+coherence  coherence-operator.oracle.github.com  3.5.1            Reconcile succeeded</markup>
 
 <p>The Operator is now installed and ready to mage Coherence clusters.</p>
 

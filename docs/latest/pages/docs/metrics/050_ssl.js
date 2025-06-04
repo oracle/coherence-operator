@@ -55,7 +55,7 @@ and password files from.</li>
 <p>The various files and keystores referred to in the configuration above can be any location accessible in the image
 used by the <code>coherence</code> container in the deployment&#8217;s <code>Pods</code>. Typically, for things such as SSL keys and certs,
 these would be provided by obtained from <code>Secrets</code> loaded as additional <code>Pod</code> <code>Volumes</code>.
-See <router-link to="#other/060_secret_volumes.adoc" @click.native="this.scrollFix('#other/060_secret_volumes.adoc')">Add Secrets Volumes</router-link> for the documentation on how to specify
+See <router-link to="/docs/other/060_secret_volumes">Add Secrets Volumes</router-link> for the documentation on how to specify
 secrets as additional volumes.</p>
 
 </div>

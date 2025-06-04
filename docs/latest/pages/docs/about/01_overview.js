@@ -29,7 +29,7 @@
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')"><div class="card__link-hover"/>
+<router-link to="/docs/installation/001_installation"><div class="card__link-hover"/>
 </router-link>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
@@ -87,6 +87,27 @@
 <v-card-text class="caption">
 <p></p>
 <p>Hints and tips to troubleshoot common issues.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/docs/installation/100_fips"><div class="card__link-hover"/>
+</router-link>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">widgets</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">FIPS</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>FIPS Compliance</p>
 </v-card-text>
 </v-card>
 </v-flex>

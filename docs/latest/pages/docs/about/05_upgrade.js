@@ -76,7 +76,7 @@ and what resources it contains, as well as making it more obvious what is going 
 Because of the application changes described only a single image now needs to be specified in the <code>image</code> field
 of the <code>CRD</code> spec.</p>
 
-<p>See the <router-link to="#applications/010_overview.adoc" @click.native="this.scrollFix('#applications/010_overview.adoc')">Applications</router-link> section of the doecumentation for more details.</p>
+<p>See the <router-link to="/docs/applications/010_overview">Applications</router-link> section of the doecumentation for more details.</p>
 
 </div>
 </div>
@@ -86,7 +86,7 @@ of the <code>CRD</code> spec.</p>
 <p>A lot of the fields in the <code>Coherence</code> CRD are the same as when defining a role in version 2.
 Whilst a number of new fields and features have been added in version 3, a handful of fields have moved,
 and a small number, that no longer made sense, have been removed.
-The <router-link to="#about/04_coherence_spec.adoc" @click.native="this.scrollFix('#about/04_coherence_spec.adoc')">Coherence Spec</router-link> page documents the full <code>Coherence</code> CRD, so it is
+The <router-link to="/docs/about/04_coherence_spec">Coherence Spec</router-link> page documents the full <code>Coherence</code> CRD, so it is
 simple to locate where a field might have moved to.</p>
 
 </div>
@@ -98,7 +98,7 @@ There are a lot of different ways to configure Fluentd and making the Operator a
 too much of a head-ache to do in a backwards compatible way.
 If a Fluentd side-car is required it can just be added to the <code>Coherence</code> resource spec as an additional container,
 so there is no limitation on the Fluentd configuration.
-See the <router-link to="#logging/010_overview.adoc" @click.native="this.scrollFix('#logging/010_overview.adoc')">Logging documentation</router-link> for more examples.</p>
+See the <router-link to="/docs/logging/010_overview">Logging documentation</router-link> for more examples.</p>
 
 </div>
 

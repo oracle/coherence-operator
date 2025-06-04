@@ -36,7 +36,7 @@
 
 <h2 id="_install_the_operator_without_clusterroles">Install the Operator Without ClusterRoles</h2>
 <div class="section">
-<p>The two methods of installing the Operator discussed in the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Install Guide</router-link> can be used to install the Operator without ClusterRoles.</p>
+<p>The two methods of installing the Operator discussed in the <router-link to="/docs/installation/001_installation">Install Guide</router-link> can be used to install the Operator without ClusterRoles.</p>
 
 
 <h3 id="_manually_install_crds">Manually Install CRDs</h3>
@@ -46,7 +46,7 @@
 <p ><p>Before installing the Operator, with either method described below, the CRDs MUST be manually installed from the Operator manifest files.</p>
 
 <p>The manifest files are published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz">3.3.5 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.1/coherence-operator-manifests.tar.gz">3.3.5 Manifests</a></p>
 
 <p>You MUST ensure that the CRD manifests match the version of the Operator being installed.</p>
 
@@ -92,7 +92,7 @@ lang="bash"
 
 <h3 id="_install_using_helm">Install Using Helm</h3>
 <div class="section">
-<p>The Operator can be installed from the Helm chart, as described in the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Install Guide</router-link>.
+<p>The Operator can be installed from the Helm chart, as described in the <router-link to="/docs/installation/001_installation">Install Guide</router-link>.
 The Helm chart contains values that control whether cluster roles are created when installing the chart. To install the chart without any cluster roles set the <code>clusterRoles</code> value to <code>false</code>.</p>
 
 <markup
@@ -133,7 +133,7 @@ lang="bash"
 
 <h3 id="_install_using_kustomize">Install Using Kustomize</h3>
 <div class="section">
-<p>The Operator can be installed using Kustomize with the manifest files, as described in the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Install Guide</router-link>.</p>
+<p>The Operator can be installed using Kustomize with the manifest files, as described in the <router-link to="/docs/installation/001_installation">Install Guide</router-link>.</p>
 
 
 <h4 id="_exclude_the_clusterrole_manifests">Exclude the ClusterRole Manifests</h4>

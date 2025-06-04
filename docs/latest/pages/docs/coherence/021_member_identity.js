@@ -185,7 +185,7 @@ and the Node label used to get the value for the rack will be <code>identity/rac
 
 <h4 id="_using_kubectl_or_kustomize">Using Kubectl or Kustomize</h4>
 <div class="section">
-<p>If using <code>kubectl</code> or <code>kustomize</code> as described in the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Installation Guide</router-link>
+<p>If using <code>kubectl</code> or <code>kustomize</code> as described in the <router-link to="/docs/installation/001_installation">Installation Guide</router-link>
 the additional environment variables can be applied using <code>kustomize</code> commands.</p>
 
 <markup

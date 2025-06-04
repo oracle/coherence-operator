@@ -129,7 +129,7 @@ spec:
 
 <div class="admonition note">
 <p class="admonition-inline">The <code>jvm.gc.args</code> field will add the provided arguments to the end of the command line exactly as they
-are in the args list. This field provides the same functionality as <router-link to="#jvm/030_jvm_args.adoc" @click.native="this.scrollFix('#jvm/030_jvm_args.adoc')">JVM Args</router-link>
+are in the args list. This field provides the same functionality as <router-link to="/docs/jvm/030_jvm_args">JVM Args</router-link>
 but sometimes it might be useful to be able to separate the two gorups of arguments in the CRD spec.</p>
 </div>
 </div>

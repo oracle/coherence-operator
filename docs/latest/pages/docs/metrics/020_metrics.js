@@ -24,7 +24,7 @@ documentation for full details on the available metrics.</p>
 
 <h3 id="_important_note_regarding_prometheus_metrics_prefix">Important Note Regarding Prometheus Metrics Prefix</h3>
 <div class="section">
-<p>From version 3.5.0 of the Coherence Operator, the packaged Grafana dashboards no longer use the <strong>vendor:</strong> prefix for querying Prometheus metrics.
+<p>From version 3.5.1 of the Coherence Operator, the packaged Grafana dashboards no longer use the <strong>vendor:</strong> prefix for querying Prometheus metrics.
 This prefix was deprecated a number of releases ago and the default, of legacy metrics, in Coherence and will be removed in the most recent
 Coherence releases after this Operator release.</p>
 
@@ -75,7 +75,7 @@ spec:
 <li data-value="2">To expose metrics via a <code>Service</code> it is added to the <code>ports</code> list.
 The <code>metrics</code> port is a special case where the <code>port</code> number is optional so in this case metrics
 will bind to the default port <code>9612</code>.
-(see <router-link to="#ports/020_container_ports.adoc" @click.native="this.scrollFix('#ports/020_container_ports.adoc')">Exposing Ports</router-link> for details)</li>
+(see <router-link to="/docs/ports/020_container_ports">Exposing Ports</router-link> for details)</li>
 </ul>
 
 <h4 id="_expose_metrics_on_a_different_port">Expose Metrics on a Different Port</h4>
@@ -181,7 +181,7 @@ spec:
 <ul class="colist">
 <li data-value="1">The <code>serviceMonitor.enabled</code> field is set to <code>true</code> for the <code>metrics</code> port.</li>
 </ul>
-<p>See <router-link to="#ports/040_servicemonitors.adoc" @click.native="this.scrollFix('#ports/040_servicemonitors.adoc')">Exposing ports and Services - Service Monitors</router-link> documentation for more details.</p>
+<p>See <router-link to="/docs/ports/040_servicemonitors">Exposing ports and Services - Service Monitors</router-link> documentation for more details.</p>
 
 </div>
 </doc-view>

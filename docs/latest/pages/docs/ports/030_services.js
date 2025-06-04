@@ -142,7 +142,7 @@ spec:
 <p>The <code>Coherence</code> resource CRD allows many other settings to be configured on the <code>Service</code>.
 These fields are identical to the corresponding fields in the Kubernetes <code>Service</code> spec.</p>
 
-<p>See the <code>Coherence</code> CRD <router-link to="#_servicespec" @click.native="this.scrollFix('#_servicespec')">Service Spec</router-link> documentation
+<p>See the <code>Coherence</code> CRD <router-link :to="{path: '/docs/about/04_coherence_spec', hash: '#_servicespec'}">Service Spec</router-link> documentation
 and the Kubernetes
 <a id="" title="" target="_blank" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#servicespec-v1-core">Service API reference</a>.</p>
 

@@ -21,7 +21,7 @@ to install a simple Coherence cluster.</p>
 
 <h2 id="_prerequisites">Prerequisites</h2>
 <div class="section">
-<p>Ensure that the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Coherence Operator prerequisites</router-link> are available.</p>
+<p>Ensure that the <router-link to="/docs/installation/001_installation">Coherence Operator prerequisites</router-link> are available.</p>
 
 </div>
 
@@ -32,7 +32,7 @@ to install a simple Coherence cluster.</p>
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.1/coherence-operator.yaml</markup>
 
 <p>This will create a namespace called <code>coherence</code> and install the Operator into it along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources. The <code>coherence</code> namespace can be changed by downloading and editing the yaml file.</p>
 
@@ -85,7 +85,7 @@ lang="bash"
 
 >helm install --namespace coherence-test  --name operator coherence/coherence-operator</markup>
 
-<p>See the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">full install guide</router-link> for more details.</p>
+<p>See the <router-link to="/docs/installation/001_installation">full install guide</router-link> for more details.</p>
 
 </div>
 </div>

@@ -3,7 +3,7 @@
 <h2 id="_importing_the_coherence_dashboards">Importing the Coherence Dashboards</h2>
 <div class="section">
 <p>The Coherence Operator provides a set of dashboards for Coherence that may be imported into Grafana.
-The Coherence dashboards are explained in detail on the <router-link to="#040_dashboards.adoc" @click.native="this.scrollFix('#040_dashboards.adoc')">Coherence Grafana Dashboards</router-link> page.</p>
+The Coherence dashboards are explained in detail on the <router-link to="/docs/metrics/040_dashboards">Coherence Grafana Dashboards</router-link> page.</p>
 
 <p>There are two ways to obtain the dashboards:</p>
 

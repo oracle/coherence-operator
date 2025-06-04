@@ -221,7 +221,7 @@ lang="bash"
 title="Output"
 >deployment.apps/coherence-operator-controller-manager condition met</markup>
 
-<p>See the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Installation Guide</router-link> for more information about installing the Coherence Operator.</p>
+<p>See the <router-link to="/docs/installation/001_installation">Installation Guide</router-link> for more information about installing the Coherence Operator.</p>
 
 </div>
 
@@ -340,15 +340,15 @@ CMD ["-h"]</markup>
 
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="py/main.py">py/main.py</a></p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/py/main.py">py/main.py</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="js/main.js">js/main.js</a></p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/js/main.js">js/main.js</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="go/main.go">go/main.go</a></p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/go/main.go">go/main.go</a></p>
 
 </li>
 </ul>
@@ -465,15 +465,15 @@ docker push ghcr.io/username/repo/polyglot-client-go:1.0.0</markup>
 Modify the following files to change the image name accordingly in the following deployment yaml files:
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="yaml/py-client.yaml">py-client.yaml</a></p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/py-client.yaml">py-client.yaml</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="yaml/js-client.yaml">js-client.yaml</a></p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/js-client.yaml">js-client.yaml</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="yaml/go-client.yaml">go-client.yaml</a></p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/go-client.yaml">go-client.yaml</a></p>
 
 </li>
 </ul>
@@ -499,175 +499,172 @@ lang="yaml"
           image: ghcr.io/username/repo/polyglot-client-go:1.0.0
           imagePullPolicy: IfNotPresent
           imagePullSecrets:
-            - name: my-pull-secret
----
+            - name: my-pull-secret</markup>
 
-[#dep-4]
-==== 4. Deploy the Coherence Cluster
+</li>
+</ol>
+</div>
 
-The following deployment file is used to deploy a 3 node Coherence cluster to your Kubernetes cluster.
+<h4 id="dep-4">4. Deploy the Coherence Cluster</h4>
+<div class="section">
+<p>The following deployment file is used to deploy a 3 node Coherence cluster to your Kubernetes cluster.</p>
 
-[source,bash,indent=0]</markup>
+<markup
+lang="bash"
 
-<p>apiVersion: coherence.oracle.com/v1
+>apiVersion: coherence.oracle.com/v1
 kind: Coherence
 metadata:
-  name: demo-cluster  # &lt;1&gt;
+  name: demo-cluster  <span class="conum" data-value="1" />
 spec:
   jvm:
     memory:
       initialHeapSize: 1g
       maxHeapSize: 1g
-  replicas: 3 # &lt;2&gt;
-  image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1-java17" # &lt;3&gt;
+  replicas: 3 <span class="conum" data-value="2" />
+  image: "ghcr.io/oracle/coherence-ce:14.1.2-0-1-java17" <span class="conum" data-value="3" />
   coherence:
-    management: # &lt;4&gt;
+    management: <span class="conum" data-value="4" />
       enabled: true
-  ports:</p>
+  ports:
+    - name: grpc <span class="conum" data-value="5" />
+      port: 1408
+    - name: management</markup>
 
-<ul class="ulist">
-<li>
-<p>name: grpc # &lt;5&gt;
-port: 1408</p>
-
-</li>
-<li>
-<p>name: management</p>
-
-</li>
+<ul class="colist">
+<li data-value="1">the cluster name</li>
+<li data-value="2">the number of replicas to create</li>
+<li data-value="3">Image to use to start Coherence</li>
+<li data-value="4">Enable management</li>
+<li data-value="5">Enable gRPC port</li>
 </ul>
-</li>
-</ol>
-<div class="listing">
-<pre>&lt;1&gt; the cluster name
-&lt;2&gt; the number of replicas to create
-&lt;3&gt; Image to use to start Coherence
-&lt;4&gt; Enable management
-&lt;5&gt; Enable gRPC port
-
-NOTE: When we deploy this yaml, each of the ports will become a service that we can use to connect to.
-
-Deploy the Coherence Cluster using the following:
-
-[source,bash,indent=0]</pre>
+<div class="admonition note">
+<p class="admonition-inline">When we deploy this yaml, each of the ports will become a service that we can use to connect to.</p>
 </div>
+<p>Deploy the Coherence Cluster using the following:</p>
 
-<p>make deploy-coherence</p>
+<markup
+lang="bash"
 
-<div class="listing">
-<pre>[source,bash,indent=0]
-.Output</pre>
-</div>
+>make deploy-coherence</markup>
 
-<p>kubectl -n coherence-demo apply -f yaml/coherence-cluster.yaml
+<markup
+lang="bash"
+title="Output"
+>kubectl -n coherence-demo apply -f yaml/coherence-cluster.yaml
 coherence.coherence.oracle.com/demo-cluster created
 sleep 5
 kubectl -n coherence-demo get pods
 NAME             READY   STATUS    RESTARTS   AGE
 demo-cluster-0   0/1     Running   0          5s
 demo-cluster-1   0/1     Running   0          5s
-demo-cluster-2   0/1     Running   0          5s</p>
+demo-cluster-2   0/1     Running   0          5s</markup>
 
-<div class="listing">
-<pre>Issue the following command to wait until the Coherence cluster is ready.
+<p>Issue the following command to wait until the Coherence cluster is ready.</p>
 
-[source,bash,indent=0]</pre>
+<markup
+lang="bash"
+
+>kubectl -n coherence-demo wait --for=condition=ready coherence/demo-cluster --timeout 120s
+coherence.coherence.oracle.com/demo-cluster condition met</markup>
+
+</div>
 </div>
 
-<p>kubectl -n coherence-demo wait --for=condition=ready coherence/demo-cluster --timeout 120s
-coherence.coherence.oracle.com/demo-cluster condition met</p>
+<h3 id="run-example">Run the example</h3>
+<div class="section">
+<p>Choose one of the methods below to demo the application.</p>
 
-<div class="listing">
-<pre>[#run-example]
-=== Run the example
+<ol style="margin-left: 15px;">
+<li>
+<router-link to="#run-1" @click.native="this.scrollFix('#run-1')">Run from within Kubernetes</router-link>
 
-Choose one of the methods below to demo the application.
+</li>
+<li>
+<router-link to="#run-3" @click.native="this.scrollFix('#run-3')">Run locally using native clients</router-link>
 
-1. &lt;&lt;run-1, Run from within Kubernetes&gt;&gt;
-2. &lt;&lt;run-3, Run locally using native clients&gt;&gt;
+</li>
+</ol>
 
-[#run-1]
-==== Run from within Kubernetes
+<h4 id="run-1">Run from within Kubernetes</h4>
+<div class="section">
+<p>In this section, we will deploy all the client pods to Kubernetes, and access the REST endpoints via their services, using the <code>port-forward</code> command.</p>
 
-In this section, we will deploy all the client pods to Kubernetes, and access the REST endpoints via their services, using the `port-forward` command.
+<p>See <strong>1. REST Client</strong> on the right of the diagram below:</p>
 
-See **1. REST Client** on the right of the diagram below:
 
-image::images/example-overview.png[Service Details,width="100%",align="center"]
 
-NOTE: We are accessing the application HTTP endpoint via port-forward, but the client pods within Kubernetes
-are directly accessing cluster within Kubernetes.
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/images/example-overview.png" alt="Service Details"width="100%" />
+</v-card-text>
+</v-card>
 
-When we deploy the clients, the yaml used is shown below:
-
-* link:yaml/py-client.yaml[Python Client]
-* link:yaml/js-client.yaml[JavaScript Client]
-* link:yaml/go-client.yaml[Go Client]
-
-By default, the Python, JavaScript and Go clients connect to `localhost:1408` on startup, but you can specify the gRPC host and port to connect to in the
-code or use the `COHERENCE_SERVER_ADDRESS` environment variable to specify this which is more flexible.
-
-Each of the clients, (Python shown below for example), have this variable set to `demo-cluster-grpc:1408` where `demo-cluster-grpc`
-is the service for the grpc port created when we deployed the Coherence cluster.
-
-[source,yaml,indent=0]</pre>
+<div class="admonition note">
+<p class="admonition-inline">We are accessing the application HTTP endpoint via port-forward, but the client pods within Kubernetes
+are directly accessing cluster within Kubernetes.</p>
 </div>
+<p>When we deploy the clients, the yaml used is shown below:</p>
 
 <ul class="ulist">
 <li>
-<p>name: py-client
-image: polyglot-client-py:1.0.0
-imagePullPolicy: IfNotPresent
-env:</p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/py-client.yaml">Python Client</a></p>
 
 </li>
 <li>
-<p>name: COHERENCE_SERVER_ADDRESS
-value: "demo-cluster-grpc:1408"</p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/js-client.yaml">JavaScript Client</a></p>
 
 </li>
 <li>
-<p>name: COHERENCE_READY_TIMEOUT
-    value: "60000"
-resources:
-  requests:
-    memory: "512Mi"
-  limits:
-    memory: "512Mi"
-ports:</p>
-
-</li>
-<li>
-<p>containerPort: 8080
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 10001
-  capabilities:
-    drop:</p>
-
-</li>
-<li>
-<p>all
-readOnlyRootFilesystem: true</p>
+<p><a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/blob/main/examples/910_polyglot_demo/yaml/go-client.yaml">Go Client</a></p>
 
 </li>
 </ul>
-<div class="listing">
-<pre>**Deploy the clients**
+<p>By default, the Python, JavaScript and Go clients connect to <code>localhost:1408</code> on startup, but you can specify the gRPC host and port to connect to in the
+code or use the <code>COHERENCE_SERVER_ADDRESS</code> environment variable to specify this which is more flexible.</p>
 
-Firstly, run the following to deploy all the clients. This yaml also deploys a service from which you can connect to the client.
+<p>Each of the clients, (Python shown below for example), have this variable set to <code>demo-cluster-grpc:1408</code> where <code>demo-cluster-grpc</code>
+is the service for the grpc port created when we deployed the Coherence cluster.</p>
 
-[source,bash,indent=0]</pre>
-</div>
+<markup
+lang="yaml"
 
-<p>make deploy-all-clients</p>
+>- name: py-client
+  image: polyglot-client-py:1.0.0
+  imagePullPolicy: IfNotPresent
+  env:
+    - name: COHERENCE_SERVER_ADDRESS
+      value: "demo-cluster-grpc:1408"
+    - name: COHERENCE_READY_TIMEOUT
+      value: "60000"
+  resources:
+    requests:
+      memory: "512Mi"
+    limits:
+      memory: "512Mi"
+  ports:
+    - containerPort: 8080
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    capabilities:
+      drop:
+        - all
+    readOnlyRootFilesystem: true</markup>
 
-<div class="listing">
-<pre>[source,bash,indent=0]
-.Output</pre>
-</div>
+<p><strong>Deploy the clients</strong></p>
 
-<p>kubectl -n coherence-demo apply -f yaml/go-client.yaml
+<p>Firstly, run the following to deploy all the clients. This yaml also deploys a service from which you can connect to the client.</p>
+
+<markup
+lang="bash"
+
+>make deploy-all-clients</markup>
+
+<markup
+lang="bash"
+title="Output"
+>kubectl -n coherence-demo apply -f yaml/go-client.yaml
 service/go-client created
 deployment.apps/go-client created
 kubectl -n coherence-demo apply -f yaml/js-client.yaml
@@ -675,394 +672,386 @@ service/js-client created
 deployment.apps/js-client created
 kubectl -n coherence-demo apply -f yaml/py-client.yaml
 service/py-client created
-deployment.apps/py-client created</p>
+deployment.apps/py-client created</markup>
 
-<div class="listing">
-<pre>Issue the following to show the deployments and services.
+<p>Issue the following to show the deployments and services.</p>
 
-[source,bash,indent=0]</pre>
-</div>
+<markup
+lang="bash"
 
-<p>kubectl get deployments -n coherence-demo</p>
+>kubectl get deployments -n coherence-demo</markup>
 
-<div class="listing">
-<pre>[source,bash,indent=0]
-.Output</pre>
-</div>
-
-<p>NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+<markup
+lang="bash"
+title="Output"
+>NAME        READY   UP-TO-DATE   AVAILABLE   AGE
 go-client   1/1     1            1           3s
 js-client   1/1     1            1           3s
-py-client   1/1     1            1           3s</p>
+py-client   1/1     1            1           3s</markup>
 
-<div class="listing">
-<pre>**Port forward to access the HTTP endpoint**
+<p><strong>Port forward to access the HTTP endpoint</strong></p>
 
-To port-forward the clients we will first need to view the services:
+<p>To port-forward the clients we will first need to view the services:</p>
 
-[source,bash,indent=0]</pre>
-</div>
+<markup
+lang="bash"
 
-<p>kubectl get services -n coherence-demo</p>
+>kubectl get services -n coherence-demo</markup>
 
-<div class="listing">
-<pre>[source,bash,indent=0]
-.Output</pre>
-</div>
-
-<p>NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                                               AGE
+<markup
+lang="bash"
+title="Output"
+>NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                                               AGE
 demo-cluster-grpc         ClusterIP   10.96.200.57    &lt;none&gt;        1408/TCP                                              8m2s
 demo-cluster-management   ClusterIP   10.96.46.69     &lt;none&gt;        30000/TCP                                             8m2s
 demo-cluster-sts          ClusterIP   None            &lt;none&gt;        7/TCP,7575/TCP,7574/TCP,6676/TCP,1408/TCP,30000/TCP   8m2s
 demo-cluster-wka          ClusterIP   None            &lt;none&gt;        7/TCP,7575/TCP,7574/TCP,6676/TCP                      8m2s
 go-client-http            ClusterIP   10.96.249.42    &lt;none&gt;        8080/TCP                                              32s
 js-client-http            ClusterIP   10.96.114.88    &lt;none&gt;        8080/TCP                                              31s
-py-client-http            ClusterIP   10.96.196.163   &lt;none&gt;        8080/TCP                                              31s</p>
+py-client-http            ClusterIP   10.96.196.163   &lt;none&gt;        8080/TCP                                              31s</markup>
 
-<div class="listing">
-<pre>The services we are interested in are the `go-client-http`, `js-client-http` or `py-client-http`.
+<p>The services we are interested in are the <code>go-client-http</code>, <code>js-client-http</code> or <code>py-client-http</code>.</p>
 
-As all the clients expose the same API, You can choose any of the clients to port-forward to. For this example will
-choose the JavaScript client.
+<p>As all the clients expose the same API, You can choose any of the clients to port-forward to. For this example will
+choose the JavaScript client.</p>
 
-[source,bash,indent=0]</pre>
+<markup
+lang="bash"
+
+>kubectl port-forward -n coherence-demo svc/js-client-http 8080:8080</markup>
+
+<markup
+lang="bash"
+title="Output"
+>Forwarding from 127.0.0.1:8080 -&gt; 8080
+Forwarding from [::1]:8080 -&gt; 8080</markup>
+
+<p id="rest-endpoints"><strong>Exercise the REST endpoints</strong></p>
+
+<p>Use the following commands to work with the REST endpoints.</p>
+
+<p><strong>Create two People</strong></p>
+
+<markup
+lang="bash"
+
+>curl -X POST -H 'Content-Type: application/json' http://localhost:8080/api/people -d '{"id": 1,"name":"Tim", "age": 25}'</markup>
+
+<markup
+lang="bash"
+
+>curl -X POST -H 'Content-Type: application/json' http://localhost:8080/api/people -d '{"id": 2,"name":"John", "age": 35}'</markup>
+
+<p><strong>List the people in the cache</strong></p>
+
+<markup
+lang="bash"
+
+>curl http://localhost:8080/api/people</markup>
+
+<markup
+lang="bash"
+title="Output"
+>[{"id":1,"name":"Tim","age":25},{"id":2,"name":"John","age":35}]</markup>
+
+<p><strong>Get a single Person</strong></p>
+
+<markup
+lang="bash"
+
+>curl http://localhost:8080/api/people/1</markup>
+
+<markup
+lang="bash"
+title="Output"
+>{"id":1,"name":"Tim","age":25}</markup>
+
+<p><strong>Remove a Person</strong></p>
+
+<markup
+lang="bash"
+
+>curl -X DELETE http://localhost:8080/api/people/1</markup>
+
+<markup
+lang="bash"
+title="Output"
+>OK</markup>
+
+<p><strong>Try to retrieve the deleted person</strong></p>
+
+<markup
+lang="bash"
+
+>curl http://localhost:8080/api/people/1</markup>
+
+<markup
+lang="bash"
+title="Output"
+>Not Found</markup>
+
 </div>
 
-<p>kubectl port-forward -n coherence-demo svc/js-client-http 8080:8080</p>
+<h4 id="run-2">View the cache information</h4>
+<div class="section">
+<p>You can use the <a id="" title="" target="_blank" href="https://github.com/oracle/coherence-cli">Coherence CLI</a> to view cluster and cache information.</p>
 
-<div class="listing">
-<pre>[source,bash,indent=0]
-.Output</pre>
+<div class="admonition note">
+<p class="admonition-inline">The Coherence CLI is automatically bundled with the Coherence Operator and can be accessed via <code>kuebctl exec</code>.</p>
 </div>
+<p><strong>Display the cluster members</strong></p>
 
-<p>Forwarding from 127.0.0.1:8080 &#8594; 8080
-Forwarding from [::1]:8080 &#8594; 8080</p>
+<p>Use the following to show the cluster members:</p>
 
-<div class="listing">
-<pre>[#rest-endpoints]
-**Exercise the REST endpoints**
+<markup
+lang="bash"
 
-Use the following commands to work with the REST endpoints.
+>kubectl exec demo-cluster-0 -c coherence -n coherence-demo -- /coherence-operator/utils/cohctl get members</markup>
 
-**Create two People**
-
-[source,bash]</pre>
-</div>
-
-<p>curl -X POST -H 'Content-Type: application/json' <a id="" title="" target="_blank" href="http://localhost:8080/api/people">http://localhost:8080/api/people</a> -d '{"id": 1,"name":"Tim", "age": 25}'</p>
-
-<div class="listing">
-<pre>[source,bash]</pre>
-</div>
-
-<p>curl -X POST -H 'Content-Type: application/json' <a id="" title="" target="_blank" href="http://localhost:8080/api/people">http://localhost:8080/api/people</a> -d '{"id": 2,"name":"John", "age": 35}'</p>
-
-<div class="listing">
-<pre>*List the people in the cache*
-
-[source,bash]</pre>
-</div>
-
-<p>curl <a id="" title="" target="_blank" href="http://localhost:8080/api/people">http://localhost:8080/api/people</a></p>
-
-<div class="listing">
-<pre>[source,bash]
-.Output</pre>
-</div>
-
-<div class="listing">
-<pre>*Get a single Person*
-
-[source,bash]</pre>
-</div>
-
-<p>curl <a id="" title="" target="_blank" href="http://localhost:8080/api/people/1">http://localhost:8080/api/people/1</a></p>
-
-<div class="listing">
-<pre>[source,bash]
-.Output</pre>
-</div>
-
-<p>{"id":1,"name":"Tim","age":25}</p>
-
-<div class="listing">
-<pre>*Remove a Person*
-
-[source,bash]</pre>
-</div>
-
-<p>curl -X DELETE <a id="" title="" target="_blank" href="http://localhost:8080/api/people/1">http://localhost:8080/api/people/1</a></p>
-
-<div class="listing">
-<pre>[source,bash]
-.Output</pre>
-</div>
-
-<p>OK</p>
-
-<div class="listing">
-<pre>*Try to retrieve the deleted person*
-
-[source,bash]</pre>
-</div>
-
-<p>curl <a id="" title="" target="_blank" href="http://localhost:8080/api/people/1">http://localhost:8080/api/people/1</a></p>
-
-<div class="listing">
-<pre>[source,bash]
-.Output</pre>
-</div>
-
-<p>Not Found</p>
-
-<div class="listing">
-<pre>[#run-2]
-==== View the cache information
-
-You can use the https://github.com/oracle/coherence-cli[Coherence CLI] to view cluster and cache information.
-
-NOTE: The Coherence CLI is automatically bundled with the Coherence Operator and can be accessed via `kuebctl exec`.
-
-**Display the cluster members**
-
-Use the following to show the cluster members:
-
-[source,bash]</pre>
-</div>
-
-<p>kubectl exec demo-cluster-0 -c coherence -n coherence-demo&#8201;&#8212;&#8201;/coherence-operator/utils/cohctl get members</p>
-
-<div class="listing">
-<pre>[source,bash]
-.Output</pre>
-</div>
-
-<p>Total cluster members: 3
+<markup
+lang="bash"
+title="Output"
+>Total cluster members: 3
 Storage enabled count: 3
-Departure count:       0</p>
+Departure count:       0
 
-<p>Cluster Heap - Total: 8,964 MB Used: 150 MB Available: 8,814 MB (98.3%)
-Storage Heap - Total: 8,964 MB Used: 150 MB Available: 8,814 MB (98.3%)</p>
+Cluster Heap - Total: 8,964 MB Used: 150 MB Available: 8,814 MB (98.3%)
+Storage Heap - Total: 8,964 MB Used: 150 MB Available: 8,814 MB (98.3%)
 
-<p>NODE ID  ADDRESS                                          PORT  PROCESS  MEMBER          ROLE          STORAGE  MAX HEAP  USED HEAP  AVAIL HEAP
+NODE ID  ADDRESS                                          PORT  PROCESS  MEMBER          ROLE          STORAGE  MAX HEAP  USED HEAP  AVAIL HEAP
       1  demo-cluster-wka.coherence-demo.svc/10.244.0.31  7575       56  demo-cluster-0  demo-cluster  true     2,988 MB      45 MB    2,943 MB
       2  demo-cluster-wka.coherence-demo.svc/10.244.0.32  7575       57  demo-cluster-2  demo-cluster  true     2,988 MB      36 MB    2,952 MB
-      3  demo-cluster-wka.coherence-demo.svc/10.244.0.33  7575       57  demo-cluster-1  demo-cluster  true     2,988 MB      69 MB    2,919 MB</p>
+      3  demo-cluster-wka.coherence-demo.svc/10.244.0.33  7575       57  demo-cluster-1  demo-cluster  true     2,988 MB      69 MB    2,919 MB</markup>
 
-<div class="listing">
-<pre>**Display the cache information**
+<p><strong>Display the cache information</strong></p>
 
-Use the following to show the cache information:
+<p>Use the following to show the cache information:</p>
 
-[source,bash]</pre>
+<markup
+lang="bash"
+
+>kubectl exec demo-cluster-0 -c coherence -n coherence-demo -- /coherence-operator/utils/cohctl get caches -o wide</markup>
+
+<div class="admonition note">
+<p class="admonition-inline">You will see other system caches, but you should also see the <code>people</code> cache with one entry.</p>
 </div>
+<markup
+lang="bash"
+title="Output"
+>Total Caches: 7, Total primary storage: 0 MB
 
-<p>kubectl exec demo-cluster-0 -c coherence -n coherence-demo&#8201;&#8212;&#8201;/coherence-operator/utils/cohctl get caches -o wide</p>
-
-<div class="listing">
-<pre>NOTE: You will see other system caches, but you should also see the `people` cache with one entry.
-
-[source,bash]
-.Output</pre>
-</div>
-
-<p>Total Caches: 7, Total primary storage: 0 MB</p>
-
-<p>SERVICE            CACHE                 COUNT  SIZE  AVG SIZE    PUTS    GETS  REMOVES  EVICTIONS    HITS   MISSES  HIT PROB
+SERVICE            CACHE                 COUNT  SIZE  AVG SIZE    PUTS    GETS  REMOVES  EVICTIONS    HITS   MISSES  HIT PROB
 "$SYS:Concurrent"  executor-assignments      0  0 MB         0       0       0        0          0       0        0     0.00%
 "$SYS:Concurrent"  executor-executors        2  0 MB     1,248  12,105  12,103        1          0  12,103        0   100.00%
 "$SYS:Concurrent"  executor-tasks            0  0 MB         0       0       0        0          0       0        0     0.00%
 "$SYS:Concurrent"  locks-exclusive           0  0 MB         0       0       0        0          0       0        0     0.00%
 "$SYS:Concurrent"  locks-read-write          0  0 MB         0       0       0        0          0       0        0     0.00%
 "$SYS:Concurrent"  semaphores                0  0 MB         0       0       0        0          0       0        0     0.00%
-PartitionedCache   people                    1  0 MB       224       6      29        2          0      26        3    89.66%</p>
+PartitionedCache   people                    1  0 MB       224       6      29        2          0      26        3    89.66%</markup>
 
-<div class="listing">
-<pre>[#run-3]
-==== Run locally using native clients
-
-Depending upon the client you are wanting to run you need to ensure you have installed the relevant
-client software as shown in the &lt;&lt;pre-4,pre-requisites here&gt;&gt;.
-
-TIP: Ensure you stopped the port-forward from the previous step if you ran this.
-
-See **2. Python, JS or GO Client** on the bottom of the diagram below:
-
-image::images/example-overview.png[Service Details,width="100%",align="center"]
-
-
-**Run Port forward**
-
-Firstly we have to run a `port-forward` command to port-forward the gRPC 1408 locally to the `demo-cluster-grpc:1408` port on the Kubernetes cluster.
-
-Typically, if you want to access a service from outside the Kubernetes cluster, you would have a load balancer configured to access this directly, but in example we will use `port-forward`.
-
-Run the following:
-
-[source,bash]</pre>
 </div>
 
-<p>kubectl -n coherence-demo port-forward svc/demo-cluster-grpc 1408:1408</p>
+<h4 id="run-3">Run locally using native clients</h4>
+<div class="section">
+<p>Depending upon the client you are wanting to run you need to ensure you have installed the relevant
+client software as shown in the <router-link to="#pre-4" @click.native="this.scrollFix('#pre-4')">pre-requisites here</router-link>.</p>
 
-<div class="listing">
-<pre>[source,bash]
-.Output</pre>
+<div class="admonition tip">
+<p class="admonition-inline">Ensure you stopped the port-forward from the previous step if you ran this.</p>
 </div>
-
-<p>Forwarding from 127.0.0.1:1408 &#8594; 1408
-Forwarding from [::1]:1408 &#8594; 1408</p>
-
-<div class="listing">
-<pre>the **DIAGARM**...
-
-Then follow the instructions to start either of the clients below, which will list on port 8080 locally and connect to the Coherence cluster via gRPC on localhost:1408 which will be port-forwarded.
+<p>See <strong>2. Python, JS or GO Client</strong> on the bottom of the diagram below:</p>
 
 
-**Python Client**
 
-NOTE: We are install a python virtual environment for this example.
+<v-card>
+<v-card-text class="overflow-y-hidden" style="text-align:center">
+<img src="./images/images/example-overview.png" alt="Service Details"width="100%" />
+</v-card-text>
+</v-card>
 
-1. Change to the `py` directory
+<p><strong>Run Port forward</strong></p>
 
-2. Create a python virtual environment
-+
-[source,bash]</pre>
+<p>Firstly we have to run a <code>port-forward</code> command to port-forward the gRPC 1408 locally to the <code>demo-cluster-grpc:1408</code> port on the Kubernetes cluster.</p>
+
+<p>Typically, if you want to access a service from outside the Kubernetes cluster, you would have a load balancer configured to access this directly, but in example we will use <code>port-forward</code>.</p>
+
+<p>Run the following:</p>
+
+<markup
+lang="bash"
+
+>kubectl -n coherence-demo port-forward svc/demo-cluster-grpc 1408:1408</markup>
+
+<markup
+lang="bash"
+title="Output"
+>Forwarding from 127.0.0.1:1408 -&gt; 1408
+Forwarding from [::1]:1408 -&gt; 1408</markup>
+
+<p>the <strong>DIAGARM</strong>&#8230;&#8203;</p>
+
+<p>Then follow the instructions to start either of the clients below, which will list on port 8080 locally and connect to the Coherence cluster via gRPC on localhost:1408 which will be port-forwarded.</p>
+
+<p><strong>Python Client</strong></p>
+
+<div class="admonition note">
+<p class="admonition-inline">We are install a python virtual environment for this example.</p>
 </div>
+<ol style="margin-left: 15px;">
+<li>
+Change to the <code>py</code> directory
 
-<p>python3 -m venv ./venv
-. venv/bin/activate</p>
+</li>
+<li>
+Create a python virtual environment
+<markup
+lang="bash"
 
-<div class="listing">
-<pre>3. Install the requirements
-+
-[source,bash]</pre>
-</div>
+>python3 -m venv ./venv
+. venv/bin/activate</markup>
 
-<p>python3 -m pip install -r requirements.txt</p>
+</li>
+<li>
+Install the requirements
+<markup
+lang="bash"
 
-<div class="listing">
-<pre>4. Run the Python example
-+
-[source,bash]</pre>
-</div>
+>python3 -m pip install -r requirements.txt</markup>
 
-<p>python3 main.py</p>
+</li>
+<li>
+Run the Python example
+<markup
+lang="bash"
 
-<div class="listing">
-<pre>+
-[source,bash]
-.Output</pre>
-</div>
+>python3 main.py</markup>
 
-<p>2025-04-07 11:06:42,501 - coherence - INFO - Session [5d940a05-1cfc-4e6c-9ef8-52cc6e7705ba] connected to [localhost:1408].
+<markup
+lang="bash"
+title="Output"
+>2025-04-07 11:06:42,501 - coherence - INFO - Session [5d940a05-1cfc-4e6c-9ef8-52cc6e7705ba] connected to [localhost:1408].
 2025-04-07 11:06:42,525 - coherence - INFO - Session(id=5d940a05-1cfc-4e6c-9ef8-52cc6e7705ba, connected to [localhost:1408] proxy-version=14.1.2.0.1, protocol-version=1 proxy-member-id=1)
-[2025-04-07 11:06:42 +0800] [27645] [INFO] Running on <a id="" title="" target="_blank" href="http://0.0.0.0:8080">http://0.0.0.0:8080</a> (CTRL + C to quit)</p>
+[2025-04-07 11:06:42 +0800] [27645] [INFO] Running on http://0.0.0.0:8080 (CTRL + C to quit)</markup>
 
-<div class="listing">
-<pre>+
-NOTE: This is now showing the HTTP server is running locally and connecting via port-forward to the Coherence Cluster.
+<div class="admonition note">
+<p class="admonition-inline">This is now showing the HTTP server is running locally and connecting via port-forward to the Coherence Cluster.</p>
+</div>
+</li>
+<li>
+Exercise the REST end-points as per the instructions <router-link to="#rest-endpoints" @click.native="this.scrollFix('#rest-endpoints')">here</router-link>
 
-5. Exercise the REST end-points as per the instructions &lt;&lt;rest-endpoints, here&gt;&gt;
+</li>
+</ol>
+<p><strong>JavaScript Client</strong></p>
 
-**JavaScript Client**
+<ol style="margin-left: 15px;">
+<li>
+Change to the <code>js</code> directory
 
-1. Change to the `js` directory
+</li>
+<li>
+Install the modules
+<markup
+lang="bash"
 
-2. Install the modules
-+
-[source,bash]</pre>
+>npm install</markup>
+
+</li>
+<li>
+Run the JavaScript example
+<markup
+lang="bash"
+
+>node main.js</markup>
+
+</li>
+<li>
+Exercise the REST end-points as per the instructions <router-link to="#rest-endpoints" @click.native="this.scrollFix('#rest-endpoints')">here</router-link>
+
+</li>
+</ol>
+<p><strong>Go Client</strong></p>
+
+<ol style="margin-left: 15px;">
+<li>
+Change to the <code>go</code> directory
+
+</li>
+<li>
+Ensure you have the latest Coherence Go client
+<markup
+lang="bash"
+
+>npm install</markup>
+
+</li>
+<li>
+Build the executable
+<markup
+lang="bash"
+
+>go get github.com/oracle/coherence-go-client/v2@latest
+go mod tidy</markup>
+
+</li>
+<li>
+Run the Go example
+<markup
+lang="bash"
+
+>/runner</markup>
+
+<markup
+lang="bash"
+title="Output"
+>2025/04/07 11:19:21 INFO: Session [2073aa45-68aa-426d-a0b8-99405dcaa942] connected to [localhost:1408] Coherence version: 14.1.2.0.1, serverProtocolVersion: 1, proxyMemberId: 1
+Server running on port 8080</markup>
+
+</li>
+<li>
+Exercise the REST end-points as per the instructions <router-link to="#rest-endpoints" @click.native="this.scrollFix('#rest-endpoints')">here</router-link>
+
+</li>
+</ol>
+</div>
 </div>
 
-<p>npm install</p>
+<h3 id="cleanup">Cleaning Up</h3>
+<div class="section">
+<ol style="margin-left: 15px;">
+<li>
+Undeploy the clients using:
+<markup
+lang="bash"
 
-<div class="listing">
-<pre>3. Run the JavaScript example
-+
-[source,bash]</pre>
-</div>
+>make undeploy-all-clients</markup>
 
-<p>node main.js</p>
+</li>
+<li>
+Undeploy the Coherence cluster
+<markup
+lang="bash"
 
-<div class="listing">
-<pre>4. Exercise the REST end-points as per the instructions &lt;&lt;rest-endpoints, here&gt;&gt;
+>make undeploy-coherence</markup>
 
-**Go Client**
+</li>
+<li>
+Undeploy the Coherence Operator
+<markup
+lang="bash"
 
-1. Change to the `go` directory
+>make undeploy-operator</markup>
 
-2. Ensure you have the latest Coherence Go client
-+
-[source,bash]</pre>
-</div>
+</li>
+<li>
+Delete the namespace
+<markup
+lang="bash"
 
-<p>npm install</p>
+>make delete-namespace</markup>
 
-<div class="listing">
-<pre>3. Build the executable
-+
-[source,bash]</pre>
-</div>
-
-<p>go get github.com/oracle/coherence-go-client/v2@latest
-go mod tidy</p>
-
-<div class="listing">
-<pre>4. Run the Go example
-+
-[source,bash]</pre>
-</div>
-
-<p>/runner</p>
-
-<div class="listing">
-<pre>+
-[source,bash]
-.Output</pre>
-</div>
-
-<p>2025/04/07 11:19:21 INFO: Session [2073aa45-68aa-426d-a0b8-99405dcaa942] connected to [localhost:1408] Coherence version: 14.1.2.0.1, serverProtocolVersion: 1, proxyMemberId: 1
-Server running on port 8080</p>
-
-<div class="listing">
-<pre>5. Exercise the REST end-points as per the instructions &lt;&lt;rest-endpoints, here&gt;&gt;
-
-
-[#cleanup]
-=== Cleaning Up
-
-1. Undeploy the clients using:
-+
-[source,bash]</pre>
-</div>
-
-<p>make undeploy-all-clients</p>
-
-<div class="listing">
-<pre>2. Undeploy the Coherence cluster
-+
-[source,bash]</pre>
-</div>
-
-<p>make undeploy-coherence</p>
-
-<div class="listing">
-<pre>3. Undeploy the Coherence Operator
-+
-[source,bash]</pre>
-</div>
-
-<p>make undeploy-operator</p>
-
-<div class="listing">
-<pre>4. Delete the namespace
-+
-[source,bash]</pre>
-</div>
-
-<p>make delete-namespace</p>
-
-
-</div>
+</li>
+</ol>
 </div>
 </div>
 </doc-view>

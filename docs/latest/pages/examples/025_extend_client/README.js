@@ -26,7 +26,7 @@ If you have not already done so, you should build the image from that example, s
 <h4 id="_install_the_operator">Install the Operator</h4>
 <div class="section">
 <p>If you have not already done so, you need to install the Coherence Operator.
-There are a few simple ways to do this as described in the <router-link to="#docs/installation/01_installation.adoc" @click.native="this.scrollFix('#docs/installation/01_installation.adoc')">Installation Guide</router-link></p>
+There are a few simple ways to do this as described in the <router-link to="/docs/installation/001_installation">Installation Guide</router-link></p>
 
 </div>
 </div>

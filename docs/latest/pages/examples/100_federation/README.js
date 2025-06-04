@@ -80,7 +80,7 @@ Remote Peering Connections. DRG Documentation below for more information.</stron
 
 </li>
 <li>
-<p><router-link to="#../installation/04_obtain_coherence_images.adoc" @click.native="this.scrollFix('#../installation/04_obtain_coherence_images.adoc')">Obtaining Commercial Coherence Images</router-link></p>
+<p><router-link to="#docs/installation/04_obtain_coherence_images.adoc" @click.native="this.scrollFix('#docs/installation/04_obtain_coherence_images.adoc')">Obtaining Commercial Coherence Images</router-link></p>
 
 </li>
 </ul>
@@ -309,7 +309,7 @@ Create image pull secrets and configmaps
 <h4 id="install-operator">1. Install the Coherence Operator</h4>
 <div class="section">
 <p>To run the examples below, you will need to have installed the Coherence Operator,
-do this using whatever method you prefer from the <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation">Installation Guide</a>.</p>
+do this using whatever method you prefer from the <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/001_installation">Installation Guide</a>.</p>
 
 <markup
 lang="bash"

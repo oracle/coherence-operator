@@ -65,15 +65,15 @@ lang="bash"
 <h3 id="helm-operator-image">Set the Operator Image</h3>
 <div class="section">
 <p>The Helm chart uses a default Operator image from
-<code>container-registry.oracle.com/middleware/coherence-operator:3.5.0</code>.
+<code>container-registry.oracle.com/middleware/coherence-operator:3.5.1</code>.
 If the image needs to be pulled from a different location (for example an internal registry) then there are two ways to override the default.
 Either set the individual <code>image.registry</code>, <code>image.name</code> and <code>image.tag</code> values, or set the whole image name by setting the <code>image</code> value.</p>
 
 <p>For example, if the Operator image has been deployed into a private registry named <code>foo.com</code> but
-with the same image name <code>coherence-operator</code> and tag <code>3.5.0</code> as the default image,
+with the same image name <code>coherence-operator</code> and tag <code>3.5.1</code> as the default image,
 then just the <code>image.registry</code> needs to be specified.</p>
 
-<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.5.0</code>.</p>
+<p>In the example below, the image used to run the Operator will be <code>foo.com/coherence-operator:3.5.1</code>.</p>
 
 <markup
 lang="bash"
@@ -533,14 +533,14 @@ lang="bash"
 values to the install can be used.</p>
 
 
-<h3 id="helm-upgrade-350">Upgrading From pre-3.5.0 Versions</h3>
+<h3 id="helm-upgrade-350">Upgrading From pre-3.5.1 Versions</h3>
 <div class="section">
-<p>Before version 3.5.0 of the Coherence operator, the operator used to install the CRDs
-when it started. In 3.5.0 this behaviour was changed and the operator no longer installs
-the CRDs, these must be installed along with the operator. The 3.5.0 and above Helm chart
+<p>Before version 3.5.1 of the Coherence operator, the operator used to install the CRDs
+when it started. In 3.5.1 this behaviour was changed and the operator no longer installs
+the CRDs, these must be installed along with the operator. The 3.5.1 and above Helm chart
 includes the CRDs.</p>
 
-<p>This causes an issue when performing a Helm upgrade from a pre-3.5.0 version because Helm
+<p>This causes an issue when performing a Helm upgrade from a pre-3.5.1 version because Helm
 did not install the CRDs. When attempting an upgrade Helm will display an error similar to
 the one below:</p>
 

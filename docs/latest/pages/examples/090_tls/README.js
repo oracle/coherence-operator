@@ -110,7 +110,7 @@
 
 <h3 id="install_operator">Install the Operator</h3>
 <div class="section">
-<p>To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/01_installation">Installation Guide</a></p>
+<p>To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the <a id="" title="" target="_blank" href="https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/001_installation">Installation Guide</a></p>
 
 </div>
 

@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "3.5.0",
+        release: "3.5.1",
         releases: [
-            "3.5.0"
+            "3.5.1"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -258,6 +258,32 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('docs-installation-080_networking', '/docs/installation/080_networking', {})
+        },
+        {
+            path: '/docs/installation/090_tls_cipher',
+            meta: {
+                h1: 'TLS Cipher Suites',
+                title: 'TLS Cipher Suites',
+                h1Prefix: null,
+                description: 'Coherence Operator Documentation - TLS Cipher Suites',
+                keywords: 'oracle coherence, kubernetes, operator, documentation, TLS, cipher',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-installation-090_tls_cipher', '/docs/installation/090_tls_cipher', {})
+        },
+        {
+            path: '/docs/installation/100_fips',
+            meta: {
+                h1: 'FIPS Compatibility',
+                title: 'FIPS Compatibility',
+                h1Prefix: null,
+                description: 'Coherence Operator Documentation - TLS Cipher Suites',
+                keywords: 'oracle coherence, kubernetes, operator, documentation, TLS, cipher',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-installation-100_fips', '/docs/installation/100_fips', {})
         },
         {
             path: '/docs/applications/010_overview',
@@ -1444,7 +1470,9 @@ function createNav(){
                 { href: '/docs/installation/040_obtain_coherence_images', title: 'Obtain Coherence Images' },
                 { href: '/docs/installation/050_private_repos', title: 'Using Private Image Registries' },
                 { href: '/docs/installation/070_webhooks', title: 'Operator Web-Hooks' },
-                { href: '/docs/installation/080_networking', title: 'O/S Networking Configuration' }
+                { href: '/docs/installation/080_networking', title: 'O/S Networking Configuration' },
+                { href: '/docs/installation/090_tls_cipher', title: 'TLS Cipher Suites' },
+                { href: '/docs/installation/100_fips', title: 'FIPS Compatibility' }
             ]
         },
         {

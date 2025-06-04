@@ -4,20 +4,20 @@
 <div class="section">
 <p>If you want to use yaml directly to install the operator, with something like <code>kubectl</code>, you can use the manifest files
 published with the GitHub release at this link:
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz">3.5.0 Manifests</a></p>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.1/coherence-operator-manifests.tar.gz">3.5.1 Manifests</a></p>
 
 <p>These manifest files are for use with a tool called Kustomize, which is built into <code>kubectl</code>
 see the documentation here: <a id="" title="" target="_blank" href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/</a></p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>As of v3.5.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+<p ><p>As of v3.5.1 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.</p>
 </p>
 </div>
 <p>Download the
-<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.0/coherence-operator-manifests.tar.gz">3.5.0 Manifests</a>
+<a id="" title="" target="_blank" href="https://github.com/oracle/coherence-operator/releases/download/v3.5.1/coherence-operator-manifests.tar.gz">3.5.1 Manifests</a>
 from the release page and unpack the file, which should produce a directory called <code>manifests</code> with a structure like this:</p>
 
 <markup
@@ -77,7 +77,7 @@ that you are using for the Operator, for example if you have the images in a cus
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.5.0</markup>
+>cd ./manager &amp;&amp; kustomize edit set image controller=myregistry/coherence-operator:3.5.1</markup>
 
 <p>Change the name of the Operator image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image</p>
@@ -85,7 +85,7 @@ that you are using for the Operator utilities image</p>
 <markup
 lang="bash"
 
->cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.5.0</markup>
+>cd ./manager &amp;&amp; kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.5.1</markup>
 
 <p>Change the name of the default Coherence image. If you are always going to be deploying your own application images then this
 does not need to change.</p>

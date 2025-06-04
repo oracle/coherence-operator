@@ -9,7 +9,7 @@
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
 <dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry
-<code>container-registry.oracle.com/middleware/coherence-operator:3.5.0</code> that can
+<code>container-registry.oracle.com/middleware/coherence-operator:3.5.1</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -39,6 +39,14 @@ easily be installed into a Kubernetes cluster.</p>
 </li>
 <li>
 <p><router-link to="#scope" @click.native="this.scrollFix('#scope')">Operator Scope - monitoring all or a fixed set of namespaces</router-link></p>
+
+</li>
+<li>
+<p><router-link to="/docs/installation/090_tls_cipher">Configure TLS Cipher Suites</router-link></p>
+
+</li>
+<li>
+<p><router-link to="/docs/installation/100_fips">FIPS Compliance</router-link></p>
 
 </li>
 </ul>
@@ -79,27 +87,27 @@ See the <router-link to="/examples/400_Istio/README">Istio example</router-link>
 
 <ul class="ulist">
 <li>
-<p><router-link to="#installation/011_install_manifests.adoc" @click.native="this.scrollFix('#installation/011_install_manifests.adoc')">Install using the yaml manifest file</router-link></p>
+<p><router-link to="/docs/installation/011_install_manifests">Install using the yaml manifest file</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#installation/012_install_helm.adoc" @click.native="this.scrollFix('#installation/012_install_helm.adoc')">Install using Helm</router-link></p>
+<p><router-link to="/docs/installation/012_install_helm">Install using Helm</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#installation/013_install_kustomize.adoc" @click.native="this.scrollFix('#installation/013_install_kustomize.adoc')">Install using Kustomize</router-link></p>
+<p><router-link to="/docs/installation/013_install_kustomize">Install using Kustomize</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#installation/014_install_openshift.adoc" @click.native="this.scrollFix('#installation/014_install_openshift.adoc')">Install on OpenShift</router-link></p>
+<p><router-link to="/docs/installation/014_install_openshift">Install on OpenShift</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#installation/015_install_olm.adoc" @click.native="this.scrollFix('#installation/015_install_olm.adoc')">Install using the Operator Lifecycle Manager (OLM)</router-link></p>
+<p><router-link to="/docs/installation/015_install_olm">Install using the Operator Lifecycle Manager (OLM)</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#installation/016_install_tanzu.adoc" @click.native="this.scrollFix('#installation/016_install_tanzu.adoc')">Install on VMWare Tanzu</router-link></p>
+<p><router-link to="/docs/installation/016_install_tanzu">Install on VMWare Tanzu</router-link></p>
 
 </li>
 </ul>
@@ -146,7 +154,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>container-registry.oracle.com/middleware/coherence-operator:3.5.0</code> - The Operator image.</p>
+<p><code>container-registry.oracle.com/middleware/coherence-operator:3.5.1</code> - The Operator image.</p>
 
 </li>
 </ul>
