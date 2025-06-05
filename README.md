@@ -46,10 +46,10 @@ Kibana (EFK) stack), and Prometheus to monitor the performance, logs, and health
 -------
 ## Documentation
 
-Documentation for the Coherence Operator is available [here](https://oracle.github.io/coherence-operator/docs/latest)
+Documentation for the Coherence Operator is available [here](https://docs.coherence.community/coherence-operator/docs/latest)
 
 The fastest way to experience the operator is to follow the 
-[Quick Start guide](https://oracle.github.io/coherence-operator/docs/latest/#/about/03_quickstart).
+[Quick Start guide](https://docs.coherence.community/coherence-operator/docs/latest/docs/about/03_quickstart).
 -------
 
 # Need more help? Have a suggestion? Come and say "Hello!"
@@ -71,7 +71,7 @@ Please consult the [security guide](./SECURITY.md) for our responsible security 
 
 ## License
 
-Copyright (c) 2019, 2023 Oracle and/or its affiliates.
+Copyright (c) 2019, 2025 Oracle and/or its affiliates.
 
 *Replace this statement if your project is not licensed under the UPL*
 
