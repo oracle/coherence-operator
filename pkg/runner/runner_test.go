@@ -217,7 +217,6 @@ func AppendCommonExpectedNonServerArgs(args []string, role string) []string {
 		"-Dcoherence.operator.diagnostics.dir=/coherence-operator/jvm/unknown/unknown",
 		"-XX:HeapDumpPath=/coherence-operator/jvm/unknown/unknown/heap-dumps/unknown-unknown.hprof",
 		"-Dcoherence.operator.can.resume.services=true",
-		"-XX:+UseG1GC",
 		"-Dcoherence.ttl=0",
 		"-XX:+UnlockDiagnosticVMOptions",
 		"-XX:ErrorFile=/coherence-operator/jvm/unknown/unknown/hs-err-unknown-unknown.log",
