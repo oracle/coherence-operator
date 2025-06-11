@@ -221,7 +221,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollector(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
-				Collector: stringPtr("G1"),
+				Collector: stringPtr("ZGC"),
 			},
 		},
 	}
@@ -230,7 +230,7 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollector(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_COLLECTOR", Value: "G1"})
+	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_COLLECTOR", Value: "ZGC"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

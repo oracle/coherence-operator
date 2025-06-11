@@ -61,13 +61,16 @@ If different GC logging arguments are required then the relevant JVM arguments c
 The garbage collector to use can be set using the `jvm.gc.collector` field.
 This field can be set to either `G1`, `CMS` or `Parallel`
 (the field is case-insensitive, invalid values will be silently ignored).
-The default collector set, if none has been specified, will be `G1`.
+
+The default collector set, if none has been specified, will be whatever is the default for the JVM being used.
 
 |====
 | Parameter  | JVM Argument Set
 | `G1`       | `-XX:+UseG1GC`
 | `CMS`      | `-XX:+UseConcMarkSweepGC`
 | `Parallel` | `-XX:+UseParallelGC`
+| `Serial`   | `-XX:+UseSerialGC`
+| `ZGC`      | `-XX:+UseZGC`
 |====
 
 For example:
@@ -80,9 +83,15 @@ metadata:
 spec:
   jvm:
     gc:
-      collector: "G1"
+      collector: "ZGC"
 ----
-The example above will add `-XX:+UseG1GC` to the command line.
+The example above will add `-XX:+UseZGC` to the command line.
+
+[NOTE]
+====
+The JVM only allows a single `-XX:Use****` option that sets the garbage collector to use, so the collector should not be
+specified in both the `spec.jvm.gc.collector` field, and in the `spec.jvm.args` field.
+====
 
 === Adding Arbitrary GC Args
 

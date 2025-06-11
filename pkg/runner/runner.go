@@ -426,12 +426,16 @@ func configureCommand(details *run_details.RunDetails) error {
 
 	gc := strings.ToLower(details.Getenv(v1.EnvVarJvmGcCollector))
 	switch {
-	case gc == "" || gc == "g1":
+	case gc == "g1":
 		details.AddMemoryOption("-XX:+UseG1GC")
 	case gc == "cms":
 		details.AddMemoryOption("-XX:+UseConcMarkSweepGC")
 	case gc == "parallel":
 		details.AddMemoryOption("-XX:+UseParallelGC")
+	case gc == "serial":
+		details.AddMemoryOption("-XX:+UseSerialGC")
+	case gc == "zgc":
+		details.AddMemoryOption("-XX:+UseZGC")
 	}
 
 	maxRAM := details.Getenv(v1.EnvVarJvmMaxRAM)

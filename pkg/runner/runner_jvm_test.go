@@ -265,6 +265,72 @@ func TestJvmGarbageCollectorParallel(t *testing.T) {
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
 }
 
+func TestJvmGarbageCollectorSerial(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Collector: ptr.To("serial"),
+					},
+				},
+			},
+		},
+	}
+
+	expectedArgs := append(GetExpectedArgsFileContentWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseSerialGC")
+	verifyConfigFilesWithArgs(t, d, expectedArgs)
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := append(RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-XX:+UseG1GC"), "-XX:+UseSerialGC")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
+}
+
+func TestJvmGarbageCollectorZGC(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	d := &coh.Coherence{
+		ObjectMeta: metav1.ObjectMeta{Name: "test"},
+		Spec: coh.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: coh.CoherenceResourceSpec{
+				JVM: &coh.JVMSpec{
+					Gc: &coh.JvmGarbageCollectorSpec{
+						Collector: ptr.To("zgc"),
+					},
+				},
+			},
+		},
+	}
+
+	expectedArgs := append(GetExpectedArgsFileContentWithoutPrefix("-XX:+UseG1GC"), "-XX:+UseZGC")
+	verifyConfigFilesWithArgs(t, d, expectedArgs)
+
+	args := []string{"server", "--dry-run"}
+	env := EnvVarsFromDeployment(t, d)
+
+	e, err := ExecuteWithArgsAndNewViper(env, args)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(e).NotTo(BeNil())
+	g.Expect(e.OsCmd).NotTo(BeNil())
+
+	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
+	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
+	expected := append(RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-XX:+UseG1GC"), "-XX:+UseZGC")
+	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
+}
+
 func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
