@@ -1888,6 +1888,15 @@ else
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/ci | $(KUBECTL_CMD) apply -f -
 endif
 
+.PHONY: just-deploy-fips
+just-deploy-fips: ensure-pull-secret ## Deploy the Coherence Operator in FIPS mode without rebuilding anything
+	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
+	$(KUSTOMIZE) build $(BUILD_DEPLOY)/overlays/fips | $(KUBECTL_CMD) apply -f -
+
+.PHONY: fips-test
+fips-test: just-deploy-fips wait-for-deploy
+	$(SCRIPTS_DIR)/fips/fips-test.sh
+
 
 .PHONY: ensure-pull-secret
 ensure-pull-secret:
