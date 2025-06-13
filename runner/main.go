@@ -53,6 +53,6 @@ func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	if fips140.Enabled() {
-		log.Info(fmt.Sprintf("Operator is running with FIPS 140 Enabled"))
+		log.Info("Operator is running with FIPS 140 Enabled")
 	}
 }
