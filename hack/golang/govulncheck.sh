@@ -12,6 +12,8 @@ TOOLS_BIN=${ROOT_DIR}/build/tools/bin
 test -s ${TOOLS_BIN}/govulncheck || GOBIN=${TOOLS_BIN} go install golang.org/x/vuln/cmd/govulncheck@latest
 chmod +x ${TOOLS_BIN}/govulncheck
 
+go version
+
 make build-operator-images
 
 echo "INFO: govulncheck - Checking x84_64 runner"

@@ -24,11 +24,14 @@ How the `GODEBUG` environment variable is set depends on how the operator is ins
 [NOTE]
 ====
 Although the Coherence Operator image can easily be installed in a FIPS compliant mode, none of the default
-Oracle Coherence images used by the operator are FIPS complaint.
+Oracle Coherence images used by the operator are FIPS compliant.
+
 The Oracle Coherence team does not currently publish FIPS compliant Coherence images.
-Coherence is FIPS compatible and correctly configured applications running in an image that has a FIPS
-compliant JDK and FIPS compliant base O/S will be FIPS complaint.
 Customers must build their own FIPS complaint Java and Coherence images, which the operator will then manage.
+
+Coherence is FIPS _compatible_ so a correctly configured application running in an image that has a FIPS
+compliant JDK and FIPS compliant base O/S will be FIPS complaint. To be fully FIPS compliant these images must then
+be run in a container runtime on a FIPS compliant host.
 ====
 
 === Install Using Yaml Manifests
@@ -60,6 +63,21 @@ then add the required `GODEBUG` value, for example
         - name: GODEBUG
           value: fips140=on
 ----
+
+
+=== Install Using Kustomize
+
+If <<docs/installation/013_install_kustomize.adoc,installing the operator using Kustomize>> (or using `kubectl -k`)
+the Coherence manifest yaml files contain a FIPS overlay that adds the `GODEBUG` environment variable
+to the Operator container.
+
+The following command will generate a yaml manifest that installs the operator with FIPS enabled:
+
+[source,bash]
+----
+kustomize build manifests/overlays/fips
+----
+
 
 === Install Using Helm
 

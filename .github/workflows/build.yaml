@@ -147,6 +147,13 @@ jobs:
         make uninstall-crds
         make e2e-helm-test
 
+    - name: FIPS Tests
+      shell: bash
+      run: |
+        make undeploy
+        make uninstall-crds
+        make fips-test
+
     - name: Upload Manifests
       uses: actions/upload-artifact@v4
       if: success()

@@ -1,0 +1,8 @@
+#
+# This patch will configure the Operator to run in FIPS mode.
+#
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: GODEBUG
+    value: "fips140=on"
