@@ -823,7 +823,7 @@ func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectRefer
 
 // GetServiceAccountName returns the service account name for the cluster.
 func (in *CoherenceResourceSpec) GetServiceAccountName() string {
-	if in != nil && in.ServiceAccountName != DefaultServiceAccount {
+	if in != nil {
 		return in.ServiceAccountName
 	}
 	return ""

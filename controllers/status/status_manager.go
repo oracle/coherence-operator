@@ -32,10 +32,11 @@ func (sm *StatusManager) UpdateCoherenceStatusPhase(ctx context.Context, namespa
 	}
 
 	// Update the status phase
-	deployment.Status.Phase = phase
+	updated := deployment.DeepCopy()
+	updated.Status.Phase = phase
 
 	// Update the resource
-	err = sm.Client.Status().Update(ctx, deployment)
+	err = sm.Client.Status().Patch(ctx, deployment, client.MergeFrom(updated))
 	if err != nil {
 		return errors.Wrapf(err, "updating status phase for Coherence resource %s/%s", namespacedName.Namespace, namespacedName.Name)
 	}
@@ -53,11 +54,12 @@ func (sm *StatusManager) UpdateDeploymentStatusHash(ctx context.Context, namespa
 	}
 
 	// Update the status hash
-	deployment.Status.Hash = hash
-	deployment.Status.SetVersion(operator.GetVersion())
+	updated := deployment.DeepCopy()
+	updated.Status.Hash = hash
+	updated.Status.SetVersion(operator.GetVersion())
 
 	// Update the resource
-	err = sm.Client.Status().Update(ctx, deployment)
+	err = sm.Client.Status().Patch(ctx, deployment, client.MergeFrom(updated))
 	if err != nil {
 		return errors.Wrapf(err, "updating status hash for Coherence resource %s/%s", namespacedName.Namespace, namespacedName.Name)
 	}
