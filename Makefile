@@ -1895,6 +1895,7 @@ just-deploy-fips: ensure-pull-secret ## Deploy the Coherence Operator in FIPS mo
 
 .PHONY: fips-test
 fips-test: just-deploy-fips wait-for-deploy
+	chmod +x $(SCRIPTS_DIR)/fips/fips-test.sh
 	$(SCRIPTS_DIR)/fips/fips-test.sh
 
 
