@@ -865,7 +865,7 @@ func TestCreateStatefulSetWithoutServiceAccount(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	stsExpected.Spec.Template.Spec.ServiceAccountName = ""
+	stsExpected.Spec.Template.Spec.ServiceAccountName = coh.DefaultServiceAccount
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

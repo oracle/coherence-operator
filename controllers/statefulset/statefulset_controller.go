@@ -522,11 +522,6 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.SetCreationTimestamp(current.GetCreationTimestamp())
 
-	sa1 := current.Spec.Template.Spec.ServiceAccountName
-	sa2 := original.Spec.Template.Spec.ServiceAccountName
-	sa3 := desired.Spec.Template.Spec.ServiceAccountName
-	logger.Info("**** About to create patch for StatefulSet", "CurrentSA", sa1, "OriginalSA", sa2, "DesiredSA", sa3)
-
 	// create the patch to see whether there is anything to update
 	patch, data, err := in.CreateThreeWayPatch(current.GetName(), original, desired, current, patching.PatchIgnore)
 	if err != nil {
