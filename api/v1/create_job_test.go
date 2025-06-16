@@ -207,7 +207,7 @@ func TestCreateJobWithoutServiceAccount(t *testing.T) {
 	deployment := createTestCoherenceJob(spec)
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
-	jobExpected.Spec.Template.Spec.ServiceAccountName = ""
+	jobExpected.Spec.Template.Spec.ServiceAccountName = coh.DefaultServiceAccount
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
