@@ -44,6 +44,8 @@ const (
 	EventReasonScale string = "Scaling"
 
 	statusHaRetryEnv = "STATUS_HA_RETRY"
+
+	lastAppliedConfigAnnotation string = "kubectl.kubernetes.io/last-applied-configuration"
 )
 
 // blank assignment to verify that ReconcileStatefulSet implements reconcile.Reconciler.
@@ -479,9 +481,9 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 	original.Spec.Template.Spec.Containers[0].Args = []string{}
 
 	// do not patch the annotation "kubectl.kubernetes.io/last-applied-configuration"
-	delete(desired.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
-	delete(original.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
-	delete(current.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
+	delete(desired.Annotations, lastAppliedConfigAnnotation)
+	delete(original.Annotations, lastAppliedConfigAnnotation)
+	delete(current.Annotations, lastAppliedConfigAnnotation)
 
 	desiredPodSpec := desired.Spec.Template
 	currentPodSpec := current.Spec.Template

@@ -827,3 +827,46 @@ func TestCreateStatefulSetWithMinReadySecondsSetToZero(t *testing.T) {
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
 }
+
+func TestCreateStatefulSetWithServiceAccount(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		ServiceAccountName: "Foo",
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.ServiceAccountName = "Foo"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithDefaultServiceAccount(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		ServiceAccountName: "default",
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.ServiceAccountName = "default"
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithoutServiceAccount(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.ServiceAccountName = ""
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}

@@ -129,12 +129,12 @@ func TestCreateJobWithEnvVarsFrom(t *testing.T) {
 
 	// Create the test deployment
 	deployment := createTestCoherenceJobDeployment(spec)
-	// Create expected StatefulSet
+	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)
 
 	addEnvVarsFromToJob(expected, coh.ContainerNameCoherence, from...)
 
-	// assert that the StatefulSet is as expected
+	// assert that the Job is as expected
 	assertJobCreation(t, deployment, expected)
 }
 
@@ -162,10 +162,53 @@ func TestAddLifecycleToJobCoherenceContainer(t *testing.T) {
 
 	// Create the test deployment
 	deployment := createTestCoherenceJobDeployment(spec)
-	// Create expected StatefulSet
+	// Create expected Job
 	expected := createMinimalExpectedJob(deployment)
 	expected.Spec.Template.Spec.Containers[0].Lifecycle = lc
 
-	// assert that the StatefulSet is as expected
+	// assert that the Job is as expected
 	assertJobCreation(t, deployment, expected)
+}
+
+func TestCreateJobWithServiceAccount(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		ServiceAccountName: "Foo",
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJob(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.ServiceAccountName = "Foo"
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
+}
+
+func TestCreateJobWithDefaultServiceAccount(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		ServiceAccountName: "default",
+	}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJob(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.ServiceAccountName = "default"
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
+}
+
+func TestCreateJobWithoutServiceAccount(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{}
+
+	// Create the test deployment
+	deployment := createTestCoherenceJob(spec)
+	// Create expected Job
+	jobExpected := createMinimalExpectedJob(deployment)
+	jobExpected.Spec.Template.Spec.ServiceAccountName = ""
+
+	// assert that the Job is as expected
+	assertJobCreation(t, deployment, jobExpected)
 }
