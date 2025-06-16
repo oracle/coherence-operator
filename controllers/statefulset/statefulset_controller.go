@@ -44,6 +44,8 @@ const (
 	EventReasonScale string = "Scaling"
 
 	statusHaRetryEnv = "STATUS_HA_RETRY"
+
+	lastAppliedConfigAnnotation string = "kubectl.kubernetes.io/last-applied-configuration"
 )
 
 // blank assignment to verify that ReconcileStatefulSet implements reconcile.Reconciler.
@@ -478,6 +480,11 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 	current.Spec.Template.Spec.Containers[0].Args = []string{}
 	original.Spec.Template.Spec.Containers[0].Args = []string{}
 
+	// do not patch the annotation "kubectl.kubernetes.io/last-applied-configuration"
+	delete(desired.Annotations, lastAppliedConfigAnnotation)
+	delete(original.Annotations, lastAppliedConfigAnnotation)
+	delete(current.Annotations, lastAppliedConfigAnnotation)
+
 	desiredPodSpec := desired.Spec.Template
 	currentPodSpec := current.Spec.Template
 	originalPodSpec := original.Spec.Template
@@ -514,6 +521,12 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 
 	// fix the CreationTimestamp so that it is not in the patch
 	desired.SetCreationTimestamp(current.GetCreationTimestamp())
+
+	sa1 := current.Spec.Template.Spec.ServiceAccountName
+	sa2 := original.Spec.Template.Spec.ServiceAccountName
+	sa3 := desired.Spec.Template.Spec.ServiceAccountName
+	logger.Info("**** About to create patch for StatefulSet", "CurrentSA", sa1, "OriginalSA", sa2, "DesiredSA", sa3)
+
 	// create the patch to see whether there is anything to update
 	patch, data, err := in.CreateThreeWayPatch(current.GetName(), original, desired, current, patching.PatchIgnore)
 	if err != nil {
@@ -529,7 +542,7 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 		// Check we have the expected number of ready replicas
 		if readyReplicas != currentReplicas {
 			logger.Info("Re-queuing update request. StatefulSet Status not all replicas are ready", "Ready", readyReplicas, "CurrentReplicas", currentReplicas)
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+			return reconcile.Result{RequeueAfter: time.Minute}, nil
 		}
 
 		// perform the StatusHA check...
@@ -537,7 +550,7 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 		ha := checker.IsStatusHA(ctx, deployment, current)
 		if !ha {
 			logger.Info("Coherence cluster is not StatusHA - re-queuing update request.")
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+			return reconcile.Result{RequeueAfter: time.Minute}, nil
 		}
 	} else {
 		// the user specifically set a forced update!
@@ -549,7 +562,7 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 		suspended := in.suspendServices(ctx, deployment, current)
 		switch suspended {
 		case probe.ServiceSuspendFailed:
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to updating single member deployment")
+			return reconcile.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to updating single member deployment")
 		case probe.ServiceSuspendSkipped:
 			logger.Info("Skipping suspension of Coherence services in single member deployment " + deployment.GetName() +
 				" prior to update StatefulSet")
@@ -566,7 +579,7 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 		logger.Info("Error patching StatefulSet " + err.Error())
 		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 	case !patched:
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	return reconcile.Result{}, nil

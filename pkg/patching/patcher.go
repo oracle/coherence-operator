@@ -176,7 +176,8 @@ func (in *patcher) ApplyThreeWayPatchWithCallback(ctx context.Context, name stri
 	in.logger.WithValues().Info(fmt.Sprintf("Patching %s/%s", kind, name), "Patch", string(data))
 	err := in.mgr.GetClient().Patch(ctx, current, patch)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to patching  %s/%s with %s", kind, name, string(data))
+		in.logger.WithValues().Info(fmt.Sprintf("Failed to patch %s/%s", kind, name), "Patch", string(data), "Error", err.Error())
+		return false, errors.Wrapf(err, "failed to patch  %s/%s with %s", kind, name, string(data))
 	}
 
 	return true, nil
@@ -200,7 +201,7 @@ func (in *patcher) CreateThreeWayPatch(name string, original, desired, current r
 
 	// log the patching
 	kind := current.GetObjectKind().GroupVersionKind().Kind
-	in.logger.Info(fmt.Sprintf("Created patching for %s/%s", kind, name), "Patch", string(data))
+	in.logger.Info(fmt.Sprintf("Created patch for %s/%s", kind, name), "Patch", string(data))
 
 	return client.RawPatch(in.patchType, data), data, nil
 }
