@@ -74,6 +74,15 @@ const (
 	// DefaultServiceAccount is the default k8s service account name.
 	DefaultServiceAccount = "default"
 
+	// DefaultRunAsNonRoot is the default value for the runAsNonRoot field in the Pod security context
+	DefaultRunAsNonRoot = true
+	// DefaultRunAsUser is the default value for the runAsUser field in the Pod security context
+	DefaultRunAsUser int64 = 1000
+	// DefaultRunAsGroup is the default value for the runAsGroup field in the Pod security context
+	DefaultRunAsGroup int64 = 2000
+	// DefaultFsGroup is the default value for the fsGroup field in the Pod security context
+	DefaultFsGroup int64 = DefaultRunAsGroup
+
 	// ContainerNameCoherence is the Coherence container name
 	ContainerNameCoherence = "coherence"
 	// ContainerNameOperatorInit is the Operator init-container name

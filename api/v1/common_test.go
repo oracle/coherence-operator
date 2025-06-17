@@ -503,6 +503,7 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 					VolumeSource: emptyVolume,
 				},
 			},
+			SecurityContext:           coh.DefaultSecurityContext(),
 			TopologySpreadConstraints: spec.EnsureTopologySpreadConstraints(deployment),
 			Affinity:                  spec.CreateDefaultPodAffinity(deployment),
 			ServiceAccountName:        spec.GetServiceAccountName(),

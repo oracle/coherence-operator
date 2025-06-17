@@ -193,6 +193,14 @@ type CoherenceResourceSpec struct {
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment.
+	// If no security context is specified the Operator will create one with the following spec
+	//
+	//   securityContext:
+	//     runAsNonRoot: true
+	//     runAsUser: 1000
+	//     runAsGroup: 2000
+	//     fsGroup: 2000
+	//
 	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 	// +optional
 	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
@@ -739,7 +747,7 @@ func (in *CoherenceResourceSpec) CreatePodTemplateSpec(deployment CoherenceResou
 			ReadinessGates:               in.ReadinessGates,
 			RuntimeClassName:             in.RuntimeClassName,
 			SchedulerName:                notNilString(in.SchedulerName),
-			SecurityContext:              in.SecurityContext,
+			SecurityContext:              in.GetSecurityContext(),
 			ServiceAccountName:           in.GetServiceAccountName(),
 			ShareProcessNamespace:        in.ShareProcessNamespace,
 			Tolerations:                  in.Tolerations,
@@ -819,6 +827,23 @@ func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectRefer
 	}
 
 	return secrets
+}
+
+// GetSecurityContext returns the Pod security context to use.
+func (in *CoherenceResourceSpec) GetSecurityContext() *corev1.PodSecurityContext {
+	if in == nil || in.SecurityContext == nil {
+		return DefaultSecurityContext()
+	}
+	return in.SecurityContext
+}
+
+func DefaultSecurityContext() *corev1.PodSecurityContext {
+	return &corev1.PodSecurityContext{
+		RunAsNonRoot: ptr.To(DefaultRunAsNonRoot),
+		RunAsUser:    ptr.To(DefaultRunAsUser),
+		RunAsGroup:   ptr.To(DefaultRunAsGroup),
+		FSGroup:      ptr.To(DefaultFsGroup),
+	}
 }
 
 // GetServiceAccountName returns the service account name for the cluster.
