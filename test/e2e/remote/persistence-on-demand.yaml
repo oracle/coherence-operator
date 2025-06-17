@@ -16,6 +16,7 @@ spec:
   jvm:
     args:
       - "-Dcoherence.operator.health.logs=true"
+      - "-Dcoherence.distributed.persistence.base.dir=/coherence"
   application:
     main: com.oracle.coherence.k8s.testing.RestServer
   ports:

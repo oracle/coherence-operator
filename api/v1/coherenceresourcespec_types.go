@@ -200,6 +200,7 @@ type CoherenceResourceSpec struct {
 	//     runAsUser: 1000
 	//     runAsGroup: 2000
 	//     fsGroup: 2000
+	//     fsGroupChangePolicy: "OnRootMismatch"
 	//
 	// See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 	// +optional
@@ -839,10 +840,11 @@ func (in *CoherenceResourceSpec) GetSecurityContext() *corev1.PodSecurityContext
 
 func DefaultSecurityContext() *corev1.PodSecurityContext {
 	return &corev1.PodSecurityContext{
-		RunAsNonRoot: ptr.To(DefaultRunAsNonRoot),
-		RunAsUser:    ptr.To(DefaultRunAsUser),
-		RunAsGroup:   ptr.To(DefaultRunAsGroup),
-		FSGroup:      ptr.To(DefaultFsGroup),
+		RunAsNonRoot:        ptr.To(DefaultRunAsNonRoot),
+		RunAsUser:           ptr.To(DefaultRunAsUser),
+		RunAsGroup:          ptr.To(DefaultRunAsGroup),
+		FSGroup:             ptr.To(DefaultFsGroup),
+		FSGroupChangePolicy: ptr.To(DefaultFSGroupChangePolicy),
 	}
 }
 
@@ -951,24 +953,24 @@ func (in *CoherenceResourceSpec) CreateCommonEnv(deployment CoherenceResource) [
 	env := []corev1.EnvVar{
 		{
 			Name: EnvVarCohMachineName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "spec.nodeName",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "spec.nodeName",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohMemberName, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.name",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
 			},
+		},
 		},
 		{
 			Name: EnvVarCohPodUID, ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.uid",
-				},
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.uid",
 			},
+		},
 		},
 		{Name: EnvVarCohRole, Value: deployment.GetRoleName()},
 	}
