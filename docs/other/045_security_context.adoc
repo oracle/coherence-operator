@@ -16,6 +16,20 @@ Kubernetes allows you to configure a https://kubernetes.io/docs/tasks/configure-
 
 For more details see the Kubernetes https://kubernetes.io/docs/tasks/configure-pod-container/security-context/[Security Context] documentation.
 
+The Coherence Operator configures a default security context for the Coherence Pods is none is specified in the `Coherence` resource yaml.
+The default security context looks like this:
+[source,yaml]
+----
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 2000
+  fsGroup: 2000
+  fsGroupChangePolicy: "OnRootMismatch"
+----
+
+It is possible to override this as described below.
+
 === Setting the Pod Security Context
 
 To specify security settings for a Pod, include the `securityContext` field in the Coherence resource specification.
