@@ -405,8 +405,8 @@ func TestCreateStatefulSetWithTolerations(t *testing.T) {
 
 func TestCreateStatefulSetWithSecurityContext(t *testing.T) {
 	ctx := corev1.PodSecurityContext{
-		RunAsUser:    ptr.To(int64(1000)),
-		RunAsNonRoot: boolPtr(true),
+		RunAsUser:    ptr.To(int64(5000)),
+		RunAsNonRoot: boolPtr(false),
 	}
 
 	spec := coh.CoherenceResourceSpec{
