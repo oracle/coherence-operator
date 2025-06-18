@@ -1,5 +1,12 @@
 # Samples
 
+Redirecting, please update your bookmarks...
+
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest/examples/000_overview";
+</script>
+
+
 The samples provide demonstrations of how to accomplish common tasks. These samples are provided for educational and demonstration purposes only; they are not intended to be used in production deployments or to be depended upon to create production environments.
 
 Read through the samples, understand how they work, and then customize them to your requirements.
