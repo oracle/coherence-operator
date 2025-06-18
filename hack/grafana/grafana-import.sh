@@ -12,7 +12,7 @@
 
 #set -x 
 #set +x
-OPTSPEC=":hd:t:u:w:"
+OPTSPEC=":hd:t:u:w:I"
 
 show_help() {
 cat << EOF
@@ -22,10 +22,13 @@ Script to import dashboards into Grafana
     -w      Required. Grafana Password
     -d      Required. Root path containing JSON dashboard files you want imported.
     -t      Required. The full URL of the target host
+    -I      If set will default to http instead of https
 
     -h      Display this help and exit.
 EOF
 }
+
+PROTOCOL="https"
 
 ###### Check script invocation options ######
 while getopts "$OPTSPEC" optchar; do
@@ -42,6 +45,8 @@ while getopts "$OPTSPEC" optchar; do
             GRAFANA_USER="$OPTARG";;
         w)
             GRAFANA_PASSWORD="$OPTARG";;
+        I)
+            PROTOCOL="http";;
         \?)
           echo "Invalid option: -$OPTARG" >&2
           exit 1
@@ -110,11 +115,13 @@ function log_title() {
 ### API KEY GENERATION
 
 KEYNAME=$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 13 | cut -c -7)
-KEYLENGTH=70
-GENERATE_POST_DATA="{\"name\": \"${KEYNAME}\", \"role\": \"Admin\", \"secondsToLive\": 3600 }"
+KEYLENGTH=30
+CREATE_SERVICE_ACCOUNT_DATA="{\"name\": \"${KEYNAME}\", \"role\": \"Admin\", \"isDisabled\": false }"
+CREATE_TOKEN_DATA="{\"name\": \"${KEYNAME}\", \"secondsToLive\": 3600 }"
 
 if [ -n "$GRAFANA_USER" ] || [ -n "$GRAFANA_PASSWORD" ] || [ -n "$TARGET_HOST" ]; then
-    KEY=$(curl -X POST -H "Content-Type: application/json" -d "${GENERATE_POST_DATA}" http://${GRAFANA_USER}:${GRAFANA_PASSWORD}@${TARGET_HOST}/api/auth/keys | jq -r '.key')
+    ID=$(curl -X POST -H "Content-Type: application/json" -d "${CREATE_SERVICE_ACCOUNT_DATA}" -k $PROTOCOL://${GRAFANA_USER}:${GRAFANA_PASSWORD}@${TARGET_HOST}/api/serviceaccounts | jq -r '.id')
+    KEY=$(curl -X POST -H "Content-Type: application/json" -d "${CREATE_TOKEN_DATA}" -k $PROTOCOL://${GRAFANA_USER}:${GRAFANA_PASSWORD}@${TARGET_HOST}/api/serviceaccounts/${ID}/tokens | jq -r '.key')
     if [ ${#KEY} -ge $KEYLENGTH ]; then
         log_title "---- API Key Generated successfully, correct character number generated in API Key, we're going into the next step -----"
     else
@@ -149,15 +156,20 @@ NUMSUCCESS=0
 NUMFAILURE=0
 COUNTER=0
 
+# create Coherence folder
+CREATE_FOLDER_DATA="{\"title\": \"Coherence\"}"
+FOLDER=$(curl -X POST -H "Content-Type: application/json" -d "${CREATE_FOLDER_DATA}" -k $PROTOCOL://${GRAFANA_USER}:${GRAFANA_PASSWORD}@${TARGET_HOST}/api/folders | jq -r '.uid')
+echo "Created Coherence folder with UID ${FOLDER}"
+
 for DASH_FILE in $DASH_LIST; do
     COUNTER=$((COUNTER + 1))
     echo "Import $COUNTER/$FILESTOTAL: $DASH_FILE..."
-    echo '{ "overwrite": true, "dashboard":' > tmp.json
+    echo "{\"folderUid\": \"$FOLDER\", \"overwrite\": true, \"dashboard\":" > tmp.json
     cat $DASH_FILE >> tmp.json
     echo '}' >> tmp.json
-    RESULT=$(cat tmp.json | jq '.dashboard.id = null' | curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $KEY" "http://$TARGET_HOST/api/dashboards/import" -d @-)
+    RESULT=$(cat tmp.json | jq '.dashboard.id = null' | curl -s -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $KEY" "$PROTOCOL://$TARGET_HOST/api/dashboards/db" -d @- | jq -r '.status')
     rm tmp.json
-    if [[ "$RESULT" == *"\"imported\":true"* ]]; then
+    if [[ "$RESULT" == "success" ]]; then
         log_success "$RESULT"
         NUMSUCCESS=$((NUMSUCCESS + 1))
     else
@@ -168,3 +180,4 @@ done
 
 log_title "------------ Import complete. $NUMSUCCESS dashboards were successfully imported. $NUMFAILURE dashboard imports failed.------------";
 log_title "-------------------------------------------------------- FINISHED ------------------------------------------------------";
+
