@@ -4,7 +4,7 @@ USER root
 COPY target/classes/build.sh build.sh
 COPY target/operator-compatibility-*.jar /app/libs/operator-compatibility.jar
 RUN ["java", "-cp", "/app/libs/operator-compatibility.jar", "com.oracle.coherence.k8s.testing.Setup"]
-RUN ["chmod", "-R", "+r", "/app/libs"]
+RUN ["chmod", "-R", "+r", "/app/libs/"]
 RUN ["ls", "-al", "/app/libs"]
 
 FROM ${coherence.test.base.image}
