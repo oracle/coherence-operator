@@ -38,7 +38,7 @@ func checkHash(deployment coh.CoherenceResource, phase coh.ConditionType, storag
 		if hashFound {
 			// The "storeHash" is not "", so it must have been previously processed by the Operator (could have been a previous version).
 			// The operator now uses the Coherence resource's generation instead of calculating a hash, so if the version is
-			// 3.4.3 or earlier and hash difference is ignored.
+			// 3.4.3 or earlier the hash difference is ignored.
 			if deployment.IsBeforeOrSameVersion("3.4.3") {
 				// There is an edge case where the Coherence resource could have legitimately been updated whilst
 				// the Operator and web-hooks were uninstalled. In that case we would ignore the update until another

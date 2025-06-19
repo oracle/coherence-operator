@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermissions;
 
 /**
  * Set-up class run by the compatibility image build.
@@ -44,6 +45,10 @@ public class Setup {
         if (source.toFile().exists()) {
             Path target = targetDir.resolve(source.getFileName());
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            Files.setPosixFilePermissions(target, PosixFilePermissions.fromString("rw-r--r--"));
+        }
+        else {
+            System.out.println("Nothing to copy, source does not exist: " + source);
         }
     }
 }
