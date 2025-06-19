@@ -220,8 +220,10 @@ jobs:
         echo "COHERENCE_IMAGE=${COHERENCE_IMAGE}"
         export BUILD_JAVA_VERSION=${{ matrix.javaVersion }}
         echo "BUILD_JAVA_VERSION=${BUILD_JAVA_VERSION}"
-        export COHERENCE_TEST_BASE_IMAGE=${{ matrix.baseImage }}
-        echo "COHERENCE_TEST_BASE_IMAGE=${COHERENCE_TEST_BASE_IMAGE}"
+        export COHERENCE_TEST_BASE_IMAGE_17=${{ matrix.baseImage }}
+        echo "COHERENCE_TEST_BASE_IMAGE_17=${COHERENCE_TEST_BASE_IMAGE_17}"
+        export COHERENCE_TEST_BASE_IMAGE_21=${{ matrix.baseImage }}
+        echo "COHERENCE_TEST_BASE_IMAGE_21=${COHERENCE_TEST_BASE_IMAGE_17}"
         export OPERATOR_COHERENCE_JAVA_8=${{ matrix.coherenceIsJava8 }}
         make clean
         echo "Building Operator Image"
