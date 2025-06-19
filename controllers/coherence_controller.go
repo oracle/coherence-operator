@@ -96,7 +96,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
 		log.Info("Coherence resource " + request.Namespace + "/" + request.Name + " is already locked, requeue request")
-		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
@@ -134,7 +134,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 				msg := fmt.Sprintf("failed to finalize Coherence resource, %s", err.Error())
 				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
 				log.Error(err, "Failed to remove finalizer")
-				return ctrl.Result{Requeue: true}, nil
+				return ctrl.Result{RequeueAfter: time.Minute}, nil
 			}
 			// Remove the finalizer. Once all finalizers have been
 			// removed, the object will be deleted.
@@ -164,7 +164,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
 			err := in.finalizerManager.EnsureFinalizerRemoved(ctx, deployment)
 			if err != nil && !apierrors.IsNotFound(err) {
-				return ctrl.Result{Requeue: true}, errorhandling.NewOperationError("remove_finalizer", err).
+				return ctrl.Result{}, errorhandling.NewOperationError("remove_finalizer", err).
 					WithContext("resource", deployment.GetName()).
 					WithContext("namespace", deployment.GetNamespace()).
 					WithContext("reason", "allow_unsafe_delete")
@@ -238,7 +238,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// create the result
-	result := ctrl.Result{Requeue: false}
+	result := ctrl.Result{}
 
 	hash := deployment.GetGenerationString()
 	storeHash, _ := storage.GetHash()
@@ -253,6 +253,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		if err = in.statusManager.UpdateDeploymentStatusHash(ctx, request.NamespacedName, hashNew); err != nil {
 			return result, errors.Wrap(err, "error updating deployment status hash")
 		}
+		log.Info("Updated pre-3.5.0 Coherence resource status hash", "From", hash, "To", hashNew)
 		return result, nil
 	}
 
@@ -369,8 +370,9 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.Cli
 	}
 
 	in.statusManager = &status.StatusManager{
-		Client: mgr.GetClient(),
-		Log:    in.Log.WithName("status"),
+		Client:  mgr.GetClient(),
+		Log:     in.Log.WithName("status"),
+		Patcher: in.GetPatcher(),
 	}
 
 	in.resourcesManager = &resources.OperatorSecretManager{
