@@ -45,7 +45,7 @@ public class Setup {
             Path target = targetDir.resolve(source.getFileName());
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
         } else {
-            throw new IllegalStateException("Source does not exist: " + source);
+            System.out.println("Nothing to copy, source does not exist: " + source);
         }
     }
 }
