@@ -10,6 +10,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Set-up class run by the compatibility image build.
@@ -44,6 +48,7 @@ public class Setup {
         if (source.toFile().exists()) {
             Path target = targetDir.resolve(source.getFileName());
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            Files.setPosixFilePermissions(target, PosixFilePermissions.fromString("rw-r--r--"));
         } else {
             System.out.println("Nothing to copy, source does not exist: " + source);
         }
