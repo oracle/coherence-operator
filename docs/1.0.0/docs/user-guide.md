@@ -1,5 +1,9 @@
 # User Guide
 
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest/docs/installation/001_installation";
+</script>
+
 The User Guide provides detailed information about how to install
 Coherence and the Coherence Operator in your Kubernetes cluster, and how to use the operator to manage Coherence clusters.
 

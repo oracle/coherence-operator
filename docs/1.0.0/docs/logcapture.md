@@ -1,5 +1,9 @@
 # Access the EFK (Elasticsearch, Fluentd and Kibana) Stack to View Logs
 
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest/docs/metrics/040_dashboards";
+</script>
+
 The Coherence Operator (the "operator") manages Oracle Coherence on Kubernetes.
 It manages monitoring data through Prometheus, and logging data through the EFK stack.
 

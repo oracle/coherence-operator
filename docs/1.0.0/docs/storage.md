@@ -1,5 +1,9 @@
 # Recommended Storage for Coherence
 
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest/docs/coherence/080_persistence";
+</script>
+
 ### Active Persistence
 
 For active persistence, local storage is recommended as its IO has a lower latency.

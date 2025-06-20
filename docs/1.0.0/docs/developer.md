@@ -1,5 +1,10 @@
 # Developer Guide
 
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest/docs/metrics/040_dashboards";
+</script>
+
+
 The Developer Guide provides information for developers who want to build, install, and test the operator.
 
 After successfully completing the steps in this guide, you can execute the instructions in the [Quick Start Guide](quickstart.md) and [User Guide](user-guide.md).

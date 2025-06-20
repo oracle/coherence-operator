@@ -1,5 +1,8 @@
 # Quick Start Guide
 
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest";
+</script>
 
 The Quick Start guide provides a simple tutorial to help you get the operator up and running quickly. The Coherence Operator (the "operator") manages Coherence through Kubernetes, monitors MBean attributes through Prometheus, and server logs through Elasticsearch and Kibana.
 

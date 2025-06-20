@@ -2,6 +2,10 @@
 
 # Monitor Coherence Services via Grafana Dashboards
 
+<script>
+  window.location.href = "https://docs.coherence.community/coherence-operator/docs/latest/docs/metrics/040_dashboards";
+</script>
+
 The Coherence Operator (the "operator") includes the Prometheus Operator as an optional subchart named, `prometheusoperator`.
 To configure the Prometheus Operator and monitor Coherence services via Grafana dashboards, follow the instructions:
 
