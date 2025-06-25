@@ -75,7 +75,7 @@ globalAnnotations:
 
 # ---------------------------------------------------------------------------
 # Operator Pod securityContext
-# This sets the securityContext configuration for the Pod, for example
+# This sets the securityContext configuration for the Operator Pod, for example,
 # to run as a non-root user:
 #
 #  podSecurityContext:
@@ -86,7 +86,7 @@ podSecurityContext:
 
 # ---------------------------------------------------------------------------
 # Operator container securityContext
-# This sets the securityContext configuration for the container, for example
+# This sets the securityContext configuration for the container, for example,
 # to run as a non-root user:
 #
 #  securityContext:

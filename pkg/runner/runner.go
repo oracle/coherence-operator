@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -36,12 +37,14 @@ import (
 
 const (
 	// defaultConfig is the root name of the default configuration file
-	defaultConfig = ".coherence-runner"
+	defaultConfig = "coherence-operator.yaml"
 )
 
 var (
 	// An alternative configuration file to use instead of program arguments
 	cfgFile string
+	// An alternative configuration file type to use instead of program arguments
+	cfgFileType string
 
 	// backoffSchedule is a sequence of back-off times for re-trying http requests.
 	backoffSchedule = []time.Duration{
@@ -92,8 +95,8 @@ func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().Bool(operator.FlagDryRun, false, "Just print information about the commands that would execute")
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", fmt.Sprintf("config file (default is $HOME/%s.yaml)", defaultConfig))
-	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, operator.FlagConfig, "", fmt.Sprintf("config file (default is $HOME/%s.yaml)", defaultConfig))
+	rootCmd.PersistentFlags().StringVar(&cfgFileType, operator.FlagConfigType, "yaml", "config file type (default is yaml)")
 
 	rootCmd.AddCommand(initCommand(env))
 	rootCmd.AddCommand(configCommand(env))
@@ -114,27 +117,42 @@ func NewRootCommand(env map[string]string, v *viper.Viper) *cobra.Command {
 func initializeConfig(cmd *cobra.Command, v *viper.Viper, env map[string]string) error {
 	if cfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		v.SetConfigFile(cfgFile)
+		v.SetConfigType(cfgFileType)
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".coherence" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(defaultConfig)
+		v.AddConfigPath(home)
+		v.AddConfigPath(".")
+		v.AddConfigPath("/coherence-operator/config")
+		v.SetConfigType(cfgFileType)
+		v.SetConfigName(defaultConfig)
 	}
 
 	// Attempt to read the config file, gracefully ignoring errors
 	// caused by a config file not being found. Return an error
 	// if we cannot parse the config file.
+	found := true
 	if err := v.ReadInConfig(); err != nil {
 		// It's okay if there isn't a config file
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
 			return err
+		} else {
+			found = false
+			log.Info("Coherence Operator configuration file not found")
 		}
+	}
+
+	if found {
+		log.Info("Watching Coherence Operator configuration file", "FileName", v.ConfigFileUsed())
+		v.OnConfigChange(func(e fsnotify.Event) {
+			log.Info("Coherence Operator configuration file changed", "FileName", e.Name)
+		})
+		v.WatchConfig()
 	}
 
 	// When we bind flags to environment variables expect that the

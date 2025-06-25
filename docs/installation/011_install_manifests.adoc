@@ -103,9 +103,6 @@ below in <<manual-crd,Manually Install the CRDs>>.
 [#manual-crd]
 == Manually Install the CRDs
 
-Although by default the Operator will install its CRDs, they can be manually installed into Kubernetes.
-This may be required where the Operator is running with restricted permissions as described above.
-
 The Operator release artifacts include small versions of the two CRDs which can be installed with the following commands:
 
 [source,bash]
@@ -133,3 +130,4 @@ Or on MacOS, where `sed` is slightly different:
 ----
 sed -i '' -e 's/replicas: 3/replicas: 1/g' coherence-operator.yaml
 ----
+
