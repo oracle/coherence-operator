@@ -833,19 +833,9 @@ func (in *CoherenceResourceSpec) GetImagePullSecrets() []corev1.LocalObjectRefer
 // GetSecurityContext returns the Pod security context to use.
 func (in *CoherenceResourceSpec) GetSecurityContext() *corev1.PodSecurityContext {
 	if in == nil || in.SecurityContext == nil {
-		return DefaultSecurityContext()
+		return operator.DefaultSecurityContext()
 	}
 	return in.SecurityContext
-}
-
-func DefaultSecurityContext() *corev1.PodSecurityContext {
-	return &corev1.PodSecurityContext{
-		RunAsNonRoot:        ptr.To(DefaultRunAsNonRoot),
-		RunAsUser:           ptr.To(DefaultRunAsUser),
-		RunAsGroup:          ptr.To(DefaultRunAsGroup),
-		FSGroup:             ptr.To(DefaultFsGroup),
-		FSGroupChangePolicy: ptr.To(DefaultFSGroupChangePolicy),
-	}
 }
 
 // GetServiceAccountName returns the service account name for the cluster.

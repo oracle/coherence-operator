@@ -87,6 +87,9 @@ spec:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
           readOnly: true
+        - mountPath: /coherence-operator/config
+          name: config
+          readOnly: true
         readinessProbe:
           httpGet:
             port: health
@@ -114,6 +117,10 @@ spec:
             drop:
               - "ALL"
       volumes:
+      - name: config
+        configMap:
+          name: coherence-operator
+          optional: true
       - name: cert
         secret:
           defaultMode: 420

@@ -1,0 +1,3 @@
+coherenceSecurityContext:
+  runAsUser: 1000
+

@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/version"
+	"k8s.io/utils/ptr"
 	"os"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -46,6 +47,25 @@ const (
 	CertTypeManual        = "manual"
 	CertManagerIssuerName = "coherence-webhook-server-issuer"
 
+	// DefaultRunAsNonRoot is the default value for the runAsNonRoot field in the Pod security context
+	DefaultRunAsNonRoot = true
+	// DefaultRunAsUser is the default value for the runAsUser field in the Pod security context
+	DefaultRunAsUser int64 = 1000650000
+	// DefaultRunAsGroup is the default value for the runAsGroup field in the Pod security context
+	DefaultRunAsGroup int64 = 1000650000
+	// DefaultFsGroup is the default value for the fsGroup field in the Pod security context
+	DefaultFsGroup int64 = DefaultRunAsGroup
+	// DefaultFSGroupChangePolicy is the default value for the fsGroup field in the Pod security context
+	DefaultFSGroupChangePolicy = corev1.FSGroupChangeOnRootMismatch
+
+	ConfigKeyCoherenceSecurityContext                    = "coherenceSecurityContext"
+	ConfigKeyCoherenceSecurityContextEnabled             = "enabled"
+	ConfigKeyCoherenceSecurityContextRunAsUser           = "runAsUser"
+	ConfigKeyCoherenceSecurityContextRunAsGroup          = "runAsGroup"
+	ConfigKeyCoherenceSecurityContextRunAsNonRoot        = "runAsNonRoot"
+	ConfigKeyCoherenceSecurityContextFsGroup             = "fsGroup"
+	ConfigKeyCoherenceSecurityContextFSGroupChangePolicy = "fSGroupChangePolicy"
+
 	DefaultMutatingWebhookName   = "coherence-operator-mutating-webhook-configuration"
 	DefaultValidatingWebhookName = "coherence-operator-validating-webhook-configuration"
 
@@ -60,6 +80,8 @@ const (
 	FlagDevMode               = "coherence-dev-mode"
 	FlagCipherDenyList        = "cipher-deny-list"
 	FlagCipherAllowList       = "cipher-allow-list"
+	FlagConfig                = "config"
+	FlagConfigType            = "config-type"
 	FlagDryRun                = "dry-run"
 	FlagEnableWebhook         = "enable-webhook"
 	FlagEnableHttp2           = "enable-http2"
@@ -618,4 +640,47 @@ func RemoveFromUInt16Array(arr []uint16, toRemove uint16) []uint16 {
 		}
 	}
 	return arr
+}
+
+// DefaultSecurityContext returns the default Pod security context that the Operator will apply
+// to Coherence pods. The values used can be overridden using command line args.
+func DefaultSecurityContext() *corev1.PodSecurityContext {
+	v := GetViper()
+
+	m := v.GetStringMap(ConfigKeyCoherenceSecurityContext)
+	if m == nil {
+		m = make(map[string]interface{})
+	}
+
+	enabled, found := m[strings.ToLower(ConfigKeyCoherenceSecurityContextEnabled)]
+	if found && enabled == false {
+		return nil
+	}
+
+	sc := &corev1.PodSecurityContext{}
+
+	if v.IsSet(ConfigKeyCoherenceSecurityContext) {
+		err := v.UnmarshalKey(ConfigKeyCoherenceSecurityContext, sc)
+		if err != nil {
+			setupLog.Error(err, "unable to unmarshal coherenceSecurityContext from Operator config file")
+		}
+	}
+
+	if _, found := m[strings.ToLower(ConfigKeyCoherenceSecurityContextRunAsUser)]; !found {
+		sc.RunAsUser = ptr.To(DefaultRunAsUser)
+	}
+	if _, found := m[strings.ToLower(ConfigKeyCoherenceSecurityContextRunAsGroup)]; !found {
+		sc.RunAsGroup = ptr.To(DefaultRunAsGroup)
+	}
+	if _, found := m[strings.ToLower(ConfigKeyCoherenceSecurityContextRunAsNonRoot)]; !found {
+		sc.RunAsNonRoot = ptr.To(DefaultRunAsNonRoot)
+	}
+	if _, found := m[strings.ToLower(ConfigKeyCoherenceSecurityContextFsGroup)]; !found {
+		sc.FSGroup = ptr.To(DefaultFsGroup)
+	}
+	if _, found := m[strings.ToLower(ConfigKeyCoherenceSecurityContextFSGroupChangePolicy)]; !found {
+		sc.FSGroupChangePolicy = ptr.To(DefaultFSGroupChangePolicy)
+	}
+
+	return sc
 }
