@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	hooks "sigs.k8s.io/controller-runtime/pkg/webhook"
+	"time"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -148,6 +149,15 @@ func execute(v *viper.Viper) error {
 		TLSOpts: tlsOpts,
 	})
 
+	duration := viper.GetDuration(operator.FlagLeaderElectionDuration)
+	if duration < time.Second*10 {
+		duration = time.Second * 10
+	}
+	renew := viper.GetDuration(operator.FlagLeaderElectionRenew)
+	if renew < time.Second*10 {
+		renew = time.Second * 10
+	}
+
 	options := ctrl.Options{
 		Scheme:                 scheme,
 		HealthProbeBindAddress: viper.GetString(operator.FlagHealthAddress),
@@ -155,6 +165,8 @@ func execute(v *viper.Viper) error {
 		WebhookServer:          webhookServer,
 		LeaderElection:         viper.GetBool(operator.FlagLeaderElection),
 		LeaderElectionID:       lockName,
+		LeaseDuration:          &duration,
+		RenewDeadline:          &renew,
 		Controller: config.Controller{
 			SkipNameValidation: ptr.To(dryRun),
 		},

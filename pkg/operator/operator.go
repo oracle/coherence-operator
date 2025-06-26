@@ -49,45 +49,47 @@ const (
 	DefaultMutatingWebhookName   = "coherence-operator-mutating-webhook-configuration"
 	DefaultValidatingWebhookName = "coherence-operator-validating-webhook-configuration"
 
-	FlagCACertRotateBefore    = "ca-cert-rotate-before"
-	FlagCACertValidity        = "ca-cert-validity"
-	FlagCertType              = "cert-type"
-	FlagCertIssuer            = "cert-issuer"
-	FlagCoherenceImage        = "coherence-image"
-	FlagCRD                   = "install-crd"
-	FlagJobCRD                = "install-job-crd"
-	FlagEnableCoherenceJobs   = "enable-jobs"
-	FlagDevMode               = "coherence-dev-mode"
-	FlagCipherDenyList        = "cipher-deny-list"
-	FlagCipherAllowList       = "cipher-allow-list"
-	FlagConfig                = "config"
-	FlagConfigType            = "config-type"
-	FlagDryRun                = "dry-run"
-	FlagEnableWebhook         = "enable-webhook"
-	FlagEnableHttp2           = "enable-http2"
-	FlagGlobalAnnotation      = "global-annotation"
-	FlagGlobalLabel           = "global-label"
-	FlagHealthAddress         = "health-addr"
-	FlagLeaderElection        = "enable-leader-election"
-	FlagMetricsAddress        = "metrics-addr"
-	FlagMutatingWebhookName   = "mutating-webhook-name"
-	FlagOperatorNamespace     = "operator-namespace"
-	FlagNodeLookupEnabled     = "node-lookup-enabled"
-	FlagRackLabel             = "rack-label"
-	FlagRestHost              = "rest-host"
-	FlagRestPort              = "rest-port"
-	FlagSecureMetrics         = "metrics-secure"
-	FlagServiceName           = "service-name"
-	FlagServicePort           = "service-port"
-	FlagSiteLabel             = "site-label"
-	FlagSkipServiceSuspend    = "skip-service-suspend"
-	FlagOperatorImage         = "operator-image"
-	FlagValidatingWebhookName = "validating-webhook-name"
-	FlagWebhookCertDir        = "webhook-cert-dir"
-	FlagWebhookSecret         = "webhook-secret"
-	FlagWebhookService        = "webhook-service"
-	FlagEnvVar                = "env"
-	FlagJvmArg                = "jvm"
+	FlagCACertRotateBefore     = "ca-cert-rotate-before"
+	FlagCACertValidity         = "ca-cert-validity"
+	FlagCertType               = "cert-type"
+	FlagCertIssuer             = "cert-issuer"
+	FlagCoherenceImage         = "coherence-image"
+	FlagCRD                    = "install-crd"
+	FlagJobCRD                 = "install-job-crd"
+	FlagEnableCoherenceJobs    = "enable-jobs"
+	FlagDevMode                = "coherence-dev-mode"
+	FlagCipherDenyList         = "cipher-deny-list"
+	FlagCipherAllowList        = "cipher-allow-list"
+	FlagConfig                 = "config"
+	FlagConfigType             = "config-type"
+	FlagDryRun                 = "dry-run"
+	FlagEnableWebhook          = "enable-webhook"
+	FlagEnableHttp2            = "enable-http2"
+	FlagGlobalAnnotation       = "global-annotation"
+	FlagGlobalLabel            = "global-label"
+	FlagHealthAddress          = "health-addr"
+	FlagLeaderElection         = "enable-leader-election"
+	FlagLeaderElectionDuration = "leader-election-duration"
+	FlagLeaderElectionRenew    = "leader-election-renew-timeout"
+	FlagMetricsAddress         = "metrics-addr"
+	FlagMutatingWebhookName    = "mutating-webhook-name"
+	FlagOperatorNamespace      = "operator-namespace"
+	FlagNodeLookupEnabled      = "node-lookup-enabled"
+	FlagRackLabel              = "rack-label"
+	FlagRestHost               = "rest-host"
+	FlagRestPort               = "rest-port"
+	FlagSecureMetrics          = "metrics-secure"
+	FlagServiceName            = "service-name"
+	FlagServicePort            = "service-port"
+	FlagSiteLabel              = "site-label"
+	FlagSkipServiceSuspend     = "skip-service-suspend"
+	FlagOperatorImage          = "operator-image"
+	FlagValidatingWebhookName  = "validating-webhook-name"
+	FlagWebhookCertDir         = "webhook-cert-dir"
+	FlagWebhookSecret          = "webhook-secret"
+	FlagWebhookService         = "webhook-service"
+	FlagEnvVar                 = "env"
+	FlagJvmArg                 = "jvm"
 
 	// EnvVarWatchNamespace is the environment variable to use to set the watch namespace(s)
 	EnvVarWatchNamespace = "WATCH_NAMESPACE"
@@ -304,6 +306,17 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		FlagCipherAllowList,
 		nil,
 		"A list of TLS cipher names to be enabled (if a cipher appears in this list and the deny list it will be disabled)")
+	cmd.Flags().Duration(
+		FlagLeaderElectionDuration,
+		time.Second*30,
+		"The value the Operator uses for the leadership lease duration. "+
+			"Setting this value too low can cause Pod restarts as the leader may lose leadership. "+
+			"If the value entered is less than 10s, then 10s will be used")
+	cmd.Flags().Duration(
+		FlagLeaderElectionRenew,
+		time.Second*20,
+		"The duration the Operator uses for the leadership lease renewal timeout. "+
+			"If the value entered is less than 10s, then 10s will be used")
 
 	// enable using dashed notation in flags and underscores in env
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
