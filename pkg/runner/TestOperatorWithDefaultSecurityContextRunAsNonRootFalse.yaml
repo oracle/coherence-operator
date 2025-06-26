@@ -1,3 +1,0 @@
-coherenceSecurityContext:
-  runAsNonRoot: false
-

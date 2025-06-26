@@ -185,7 +185,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 				in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, "added finalizer")
 			}
 			// we need to requeue as we have updated the Coherence resource
-			return ctrl.Result{Requeue: true}, err
+			return ctrl.Result{RequeueAfter: time.Minute}, err
 		}
 	}
 

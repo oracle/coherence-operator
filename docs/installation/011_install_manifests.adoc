@@ -130,4 +130,3 @@ Or on MacOS, where `sed` is slightly different:
 ----
 sed -i '' -e 's/replicas: 3/replicas: 1/g' coherence-operator.yaml
 ----
-

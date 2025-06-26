@@ -332,16 +332,7 @@ For example: +
     effect: "NoSchedule" + +
  +
   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ + m| []https://{k8s-doc-link}/#toleration-v1-core[corev1.Toleration] | false
-m| securityContext | SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment. If no security context is specified the Operator will create one with the following spec +
- +
-  securityContext: + +
-    runAsNonRoot: true + +
-    runAsUser: 1000 + +
-    runAsGroup: 2000 + +
-    fsGroup: 2000 + +
-    fsGroupChangePolicy: "OnRootMismatch" + +
- +
-See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://{k8s-doc-link}/#podsecuritycontext-v1-core[corev1.PodSecurityContext] | false
+m| securityContext | SecurityContext is the PodSecurityContext that will be added to all the Pods in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://{k8s-doc-link}/#podsecuritycontext-v1-core[corev1.PodSecurityContext] | false
 m| containerSecurityContext | ContainerSecurityContext is the SecurityContext that will be added to the Coherence container in each Pod in this deployment. See: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ m| &#42;https://{k8s-doc-link}/#securitycontext-v1-core[corev1.SecurityContext] | false
 m| shareProcessNamespace | Share a single process namespace between all the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Default to false. m| &#42;bool | false
 m| hostIPC | Use the host's ipc namespace. Optional: Default to false. m| &#42;bool | false

@@ -6,10 +6,7 @@
 
 package v1
 
-import (
-	"github.com/oracle/coherence-operator/pkg/operator"
-	corev1 "k8s.io/api/core/v1"
-)
+import "github.com/oracle/coherence-operator/pkg/operator"
 
 const (
 	// DefaultReplicas is the default number of replicas that will be created for a deployment if no value is specified in the spec
@@ -76,17 +73,6 @@ const (
 
 	// DefaultServiceAccount is the default k8s service account name.
 	DefaultServiceAccount = "default"
-
-	// DefaultRunAsNonRoot is the default value for the runAsNonRoot field in the Pod security context
-	DefaultRunAsNonRoot = true
-	// DefaultRunAsUser is the default value for the runAsUser field in the Pod security context
-	DefaultRunAsUser int64 = 1000
-	// DefaultRunAsGroup is the default value for the runAsGroup field in the Pod security context
-	DefaultRunAsGroup int64 = 2000
-	// DefaultFsGroup is the default value for the fsGroup field in the Pod security context
-	DefaultFsGroup int64 = DefaultRunAsGroup
-	// DefaultFSGroupChangePolicy is the default value for the fsGroup field in the Pod security context
-	DefaultFSGroupChangePolicy = corev1.FSGroupChangeOnRootMismatch
 
 	// ContainerNameCoherence is the Coherence container name
 	ContainerNameCoherence = "coherence"
