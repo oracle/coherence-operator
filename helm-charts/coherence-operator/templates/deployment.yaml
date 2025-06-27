@@ -190,6 +190,12 @@ spec:
 {{- range .Values.cipherDenyList }}
         - --cipher-deny-list={{ . }}
 {{- end }}
+{{- if .Values.leaderElectionDuration }}
+        - --leader-election-duration={{ .Values.leaderElectionDuration | quote }}
+{{- end }}
+{{- if .Values.leaderElectionRenewTimeout }}
+        - --leader-election-renew-timeout={{ .Values.leaderElectionRenewTimeout | quote }}
+{{- end }}
         command:
         - "/files/runner"
         env:
