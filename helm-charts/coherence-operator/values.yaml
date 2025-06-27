@@ -225,8 +225,34 @@ allowCoherenceJobs: true
 # The CRDs must be manually installed before the Operator can be installed.
 installCrd: true
 
+# The list of allowed TLS cipher suite names.
 cipherAllowList: []
 
+# The list of disallowed TLS cipher suite names.
 cipherDenyList: []
 
+# This value is used to set the `GODEBUG` environment variables.
+# The `fips` value is unset by default, if set it must be one of the values, "off", "on" or "only".
+# If `fips` is set to any other value, the chart will fail to install.
 fips:
+
+# The value that the Operator will use for the leadership lease duration.
+# This is a string value that should be a valid Go Duration string.
+#
+# The default value is 30 seconds. The only reason to change this is in some environments
+# that may be particularly slow and would need a larger value due to loss of leadership issues
+#
+# Normally this will be a number of seconds. For example, 30 seconds is "30s" and
+# there would not be any reason to have values in minutes or hours.
+leaderElectionDuration:
+
+# The value that the Operator will use for the leadership lease renewal timeout.
+# This is a string value that should be a valid Go Duration string.
+#
+# The default value is 20 seconds. The only reason to change this is in some environments
+# that may be particularly slow and would need a larger value due to loss of leadership issues
+#
+# Normally this will be a number of seconds. For example, 30 seconds is "30s" and
+# there would not be any reason to have values in minutes or hours.
+leaderElectionRenewTimeout:
+
