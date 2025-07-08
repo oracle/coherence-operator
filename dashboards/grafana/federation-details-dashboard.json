@@ -16,7 +16,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 22,
+  "id": 17,
   "links": [
     {
       "icon": "dashboard",
@@ -88,7 +88,6 @@
             "inspect": false,
             "minWidth": 50
           },
-          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -102,7 +101,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "Mbits"
         },
         "overrides": [
           {
@@ -261,7 +261,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "none"
               },
               {
                 "id": "decimals",
@@ -284,7 +284,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "none"
               },
               {
                 "id": "decimals",
@@ -307,7 +307,7 @@
               },
               {
                 "id": "unit",
-                "value": "short"
+                "value": "none"
               },
               {
                 "id": "decimals",
@@ -427,7 +427,7 @@
                         "text": "ERROR"
                       },
                       "10": {
-                        "color": "orange",
+                        "color": "green",
                         "index": 10,
                         "text": "YIELDING"
                       },
@@ -510,6 +510,22 @@
                 "id": "custom.align"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #H"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Mbits"
+              },
+              {
+                "id": "displayName",
+                "value": "Outgoing Rate"
+              }
+            ]
           }
         ]
       },
@@ -537,6 +553,7 @@
       "targets": [
         {
           "datasource": "prometheus",
+          "editorMode": "code",
           "expr": "sum(coherence_federation_destination_total_bytes_sent {namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'})by (coherence_service, name, participant_type, node_id)",
           "format": "table",
           "instant": true,
@@ -598,9 +615,20 @@
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
+        },
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(irate(coherence_federation_destination_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'}[1m])) by (node_id)  * 8 / 1000000",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "H"
         }
       ],
-      "title": "Destinations",
+      "title": "Outgoing Rate",
       "transformations": [
         {
           "id": "merge",
@@ -610,6 +638,98 @@
         }
       ],
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Mibits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 30,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(irate(coherence_federation_destination_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name='$Destination'}[1m]) * 8 / 1000000) by (member)",
+          "interval": "",
+          "legendFormat": "Member: {{member}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Outgoing Data Rate - All Members",
+      "type": "timeseries"
     },
     {
       "datasource": "prometheus",
@@ -637,7 +757,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 8
+        "y": 17
       },
       "id": 19,
       "options": {
@@ -694,7 +814,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 8
+        "y": 17
       },
       "id": 20,
       "options": {
@@ -751,7 +871,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 8
+        "y": 17
       },
       "id": 21,
       "options": {
@@ -842,7 +962,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 23
       },
       "id": 23,
       "options": {
@@ -915,8 +1035,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -932,7 +1051,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 32
       },
       "id": 25,
       "options": {
@@ -1005,8 +1124,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1022,7 +1140,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 32
       },
       "id": 26,
       "options": {
@@ -1095,8 +1213,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1112,7 +1229,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 23
+        "y": 32
       },
       "id": 27,
       "options": {
@@ -1187,8 +1304,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1204,7 +1320,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 33
+        "y": 42
       },
       "id": 7,
       "interval": "",
@@ -1282,8 +1398,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1299,7 +1414,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 33
+        "y": 42
       },
       "id": 16,
       "interval": "",
@@ -1377,8 +1492,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1394,7 +1508,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 41
+        "y": 50
       },
       "id": 17,
       "interval": "",
@@ -1473,8 +1587,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1490,7 +1603,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 41
+        "y": 50
       },
       "id": 12,
       "interval": "",
@@ -1569,8 +1682,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1586,7 +1698,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 49
+        "y": 58
       },
       "id": 28,
       "interval": "",
@@ -1667,8 +1779,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1684,7 +1795,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 49
+        "y": 58
       },
       "id": 29,
       "interval": "",
@@ -1726,7 +1837,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 66
       },
       "id": 13,
       "links": [],
@@ -1763,8 +1874,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2003,8 +2113,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
+                      "color": "rgba(50, 172, 45, 0.97)"
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -2067,7 +2176,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 59
+        "y": 68
       },
       "id": 8,
       "links": [],
@@ -2148,8 +2257,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2422,7 +2530,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 74
       },
       "id": 15,
       "links": [],
@@ -2513,8 +2621,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2530,7 +2637,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 71
+        "y": 80
       },
       "id": 14,
       "links": [],
@@ -2702,6 +2809,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 7,
+  "version": 9,
   "weekStart": ""
 }

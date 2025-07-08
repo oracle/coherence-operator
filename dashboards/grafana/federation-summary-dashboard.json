@@ -44,7 +44,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 10,
+  "id": 23,
   "links": [
     {
       "icon": "dashboard",
@@ -111,12 +111,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "transparent",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
@@ -242,101 +238,79 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Healthy Members"
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "Value #C"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Status"
+                "value": "Problematic Members"
               },
               {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 0
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "0": {
-                        "index": 0,
-                        "text": "INITIAL"
-                      },
-                      "1": {
-                        "index": 1,
-                        "text": "STARTING"
-                      },
-                      "2": {
-                        "color": "green",
-                        "index": 2,
-                        "text": "CONNECTING"
-                      },
-                      "3": {
-                        "color": "orange",
-                        "index": 3,
-                        "text": "CONNECT_WAIT"
-                      },
-                      "4": {
-                        "color": "green",
-                        "index": 4,
-                        "text": "IDLE"
-                      },
-                      "5": {
-                        "color": "green",
-                        "index": 5,
-                        "text": "READY"
-                      },
-                      "6": {
-                        "color": "green",
-                        "index": 6,
-                        "text": "SENDING"
-                      },
-                      "7": {
-                        "color": "orange",
-                        "index": 7,
-                        "text": "STOPPED"
-                      },
-                      "8": {
-                        "color": "orange",
-                        "index": 8,
-                        "text": "PAUSED"
-                      },
-                      "9": {
-                        "color": "red",
-                        "index": 9,
-                        "text": "ERROR"
-                      },
-                      "10": {
-                        "color": "orange",
-                        "index": 10,
-                        "text": "YIELDING"
-                      },
-                      "11": {
-                        "color": "red",
-                        "index": 11,
-                        "text": "DISCONNECTED"
-                      },
-                      "12": {
-                        "color": "orange",
-                        "index": 12,
-                        "text": "DISCONNECTING"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
+                "id": "noValue",
+                "value": "0"
               },
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-background"
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
                 }
               }
             ]
@@ -368,22 +342,35 @@
         {
           "datasource": "prometheus",
           "editorMode": "code",
+          "exemplar": false,
           "expr": "count( coherence_federation_destination_total_msg_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"})by (coherence_service, name, participant_type)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
+          "range": false,
           "refId": "A"
         },
         {
           "datasource": "prometheus",
           "editorMode": "code",
-          "expr": "avg(coherence_federation_destination_status {namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (coherence_service, name, participant_type)",
+          "expr": "count by (coherence_service, name, participant_type) (\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 3 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 7 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 8 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 9 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 11 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 12\n)",
           "format": "table",
           "instant": true,
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "C"
+        },
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "count by (coherence_service, name, participant_type) (\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 0 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 1 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 2 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 4 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 5 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 6 or\n  coherence_federation_destination_state_code{namespace=~\"${Namespace:.*}\", cluster=\"${ClusterName:raw}\"} == 10\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
         }
       ],
       "title": "Destinations",
@@ -615,6 +602,203 @@
       "type": "table"
     },
     {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Mbits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 32,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(irate(coherence_federation_destination_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}[1m])) * 8 / 1000000",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Rate",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Outgoing Data Rate - All Services and Members",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Mbits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 33,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(irate(coherence_federation_destination_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}[1m])  * 8 / 1000000) by (member)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Member: {{member}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Outgoing Data Rate - All Services by Member",
+      "type": "timeseries"
+    },
+    {
       "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
@@ -640,7 +824,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 8
+        "y": 16
       },
       "id": 27,
       "options": {
@@ -697,7 +881,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 8
+        "y": 16
       },
       "id": 31,
       "options": {
@@ -754,7 +938,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 8
+        "y": 16
       },
       "id": 29,
       "options": {
@@ -825,7 +1009,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "id": 17,
       "links": [],
@@ -896,7 +1080,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 14
+        "y": 22
       },
       "id": 13,
       "links": [],
@@ -967,7 +1151,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 14
+        "y": 22
       },
       "id": 10,
       "links": [],
@@ -1038,7 +1222,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 14
+        "y": 22
       },
       "id": 14,
       "links": [],
@@ -1109,7 +1293,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 14
+        "y": 22
       },
       "id": 18,
       "links": [],
@@ -1180,7 +1364,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 14
+        "y": 22
       },
       "id": 11,
       "links": [],
@@ -1273,7 +1457,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 26
       },
       "id": 23,
       "links": [],
@@ -1367,7 +1551,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 26
       },
       "id": 7,
       "interval": "",
@@ -1461,7 +1645,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 34
       },
       "id": 19,
       "links": [],
@@ -1550,7 +1734,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 34
       },
       "id": 24,
       "links": [],
@@ -1643,7 +1827,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34
+        "y": 42
       },
       "id": 21,
       "links": [],
@@ -1732,7 +1916,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 34
+        "y": 42
       },
       "id": 20,
       "links": [],
@@ -1825,7 +2009,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 42
+        "y": 50
       },
       "id": 6,
       "links": [],
@@ -1914,7 +2098,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 42
+        "y": 50
       },
       "id": 22,
       "links": [],
@@ -1958,6 +2142,9 @@
     "list": [
       {
         "current": {
+          "selected": false,
+          "text": "None",
+          "value": ""
         },
         "datasource": "prometheus",
         "definition": "label_values(coherence_cluster_size,namespace)",
@@ -2103,6 +2290,6 @@
   "timezone": "",
   "title": "Coherence Federation Summary Dashboard",
   "uid": "coh-federation-summary",
-  "version": 5,
+  "version": 11,
   "weekStart": ""
 }
