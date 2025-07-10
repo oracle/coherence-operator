@@ -44,7 +44,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 23,
+  "id": 2,
   "links": [
     {
       "icon": "dashboard",
@@ -625,7 +625,7 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
+            "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
@@ -725,7 +725,7 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
+            "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
@@ -2290,6 +2290,6 @@
   "timezone": "",
   "title": "Coherence Federation Summary Dashboard",
   "uid": "coh-federation-summary",
-  "version": 11,
+  "version": 2,
   "weekStart": ""
 }

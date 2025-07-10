@@ -16,7 +16,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 17,
+  "id": 4,
   "links": [
     {
       "icon": "dashboard",
@@ -699,11 +699,103 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 8
       },
       "id": 30,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(irate(coherence_federation_destination_total_bytes_sent{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\", coherence_service='$ServiceName', name='$Destination'}[1m]) * 8 / 1000000)",
+          "interval": "",
+          "legendFormat": "Total Rate",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Outgoing Data Rate - All Members",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Mibits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 31,
       "options": {
         "legend": {
           "calcs": [],
@@ -728,7 +820,7 @@
           "refId": "A"
         }
       ],
-      "title": "Outgoing Data Rate - All Members",
+      "title": "Outgoing Data Rate - Per Member",
       "type": "timeseries"
     },
     {
@@ -2809,6 +2901,6 @@
   "timezone": "",
   "title": "Coherence Federation Details Dashboard",
   "uid": "coh-federation-details",
-  "version": 9,
+  "version": 4,
   "weekStart": ""
 }
