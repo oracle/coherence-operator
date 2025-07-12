@@ -75,7 +75,7 @@
         <version.lib.gson>2.8.9</version.lib.gson>
         <version.lib.okhttp>3.14.7</version.lib.okhttp>
         <version.lib.swagger.core>1.5.24</version.lib.swagger.core>
-        <version.lib.commons.lang3>3.10</version.lib.commons.lang3>
+        <version.lib.commons.lang3>3.18.0</version.lib.commons.lang3>
         <version.lib.jodatime>2.9.9</version.lib.jodatime>
         <version.lib.javax.annotation>1.3.2</version.lib.javax.annotation>
         <version.lib.k8s>14.0.0</version.lib.k8s>
