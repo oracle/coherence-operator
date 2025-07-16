@@ -139,7 +139,7 @@ For each of the OKE clusters, carry out the following
 ==== 1. Install the Coherence Operator
 
 To run the examples below, you will need to have installed the Coherence Operator,
-do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/001_installation[Installation Guide].
+do this using whatever method you prefer from the https://docs.coherence.community/coherence-operator/docs/latest/docs/installation/001_installation[Installation Guide].
 
 [source,bash]
 ----
