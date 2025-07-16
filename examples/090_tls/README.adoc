@@ -55,7 +55,7 @@ If you do not want to use Cert Manager to try this example then a long as you ha
 [#install_operator]
 === Install the Operator
 
-To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://oracle.github.io/coherence-operator/docs/latest/#/docs/installation/001_installation[Installation Guide]
+To run the examples below, you will need to have installed the Coherence Operator, do this using whatever method you prefer from the https://docs.coherence.community/coherence-operator/docs/latest/docs/installation/001_installation[Installation Guide]
 
 [#setup_cert_manager]
 === Setting Up Cert-Manager

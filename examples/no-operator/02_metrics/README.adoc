@@ -323,6 +323,6 @@ image::./img/prom-federate.png[Prometheus UI]
 == Grafana
 
 We could now install Grafana and configure it to connect to Prometheus, either the local instance or the instance inside Kubernetes. The Coherence Operator provides a number of dashboards that can imported into Grafana. See the Operator
-https://oracle.github.io/coherence-operator/docs/latest/#/docs/metrics/030_importing[Import Grafana Dashboards] documentation.
+https://docs.coherence.community/coherence-operator/docs/latest/docs/metrics/030_importing[Import Grafana Dashboards] documentation.
 
 

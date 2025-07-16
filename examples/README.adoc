@@ -51,7 +51,7 @@ An example demonstrating various ways to configure and use Coherence*Extend with
 ====
 [CARD]
 .Deployment
-[link=examples/020_deployment/README.adoc]
+[link=examples/021_deployment/README.adoc]
 --
 This example shows how to deploy Coherence applications using the Coherence Operator.
 --

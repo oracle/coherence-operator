@@ -24,7 +24,7 @@ image:GitHub-Mark-32px.png[] The complete source code for this example is in the
 This example assumes that you have already built the example server image.
 
 There are a number of ways to use TLS to secure ingress in Kubernetes. We could use a load balancer `Service` and terminate TLS at the load balance, or we could use an add-on such as Istio to manage TLS ingress. Both of those approaches would require no changes to the Coherence server, as the server would not know TLS was being used.
-The https://oracle.github.io/coherence-operator/docs/latest/#/examples/010_overview[Coherence Operator Examples]
+The https://docs.coherence.community/coherence-operator/docs/latest/examples/000_overview[Coherence Operator Examples]
 contains examples of using TLS with Coherence and using Istio. The TLS example also shows how to use Kubernetes built in certificate management to create keys and certificates.
 
 In this example we are going to actually change the server to use TLS for its Extend endpoints.

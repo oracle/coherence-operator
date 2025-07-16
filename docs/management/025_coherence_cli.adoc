@@ -17,7 +17,7 @@ https://github.com/oracle/coherence-cli[Coherence CLI]
 to access management information. The Operator enables Coherence Management over REST by default, so unless it
 has specifically been disabled, the CLI can be used.
 
-See the https://oracle.github.io/coherence-cli/docs/latest[Coherence CLI Documentation]
+See the https://docs.coherence.community/coherence-cli/docs/latest/docs/about/overview[Coherence CLI Documentation]
 for more information on how to use the CLI.
 
 The Coherence CLI is automatically added to Coherence Pods by the Operator, so it is available as an executable
