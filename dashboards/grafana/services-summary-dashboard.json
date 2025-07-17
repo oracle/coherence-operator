@@ -44,7 +44,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 13,
   "links": [
     {
       "icon": "dashboard",
@@ -113,10 +113,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -276,6 +272,46 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Partition Size"
+              },
+              {
+                "id": "unit",
+                "value": "deckbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Max Partition Size"
+              },
+              {
+                "id": "unit",
+                "value": "deckbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
           }
         ]
       },
@@ -310,6 +346,30 @@
           "refId": "A"
         },
         {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(coherence_partition_assignment_average_partition_size_kb{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (coherence_service)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "sum(coherence_partition_assignment_max_partition_size_kb{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (coherence_service)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "D"
+        },
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
           "expr": "avg(coherence_partition_assignment_ha_status_code{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\"}) by (coherence_service)",
           "format": "table",
           "instant": true,
@@ -337,6 +397,7 @@
             "mode": "thresholds"
           },
           "custom": {
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
@@ -715,6 +776,7 @@
             "mode": "thresholds"
           },
           "custom": {
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
@@ -907,6 +969,7 @@
             "mode": "thresholds"
           },
           "custom": {
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
@@ -1082,6 +1145,7 @@
             "mode": "thresholds"
           },
           "custom": {
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
@@ -1260,6 +1324,7 @@
             "mode": "thresholds"
           },
           "custom": {
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
@@ -1473,6 +1538,7 @@
             "mode": "thresholds"
           },
           "custom": {
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
@@ -1897,6 +1963,6 @@
   "timezone": "",
   "title": "Coherence Services Summary Dashboard",
   "uid": "coh-services-summary",
-  "version": 12,
+  "version": 2,
   "weekStart": ""
 }
