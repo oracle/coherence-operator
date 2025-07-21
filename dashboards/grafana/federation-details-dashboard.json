@@ -1928,11 +1928,207 @@
     },
     {
       "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 66
+      },
+      "id": 32,
+      "interval": "",
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "coherence_federation_destination_total_replicating_rejected{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} - coherence_federation_destination_total_replicating_rejected{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} offset $__interval > 0",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Node: {{node_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Entires Rejected By Interceptor",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "links": [],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 66
+      },
+      "id": 33,
+      "interval": "",
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.27",
+      "targets": [
+        {
+          "datasource": "prometheus",
+          "editorMode": "code",
+          "expr": "coherence_federation_destination_total_replicating_modified{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} - coherence_federation_destination_total_replicating_modified{namespace=~\"${Namespace:.*}\",cluster=\"${ClusterName:raw}\",name=\"$Destination\",coherence_service='$ServiceName'} offset $__interval > 0",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Node: {{node_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Entries Modified By Interceptor",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
       "gridPos": {
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 74
       },
       "id": 13,
       "links": [],
@@ -2271,7 +2467,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 68
+        "y": 76
       },
       "id": 8,
       "links": [],
@@ -2625,7 +2821,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 74
+        "y": 82
       },
       "id": 15,
       "links": [],
@@ -2732,7 +2928,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 80
+        "y": 88
       },
       "id": 14,
       "links": [],
