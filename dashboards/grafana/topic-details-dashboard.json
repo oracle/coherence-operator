@@ -722,8 +722,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Drill down for subscriber details for ${__data.fields[2]}",
-                    "url": " /d/coh-subscriber-details?var-Subscriber=${__data.fields[2]}&$__all_variables"
+                    "title": "Drill down for subscriber details for ${__value.text}",
+                    "url": "/d/coh-subscriber-details?var-Subscriber=${__value.text}&$__all_variables"
                   }
                 ]
               },
