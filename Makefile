@@ -2675,11 +2675,11 @@ endif
 
 .PHONY: rebuild-operator
 rebuild-operator: ## Rebuild the Coherence Operator image
-	@echo $(BUILD_DATE) > $(BUILD_OUTPUT)/build-date.txt
+	@echo $(BUILD_DATE) > $(BUILD_BIN)/build-date.txt
 	$(DOCKER_CMD) build --platform linux/amd64 --no-cache --build-arg BASE_IMAGE=$(PREV_OPERATOR_IMAGE) \
-		--load -t $(PREV_OPERATOR_IMAGE_AMD) .
+		--load -t $(PREV_OPERATOR_IMAGE_AMD) -f rebuild.Dockerfile .
 	$(DOCKER_CMD) build --platform linux/arm64 --no-cache --build-arg BASE_IMAGE=$(PREV_OPERATOR_IMAGE) \
-		--load -t $(PREV_OPERATOR_IMAGE_ARM) .
+		--load -t $(PREV_OPERATOR_IMAGE_ARM) -f rebuild.Dockerfile .
 
 .PHONY: re-push-operator-image
 re-push-operator-image: rebuild-operator
