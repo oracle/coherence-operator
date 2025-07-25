@@ -758,15 +758,15 @@ install any of the examples above.
 
 ==== Install Prometheus Operator
 
-Install the Prometheus Operator, as documented in the Prometheus Operator https://prometheus-operator.dev/docs/getting-started/installation/[Quick Start] page. Prometheus can then be accessed as documented in the
-https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md[Access Prometheus section of the Quick Start] page.
+Install the Prometheus Operator, as documented in the Prometheus Operator
+https://prometheus-operator.dev/docs/getting-started/installation/[Quick Start] page.
 
 [NOTE]
 ====
 *Using RBAC*
 
 If installing Prometheus into RBAC enabled k8s clusters, you may need to create the required RBAC resources
-as described in the https://prometheus-operator.dev/docs/operator/rbac/[Prometheus RBAC] documentation.
+as described in the https://prometheus-operator.dev/docs/platform/rbac/[Prometheus RBAC] documentation.
 The Coherence Operator contains an example that works with the out-of-the-box Prometheus Operator install
 that we use for testing https://raw.githubusercontent.com/oracle/coherence-operator/main/hack/prometheus/prometheus-rbac.yaml[prometheus-rbac.yaml]
 This yaml creates a `ClusterRole` with the required permissions and a `ClusterRoleBinding` that binds the role to the

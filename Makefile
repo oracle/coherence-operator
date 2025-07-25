@@ -2796,7 +2796,7 @@ install-prometheus: get-prometheus ## Install Prometheus and Grafana
 	until $(KUBECTL_CMD) get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
 #   We create additional custom RBAC rules because the defaults do not work
 #   in an RBAC enabled cluster such as KinD
-#   See: https://prometheus-operator.dev/docs/operator/rbac/
+#   See: https://prometheus-operator.dev/docs/platform/rbac/
 	$(KUBECTL_CMD) create -f $(SCRIPTS_DIR)/prometheus/prometheus-rbac.yaml
 	$(KUBECTL_CMD) create -f $(PROMETHEUS_HOME)/manifests
 	sleep 10
