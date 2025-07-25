@@ -86,13 +86,33 @@ func TestCompatibility(t *testing.T) {
 
 	// scale up to make sure that the Operator can still manage the Coherence cluster
 	n := fmt.Sprintf("coherence/%s", d.Name)
-	t.Logf("Scaling coherence resource %s in namespace %s to 3 replicas\n", n, ns)
-	cmd := exec.Command("kubectl", "-n", ns, "scale", n, "--replicas=3")
+	replicas := 3
+	testContext.Logf("Scaling coherence resource %s in namespace %s to %d replicas\n", n, ns, replicas)
+	cmd := exec.Command("kubectl", "-n", ns, "scale", n, fmt.Sprintf("--replicas=%d", replicas))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	g.Expect(err).NotTo(HaveOccurred())
-	_ = assertDeploymentEventuallyInDesiredState(t, d, 3)
+	_ = assertDeploymentEventuallyInDesiredState(t, d, int32(replicas))
+
+	testContext.Logf("Updating coherence resource %s in namespace %s\n", d.Name, ns)
+	updated := &cohv1.Coherence{}
+	err = testContext.Client.Get(context.TODO(), d.GetNamespacedName(), updated)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	l := updated.Spec.Labels
+	if l == nil {
+		l = make(map[string]string)
+	}
+	l["testCompatibility"] = "updated"
+	updated.Spec.Labels = l
+
+	err = testContext.Client.Update(testContext.Context, updated)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	testContext.Logf("Waiting for Pods in updated coherence resource %s in namespace %s\n", d.Name, ns)
+	_, err = helper.WaitForPodsWithLabel(testContext, ns, "testCompatibility=updated", replicas, time.Second*20, time.Minute*10)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) {
@@ -107,7 +127,9 @@ func InstallPreviousVersion(g *GomegaWithT, ns, name, version, selector string) 
 	err = os.MkdirAll(prevDir, os.ModePerm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	cmd := exec.Command("helm", "fetch", "--version", version,
+	var cmd *exec.Cmd
+
+	cmd = exec.Command("helm", "fetch", "--version", version,
 		"--untar", "--untardir", prevDir, "coherence/coherence-operator")
 
 	cmd.Stdout = os.Stdout

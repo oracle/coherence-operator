@@ -37,6 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         compatibilityVersion:
+        - 3.5.2
         - 3.5.0
         - 3.4.3
         - 3.4.2
@@ -44,8 +45,11 @@ jobs:
         - 3.4.0
         - 3.3.5
         - 3.3.4
-        - 3.3.3
         include:
+        - compatibilityVersion: 3.5.2
+          coherence-image: "ghcr.io/oracle/coherence-ce:14.1.2-0-2"
+          compatibilitySelector: control-plane=coherence
+          k8s: kindest/node:v1.33.1@sha256:050072256b9a903bd914c0b2866828150cb229cea0efe5892e2b644d5dd3b34f
         - compatibilityVersion: 3.5.0
           coherence-image: "ghcr.io/oracle/coherence-ce:14.1.2-0-2"
           compatibilitySelector: control-plane=coherence
@@ -74,10 +78,6 @@ jobs:
           coherence-image: "ghcr.io/oracle/coherence-ce:22.06.12"
           compatibilitySelector: control-plane=coherence
           k8s: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
-        - compatibilityVersion: 3.3.3
-          coherence-image: "ghcr.io/oracle/coherence-ce:22.06.12"
-          compatibilitySelector: control-plane=coherence
-          k8s: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72
 
     steps:
     - uses: actions/checkout@v4
