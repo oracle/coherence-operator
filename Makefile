@@ -1585,6 +1585,18 @@ just-compatibility-test:  ## Run the Operator backwards compatibility tests WITH
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-e2e-compatibility-test.xml \
 	  -- $(GO_TEST_FLAGS_E2E) ./test/e2e/compatibility/...
 
+helm-install-prev: ## Install previous operator version for the Operator backwards compatibility tests
+	helm repo add coherence https://oracle.github.io/coherence-operator/charts
+	helm repo update
+	helm upgrade --version $(COMPATIBLE_VERSION) \
+		--namespace $(OPERATOR_NAMESPACE) operator coherence/coherence-operator
+
+helm-upgrade-current: ## Upgrade from the previous to the current operator version for the Operator backwards compatibility tests
+	helm upgrade --set image=$(OPERATOR_IMAGE) \
+		--set defaultCoherenceUtilsImage=$(OPERATOR_IMAGE) \
+		--namespace $(OPERATOR_NAMESPACE) \
+		operator $(BUILD_HELM)/coherence-operator
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end Operator Kubernetes versions certification tests.
