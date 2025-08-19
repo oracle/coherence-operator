@@ -8,6 +8,7 @@ package v1
 
 import (
 	"fmt"
+
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/mod/semver"
 	appsv1 "k8s.io/api/apps/v1"
@@ -186,7 +187,7 @@ func (in *Coherence) GetReplicas() int32 {
 // SetReplicas sets the number of replicas required for a deployment.
 func (in *Coherence) SetReplicas(replicas int32) {
 	if in != nil {
-		in.Spec.CoherenceResourceSpec.Replicas = &replicas
+		in.Spec.Replicas = &replicas
 	}
 }
 

@@ -8,14 +8,15 @@ package runner
 
 import (
 	"fmt"
-	. "github.com/onsi/gomega"
-	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"os"
 	"strings"
 	"testing"
+
+	. "github.com/onsi/gomega"
+	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -149,7 +150,7 @@ func createFakeFile(filename string) error {
 	defer closeIgnoreError(f)
 
 	data := rand.Intn(100)
-	if _, err = f.WriteString(fmt.Sprintf("%d", data)); err != nil {
+	if _, err = fmt.Fprintf(f, "%d", data); err != nil {
 		return err
 	}
 

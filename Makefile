@@ -881,8 +881,7 @@ code-review: $(BUILD_TARGETS)/generate golangci copyright  ## Full code review a
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: golangci
 golangci: $(TOOLS_BIN)/golangci-lint ## Go code review
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G402:' --exclude='G101:' --exclude='G114:' --exclude-dirs=.*/fakes --exclude-files=zz_.*,generated/*,pkg/data/assets... ./api/... ./controllers/... ./pkg/... ./runner/...
-	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m --exclude='G107:' --exclude='G101:' --exclude='G112:' --exclude='SA4005:' --exclude='should not use dot imports' ./test/... ./pkg/fakes/...
+	$(TOOLS_BIN)/golangci-lint run -v --timeout=5m
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2969,7 +2968,7 @@ get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to
 # ----------------------------------------------------------------------------------------------------------------------
 $(TOOLS_BIN)/golangci-lint:
 	@mkdir -p $(TOOLS_BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v1.64.7
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh --header $(GH_AUTH) | sh -s -- -b $(TOOLS_BIN) v2.4.0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Display the full version string for the artifacts that would be built.

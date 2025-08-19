@@ -9,27 +9,22 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
-	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // checks all the http links in a document
-
-var (
-	// log is the logger used by the runner
-	log = ctrl.Log.WithName("linkcheck")
-)
 
 const (
 	ArgFile    = "file"
@@ -158,7 +153,7 @@ func checkDirectory(dirName string, excludes []string) (int, []string) {
 	fmt.Printf("Checking directory %s\n", dirName)
 	info, err := os.Stat(dirName)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Print(err.Error())
 		return 1, failedLinks
 	}
 	if !info.IsDir() {
@@ -174,7 +169,7 @@ func checkFileInfo(dir string, info os.FileInfo, excludes []string) (int, []stri
 	if info.IsDir() {
 		files, err := os.ReadDir(dir)
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Print(err.Error())
 			return 1, failedLinks
 		}
 
@@ -429,8 +424,7 @@ func parseLinks(content string, excludes []string) ([]string, map[string][]strin
 				s = s[0:(len(s) - 1 - len(linkUrl.Fragment))]
 			}
 
-			l := append(linkMap[s], linkUrl.Fragment)
-			linkMap[s] = l
+			linkMap[s] = append(linkMap[s], linkUrl.Fragment)
 		}
 
 		links = make([]string, 0)

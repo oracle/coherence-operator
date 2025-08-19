@@ -11,6 +11,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/go-test/deep"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -26,13 +31,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Common Coherence API structs
@@ -2985,7 +2986,7 @@ type Resources struct {
 
 func (in Resources) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString("{")
-	buffer.WriteString(fmt.Sprintf(`"apiVersion":"%d"`, in.Version))
+	_, _ = fmt.Fprintf(buffer, `"apiVersion":"%d"`, in.Version)
 	buffer.WriteString(`, "kind": "Resources"`)
 	buffer.WriteString(`, "items":[`)
 

@@ -148,7 +148,7 @@ func query(cl *http.Client, url string, v interface{}) (int, error) {
 	}
 
 	if response != nil {
-		defer response.Body.Close()
+		defer func() { _ = response.Body.Close() }()
 	}
 
 	if err != nil {

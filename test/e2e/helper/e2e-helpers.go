@@ -11,11 +11,15 @@ import (
 	goctx "context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"testing"
+
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/net/context"
-	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -24,13 +28,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strings"
-	"testing"
 
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -416,7 +416,7 @@ func WaitForOperatorPods(ctx TestContext, namespace string, retryInterval, timeo
 
 func DeleteJob(ctx TestContext, namespace, jobName string) error {
 	cl := ctx.KubeClient.BatchV1().Jobs(namespace)
-	if err := cl.Delete(ctx.Context, jobName, metav1.DeleteOptions{PropagationPolicy: ptr.To(metav1.DeletePropagationBackground)}); err != nil && !errors.IsNotFound(err) {
+	if err := cl.Delete(ctx.Context, jobName, metav1.DeleteOptions{PropagationPolicy: ptr.To(metav1.DeletePropagationBackground)}); err != nil && !apierrors.IsNotFound(err) {
 		return err
 	}
 	pods, err := ListPodsWithLabelSelector(ctx, namespace, "job-name="+jobName)
@@ -496,9 +496,9 @@ func WaitForDeletion(ctx TestContext, namespace, name string, resource client.Ob
 	err := wait.PollUntilContextTimeout(ctx.Context, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.Get(ctx.Context, key, resource)
 		switch {
-		case err != nil && errors.IsNotFound(err):
+		case err != nil && apierrors.IsNotFound(err):
 			return true, nil
-		case err != nil && !errors.IsNotFound(err):
+		case err != nil && !apierrors.IsNotFound(err):
 			ctx.Logf("Waiting for deletion of %v %s/%s - Error=%s", gvk, namespace, name, err)
 			return false, err
 		default:
@@ -737,7 +737,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	// Wait for removal of the Coherence resources
 	err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
-		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
+		if err == nil || isNoResources(err) || apierrors.IsNotFound(err) {
 			if len(list.Items) > 0 {
 				ctx.Logf("Waiting for deletion of %d Coherence resources", len(list.Items))
 				return false, nil
@@ -812,7 +812,7 @@ func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
 	// Wait for removal of the CoherenceJob resources
 	err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
 		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
-		if err == nil || isNoResources(err) || errors.IsNotFound(err) {
+		if err == nil || isNoResources(err) || apierrors.IsNotFound(err) {
 			if len(list.Items) > 0 {
 				ctx.Logf("Waiting for deletion of %d CoherenceJob resources", len(list.Items))
 				return false, nil

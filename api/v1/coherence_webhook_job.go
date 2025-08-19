@@ -9,6 +9,7 @@ package v1
 import (
 	"context"
 	"fmt"
+
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
@@ -68,7 +69,7 @@ func (in *CoherenceJob) Default(_ context.Context, obj runtime.Object) error {
 	}
 
 	// set the default replicas if not present
-	if spec.CoherenceResourceSpec.Replicas == nil {
+	if spec.Replicas == nil {
 		spec.SetReplicas(spec.GetReplicas())
 	}
 

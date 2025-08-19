@@ -9,6 +9,9 @@ package local
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/utils"
@@ -16,8 +19,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"testing"
-	"time"
 )
 
 // Test that a deployment works using the minimal valid yaml for a Coherence
@@ -108,7 +109,7 @@ func TestStartQuorumRequireOnePodReady(t *testing.T) {
 	g.Expect(created).NotTo(BeNil())
 	// created time should not be before first data Pod ready time
 	g.Expect(created.LastTransitionTime.Time.Before(dataPodReady.Time)).To(BeFalse(),
-		fmt.Sprintf("Expected test created %s after data ready %s", created.LastTransitionTime.Time.String(), dataPodReady.Time.String()))
+		fmt.Sprintf("Expected test created %s after data ready %s", created.LastTransitionTime.String(), dataPodReady.String()))
 
 	// earliest test Pod scheduled should not be before last data Pod ready
 	testPodScheduled := helper.GetFirstPodScheduledTime(pods, "test")

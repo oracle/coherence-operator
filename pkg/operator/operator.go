@@ -11,6 +11,11 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/data"
@@ -19,11 +24,7 @@ import (
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/version"
-	"os"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"strings"
-	"time"
 )
 
 const (
@@ -553,7 +554,7 @@ func NewCipherSuiteConfig(v *viper.Viper, log logr.Logger) (func(c *tls.Config),
 
 	if allDenied && len(allowList) == 0 {
 		return func(c *tls.Config) {},
-			fmt.Errorf("The --%s command line flag has denied all cipher suites but no allowed suites have been specified using the %s flag ", FlagCipherDenyList, FlagCipherAllowList)
+			fmt.Errorf("the --%s command line flag has denied all cipher suites but no allowed suites have been specified using the %s flag ", FlagCipherDenyList, FlagCipherAllowList)
 	}
 
 	for _, name := range allowList {

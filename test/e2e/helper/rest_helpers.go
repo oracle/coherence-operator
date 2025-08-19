@@ -10,12 +10,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
 	"strings"
 	"time"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 // StartCanary initialises the canary test in the deployment being scaled.
@@ -104,7 +105,7 @@ func httpRequestToPod(endpoint, method string, pod *v1.Pod) error {
 	}
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		bodyBytes, err := io.ReadAll(resp.Body)
 		bodyString := ""
 		if err == nil {
