@@ -1597,7 +1597,9 @@ func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
 		BasicAuth:            in.BasicAuth,
 		MetricRelabelConfigs: in.MetricRelabelings,
 		RelabelConfigs:       in.Relabelings,
-		ProxyURL:             in.ProxyURL,
+		ProxyConfig: monitoringv1.ProxyConfig{
+			ProxyURL: in.ProxyURL,
+		},
 	}
 }
 
