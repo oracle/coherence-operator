@@ -9,12 +9,13 @@ package runner
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"strings"
+
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 const (
@@ -124,7 +125,7 @@ func readLines(path string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var lines []string
 	scanner := bufio.NewScanner(file)

@@ -1,26 +1,47 @@
 # options for analysis running
+version: "2"
+
 run:
   # include test files or not, default is true
   tests: true
 
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: disable
+    paths:
+      - data/
+
 linters:
+  settings:
+    staticcheck:
+      dot-import-whitelist:
+        - github.com/onsi/gomeg
   enable:
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - gocritic
-    - gofmt
 
-issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    # Exclude some linters from running on data files.
-    - path: pkg/data
-      linters:
-        - gofmt
-    # Exclude some linters from running on tests files.
-    - path: test\.go
-      linters:
-        - gosec
-        - bodyclose
+  exclusions:
+    presets:
+      - common-false-positives
+    paths:
+      - utils/docgen/main.go
+      - utils/linkcheck/main.go
+    rules:
+      - path: _test\.go
+        linters:
+          - gosec
+          - bodyclose
+          - errcheck
+      - path: test/
+        linters:
+          - staticcheck
+        text: "ST1001:"
+      - path: pkg/fakes/
+        linters:
+          - staticcheck
+        text: "ST1001:"

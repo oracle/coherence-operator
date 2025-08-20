@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,16 +9,17 @@ package certification
 import (
 	"context"
 	"fmt"
-	. "github.com/onsi/gomega"
-	v1 "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/ptr"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
 	"time"
+
+	. "github.com/onsi/gomega"
+	v1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 func TestCertifyMinimalSpec(t *testing.T) {

@@ -9,6 +9,8 @@ package job
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
@@ -25,7 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 const (
@@ -260,8 +261,8 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 	current := job.DeepCopy()
 
 	// We NEVER patch finalizers
-	original.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
-	desired.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
+	original.Finalizers = current.Finalizers
+	desired.Finalizers = current.Finalizers
 
 	// We need to ensure we do not create a patch due to differences in
 	// Job Status, so we blank out the status fields

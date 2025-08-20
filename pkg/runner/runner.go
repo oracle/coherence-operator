@@ -11,6 +11,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
 	v1 "github.com/oracle/coherence-operator/api/v1"
@@ -20,17 +30,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"io"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"net/http"
-	"net/url"
-	"os"
-	"os/exec"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // The code that actually starts the process in the Coherence container.
@@ -443,16 +444,16 @@ func configureCommand(details *run_details.RunDetails) error {
 	}
 
 	gc := strings.ToLower(details.Getenv(v1.EnvVarJvmGcCollector))
-	switch {
-	case gc == "g1":
+	switch gc {
+	case "g1":
 		details.AddMemoryOption("-XX:+UseG1GC")
-	case gc == "cms":
+	case "cms":
 		details.AddMemoryOption("-XX:+UseConcMarkSweepGC")
-	case gc == "parallel":
+	case "parallel":
 		details.AddMemoryOption("-XX:+UseParallelGC")
-	case gc == "serial":
+	case "serial":
 		details.AddMemoryOption("-XX:+UseSerialGC")
-	case gc == "zgc":
+	case "zgc":
 		details.AddMemoryOption("-XX:+UseZGC")
 	}
 
@@ -948,7 +949,7 @@ func httpGet(urlString string, client http.Client) (string, int, error) {
 		return "", http.StatusInternalServerError, errors.Wrapf(err, "failed to get URL %s", urlString)
 	}
 	//noinspection GoUnhandledErrorResult
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

@@ -8,6 +8,7 @@ package v1
 
 import (
 	"fmt"
+
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"golang.org/x/mod/semver"
 	batchv1 "k8s.io/api/batch/v1"
@@ -544,10 +545,10 @@ func (in *CoherenceJobResourceSpec) GetRestartPolicy() *corev1.RestartPolicy {
 // return either the actual Replica value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
 func (in *CoherenceJobResourceSpec) GetReplicas() int32 {
-	if in == nil || in.CoherenceResourceSpec.Replicas == nil {
+	if in == nil || in.Replicas == nil {
 		return DefaultJobReplicas
 	}
-	return *in.CoherenceResourceSpec.Replicas
+	return *in.Replicas
 }
 
 // GetWkaIPFamily returns the IP Family of the headless Service used for Coherence WKA.

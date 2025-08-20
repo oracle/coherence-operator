@@ -269,8 +269,8 @@ func fmtRawDoc(rawDoc string) string {
 	}
 
 	postDoc := strings.TrimRight(buffer.String(), "\n")
-	//postDoc = strings.Replace(postDoc, "\\\"", "\"", -1) // replace user's \" to "
-	//postDoc = strings.Replace(postDoc, "\"", "\\\"", -1) // Escape "
+	// postDoc = strings.Replace(postDoc, "\\\"", "\"", -1) // replace user's \" to "
+	// postDoc = strings.Replace(postDoc, "\"", "\\\"", -1) // Escape "
 	postDoc = strings.Replace(postDoc, "\n", " +\n", -1)
 	postDoc = strings.Replace(postDoc, "\t", "&#160;&#160;&#160;&#160;", -1)
 	postDoc = strings.Replace(postDoc, "|", "\\|", -1)

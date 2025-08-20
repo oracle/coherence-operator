@@ -9,6 +9,10 @@ package statefulset
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
@@ -25,12 +29,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"strings"
-	"time"
 )
 
 const (
@@ -455,8 +456,8 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 	}
 
 	// We NEVER patch finalizers
-	original.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
-	desired.ObjectMeta.Finalizers = current.ObjectMeta.Finalizers
+	original.Finalizers = current.Finalizers
+	desired.Finalizers = current.Finalizers
 
 	// We need to ensure we do not create a patch due to differences in
 	// StatefulSet Status, so we blank out the status fields
