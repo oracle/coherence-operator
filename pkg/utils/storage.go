@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/patching"
 	"github.com/pkg/errors"
@@ -47,6 +48,9 @@ type Storage interface {
 	ResetHash(context.Context, coh.CoherenceResource) error
 	// IsJob returns true if the Coherence deployment is a Job
 	IsJob(reconcile.Request) bool
+	// GetDeletions returns an array of resources that existed in the previous version
+	// but do not exist in the latest version
+	GetDeletions() []coh.Resource
 }
 
 // NewStorage creates a new storage for the given key.
@@ -76,6 +80,25 @@ func (in *secretStore) IsJob(request reconcile.Request) bool {
 	latest := in.GetLatest()
 	_, found := latest.GetResource(coh.ResourceTypeJob, request.Name)
 	return found
+}
+
+func (in *secretStore) GetDeletions() []coh.Resource {
+	var deletions []coh.Resource
+	if in != nil {
+		for _, prev := range in.previous.Items {
+			found := false
+			for _, res := range in.latest.Items {
+				if prev.Name == res.Name && prev.Kind == res.Kind {
+					found = true
+					break
+				}
+			}
+			if !found {
+				deletions = append(deletions, prev)
+			}
+		}
+	}
+	return deletions
 }
 
 func (in *secretStore) createSecretStruct() *corev1.Secret {

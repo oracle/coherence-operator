@@ -9,6 +9,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/errorhandling"
@@ -37,8 +40,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
-	"time"
 )
 
 const (
