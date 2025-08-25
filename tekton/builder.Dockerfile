@@ -1,13 +1,11 @@
-FROM container-registry.oracle.com/os/oraclelinux:9
+FROM container-registry.oracle.com/java/jdk-no-fee-term:21-oraclelinux9
 
 ARG GoVersion
 ARG GoArch
 
 CMD ["/bin/bash"]
 
-RUN dnf install oracle-java-jdk-release-el* -y \
-    && dnf install jdk-21-headful -y \
-    && dnf install make which git -y
+RUN dnf install make which git -y
 
 RUN curl -Ls https://go.dev/dl/go$GoVersion.linux-$GoArch.tar.gz -o go-linux.tar.gz \
     && rm -rf /usr/local/go \
