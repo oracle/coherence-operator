@@ -3056,9 +3056,12 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 GIT_BRANCH="version-update-$(VERSION)"
 GIT_LABEL="version-update"
 
-.PHONY: new-version-pr
-new-version-pr: ## Create a PR to update the version
+.PHONY: new-version-branch
+new-version-branch: ## Create a PR to update the version
 	git checkout -b $(GIT_BRANCH)
+
+.PHONY: new-version-pr
+new-version-pr: new-version-branch new-version ## Create a PR to update the version
 	git commit -am "Version update to $(VERSION)"
 	git push --set-upstream origin $(GIT_BRANCH)
 
