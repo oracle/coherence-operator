@@ -9,6 +9,10 @@ package reconciler
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
+	"sync"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/errorhandling"
@@ -30,9 +34,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sort"
-	"strings"
-	"sync"
 )
 
 //goland:noinspection GoUnusedConst
@@ -722,9 +723,27 @@ func (in *ReconcileSecondaryResource) CanWatch() bool             { return !in.S
 
 // ReconcileAllResourceOfKind reconciles the state of all the desired resources of the specified Kind for the reconciler
 func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Context, request reconcile.Request, deployment coh.CoherenceResource, storage utils.Storage) (reconcile.Result, error) {
-	logger := in.GetLog().WithValues("Namespace", request.Namespace, "Name", request.Name, "Kind", in.Kind.Name())
+	logger := in.GetLog().WithValues("Namespace", request.Namespace, "CoherenceName", request.Name, "Kind", in.Kind.Name())
 
 	var err error
+
+	for _, del := range storage.GetDeletions() {
+		if del.Kind == in.Kind {
+			logger.Info("Deleting resource", "Name", del.Name)
+			resource, exists, _ := in.FindResource(ctx, request.Namespace, del.Name)
+			if exists {
+				err = in.Delete(ctx, request.Namespace, del.Name, logger)
+				if err != nil && !errorhandling.IsNotFound(err) {
+					logger.Info("Failed to delete resource", "Name", del.Name, "error", err.Error())
+					return reconcile.Result{}, errors.Wrapf(err, "Failed to delete resource %v/%s", in.Kind, del.Name)
+				}
+				if err == nil {
+					in.GetEventRecorder().Event(resource, corev1.EventTypeNormal, EventReasonDeleted, fmt.Sprintf("Deleted resource after update to Coherence resource %s", deployment.GetName()))
+				}
+			}
+		}
+	}
+
 	resources := storage.GetLatest().GetResourcesOfKind(in.Kind)
 	for _, res := range resources {
 		if res.IsDelete() {
