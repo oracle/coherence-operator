@@ -15,25 +15,27 @@ if [[ "${KUBECTL_CMD}" == "" ]]; then
 fi
 
 if [[ "${PIPELINE_NAMESPACE}" != "" ]]; then
-  NS="--namespace ${PIPELINE_NAMESPACE}"
+  NS=${PIPELINE_NAMESPACE}
+else
+  NS=default
 fi
 
 echo "Installing Tekton resources ${NS}"
-tkn task delete ${NS} --force git-clone || true
-tkn hub install task ${NS} git-clone
-tkn task delete ${NS} --force git-cli || true
-tkn hub install task ${NS} git-cli
+tkn task delete --namespace ${NS} --force git-clone || true
+tkn hub install task --namespace ${NS} git-clone
+tkn task delete --namespace ${NS} --force git-cli || true
+tkn hub install task --namespace ${NS} git-cli
 
 
 # Install Operator Tasks
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-make.yaml
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-setup-env.yaml
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-buildah.yaml
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-check-image.yaml
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/task-oci-cli.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/task-make.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/task-setup-env.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/task-buildah.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/task-check-image.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/task-oci-cli.yaml
 
 # Install Operator Pipelines
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/pipeline-operator-ci.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/pipeline-operator-ci.yaml
 
 # Install Operator test configmap
-${KUBECTL_CMD} ${NS} apply --filename ${TEKTON_DIR}/os-cert-config.yaml
+${KUBECTL_CMD} --namespace ${NS} apply --filename ${TEKTON_DIR}/os-cert-config.yaml
