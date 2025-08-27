@@ -40,4 +40,6 @@ spec:
       value: "us-phoenix-1"
     - name: oci-cli-secret
       value: oci-cli-secret
+    - name: buildah-image
+      value: 'quay.io/buildah/stable:v1.39.3'
 

@@ -61,6 +61,10 @@ spec:
       type: string
       description: The optional no proxy to use
       default: ''
+    - name: buildah-image
+      type: string
+      description: The Buildah image to use
+      default: 'quay.io/buildah/stable:v1'
   results:
     - name: upload-result
       description: The result of the upload task
@@ -155,6 +159,8 @@ spec:
           value: $(tasks.setup-env.results.BUILDER_IMAGE_NAME)
         - name: BUILD_EXTRA_ARGS
           value: "--build-arg GoArch=$(tasks.setup-env.results.BUILD_ARCH) --build-arg GoVersion=$(tasks.setup-env.results.OPERATOR_GO_VERSION)"
+        - name: BUILDER_IMAGE
+          value: $(params.buildah-image)
         - name: httpProxy
           value: $(params.httpProxy)
         - name: httpsProxy
