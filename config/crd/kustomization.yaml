@@ -44,4 +44,4 @@ labels:
     app.kubernetes.io/part-of: coherence-operator
 
 commonLabels:
-  app.kubernetes.io/version: 3.5.3
+  app.kubernetes.io/version: 3.5.4

@@ -28,7 +28,7 @@ This can be done using the Tanzu CLI.
 [source,bash]
 ----
 tanzu package repository add coherence-repo \
-    --url ghcr.io/oracle/coherence-operator-repo:3.5.3 \
+    --url ghcr.io/oracle/coherence-operator-repo:3.5.4 \
     --namespace coherence \
     --create-namespace
 ----
@@ -58,7 +58,7 @@ which should include the Operator package, `coherence-operator.oracle.github.com
 [source,bash]
 ----
 NAME                                  DISPLAY-NAME               SHORT-DESCRIPTION                                             LATEST-VERSION
-coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.5.3
+coherence-operator.oracle.github.com  Oracle Coherence Operator  A Kubernetes operator for managing Oracle Coherence clusters  3.5.4
 ----
 
 === Install the Coherence Operator Package
@@ -69,7 +69,7 @@ Once the Coherence Operator repository has been installed, the `coherence-operat
 ----
 tanzu package install coherence \
     --package-name coherence-operator.oracle.github.com \
-    --version 3.5.3 \
+    --version 3.5.4 \
     --namespace coherence
 ----
 
@@ -85,7 +85,7 @@ which should display the Coherence Operator package.
 [source,bash]
 ----
 NAME       PACKAGE-NAME                          PACKAGE-VERSION  STATUS
-coherence  coherence-operator.oracle.github.com  3.5.3            Reconcile succeeded
+coherence  coherence-operator.oracle.github.com  3.5.4            Reconcile succeeded
 ----
 
 The Operator is now installed and ready to mage Coherence clusters.

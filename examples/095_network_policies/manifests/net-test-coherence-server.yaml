@@ -43,7 +43,7 @@ metadata:
 spec:
   containers:
   - name: net-test
-    image: container-registry.oracle.com/middleware/coherence-operator:3.5.3
+    image: container-registry.oracle.com/middleware/coherence-operator:3.5.4
     ports:
     - containerPort: 9612
       name: metrics

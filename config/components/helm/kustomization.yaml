@@ -5,5 +5,5 @@ labels:
   - pairs:
       control-plane: coherence
       app.kubernetes.io/name: coherence-operator
-      app.kubernetes.io/version: "3.5.3"
+      app.kubernetes.io/version: "3.5.4"
       app.kubernetes.io/part-of: coherence-operator
