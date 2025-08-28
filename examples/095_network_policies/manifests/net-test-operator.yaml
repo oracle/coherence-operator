@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.5.3"
+    app.kubernetes.io/version: "3.5.4"
     app.kubernetes.io/component: manager
     app.kubernetes.io/part-of: coherence-operator
     coherenceNetTest: operator-client
@@ -15,14 +15,14 @@ spec:
       labels:
         app.kubernetes.io/name: coherence-operator
         app.kubernetes.io/instance: coherence-operator-manager
-        app.kubernetes.io/version: "3.5.3"
+        app.kubernetes.io/version: "3.5.4"
         app.kubernetes.io/component: manager
         app.kubernetes.io/part-of: coherence-operator
         coherenceNetTest: operator-client
     spec:
       containers:
       - name: net-test
-        image: container-registry.oracle.com/middleware/coherence-operator:3.5.3
+        image: container-registry.oracle.com/middleware/coherence-operator:3.5.4
         env:
           - name: CLUSTER_HOST
             value: net-test-coherence-server.coh-test.svc

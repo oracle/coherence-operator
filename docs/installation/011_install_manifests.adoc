@@ -15,7 +15,7 @@ apply the manifests from the Operator release.
 
 [NOTE]
 ====
-As of v3.5.3 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+As of v3.5.4 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.
 ====
@@ -25,7 +25,7 @@ the installation has all the RBAC permissions required to install all the resour
 
 [source,bash]
 ----
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence-operator.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence-operator.yaml
 ----
 
 This will create a namespace called `coherence` and install the CRDs and the Operator into the namespace,
@@ -80,7 +80,7 @@ The Operator installed with this yaml
 
 [NOTE]
 ====
-As of v3.5.3 of the Operator the `coherence-operator-restricted.yaml` also installs the two CRDs that the Operator uses.
+As of v3.5.4 of the Operator the `coherence-operator-restricted.yaml` also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.
 ====
@@ -90,7 +90,7 @@ the installation has all the RBAC permissions required to install all the resour
 
 [source,bash]
 ----
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence-operator-restricted.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence-operator-restricted.yaml
 ----
 [IMPORTANT]
 ====
@@ -107,8 +107,8 @@ The Operator release artifacts include small versions of the two CRDs which can 
 
 [source,bash]
 ----
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence.oracle.com_coherence_small.yaml
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherencejob.oracle.com_coherence_small.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence.oracle.com_coherence_small.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherencejob.oracle.com_coherence_small.yaml
 ----
 
 The small versions of the CRDs are identical to the full versions but hav a cut down OpenAPI spec with a lot of comments

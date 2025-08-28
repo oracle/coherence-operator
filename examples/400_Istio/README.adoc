@@ -12,7 +12,7 @@
 == Using Coherence with Istio
 
 You can run the Coherence cluster and manage them using the Coherence Operator alongside https://istio.io[Istio].
-Coherence clusters managed with the Coherence Operator 3.5.3 and later work with Istio 1.9.1 and later out of the box.
+Coherence clusters managed with the Coherence Operator 3.5.4 and later work with Istio 1.9.1 and later out of the box.
 Coherence caches can be accessed from outside the Coherence cluster via Coherence*Extend, REST, and other supported
 Coherence clients.
 Using Coherence clusters with Istio does not require the Coherence Operator to also be using Istio (and vice-versa) .

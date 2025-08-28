@@ -26,7 +26,7 @@ labels:
   - pairs:
       control-plane: coherence
       app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/version: "3.5.3"
+      app.kubernetes.io/version: "3.5.4"
       app.kubernetes.io/part-of: coherence-operator
 
 # Patch the SERVICE_NAME env var in the Operator Deployment

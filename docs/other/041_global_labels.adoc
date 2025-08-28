@@ -144,7 +144,7 @@ When installing the Operator using the manifest yaml files, additional command l
 by manually editing the yaml file before installing.
 
 Download the yaml manifest file from the GitHub repo
-https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence-operator.yaml
+https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence-operator.yaml
 
 Find the section of the yaml file the defines the Operator container args, the default looks like this
 

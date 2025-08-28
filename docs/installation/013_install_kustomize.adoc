@@ -13,20 +13,20 @@
 
 If you want to use yaml directly to install the operator, with something like `kubectl`, you can use the manifest files
 published with the GitHub release at this link:
-https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence-operator-manifests.tar.gz[3.5.3 Manifests]
+https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence-operator-manifests.tar.gz[3.5.4 Manifests]
 
 These manifest files are for use with a tool called Kustomize, which is built into `kubectl`
 see the documentation here: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
 
 [NOTE]
 ====
-As of v3.5.3 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+As of v3.5.4 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.
 ====
 
 Download the
-https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence-operator-manifests.tar.gz[3.5.3 Manifests]
+https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence-operator-manifests.tar.gz[3.5.4 Manifests]
 from the release page and unpack the file, which should produce a directory called `manifests` with a structure like this:
 
 [source]
@@ -79,14 +79,14 @@ Change the name of the Operator image by running the command below, changing the
 that you are using for the Operator, for example if you have the images in a custom registry
 [source,bash]
 ----
-cd ./manager && kustomize edit set image controller=myregistry/coherence-operator:3.5.3
+cd ./manager && kustomize edit set image controller=myregistry/coherence-operator:3.5.4
 ----
 
 Change the name of the Operator image by running the command below, changing the image name to the registry and image name
 that you are using for the Operator utilities image
 [source,bash]
 ----
-cd ./manager && kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.5.3
+cd ./manager && kustomize edit add configmap env-vars --from-literal OPERATOR_IMAGE=myregistry/coherence-operator:3.5.4
 ----
 
 Change the name of the default Coherence image. If you are always going to be deploying your own application images then this

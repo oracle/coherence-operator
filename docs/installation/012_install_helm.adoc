@@ -518,14 +518,14 @@ The command above will use all the default configurations, but the usual methods
 values to the install can be used.
 
 [#helm-upgrade-350]
-=== Upgrading From pre-3.5.3 Versions
+=== Upgrading From pre-3.5.4 Versions
 
-Before version 3.5.3 of the Coherence operator, the operator used to install the CRDs
-when it started. In 3.5.3 this behaviour was changed and the operator no longer installs
-the CRDs, these must be installed along with the operator. The 3.5.3 and above Helm chart
+Before version 3.5.4 of the Coherence operator, the operator used to install the CRDs
+when it started. In 3.5.4 this behaviour was changed and the operator no longer installs
+the CRDs, these must be installed along with the operator. The 3.5.4 and above Helm chart
 includes the CRDs.
 
-This causes an issue when performing a Helm upgrade from a pre-3.5.3 version because Helm
+This causes an issue when performing a Helm upgrade from a pre-3.5.4 version because Helm
 did not install the CRDs. When attempting an upgrade Helm will display an error similar to
 the one below:
 

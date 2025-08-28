@@ -22,7 +22,7 @@ There are two ways to obtain the dashboards:
 
 [source,bash]
 ----
-curl https://github.com/oracle/coherence-operator/releases/download/v3.5.3/coherence-dashboards.tar.gz \
+curl https://github.com/oracle/coherence-operator/releases/download/v3.5.4/coherence-dashboards.tar.gz \
     -Lo coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz
 ----

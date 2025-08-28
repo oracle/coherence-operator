@@ -8,7 +8,7 @@ metadata:
     capabilities: Full Lifecycle
     categories: Database
     certified: "false"
-    containerImage: container-registry.oracle.com/middleware/coherence-operator:3.5.3
+    containerImage: container-registry.oracle.com/middleware/coherence-operator:3.5.4
     description: The Oracle Coherence Kubernetes Operator enables easy management
       of Coherence clusters in a Kubernetes environment.
     features.operators.openshift.io/cnf: "false"
@@ -29,7 +29,7 @@ metadata:
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
     repository: https://github.com/oracle/coherence-operator
     support: Oracle Corporation
-  name: coherence-operator.v3.5.3
+  name: coherence-operator.v3.5.4
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -121,4 +121,4 @@ spec:
   provider:
     name: Oracle Corporation
     url: https://github.com/oracle/coherence-operator
-  version: 3.5.3
+  version: 3.5.4

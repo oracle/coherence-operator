@@ -32,7 +32,7 @@ documentation for full details on the available metrics.
 
 === Important Note Regarding Prometheus Metrics Prefix
 
-From version 3.5.3 of the Coherence Operator, the packaged Grafana dashboards no longer use the **vendor:** prefix for querying Prometheus metrics.
+From version 3.5.4 of the Coherence Operator, the packaged Grafana dashboards no longer use the **vendor:** prefix for querying Prometheus metrics.
 This prefix was deprecated a number of releases ago and the default, of legacy metrics, in Coherence and will be removed in the most recent
 Coherence releases after this Operator release.
 
