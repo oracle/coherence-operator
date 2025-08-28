@@ -2,8 +2,22 @@ apiVersion: v1
 entries:
   coherence-operator:
   - apiVersion: v2
+    appVersion: 3.5.4
+    created: "2025-08-28T12:16:35.708018543-04:00"
+    description: A Kubernetes Operator for Coherence
+    digest: 782883fd4ab3ce8cc7b8ff255345523332c0c08b8ecdd90aaf9990cbd663a26c
+    home: https://github.com/oracle/coherence-operator
+    icon: https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png
+    kubeVersion: '>=1.26'
+    name: coherence-operator
+    sources:
+    - https://github.com/oracle/coherence-operator
+    urls:
+    - https://oracle.github.io/coherence-operator/charts/coherence-operator-3.5.4.tgz
+    version: 3.5.4
+  - apiVersion: v2
     appVersion: 3.5.3
-    created: "2025-07-31T03:36:41.000533858-04:00"
+    created: "2025-08-28T12:16:35.70575883-04:00"
     description: A Kubernetes Operator for Coherence
     digest: fdb5c07cea3504d745eddebe62fd92be4dd90d7c3a962c6b97b05986005a2c85
     home: https://github.com/oracle/coherence-operator
@@ -17,7 +31,7 @@ entries:
     version: 3.5.3
   - apiVersion: v2
     appVersion: 3.5.2
-    created: "2025-07-31T03:36:40.997888567-04:00"
+    created: "2025-08-28T12:16:35.703752876-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 1b62804e8a1bffb791da8011d2b67c74aa5f442788d4f1909c82561ec93f091d
     home: https://github.com/oracle/coherence-operator
@@ -31,7 +45,7 @@ entries:
     version: 3.5.2
   - apiVersion: v2
     appVersion: 3.5.0
-    created: "2025-07-31T03:36:40.995765557-04:00"
+    created: "2025-08-28T12:16:35.701800133-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 1142d981d47c1805c12d3919808b5a2357479b205c633166d44fe90b4a58a24c
     home: https://github.com/oracle/coherence-operator
@@ -45,7 +59,7 @@ entries:
     version: 3.5.0
   - apiVersion: v2
     appVersion: 3.4.3
-    created: "2025-07-31T03:36:40.992943281-04:00"
+    created: "2025-08-28T12:16:35.699188386-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 669bd37be870332efb7c7788f8c1889a938cf1083b508b96180971b47607174d
     home: https://github.com/oracle/coherence-operator
@@ -59,7 +73,7 @@ entries:
     version: 3.4.3
   - apiVersion: v1
     appVersion: 3.4.2
-    created: "2025-07-31T03:36:40.992376164-04:00"
+    created: "2025-08-28T12:16:35.69867123-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 86d053cd8264ce50d0f8ffd2fc9ec0503ffb93c0de4904d06e03b4db42586d65
     home: https://github.com/oracle/coherence-operator
@@ -72,7 +86,7 @@ entries:
     version: 3.4.2
   - apiVersion: v1
     appVersion: 3.4.1
-    created: "2025-07-31T03:36:40.991786204-04:00"
+    created: "2025-08-28T12:16:35.698228374-04:00"
     description: A Kubernetes Operator for Coherence
     digest: d9f5c699d09c933946a96dd0d2b04fea5b40ab25f0290605315b5990c883af8b
     home: https://github.com/oracle/coherence-operator
@@ -85,7 +99,7 @@ entries:
     version: 3.4.1
   - apiVersion: v1
     appVersion: 3.4.0
-    created: "2025-07-31T03:36:40.99121526-04:00"
+    created: "2025-08-28T12:16:35.697746456-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 9101a8da58277c9a602f35325a921b60136bb0618ed8ec776d1d7f50576ccb95
     home: https://github.com/oracle/coherence-operator
@@ -98,7 +112,7 @@ entries:
     version: 3.4.0
   - apiVersion: v1
     appVersion: 3.3.5
-    created: "2025-07-31T03:36:40.990674233-04:00"
+    created: "2025-08-28T12:16:35.697294394-04:00"
     description: A Kubernetes Operator for Coherence
     digest: d0a9802e3f4c069c6c4c974750ea328c9ba95de838e5c98c00d0ad36040241ad
     home: https://github.com/oracle/coherence-operator
@@ -111,7 +125,7 @@ entries:
     version: 3.3.5
   - apiVersion: v1
     appVersion: 3.3.4
-    created: "2025-07-31T03:36:40.990131332-04:00"
+    created: "2025-08-28T12:16:35.696846618-04:00"
     description: A Kubernetes Operator for Coherence
     digest: e7daf42b33b33dece38188c68900488e0d3068890bb082c3c5851b58134459fe
     home: https://github.com/oracle/coherence-operator
@@ -124,7 +138,7 @@ entries:
     version: 3.3.4
   - apiVersion: v1
     appVersion: 3.3.3
-    created: "2025-07-31T03:36:40.989614822-04:00"
+    created: "2025-08-28T12:16:35.696090301-04:00"
     description: A Kubernetes Operator for Coherence
     digest: d19a556fc7d46906d918afca648080ebe95caaf8769b0d7fb1e310413ec96980
     home: https://github.com/oracle/coherence-operator
@@ -137,7 +151,7 @@ entries:
     version: 3.3.3
   - apiVersion: v1
     appVersion: 3.3.2
-    created: "2025-07-31T03:36:40.989067233-04:00"
+    created: "2025-08-28T12:16:35.69559591-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 7bd402523108ee0b2c0f70686c34d2fb567f30983e641e4a6a2b8082356f5fca
     home: https://github.com/oracle/coherence-operator
@@ -150,7 +164,7 @@ entries:
     version: 3.3.2
   - apiVersion: v1
     appVersion: 3.3.1
-    created: "2025-07-31T03:36:40.988432989-04:00"
+    created: "2025-08-28T12:16:35.694596293-04:00"
     description: A Kubernetes Operator for Coherence
     digest: d39b90b5c4ce1f6db9c4fa603cef71d3e4de2b599bb3e89ecb4887663e381e45
     home: https://github.com/oracle/coherence-operator
@@ -163,7 +177,7 @@ entries:
     version: 3.3.1
   - apiVersion: v1
     appVersion: 3.3.0
-    created: "2025-07-31T03:36:40.987135847-04:00"
+    created: "2025-08-28T12:16:35.694020798-04:00"
     description: A Kubernetes Operator for Coherence
     digest: f61ad8997dc60af83a41da193f9f992c48fd88e973943c2bf157c5e4703c5d97
     home: https://github.com/oracle/coherence-operator
@@ -176,7 +190,7 @@ entries:
     version: 3.3.0
   - apiVersion: v1
     appVersion: 3.2.11
-    created: "2025-07-31T03:36:40.98328127-04:00"
+    created: "2025-08-28T12:16:35.69094773-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 74ab98d9e7fe2e5a06e1f21998aa0f2cb7cc80f1b2674f12a20d1ce249aaa07a
     home: https://github.com/oracle/coherence-operator
@@ -189,7 +203,7 @@ entries:
     version: 3.2.11
   - apiVersion: v1
     appVersion: 3.2.10
-    created: "2025-07-31T03:36:40.982792713-04:00"
+    created: "2025-08-28T12:16:35.690519262-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 814f883b64a5626aca4ae773d4b6a700464c825fa97aa3c0734a34ada099f8d8
     home: https://github.com/oracle/coherence-operator
@@ -202,7 +216,7 @@ entries:
     version: 3.2.10
   - apiVersion: v1
     appVersion: 3.2.9
-    created: "2025-07-31T03:36:40.98657959-04:00"
+    created: "2025-08-28T12:16:35.693590296-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 2b9ec4683269ca1240917f1e9eb467fc60d7961b9a212659f574804a791585f1
     home: https://github.com/oracle/coherence-operator
@@ -215,7 +229,7 @@ entries:
     version: 3.2.9
   - apiVersion: v1
     appVersion: 3.2.8
-    created: "2025-07-31T03:36:40.986037713-04:00"
+    created: "2025-08-28T12:16:35.693245776-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 347689ffbd570934b5b98831e0d0385f64a9fec237d1ef9fa5fcaa5aa47859d4
     home: https://github.com/oracle/coherence-operator
@@ -228,7 +242,7 @@ entries:
     version: 3.2.8
   - apiVersion: v1
     appVersion: 3.2.7
-    created: "2025-07-31T03:36:40.985586736-04:00"
+    created: "2025-08-28T12:16:35.692886859-04:00"
     description: A Kubernetes Operator for Coherence
     digest: bd2c951b368d601707ce44190a29744721f42fcba84af6949b241f8d3bcc7630
     home: https://github.com/oracle/coherence-operator
@@ -241,7 +255,7 @@ entries:
     version: 3.2.7
   - apiVersion: v1
     appVersion: 3.2.6
-    created: "2025-07-31T03:36:40.985149336-04:00"
+    created: "2025-08-28T12:16:35.692533192-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 4250aebb56d3f783b0533b118ee454d5680bb8857c170d98e70c9d1b38e56a1a
     home: https://github.com/oracle/coherence-operator
@@ -254,7 +268,7 @@ entries:
     version: 3.2.6
   - apiVersion: v1
     appVersion: 3.2.5
-    created: "2025-07-31T03:36:40.984790014-04:00"
+    created: "2025-08-28T12:16:35.692229018-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 219950d850b7d0db35017645efbca36d743b95cd141697bfc4cea42ca7cc9077
     home: https://github.com/oracle/coherence-operator
@@ -267,7 +281,7 @@ entries:
     version: 3.2.5
   - apiVersion: v1
     appVersion: 3.2.4
-    created: "2025-07-31T03:36:40.984420683-04:00"
+    created: "2025-08-28T12:16:35.691900058-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 8ff73fefbcd73aad26f549822f878bbd3656b8e2076c85544ed8a26de06f5964
     home: https://github.com/oracle/coherence-operator
@@ -280,7 +294,7 @@ entries:
     version: 3.2.4
   - apiVersion: v1
     appVersion: 3.2.3
-    created: "2025-07-31T03:36:40.984031143-04:00"
+    created: "2025-08-28T12:16:35.691577018-04:00"
     description: A Kubernetes Operator for Coherence
     digest: cebe6f3d6dfbd7ee2ba5c1c8d5260bb4f2bba9bd317819100e74b5987b54d643
     home: https://github.com/oracle/coherence-operator
@@ -293,7 +307,7 @@ entries:
     version: 3.2.3
   - apiVersion: v1
     appVersion: 3.2.2
-    created: "2025-07-31T03:36:40.983658637-04:00"
+    created: "2025-08-28T12:16:35.691272934-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 381a1b4da7666e8dac81b67b8aaa7c1ab89f2e6ba6fee329efef6a540a660188
     home: https://github.com/oracle/coherence-operator
@@ -306,7 +320,7 @@ entries:
     version: 3.2.2
   - apiVersion: v1
     appVersion: 3.2.1
-    created: "2025-07-31T03:36:40.982358239-04:00"
+    created: "2025-08-28T12:16:35.690142562-04:00"
     description: A Kubernetes Operator for Coherence
     digest: ffdd396a8757daef06fd23f4329cd641987053a1acd39d06c60fff669f33cdd0
     home: https://github.com/oracle/coherence-operator
@@ -319,7 +333,7 @@ entries:
     version: 3.2.1
   - apiVersion: v1
     appVersion: 3.2.0
-    created: "2025-07-31T03:36:40.981975762-04:00"
+    created: "2025-08-28T12:16:35.689815695-04:00"
     description: A Kubernetes Operator for Coherence
     digest: cc46282da8a6ff035a434894d685051730e2909a90a4dd7237c28911099e3702
     home: https://github.com/oracle/coherence-operator
@@ -332,7 +346,7 @@ entries:
     version: 3.2.0
   - apiVersion: v1
     appVersion: 3.1.5
-    created: "2025-07-31T03:36:40.981613916-04:00"
+    created: "2025-08-28T12:16:35.689486323-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 75c1189f863c6b311a335523d140b8f1fd9b86b99ed3d665aab7dd2518c210af
     home: https://github.com/oracle/coherence-operator
@@ -345,7 +359,7 @@ entries:
     version: 3.1.5
   - apiVersion: v1
     appVersion: 3.1.4
-    created: "2025-07-31T03:36:40.981235166-04:00"
+    created: "2025-08-28T12:16:35.689160229-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 392656084136b270abcde14a8ca2e1d279eebac9a98c608abd89435622aba9d5
     home: https://github.com/oracle/coherence-operator
@@ -358,7 +372,7 @@ entries:
     version: 3.1.4
   - apiVersion: v1
     appVersion: 3.1.3
-    created: "2025-07-31T03:36:40.980880003-04:00"
+    created: "2025-08-28T12:16:35.688835206-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 2ec55a9eadfc1507b4ab0183407128dee576573c68f7845ea8cc798fd6965914
     home: https://github.com/oracle/coherence-operator
@@ -371,7 +385,7 @@ entries:
     version: 3.1.3
   - apiVersion: v1
     appVersion: 3.1.2
-    created: "2025-07-31T03:36:40.980588199-04:00"
+    created: "2025-08-28T12:16:35.688567751-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 92d90ae08a7c97d0555abbd43dd9e3b59378f193117e27c07f70a3ef14a4cf29
     home: https://github.com/oracle/coherence-operator
@@ -384,7 +398,7 @@ entries:
     version: 3.1.2
   - apiVersion: v1
     appVersion: 3.1.1
-    created: "2025-07-31T03:36:40.980284281-04:00"
+    created: "2025-08-28T12:16:35.688312028-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 795f65f6b294aba2b13839dd6b0c1a22f74d025a5674932228d0eb0b5c5d5d2c
     home: https://github.com/oracle/coherence-operator
@@ -397,7 +411,7 @@ entries:
     version: 3.1.1
   - apiVersion: v1
     appVersion: 3.1.0
-    created: "2025-07-31T03:36:40.97997735-04:00"
+    created: "2025-08-28T12:16:35.688041779-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 8a2907c0c019f5c42053422361bdaf606a74ab544720c4d376a0ae60d011720c
     home: https://github.com/oracle/coherence-operator
@@ -410,7 +424,7 @@ entries:
     version: 3.1.0
   - apiVersion: v1
     appVersion: 3.0.2
-    created: "2025-07-31T03:36:40.979688581-04:00"
+    created: "2025-08-28T12:16:35.687728839-04:00"
     description: A Kubernetes Operator for Coherence
     digest: fc436c601886c71145b56cdb04f64326827562bd551b51328a53f491a1bfda3e
     home: https://github.com/oracle/coherence-operator
@@ -423,7 +437,7 @@ entries:
     version: 3.0.2
   - apiVersion: v1
     appVersion: 3.0.1
-    created: "2025-07-31T03:36:40.979425141-04:00"
+    created: "2025-08-28T12:16:35.68742222-04:00"
     description: A Kubernetes Operator for Coherence
     digest: b150c3a565178a5736d1b29f1c43e0a19106160f275166d21eee2eb48df2e67b
     home: https://github.com/oracle/coherence-operator
@@ -436,7 +450,7 @@ entries:
     version: 3.0.1
   - apiVersion: v1
     appVersion: 3.0.0
-    created: "2025-07-31T03:36:40.979126844-04:00"
+    created: "2025-08-28T12:16:35.686714255-04:00"
     description: A Kubernetes Operator for Coherence
     digest: 9acd77ebb7e0fbfe720a6f24885c546ea2306dd96f0c0f4a93eab8454167983f
     home: https://github.com/oracle/coherence-operator
@@ -449,7 +463,7 @@ entries:
     version: 3.0.0
   - apiVersion: v1
     appVersion: 2.1.1
-    created: "2025-07-31T03:36:40.978854117-04:00"
+    created: "2025-08-28T12:16:35.686075921-04:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -468,7 +482,7 @@ entries:
     version: 2.1.1
   - apiVersion: v1
     appVersion: 2.1.0
-    created: "2025-07-31T03:36:40.968079875-04:00"
+    created: "2025-08-28T12:16:35.677758761-04:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -487,7 +501,7 @@ entries:
     version: 2.1.0
   - apiVersion: v1
     appVersion: 2.0.5
-    created: "2025-07-31T03:36:40.958057331-04:00"
+    created: "2025-08-28T12:16:35.668886504-04:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -506,7 +520,7 @@ entries:
     version: 2.0.5
   - apiVersion: v1
     appVersion: 2.0.4
-    created: "2025-07-31T03:36:40.947688801-04:00"
+    created: "2025-08-28T12:16:35.660204096-04:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -525,7 +539,7 @@ entries:
     version: 2.0.4
   - apiVersion: v1
     appVersion: 2.0.3
-    created: "2025-07-31T03:36:40.936955778-04:00"
+    created: "2025-08-28T12:16:35.651062422-04:00"
     dependencies:
     - alias: prometheusoperator
       condition: prometheusoperator.enabled
@@ -542,4 +556,4 @@ entries:
     urls:
     - https://oracle.github.io/coherence-operator/charts/coherence-operator-2.0.3.tgz
     version: 2.0.3
-generated: "2025-07-31T03:36:40.925804171-04:00"
+generated: "2025-08-28T12:16:35.641091382-04:00"
