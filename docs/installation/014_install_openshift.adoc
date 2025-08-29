@@ -41,7 +41,7 @@ spec:
   name: coherence-operator
   source: coherence-operator-catalog
   sourceNamespace: openshift-marketplace
-  startingCSV: coherence-operator.v3.5.4
+  startingCSV: coherence-operator.v3.5.5
 ----
 
 Apply the subscription yaml:

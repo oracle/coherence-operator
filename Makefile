@@ -15,18 +15,18 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.5.4
+VERSION ?= 3.5.5
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.5.3
+PREV_VERSION ?= 3.5.4
 NEXT_VERSION := $(shell sh ./hack/next-version.sh "$(VERSION)")
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.5.3
+COMPATIBLE_VERSION  ?= 3.5.4
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
@@ -3053,17 +3053,17 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 	yq -i e 'select(.schema == "olm.template.basic").entries[] |= select(.schema == "olm.channel" and .name == "stable").entries += [{"name" : "coherence-operator.v$(VERSION)", "replaces": "coherence-operator.v$(PREV_VERSION)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
 	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(GITHUB_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
 
-GIT_BRANCH="version-update-$(VERSION)"
-GIT_LABEL="version-update"
+GIT_NEXT_BRANCH = "version-update-$(NEXT_VERSION)"
+GIT_LABEL       = "version-update"
 
 .PHONY: new-version-branch
 new-version-branch: ## Create a PR to update the version
-	git checkout -b $(GIT_BRANCH)
+	git checkout -b $(GIT_NEXT_BRANCH)
 
 .PHONY: new-version-pr
 new-version-pr: new-version-branch new-version ## Create a PR to update the version
-	git commit -am "Version update to $(VERSION)"
-	git push --set-upstream origin $(GIT_BRANCH)
+	git commit -am "Version update to $(NEXT_VERSION)"
+	git push --set-upstream origin $(GIT_NEXT_BRANCH)
 
 	gh label create "$(GIT_LABEL)" \
 		--description "Pull requests with version update" \
@@ -3071,10 +3071,10 @@ new-version-pr: new-version-branch new-version ## Create a PR to update the vers
 	|| true
 
 	gh pr create \
-		--title "Version update to $(VERSION)" \
-		--body "Current pull request contains version update to version $(VERSION)" \
+		--title "Version update to $(NEXT_VERSION)" \
+		--body "Current pull request contains version update to version $(NEXT_VERSION)" \
 		--label "$(GIT_LABEL)" \
-		--head $(GIT_BRANCH)
+		--head $(GIT_NEXT_BRANCH)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Create the third-party license file
