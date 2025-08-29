@@ -123,18 +123,6 @@ nodeSelector:
 #   ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 tolerations:
 
-# webhookCertType sets how webhook certificates will be managed.
-# Valid values are "self-signed" "cert-manager" or "manual" the Operator will fail to start if
-# the value is invalid.
-# The default is "self-signed" where the operator will create self-signed certs for the webhook.
-# If set to "cert-manager" it is expected that cert-manager is installed and configured to
-# manage the certificates. https://cert-manager.io/docs/installation/kubernetes/
-# If set to "manual" the certificate Secret should be created and managed externally
-webhookCertType: self-signed
-
-# webhookCertSecret is the name of the Secret that will contain the certificates for the Coherence webhooks.
-webhookCertSecret: coherence-webhook-server-cert
-
 # siteLabel is the Kubernetes Node label used to set the site identity for Coherence Pods.
 siteLabel:
 
@@ -210,11 +198,6 @@ clusterRoles: true
 # to set the Coherence site and rack values so Coherence cluster will be unable to automatically achieve site-safety.
 # The default is true.
 nodeRoles: false
-# webhooks controls whether the Coherence Operator registers admission web-hooks for the Coherence resource.
-# If this is set to false, then it will be possible to install invalid Coherence resource into the Kubernetes
-# cluster. This may cause errors when the Operator tries to reconcile them, or worse, the Operator may create
-# other invalid Kubernetes resources that fail to run.
-webhooks: true
 
 # If set to false, the Operator will not support the CoherenceJob resource type.
 # The CoherenceJob CRD will not be installed and the Operator will not listen

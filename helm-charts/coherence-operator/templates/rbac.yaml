@@ -22,7 +22,7 @@ metadata:
 {{- if .Values.clusterRoles }}
 # -------------------------------------------------------------
 # This is the Cluster Roles required by the Coherence Operator
-# to self-manage its CRDs and Web-Hooks.
+# to manage CRDs and Web-Hooks.
 # -------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -48,17 +48,6 @@ rules:
     - customresourcedefinitions
     verbs:
     - get
-  - apiGroups:
-    - admissionregistration.k8s.io
-    resources:
-    - mutatingwebhookconfigurations
-    - validatingwebhookconfigurations
-    verbs:
-    - create
-    - delete
-    - get
-    - update
-    - watch
 ---
 # --------------------------------------------------------------------
 # This is the Cluster Role binding required by the Coherence Operator
@@ -245,19 +234,6 @@ rules:
   - monitoring.coreos.com
   resources:
   - servicemonitors
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cert-manager.io
-  resources:
-  - certificates
-  - issuers
   verbs:
   - create
   - delete
