@@ -7,6 +7,7 @@
 package runner
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -116,6 +118,12 @@ func execute(v *viper.Viper) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to create client set")
 	}
+
+	// The Operator web-hook server has been removed so we need to delete any existing web-hooks
+	cl := cs.KubeClient.AdmissionregistrationV1()
+	// we ignore any errors
+	_ = cl.MutatingWebhookConfigurations().Delete(context.Background(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
+	_ = cl.ValidatingWebhookConfigurations().Delete(context.Background(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
 
 	dryRun := operator.IsDryRun()
 	secureMetrics := vpr.GetBool(operator.FlagSecureMetrics)
