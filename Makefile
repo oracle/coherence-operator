@@ -965,7 +965,6 @@ copyright:  ## Check copyright headers
 run: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run: create-namespace ## run the Operator locally
 	go run -ldflags "$(LDFLAGS)" ./runner/main.go operator --skip-service-suspend=true --coherence-dev-mode=true \
-		--cert-type=self-signed --webhook-service=host.docker.internal \
 	    2>&1 | tee $(TEST_LOGS_DIR)/operator-debug.out
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -988,8 +987,7 @@ run-debug: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 run-debug: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 run-debug: create-namespace ## run the Operator locally with Delve debugger
 	dlv debug ./runner --headless --listen=:2345 --api-version=2 --accept-multiclient \
-		-- --skip-service-suspend=true --coherence-dev-mode=true \
-		--cert-type=self-signed --webhook-service=host.docker.internal
+		-- --skip-service-suspend=true --coherence-dev-mode=true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Run the Operator locally in debug mode after deleting and recreating
@@ -1709,8 +1707,6 @@ prepare-network-policies:
 	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
 	$(SED) -e 's/6443/${API_PORT}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-k8s-api-server.yaml
-	$(SED) -e 's/172.18.0.2/${IP1}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-webhook-ingress-from-api-server.yaml
-	$(SED) -e 's/10.96.0.1/${IP2}/g' $(BUILD_OUTPUT)/network-policies/manifests/allow-webhook-ingress-from-api-server.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Uninstall the network policies from the examples
@@ -1887,7 +1883,6 @@ endif
 ifeq (false,$(OPERATOR_HA))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add patch --kind Deployment --name controller-manager --path single-replica-patch.yaml
 endif
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(ORACLE_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) apply -f -
 else
@@ -1937,7 +1932,6 @@ deploy-debug: prepare-deploy-debug create-namespace $(TOOLS_BIN)/kustomize   ## 
 ifneq (,$(WATCH_NAMESPACE))
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal WATCH_NAMESPACE=$(WATCH_NAMESPACE)
 endif
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) create secret generic coherence-webhook-server-cert || true
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) apply -f -
 	sleep 5
 	@echo ""
@@ -1995,7 +1989,7 @@ endef
 # Un-deploy controller from the configured Kubernetes cluster in ~/.kube/config
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: undeploy
-undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize uninstall-webhooks  ## Undeploy the Coherence Operator
+undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize ## Undeploy the Coherence Operator
 	@echo "Undeploy Coherence Operator..."
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) delete -f - || true
@@ -2004,12 +1998,6 @@ undeploy: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(TOOLS_BIN)/kustomize unins
 	@echo "Uninstalling CRDs - executing deletion"
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/crd | $(KUBECTL_CMD) delete --force -f - || true
 	@echo "Uninstall CRDs completed"
-
-.PHONY: uninstall-webhooks
-uninstall-webhooks:
-	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) delete secret coherence-webhook-server-cert || true
-	$(KUBECTL_CMD) delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration || true
-	$(KUBECTL_CMD) delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Tail the deployed operator logs.

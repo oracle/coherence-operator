@@ -116,13 +116,6 @@ releases of the Operator may use slightly different specs of this CRD version, f
 a new Operator release may introduce extra fields not in the previous releases.
 As the CRD version is fixed at `v1` there is no guarantee which CRD version has actually installed, which could lead to
 subtle issues.
-* The operator creates and installs defaulting and validating web-hooks. A web-hook is associated to a CRD resource so
-installing multiple web-hooks for the same resource may lead to issues. If an operator is uninstalled, but the web-hook
-configuration remains, then Kubernetes will not accept modifications to resources of that type as it will be
-unable to contact the web-hook.
-
-It is possible to run the Operator without web-hooks, but this has its own
-caveats see the <<docs/installation/07_webhooks.adoc,Web Hooks>> documentation for how to do this.
 ====
 
 [IMPORTANT]

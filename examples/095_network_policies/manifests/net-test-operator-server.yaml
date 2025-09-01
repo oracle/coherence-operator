@@ -15,10 +15,6 @@ spec:
       name: operator-rest
       targetPort: operator
       protocol: TCP
-    - port: 443
-      name: https-webhook-server
-      targetPort: webhook-server
-      protocol: TCP
 ---
 apiVersion: v1
 kind: Pod
@@ -39,12 +35,6 @@ spec:
     - containerPort: 8000
       name: operator
       protocol: TCP
-    - containerPort: 9443
-      name: webhook-server
-      protocol: TCP
-    env:
-      - name: WEBHOOK_PORT
-        value: "9443"
     command:
       - /files/runner
     args:

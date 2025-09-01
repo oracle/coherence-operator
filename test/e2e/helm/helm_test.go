@@ -82,67 +82,6 @@ func TestContainerSecurityContext(t *testing.T) {
 	g.Expect(d.Spec.Template.Spec.SecurityContext).To(BeNil())
 }
 
-func TestCreateWebhookCertSecretByDefault(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall()
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	secret := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", secret)
-	g.Expect(err).NotTo(HaveOccurred())
-}
-
-func TestCreateWebhookCertSecretWithName(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhookCertSecret=foo")
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	secret := &corev1.Secret{}
-	err = result.Get("foo", secret)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	dep := &appsv1.Deployment{}
-	err = result.Get("coherence-operator", dep)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	c := findContainer("manager", dep)
-	g.Expect(c).NotTo(BeNil())
-
-	senv := findEnvVar("WEBHOOK_SECRET", c)
-	g.Expect(senv).NotTo(BeNil())
-	g.Expect(senv.Value).To(Equal("foo"))
-}
-
-func TestNotCreateWebhookCertSecretIfManualCertManager(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhookCertType=manual")
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	secret := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", secret)
-	g.Expect(err).To(HaveOccurred())
-}
-
-func TestDisableWebhooks(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhooks=false")
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	dep := &appsv1.Deployment{}
-	err = result.Get("coherence-operator", dep)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	c := findContainer("manager", dep)
-	g.Expect(c).NotTo(BeNil())
-
-	g.Expect(c.Args).NotTo(BeNil())
-	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--enable-webhook=false"))
-}
-
 func TestDisableJobCRD(t *testing.T) {
 	g := NewGomegaWithT(t)
 

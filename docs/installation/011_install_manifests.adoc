@@ -75,7 +75,6 @@ the Operator into a single namespace without any cluster roles.
 
 The Operator installed with this yaml
 
-* will not use WebHooks
 * will not look-up Node labels for Coherence site and rack configurations
 
 [NOTE]

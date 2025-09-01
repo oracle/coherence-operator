@@ -114,7 +114,6 @@ kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/
 namespace/coherence created
 customresourcedefinition.apiextensions.k8s.io/coherence.coherence.oracle.com created
 ...
-service/coherence-operator-webhook created
 deployment.apps/coherence-operator-controller-manager created
 ----
 

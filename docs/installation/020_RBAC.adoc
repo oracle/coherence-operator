@@ -21,7 +21,6 @@ By default, both install methods will create ClusterRole resources and ClusterRo
 Cluster roles are used for a number of operator features:
 
 * Installing the CRDs - the Operator automatically ensures that the CRDs it requires are installed when it starts.
-* Installing the Web-Hook - the Operator automatically installs the defaulting and validating web-hooks for the `Coherence` resource when it starts. Without the validating web-hook a lot more care must be taken to ensure that only valid `Coherence` resource yaml is added to k8s. In the worst case, invalid yaml may ultimately cause the Operator to panic where invalid yaml would normally have been disallowed by the web-hook.
 * Coherence CLuster site and rack information - the Operator is used to supply site and rack values for the Coherence clusters that it manages. These values come from `Node` labels that the Operator must be able to look up. Without this information a Coherence cluster will have empty values for the `coherence.site` and `coherence.rack` system properties, meaning that Coherence will be unable to make data site-safe in k8s clusters that have multiple availability zones.
 * Monitoring multiple namespaces - if the Operator is to monitor multiple namespaces it must have cluster wide roles to do this
 
@@ -133,36 +132,6 @@ resources:
 #- cluster_role.yaml
 #- cluster_role_binding.yaml
 ----
-
-==== Disable Web-Hooks and CRD Installation
-
-The Operator would normally install validating and defaulting web-hooks as well as ensuring that the Coherence CRDs are installed. Without cluster roles this must be disabled by editing the `manager/manager.yaml` file in the manifests.
-
-Edit the Operator container `args` section of the deployment yaml to add command line arguments to `--enable-webhook=false` to disable web-hook creation and `--install-crd=false` to disable CRD installation.
-
-For example, change the section of the `manager/manager.yaml` file that looks like this:
-[source, yaml]
-.manager/manager.yaml
-----
-        command:
-          - /files/runner
-        args:
-          - --enable-leader-election
-        envFrom:
-----
-to be:
-[source, yaml]
-.manager/manager.yaml
-----
-        command:
-          - /files/runner
-        args:
-          - --enable-leader-election
-          - --enable-webhook=false
-          - --install-crd=false
-        envFrom:
-----
-
 
 ==== Edit the Operator ClusterRole & ClusterRoleBinding
 

@@ -21,8 +21,6 @@ This page will be updated and maintained over time to include common issues we s
 
 * <<ns-delete,Deleting a Namespace Containing Coherence Resource(s) is Stuck Pending Deletion>>
 
-* <<#restart,Why Does the Operator Pod Restart>>
-
 * <<#ready,Why are the Coherence Pods not reaching ready>>
 
 * <<#messed,I messed up a Coherence deployment and now cannot apply a fixed yaml>>
@@ -44,15 +42,7 @@ This page will be updated and maintained over time to include common issues we s
 [#no-operator]
 === I Uninstalled the Operator and Cannot Delete the Coherence Clusters
 
-The `Coherence` resources managed by the Operator are marked in k8s as being owned by the Operator, and have finalizers to stop them being deleted. In normal operation the Operator will remove the finalizer when it deletes a `Coherence` cluster. The Operator also installs a validating and mutating web-hook, which will also stop k8s allowing mutations and deletions to a `Coherence` resource if the Coherence Operator is not running.
-
-If the Operator has been uninstalled, first remove the two web-hooks.
-
-[source,bash]
-----
-kubectl delete mutatingwebhookconfiguration coherence-operator-mutating-webhook-configuration
-kubectl delete validatingwebhookconfiguration coherence-operator-validating-webhook-configuration
-----
+The `Coherence` resources managed by the Operator are marked in k8s as being owned by the Operator, and have finalizers to stop them being deleted. In normal operation the Operator will remove the finalizer when it deletes a `Coherence` cluster.
 
 Now patch and delete each Coherence resource to delete its finalizers using the command below and replacing `<NAMESPACE>` with the correct namespace the `Coherence` resource is in and `<COHERENCE_RESOURCE_NAME>` with the
 `Coherence` resource name.
@@ -101,16 +91,6 @@ where the cluster and namespace are being cleaned up at the end of a test. This 
 a production cluster, especially where features such as Coherence persistence are being used, otherwise the cluster may
 not cleanly shut down and will then not be able to be restarted using the persisted data.
 ====
-
-[#restart]
-=== Why Does the Operator Pod Restart After Installation
-
-You might notice that when the Operator is installed that the Operator Pod starts, dies and is then restarted.
-This is expected behaviour. The Operator uses a K8s web-hook for defaulting and validation of the Coherence resources.
-A web-hook requires certificates to be present in a `Secret` mounted to the Operator Pod as a volume.
-If this Secret is not present the Operator creates it and populates it with self-signed certs.
-In order for the Secret to then be mounted correctly the Pod must be restarted.
-See the <<docs/webhooks/01_introduction.adoc,the WebHooks>> documentation.
 
 [#ready]
 === Why are the Coherence Pods not reaching ready

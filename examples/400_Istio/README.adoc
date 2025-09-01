@@ -121,52 +121,10 @@ kubectl label namespace coherence istio-injection=enabled
 
 Istio Sidecar AutoInjection is done automatically when you label the coherence namespace with istio-injection.
 
-==== Exclude the Operator Web-Hook from the Envoy Proxy
-
-The Coherence Operator uses an admissions web-hook, which Kubernetes will call to validate Coherence resources.
-This web-hook binds to port `9443` in the Operator Pods and is already configured to use TLS as is standard for
-Kubernetes admissions web-hooks. If this port is routed through the Envoy proxy Kubernetes will be unable to
-access the web-hook.
-
-The Operator yaml manifests and Helm chart already add the `traffic.sidecar.istio.io/excludeInboundPorts` annotation
-to the Operator Pods. This should exclude the web-hook port from being Istio.
-
-Another way to do this is to add a `PeerAuthentication` resource to the Operator namespace.
-
-*Before installing the Operator*, create the following `PeerAuthentication` yaml.
-
-[source,yaml]
-.istio-operator.yaml
-----
-apiVersion: security.istio.io/v1beta1
-kind: PeerAuthentication
-metadata:
-  name: "coherence-operator"
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: coherence-operator
-      app.kubernetes.io/instance: coherence-operator-manager
-      app.kubernetes.io/component: manager
-  mtls:
-    mode: STRICT
-  portLevelMtls:
-    9443:
-      mode: PERMISSIVE
-----
-
-Then install this `PeerAuthentication` resource into the same namespace that the Operator will be installed into.
-For example, if the Operator will be in the `coherence` namespace:
-
-[source,bash]
-----
-kubectl -n coherence apply istio-operator.yaml
-----
-
 You can then install the operator using your preferred method in the
 Operator <<docs/installation/001_installation.adoc,Installation Guide>>.
 
-After installed operator, use the following command to confirm the operator is running:
+After installing the operator, use the following command to confirm the operator is running:
 
 [source,bash]
 ----
@@ -247,7 +205,6 @@ If we look at the graph view we can see all the traffic between the different pa
 
 image::images/kiali-post-deploy.png[width=1024,height=512]
 
-- We can see the Kubernetes API server accessing the Operator web-hook to validate the yaml
 - We can see tge storage pods (the box marked "storage 1.0.0") communicate with each other via the storage-sts service to from a Coherence cluster
 - We can see the storage pods communicate with the Operator REST service to request their Coherence site and rack labels
 - We can see the Operator ping the storage pods health endpoints via the storage-sts service
