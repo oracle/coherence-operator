@@ -9,10 +9,15 @@ package helm
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"strings"
+	"testing"
+
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/gomega"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
@@ -22,26 +27,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/scheme"
-	"os"
-	"os/exec"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-	"strings"
-	"testing"
 )
 
 func findContainer(name string, d *appsv1.Deployment) *corev1.Container {
 	for _, c := range d.Spec.Template.Spec.Containers {
 		if c.Name == name {
 			return &c
-		}
-	}
-	return nil
-}
-
-func findEnvVar(name string, c *corev1.Container) *corev1.EnvVar {
-	for _, e := range c.Env {
-		if e.Name == name {
-			return &e
 		}
 	}
 	return nil
