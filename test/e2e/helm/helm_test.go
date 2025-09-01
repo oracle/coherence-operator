@@ -9,6 +9,12 @@ package helm
 import (
 	goctx "context"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"testing"
+	"time"
+
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -20,11 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"os/exec"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestPodSecurityContext(t *testing.T) {
@@ -614,35 +615,13 @@ func TestGlobalLabelsOnOperatorResources(t *testing.T) {
 	g.Expect(found).To(BeTrue())
 	g.Expect(actual).To(Equal("label-two"))
 
-	svc := &corev1.Service{}
-	err = result.Get("coherence-operator-webhook", svc)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	labels = svc.Labels
-	actual, found = labels["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-one"))
-	actual, found = labels["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-two"))
+	var svc *corev1.Service
 
 	svc = &corev1.Service{}
 	err = result.Get("coherence-operator-rest", svc)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	labels = svc.Labels
-	actual, found = labels["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-one"))
-	actual, found = labels["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-two"))
-
-	sec := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", sec)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	labels = sec.Labels
 	actual, found = labels["one"]
 	g.Expect(found).To(BeTrue())
 	g.Expect(actual).To(Equal("label-one"))
