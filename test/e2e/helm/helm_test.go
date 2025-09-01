@@ -615,9 +615,7 @@ func TestGlobalLabelsOnOperatorResources(t *testing.T) {
 	g.Expect(found).To(BeTrue())
 	g.Expect(actual).To(Equal("label-two"))
 
-	var svc *corev1.Service
-
-	svc = &corev1.Service{}
+	svc := &corev1.Service{}
 	err = result.Get("coherence-operator-rest", svc)
 	g.Expect(err).NotTo(HaveOccurred())
 
