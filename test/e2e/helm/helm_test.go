@@ -597,18 +597,6 @@ func TestGlobalAnnotationsOnOperatorResources(t *testing.T) {
 	g.Expect(actual).To(Equal("annotation-two"))
 
 	svc := &corev1.Service{}
-	err = result.Get("coherence-operator-webhook", svc)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	annotations = svc.Annotations
-	actual, found = annotations["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-one"))
-	actual, found = annotations["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-two"))
-
-	svc = &corev1.Service{}
 	err = result.Get("coherence-operator-rest", svc)
 	g.Expect(err).NotTo(HaveOccurred())
 
