@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,13 +9,14 @@ package nettesting
 import (
 	"context"
 	"fmt"
-	coh "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/pkg/operator"
 	"net"
 	"os"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"strconv"
 	"time"
+
+	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/operator"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 const (
@@ -23,8 +24,6 @@ const (
 	TestPortEcho = "Echo"
 	// TestPortHealth is the name of the health port
 	TestPortHealth = "Health"
-	// TestPortWebHook is the name of the web-hook port
-	TestPortWebHook = "WebHook"
 	// TestPortClusterPort is the name of the Coherence cluster port
 	TestPortClusterPort = "ClusterPort"
 	// TestPortUnicastPort1 is the name of the first Coherence unicast port
@@ -69,10 +68,6 @@ func NewOperatorSimulatorRunner(host string) ClientSimulator {
 // NewClusterMemberRunner create a new ClusterMemberSimulator
 func NewClusterMemberRunner(operatorHost, clusterHost string) ClientSimulator {
 	return clusterMemberSimulator{operatorHost: operatorHost, clusterHost: clusterHost}
-}
-
-func NewWebHookClientRunner(operatorHost string) ClientSimulator {
-	return webHookClientSimulator{operatorHost: operatorHost}
 }
 
 func NewSimpleClientRunner(host string, port int, protocol string) ClientSimulator {
@@ -120,10 +115,6 @@ func getPorts() (map[string]int, error) {
 	ports[TestPortEcho] = 7
 
 	if ports[TestPortHealth], err = findPort(coh.EnvVarCohHealthPort, int(coh.DefaultHealthPort)); err != nil {
-		return nil, err
-	}
-
-	if ports[TestPortWebHook], err = findPort("WEBHOOK_PORT", 443); err != nil {
 		return nil, err
 	}
 

@@ -104,15 +104,6 @@ cd ./default && /kustomize edit set namespace coherence-test
 
 ==== Install
 
-The Operator requires a `Secret` for its web-hook certificates. This `Secret` needs to exist but can be empty.
-The `Secret` must be in the same namespace that the Operator will be deployed to.
-For example, if the Operator namespace is `coherence-test`, then the `Secret` can be created with this command:
-
-[source,bash]
-----
-kubectl -n coherence-test create secret generic coherence-webhook-server-cert
-----
-
 The Operator can now be installed by running the following command from the `manifests` directory:
 [source,bash]
 ----
@@ -138,6 +129,5 @@ The Operator can be installed using the generated yaml.
 For example if the Operator is to be deployed to the `coherence-test` namespace:
 [source,bash]
 ----
-kubectl -n coherence-test create secret generic coherence-webhook-server-cert
 kubectl -n coherence-test create -f operator.yaml
 ----

@@ -9,6 +9,12 @@ package helm
 import (
 	goctx "context"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"testing"
+	"time"
+
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -20,11 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"os/exec"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestPodSecurityContext(t *testing.T) {
@@ -79,67 +80,6 @@ func TestContainerSecurityContext(t *testing.T) {
 
 	// Should not have a Pod securityContext
 	g.Expect(d.Spec.Template.Spec.SecurityContext).To(BeNil())
-}
-
-func TestCreateWebhookCertSecretByDefault(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall()
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	secret := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", secret)
-	g.Expect(err).NotTo(HaveOccurred())
-}
-
-func TestCreateWebhookCertSecretWithName(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhookCertSecret=foo")
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	secret := &corev1.Secret{}
-	err = result.Get("foo", secret)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	dep := &appsv1.Deployment{}
-	err = result.Get("coherence-operator", dep)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	c := findContainer("manager", dep)
-	g.Expect(c).NotTo(BeNil())
-
-	senv := findEnvVar("WEBHOOK_SECRET", c)
-	g.Expect(senv).NotTo(BeNil())
-	g.Expect(senv.Value).To(Equal("foo"))
-}
-
-func TestNotCreateWebhookCertSecretIfManualCertManager(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhookCertType=manual")
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	secret := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", secret)
-	g.Expect(err).To(HaveOccurred())
-}
-
-func TestDisableWebhooks(t *testing.T) {
-	g := NewGomegaWithT(t)
-	result, err := helmInstall("--set", "webhooks=false")
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(result).NotTo(BeNil())
-
-	dep := &appsv1.Deployment{}
-	err = result.Get("coherence-operator", dep)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	c := findContainer("manager", dep)
-	g.Expect(c).NotTo(BeNil())
-
-	g.Expect(c.Args).NotTo(BeNil())
-	g.Expect(c.Args).Should(ContainElements("operator", "--enable-leader-election", "--enable-webhook=false"))
 }
 
 func TestDisableJobCRD(t *testing.T) {
@@ -615,34 +555,10 @@ func TestGlobalLabelsOnOperatorResources(t *testing.T) {
 	g.Expect(actual).To(Equal("label-two"))
 
 	svc := &corev1.Service{}
-	err = result.Get("coherence-operator-webhook", svc)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	labels = svc.Labels
-	actual, found = labels["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-one"))
-	actual, found = labels["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-two"))
-
-	svc = &corev1.Service{}
 	err = result.Get("coherence-operator-rest", svc)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	labels = svc.Labels
-	actual, found = labels["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-one"))
-	actual, found = labels["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("label-two"))
-
-	sec := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", sec)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	labels = sec.Labels
 	actual, found = labels["one"]
 	g.Expect(found).To(BeTrue())
 	g.Expect(actual).To(Equal("label-one"))
@@ -681,34 +597,10 @@ func TestGlobalAnnotationsOnOperatorResources(t *testing.T) {
 	g.Expect(actual).To(Equal("annotation-two"))
 
 	svc := &corev1.Service{}
-	err = result.Get("coherence-operator-webhook", svc)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	annotations = svc.Annotations
-	actual, found = annotations["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-one"))
-	actual, found = annotations["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-two"))
-
-	svc = &corev1.Service{}
 	err = result.Get("coherence-operator-rest", svc)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	annotations = svc.Annotations
-	actual, found = annotations["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-one"))
-	actual, found = annotations["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-two"))
-
-	sec := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", sec)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	annotations = sec.Annotations
 	actual, found = annotations["one"]
 	g.Expect(found).To(BeTrue())
 	g.Expect(actual).To(Equal("annotation-one"))

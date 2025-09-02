@@ -7,24 +7,27 @@
 package runner
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
-	"github.com/oracle/coherence-operator/controllers/webhook"
 	"github.com/oracle/coherence-operator/pkg/clients"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/pkg/rest"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	rest2 "k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
-	"net/http"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/config"
@@ -33,8 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-	hooks "sigs.k8s.io/controller-runtime/pkg/webhook"
-	"time"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -118,6 +119,12 @@ func execute(v *viper.Viper) error {
 		return errors.Wrap(err, "unable to create client set")
 	}
 
+	// The Operator web-hook server has been removed so we need to delete any existing web-hooks
+	cl := cs.KubeClient.AdmissionregistrationV1()
+	// we ignore any errors
+	_ = cl.MutatingWebhookConfigurations().Delete(context.Background(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
+	_ = cl.ValidatingWebhookConfigurations().Delete(context.Background(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
+
 	dryRun := operator.IsDryRun()
 	secureMetrics := vpr.GetBool(operator.FlagSecureMetrics)
 
@@ -145,10 +152,6 @@ func execute(v *viper.Viper) error {
 		metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
 	}
 
-	webhookServer := hooks.NewServer(hooks.Options{
-		TLSOpts: tlsOpts,
-	})
-
 	duration := viper.GetDuration(operator.FlagLeaderElectionDuration)
 	if duration < time.Second*10 {
 		duration = time.Second * 10
@@ -162,7 +165,6 @@ func execute(v *viper.Viper) error {
 		Scheme:                 scheme,
 		HealthProbeBindAddress: viper.GetString(operator.FlagHealthAddress),
 		Metrics:                metricsServerOptions,
-		WebhookServer:          webhookServer,
 		LeaderElection:         viper.GetBool(operator.FlagLeaderElection),
 		LeaderElectionID:       lockName,
 		LeaseDuration:          &duration,
@@ -231,25 +233,6 @@ func execute(v *viper.Viper) error {
 		// We intercept the signal handler here so that we can do clean-up before the Manager stops
 		handler := ctrl.SetupSignalHandler()
 
-		// Set-up webhooks if required
-		var cr *webhook.CertReconciler
-		if operator.ShouldEnableWebhooks() {
-			// Set up the webhook certificate reconciler
-			cr = &webhook.CertReconciler{
-				Clientset: cs,
-			}
-			if err := cr.SetupWithManager(handler, mgr, cs); err != nil {
-				return errors.Wrap(err, " unable to create webhook certificate controller")
-			}
-
-			// Set up the webhooks
-			if err = (&coh.Coherence{}).SetupWebhookWithManager(mgr); err != nil {
-				return errors.Wrap(err, " unable to create webhook")
-			}
-		} else {
-			setupLog.Info("Operator is running with web-hooks disabled")
-		}
-
 		// Create the REST server
 		restServer := rest.NewServer(cs.KubeClient)
 		if err := restServer.SetupWithManager(mgr); err != nil {
@@ -269,13 +252,6 @@ func execute(v *viper.Viper) error {
 		}
 
 		// +kubebuilder:scaffold:builder
-
-		go func() {
-			<-handler.Done()
-			if cr != nil {
-				cr.Cleanup()
-			}
-		}()
 
 		setupLog.Info("starting manager")
 		if err := mgr.Start(handler); err != nil {

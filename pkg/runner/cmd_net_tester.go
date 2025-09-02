@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,7 @@ package runner
 
 import (
 	"context"
+
 	"github.com/oracle/coherence-operator/pkg/nettesting"
 	"github.com/spf13/cobra"
 )
@@ -24,9 +25,6 @@ const (
 
 	// CommandNetTestCluster is the argument to launch a network test Coherence cluster member simulation.
 	CommandNetTestCluster = "cluster"
-
-	// CommandNetTestHook is the argument to launch a network test that connects to the Operator web-hook port.
-	CommandNetTestHook = "hook"
 
 	// CommandNetTestClient is the argument to launch a simple network test client.
 	CommandNetTestClient = "client"
@@ -62,7 +60,6 @@ func networkTestCommand() *cobra.Command {
 	rootCmd.AddCommand(networkTestServerCommand())
 	rootCmd.AddCommand(networkTestOperatorCommand())
 	rootCmd.AddCommand(networkTestClusterCommand())
-	rootCmd.AddCommand(networkWebHookClientCommand())
 	rootCmd.AddCommand(networkSimpleClientCommand())
 
 	return rootCmd
@@ -156,39 +153,6 @@ func netTestCluster(cmd *cobra.Command) error {
 	}
 
 	test := nettesting.NewClusterMemberRunner(operatorHost, clusterHost)
-	err = test.Run(context.Background())
-	return err
-}
-
-// networkTestClusterCommand creates the network test Coherence cluster member simulator sub-command
-func networkWebHookClientCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   CommandNetTestHook,
-		Short: "Network test web-hook client",
-		Long:  "Run a network communication test web-hook client",
-		Args:  cobra.ArbitraryArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return netTestWebHook(cmd)
-		},
-	}
-
-	flagSet := cmd.Flags()
-	flagSet.String(ArgOperatorHostName, "127.0.0.1", "The host name of the Coherence Operator simulator")
-
-	return cmd
-}
-
-// netTestWebHook runs a web-hook connectivity test
-func netTestWebHook(cmd *cobra.Command) error {
-	var err error
-	flagSet := cmd.Flags()
-
-	operatorHost, err := flagSet.GetString(ArgOperatorHostName)
-	if err != nil {
-		return err
-	}
-
-	test := nettesting.NewWebHookClientRunner(operatorHost)
 	err = test.Run(context.Background())
 	return err
 }

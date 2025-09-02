@@ -53,7 +53,6 @@ This example has the following sections:
 * <<operator,Coherence Operator Policies>> - the network policies required to run the Coherence Operator
 ** <<k8sapi,Kubernetes API Server>> - allow the Operator egress to the Kubernetes API server
 ** <<cluster-access,Coherence Clusters Pods>> - allow the Operator egress to the Coherence cluster Pods
-** <<webhook,Web Hooks>> - allow ingress to the Operator's web hook port
 * <<coherence,Coherence Cluster Policies>> - the network policies required to run Coherence clusters
 ** <<inter-cluster,Inter-Cluster Access>> - allow Coherence cluster Pods to communicate
 ** <<cluster-to-operator,Coherence Operator>> - allow Coherence cluster Pods to communicate with the Operator
@@ -251,56 +250,6 @@ The two policies can be applied to the `coherence` namespace.
 ----
 kubectl -n coherence apply -f manifests/allow-operator-rest-ingress.yaml
 kubectl -n coherence apply -f manifests/allow-operator-cluster-member-egress.yaml
-----
-
-[#webhook]
-==== Webhook Ingress
-
-With all the above policies in place, the Operator is able to work correctly, but if a `Coherence` resource is now created
-Kubernetes will be unable to call the Operator's webhook without the correct ingress policy.
-
-The following example demonstrates this. Assume there is a minimal`Coherence` yaml file named `minimal.yaml`
-that will create a single member Coherence cluster.
-
-[source,yaml]
-.minimal.yaml
-----
-apiVersion: coherence.oracle.com/v1
-kind: Coherence
-metadata:
-  name: storage
-spec:
-  replicas: 1
-----
-
-If `minimal.yaml` is applied using `kubectl` with a small timeout of 10 seconds, the creation of the resource will
-fail due to Kubernetes not having access to the Coherence Operator webhook.
-
-[source,bash]
-----
-$ kubectl apply --timeout=10s -f minimal.yaml
-Error from server (InternalError): error when creating "minimal.yaml": Internal error occurred: failed calling webhook "coherence.oracle.com": failed to call webhook: Post "https://coherence-operator-webhook.operator-test.svc:443/mutate-coherence-oracle-com-v1-coherence?timeout=10s": context deadline exceeded
-----
-
-The simplest solution is to allow ingress from any IP address to the webhook on port, with a policy like that shown below.
-This policy uses and empty `from: []` attribute, which allows access from anywhere to the `webhook-server` port in the Pod.
-
-[source,yaml]
-.manifests/allow-webhook-ingress-from-all.yaml
-----
-include::manifests/allow-webhook-ingress-from-all.yaml[]
-----
-
-Allowing access to the webhook from anywhere is not very secure, so a more restrictive `from` attribute could be used
-to limit access to the IP address (or addresses) of the Kubernetes API server.
-As with the API server policy above, the trick here is knowing the API server addresses to use.
-
-The policy below only allows access from specific addresses:
-
-[source,yaml]
-.manifests/allow-webhook-ingress-from-all.yaml
-----
-include::manifests/allow-webhook-ingress-from-api-server.yaml[]
 ----
 
 [#coherence]
@@ -725,55 +674,6 @@ The test Job can then be deleted:
 [source,bash]
 ----
 kubectl -n coh-test delete -f examples/095_network_policies/manifests/net-test-coherence.yaml
-----
-
-==== Testing the Operator Web Hook
-
-The Operator has a web-hook that k8s calls to validate Coherence resource configurations and to provide default values.
-Web hooks in Kubernetes use TLS by default and listen on port 443. The Operator server simulator also listens on port 443
-to allow this connectivity to be tested.
-
-The network policy in this example that allows ingress to the web-hook allows any client to connect.
-This is because it is not always simple to work out the IP address that the API server will connect to the web-hook from.
-
-We can use the network tester to simulate this by running a Job that will connect to the web hook port.
-The web-hook test job in this example does not label the Pod and can be run from the default namespace to simulate a random
-external connection.
-
-[source,bash]
-----
-kubectl -n default apply -f examples/095_network_policies/manifests/net-test-webhook.yaml
-----
-
-We can then check the results of the Job by looking at the Pod log.
-
-[source,bash]
-----
-kubectl -n default logs $(kubectl -n default get pod -l 'coherenceNetTest=webhook-client' -o name)
-----
-
-The output from a successful test will look like this:
-
-[source]
-----
-1.6727639834559627e+09	INFO	runner	Operator Version: 3.3.2
-1.6727639834562948e+09	INFO	runner	Operator Build Date: 2023-01-03T12:25:58Z
-1.6727639834563956e+09	INFO	runner	Operator Built By: jonathanknight
-1.6727639834565024e+09	INFO	runner	Operator Git Commit: c8118585b8f3d72b083ab1209211bcea364c85c5
-1.6727639834566057e+09	INFO	runner	Go Version: go1.19.2
-1.6727639834567096e+09	INFO	runner	Go OS/Arch: linux/amd64
-1.6727639834570327e+09	INFO	net-test	Starting test	{"Name": "Web-Hook Client"}
-1.6727639834571698e+09	INFO	net-test	Testing connectivity	{"Host": "net-test-operator-server.coherence.svc", "PortName": "WebHook", "Port": 443}
-1.6727639834791095e+09	INFO	net-test	Testing connectivity PASSED	{"Host": "net-test-operator-server.coherence.svc", "PortName": "WebHook", "Port": 443}
-----
-
-We can see that the client successfully connected to port 443.
-
-The test Job can then be deleted:
-
-[source,bash]
-----
-kubectl -n default delete -f examples/095_network_policies/manifests/net-test-webhook.yaml
 ----
 
 ==== Testing Ad-Hoc Ports
