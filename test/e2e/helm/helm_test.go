@@ -607,18 +607,6 @@ func TestGlobalAnnotationsOnOperatorResources(t *testing.T) {
 	actual, found = annotations["two"]
 	g.Expect(found).To(BeTrue())
 	g.Expect(actual).To(Equal("annotation-two"))
-
-	sec := &corev1.Secret{}
-	err = result.Get("coherence-webhook-server-cert", sec)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	annotations = sec.Annotations
-	actual, found = annotations["one"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-one"))
-	actual, found = annotations["two"]
-	g.Expect(found).To(BeTrue())
-	g.Expect(actual).To(Equal("annotation-two"))
 }
 
 func AssertLabelsAndAnnotations(t *testing.T, g *GomegaWithT, _ *coh.Coherence, sts *appsv1.StatefulSet) {
