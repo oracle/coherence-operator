@@ -1714,13 +1714,6 @@ func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcCollector, Value: *in.Collector})
 	}
 
-	// Enable or disable GC logging
-	if in != nil && in.Logging != nil {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcLogging, Value: BoolPtrToString(in.Logging)})
-	} else {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcLogging, Value: "false"})
-	}
-
 	return envVars
 }
 
