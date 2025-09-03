@@ -295,8 +295,18 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	}
 
 	if resp, err = netClient.Do(req); err != nil {
-		fmt.Printf(" FAILED error: %v\n", err)
-		return 1
+		if isTimeout(err) {
+			fmt.Println(" request timed out, backing off for one minute")
+			time.Sleep(1 * time.Minute)
+
+			if resp, err = netClient.Do(req); err != nil {
+				fmt.Printf(" FAILED error: %v\n", err)
+				return 1
+			}
+		} else {
+			fmt.Printf(" FAILED error: %v\n", err)
+			return 1
+		}
 	}
 
 	retryCount := 10
@@ -361,6 +371,10 @@ func checkURL(urlToGet *url.URL, fragments []string) int {
 	}
 
 	return 0
+}
+
+func isTimeout(err error) bool {
+	return strings.Contains(err.Error(), "i/o timeout")
 }
 
 func checkFragment(fragment, pageContent string) bool {
