@@ -291,7 +291,6 @@ const (
 	EnvVarJvmDebugAttach          = "JVM_DEBUG_ATTACH"
 	EnvVarJvmGcArgs               = "JVM_GC_ARGS"
 	EnvVarJvmGcCollector          = "JVM_GC_COLLECTOR"
-	EnvVarJvmGcLogging            = "JVM_GC_LOGGING"
 	EnvVarJvmMemoryHeap           = "JVM_HEAP_SIZE"
 	EnvVarJvmMemoryInitialHeap    = "JVM_INITIAL_HEAP_SIZE"
 	EnvVarJvmMemoryMaxHeap        = "JVM_MAX_HEAP_SIZE"

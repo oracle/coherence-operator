@@ -415,15 +415,4 @@ func populateServerDetails(details *run_details.RunDetails) {
 		details.AddDiagnosticOption("-XX:+PrintCommandLineFlags")
 		details.AddDiagnosticOption("-XX:+PrintFlagsFinal")
 	}
-
-	// Add GC logging parameters if required
-	if details.IsEnvTrue(v1.EnvVarJvmGcLogging) {
-		details.AddMemoryOption("-verbose:gc")
-		details.AddMemoryOption("-XX:+PrintGCDetails")
-		details.AddMemoryOption("-XX:+PrintGCTimeStamps")
-		details.AddMemoryOption("-XX:+PrintHeapAtGC")
-		details.AddMemoryOption("-XX:+PrintTenuringDistribution")
-		details.AddMemoryOption("-XX:+PrintGCApplicationStoppedTime")
-		details.AddMemoryOption("-XX:+PrintGCApplicationConcurrentTime")
-	}
 }

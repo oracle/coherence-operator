@@ -1691,12 +1691,6 @@ type JvmGarbageCollectorSpec struct {
 	// +listType=atomic
 	// +optional
 	Args []string `json:"args,omitempty"`
-	// Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps
-	// -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
-	// -XX:+PrintGCApplicationConcurrentTime
-	// Default is true
-	// +optional
-	Logging *bool `json:"logging,omitempty"`
 }
 
 // CreateEnvVars creates the GC environment variables for the Coherence container.
@@ -1712,13 +1706,6 @@ func (in *JvmGarbageCollectorSpec) CreateEnvVars() []corev1.EnvVar {
 	// Set the collector to use
 	if in != nil && in.Collector != nil && *in.Collector != "" {
 		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcCollector, Value: *in.Collector})
-	}
-
-	// Enable or disable GC logging
-	if in != nil && in.Logging != nil {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcLogging, Value: BoolPtrToString(in.Logging)})
-	} else {
-		envVars = append(envVars, corev1.EnvVar{Name: EnvVarJvmGcLogging, Value: "false"})
 	}
 
 	return envVars

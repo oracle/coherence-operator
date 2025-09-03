@@ -7,9 +7,10 @@
 package v1_test
 
 import (
+	"testing"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
-	"testing"
 )
 
 func TestCreateJobWithEmptyJvmSpec(t *testing.T) {
@@ -241,8 +242,7 @@ func TestCreateJobWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
-				Args:    []string{"-XX:GC-ArgOne", "-XX:GC-ArgTwo"},
-				Logging: nil,
+				Args: []string{"-XX:GC-ArgOne", "-XX:GC-ArgTwo"},
 			},
 		},
 	}
@@ -252,46 +252,6 @@ func TestCreateJobWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
 	// Create expected Job
 	jobExpected := createMinimalExpectedJob(deployment)
 	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "JVM_GC_ARGS", Value: "-XX:GC-ArgOne -XX:GC-ArgTwo"})
-
-	// assert that the Job is as expected
-	assertJobCreation(t, deployment, jobExpected)
-}
-
-func TestCreateJobWithJvmSpecWithGarbageCollectorLoggingFalse(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Gc: &coh.JvmGarbageCollectorSpec{
-				Logging: boolPtr(false),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestCoherenceJob(spec)
-	// Create expected Job
-	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "false"})
-
-	// assert that the Job is as expected
-	assertJobCreation(t, deployment, jobExpected)
-}
-
-func TestCreateJobWithJvmSpecWithGarbageCollectorLoggingTrue(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Gc: &coh.JvmGarbageCollectorSpec{
-				Logging: boolPtr(true),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestCoherenceJob(spec)
-	// Create expected Job
-	jobExpected := createMinimalExpectedJob(deployment)
-	addEnvVarsToAllJobContainers(jobExpected, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "true"})
 
 	// assert that the Job is as expected
 	assertJobCreation(t, deployment, jobExpected)
