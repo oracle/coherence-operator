@@ -7,9 +7,10 @@
 package v1_test
 
 import (
+	"testing"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
-	"testing"
 )
 
 func TestCreateStatefulSetWithEmptyJvmSpec(t *testing.T) {
@@ -231,67 +232,6 @@ func TestCreateStatefulSetWithJvmSpecWithGarbageCollector(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_COLLECTOR", Value: "ZGC"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Gc: &coh.JvmGarbageCollectorSpec{
-				Args:    []string{"-XX:GC-ArgOne", "-XX:GC-ArgTwo"},
-				Logging: nil,
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_ARGS", Value: "-XX:GC-ArgOne -XX:GC-ArgTwo"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingFalse(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Gc: &coh.JvmGarbageCollectorSpec{
-				Logging: boolPtr(false),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "false"})
-
-	// assert that the StatefulSet is as expected
-	assertStatefulSetCreation(t, deployment, stsExpected)
-}
-
-func TestCreateStatefulSetWithJvmSpecWithGarbageCollectorLoggingTrue(t *testing.T) {
-
-	spec := coh.CoherenceResourceSpec{
-		JVM: &coh.JVMSpec{
-			Gc: &coh.JvmGarbageCollectorSpec{
-				Logging: boolPtr(true),
-			},
-		},
-	}
-
-	// Create the test deployment
-	deployment := createTestDeployment(spec)
-	// Create expected StatefulSet
-	stsExpected := createMinimalExpectedStatefulSet(deployment)
-	addEnvVarsToAll(stsExpected, corev1.EnvVar{Name: "JVM_GC_LOGGING", Value: "true"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

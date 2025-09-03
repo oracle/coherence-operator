@@ -242,8 +242,7 @@ func TestCreateJobWithJvmSpecWithGarbageCollectorArgs(t *testing.T) {
 	spec := coh.CoherenceResourceSpec{
 		JVM: &coh.JVMSpec{
 			Gc: &coh.JvmGarbageCollectorSpec{
-				Args:    []string{"-XX:GC-ArgOne", "-XX:GC-ArgTwo"},
-				Logging: nil,
+				Args: []string{"-XX:GC-ArgOne", "-XX:GC-ArgTwo"},
 			},
 		},
 	}

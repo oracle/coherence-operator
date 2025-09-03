@@ -604,7 +604,6 @@ JvmGarbageCollectorSpec is options for managing the JVM garbage collector.
 | Field | Description | Type | Required
 m| collector | The name of the JVM garbage collector to use. G1 - adds the -XX:+UseG1GC option CMS - adds the -XX:+UseConcMarkSweepGC option Parallel - adds the -XX:+UseParallelGC Default - use the JVMs default collector The field value is case insensitive If not set G1 is used. If set to a value other than those above then the default collector for the JVM will be used. m| &#42;string | false
 m| args | Args specifies the GC options to pass to the JVM. m| []string | false
-m| logging | Enable the following GC logging args  -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime Default is true m| &#42;bool | false
 |===
 
 <<Table of Contents,Back to TOC>>

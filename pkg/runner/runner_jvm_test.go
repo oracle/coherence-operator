@@ -7,12 +7,13 @@
 package runner
 
 import (
+	"testing"
+
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	"testing"
 )
 
 func TestJvmArgsEmpty(t *testing.T) {
@@ -329,53 +330,6 @@ func TestJvmGarbageCollectorZGC(t *testing.T) {
 	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
 	expected := append(RemoveArgWithPrefix(GetMinimalExpectedArgs(t), "-XX:+UseG1GC"), "-XX:+UseZGC")
 	g.Expect(e.OsCmd.Args).To(ConsistOf(expected))
-}
-
-func TestJvmGarbageCollectorLoggingTrue(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	d := &coh.Coherence{
-		ObjectMeta: metav1.ObjectMeta{Name: "test"},
-		Spec: coh.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: coh.CoherenceResourceSpec{
-				JVM: &coh.JVMSpec{
-					Gc: &coh.JvmGarbageCollectorSpec{
-						Logging: ptr.To(true),
-					},
-				},
-			},
-		},
-	}
-
-	expectedArgs := append(GetExpectedArgsFileContent(),
-		"-verbose:gc",
-		"-XX:+PrintGCDetails",
-		"-XX:+PrintGCTimeStamps",
-		"-XX:+PrintHeapAtGC",
-		"-XX:+PrintTenuringDistribution",
-		"-XX:+PrintGCApplicationStoppedTime",
-		"-XX:+PrintGCApplicationConcurrentTime")
-
-	verifyConfigFilesWithArgs(t, d, expectedArgs)
-
-	args := []string{"server", "--dry-run"}
-	env := EnvVarsFromDeployment(t, d)
-
-	e, err := ExecuteWithArgsAndNewViper(env, args)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(e).NotTo(BeNil())
-	g.Expect(e.OsCmd).NotTo(BeNil())
-
-	g.Expect(e.OsCmd.Dir).To(Equal(TestAppDir))
-	g.Expect(e.OsCmd.Path).To(Equal(GetJavaCommand()))
-	g.Expect(e.OsCmd.Args).To(ConsistOf(GetMinimalExpectedArgsWith(t,
-		"-verbose:gc",
-		"-XX:+PrintGCDetails",
-		"-XX:+PrintGCTimeStamps",
-		"-XX:+PrintHeapAtGC",
-		"-XX:+PrintTenuringDistribution",
-		"-XX:+PrintGCApplicationStoppedTime",
-		"-XX:+PrintGCApplicationConcurrentTime")))
 }
 
 func TestJvmGarbageCollectorArgsEmpty(t *testing.T) {

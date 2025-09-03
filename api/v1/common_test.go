@@ -9,6 +9,11 @@ package v1_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"testing"
+
 	"github.com/go-test/deep"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
@@ -20,10 +25,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	"os"
-	"sort"
-	"strings"
-	"testing"
 )
 
 const (
@@ -343,10 +344,6 @@ func createMinimalExpectedPodSpec(deployment coh.CoherenceResource) corev1.PodTe
 		{
 			Name:  "COHERENCE_WKA",
 			Value: deployment.GetWKA(),
-		},
-		{
-			Name:  "JVM_GC_LOGGING",
-			Value: "false",
 		},
 		{
 			Name:  "JVM_USE_CONTAINER_LIMITS",
