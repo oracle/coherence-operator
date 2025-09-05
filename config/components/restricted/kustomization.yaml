@@ -8,5 +8,3 @@ patches:
       name: controller-manager
   - path: node-viewer-role.yaml
   - path: node_viewer_role_binding.yaml
-  - path: validating-webhook.yaml
-  - path: mutating-webhook.yaml
