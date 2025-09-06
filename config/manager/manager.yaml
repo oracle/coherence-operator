@@ -74,6 +74,10 @@ spec:
                 fieldPath: metadata.name
           - name: SERVICE_NAME
             value: ${REST_SERVICE_NAME}
+          - name: OPERATOR_IMAGE
+            value: controller:latest
+          - name: RELATED_IMAGE_COHERENCE_OPERATOR
+            value: controller:latest
         volumeMounts:
         - mountPath: /coherence-operator/config
           name: config

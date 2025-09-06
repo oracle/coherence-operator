@@ -29,8 +29,6 @@ labels:
       app.kubernetes.io/version: "3.5.5"
       app.kubernetes.io/part-of: coherence-operator
 
-# Patch the SERVICE_NAME env var in the Operator Deployment
-# with the name of the Operator REST service.
 replacements:
   - source:
       kind: Service
@@ -41,3 +39,14 @@ replacements:
           name: controller-manager
         fieldPaths:
           - spec.template.spec.containers.0.env.[name=SERVICE_NAME].value
+  - source:
+      kind: Deployment
+      name: controller-manager
+      fieldPath: spec.template.spec.containers.0.image
+    targets:
+      - select:
+          kind: Deployment
+          name: controller-manager
+        fieldPaths:
+          - spec.template.spec.containers.0.env.[name=RELATED_IMAGE_COHERENCE_OPERATOR].value
+          - spec.template.spec.containers.0.env.[name=OPERATOR_IMAGE].value

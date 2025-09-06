@@ -1,9 +1,0 @@
-#
-# This patch will remove the validating webhook
-#
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingWebhookConfiguration
-metadata:
-  name: validating-webhook-configuration
-$patch: delete
