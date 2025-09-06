@@ -200,22 +200,51 @@ if [ -z "${UPSTREAM_REPO_NAME:-}" ]; then
   exit 1
 fi
 
-echo "Running full pipeline with digest pinning"
-tkn pipeline start operator-ci-pipeline \
-  --use-param-defaults \
-  --param git_repo_url=${GIT_REPO_URL} \
-  --param git_branch=${GIT_CERT_BRANCH} \
-  --param bundle_path=${BUNDLE_PATH} \
-  --param env=prod \
-  --param pin_digests=true \
-  --param git_username=${GITHUB_USERNAME} \
-  --param git_email=${GITHUB_USER_EMAIL} \
-  --param upstream_repo_name=${UPSTREAM_REPO_NAME} \
-  --param registry=${REGISTRY_HOST} \
-  --param image_namespace=${REGISTRY_NAMESPACE} \
-  --param submit=false \
-  --workspace name=pipeline,volumeClaimTemplateFile=${PIPELINES_DIR}/templates/workspace-template.yml \
-  --workspace name=ssh-dir,secret=github-ssh-credentials \
-  --workspace name=registry-credentials,secret=registry-dockerconfig-secret \
-  --showlog
+oc apply --filename "${ROOT_DIR}/tekton/workspace-pv.yaml"
+
+# Delete any old runs
+oc delete $(tkn pipelinerun list -o name) || true
+
+PIPELINE_TIMESTAMP=$(date +"%Y%m%d%H%M")
+PIPELINE_RUN_NAME="operator-cert-run-${PIPELINE_TIMESTAMP}"
+echo "Using PIPELINE_RUN_NAME ${PIPELINE_RUN_NAME}"
+cp ${ROOT_DIR}/hack/openshift/pipeline-run.yaml ${ROOT_DIR}/run.yaml
+sed -i -e "s/NAME_PLACEHOLDER/${PIPELINE_RUN_NAME}/g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^GIT_REPO_PLACEHOLDER^${GIT_REPO_URL}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^GIT_CERT_BRANCH_PLACEHOLDER^${GIT_CERT_BRANCH}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^BUNDLE_PATH_PLACEHOLDER^${BUNDLE_PATH}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^GITHUB_USERNAME_PLACEHOLDER^${GITHUB_USERNAME}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^GITHUB_USER_EMAIL_PLACEHOLDER^${GITHUB_USER_EMAIL}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^UPSTREAM_REPO_NAME_PLACEHOLDER^${UPSTREAM_REPO_NAME}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^REGISTRY_HOST_PLACEHOLDER^${REGISTRY_HOST}^g" ${ROOT_DIR}/run.yaml
+sed -i -e "s^REGISTRY_NAMESPACE_PLACEHOLDER^${REGISTRY_NAMESPACE}^g" ${ROOT_DIR}/run.yaml
+
+cat ${ROOT_DIR}/run.yaml
+oc create -f ${ROOT_DIR}/run.yaml
+rm run.yaml
+
+tkn pipelinerun logs ${PIPELINE_RUN_NAME} -n ${PIPELINE_NAMESPACE} --follow
+tkn pipelinerun describe ${PIPELINE_RUN_NAME} -n ${PIPELINE_NAMESPACE}
+tkn pipelinerun describe ${PIPELINE_RUN_NAME} -n ${PIPELINE_NAMESPACE} -o jsonpath="{.status.conditions[0].reason}" > pipeline-result.txt
+echo "Pipeline result"
+cat pipeline-result.txt
+
+#echo "Running full pipeline with digest pinning"
+#tkn pipeline start operator-ci-pipeline \
+#  --use-param-defaults \
+#  --param git_repo_url=${GIT_REPO_URL} \
+#  --param git_branch=${GIT_CERT_BRANCH} \
+#  --param bundle_path=${BUNDLE_PATH} \
+#  --param env=prod \
+#  --param pin_digests=true \
+#  --param git_username=${GITHUB_USERNAME} \
+#  --param git_email=${GITHUB_USER_EMAIL} \
+#  --param upstream_repo_name=${UPSTREAM_REPO_NAME} \
+#  --param registry=${REGISTRY_HOST} \
+#  --param image_namespace=${REGISTRY_NAMESPACE} \
+#  --param submit=false \
+#  --workspace name=pipeline,volumeClaimTemplateFile=${PIPELINES_DIR}/templates/workspace-template.yml \
+#  --workspace name=ssh-dir,secret=github-ssh-credentials \
+#  --workspace name=registry-credentials,secret=registry-dockerconfig-secret \
+#  --showlog
 
