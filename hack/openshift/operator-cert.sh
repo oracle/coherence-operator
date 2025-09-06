@@ -93,10 +93,25 @@ oc import-image certified-operator-index:${OPENSHIFT_VERSION} \
 # Step C.6 - Install the Certification Pipeline and dependencies into the cluster
 if [ ! -e ${PIPELINES_DIR} ]; then
   cd ${BUILD_DIR}
-  git clone https://github.com/redhat-openshift-ecosystem/operator-pipelines
+  git clone --quiet https://github.com/redhat-openshift-ecosystem/operator-pipelines
 fi
 
 cd ${PIPELINES_DIR}
+
+if [ ! -z "${GITHUB_TOKEN:-}" ]; then
+  GIT_ORIGIN=$(git config remote.origin.url)
+  GIT_URL=$(echo ${GIT_ORIGIN} | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
+  git remote set-url origin "${GIT_URL}"
+  git config user.name "${GITHUB_USERNAME}"
+  git config user.email "${GITHUB_USER_EMAIL}"
+  if [ ! -z "${GITHUB_USERNAME:-}" ]; then
+    git config user.name "${GITHUB_USERNAME}"
+  fi
+  if [ ! -z "${GITHUB_USER_EMAIL:-}" ]; then
+    git config user.email "${GITHUB_USER_EMAIL}"
+  fi
+fi
+
 oc apply -R -f ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-ci-pipeline.yml
 oc apply -R -f ansible/roles/operator-pipeline/templates/openshift/tasks
 # Create a new SCC
@@ -144,10 +159,25 @@ BUNDLE_PATH=operators/oracle-coherence/${OPERATOR_VERSION}
 
 if [ ! -e ${BUILD_DIR}/certified-operators ]; then
   cd ${BUILD_DIR}
-  git clone ${GIT_REPO_URL} certified-operators
+  git clone --quiet ${GIT_REPO_URL} certified-operators
 fi
 
 cd ${BUILD_DIR}/certified-operators
+
+if [ ! -z "${GITHUB_TOKEN:-}" ]; then
+  GIT_ORIGIN=$(git config remote.origin.url)
+  GIT_URL=$(echo ${GIT_ORIGIN} | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
+  git remote set-url origin "${GIT_URL}"
+  git config user.name "${GITHUB_USERNAME}"
+  git config user.email "${GITHUB_USER_EMAIL}"
+  if [ ! -z "${GITHUB_USERNAME:-}" ]; then
+    git config user.name "${GITHUB_USERNAME}"
+  fi
+  if [ ! -z "${GITHUB_USER_EMAIL:-}" ]; then
+    git config user.email "${GITHUB_USER_EMAIL}"
+  fi
+fi
+
 git checkout main
 git pull
 git branch ${GIT_CERT_BRANCH} -d || true

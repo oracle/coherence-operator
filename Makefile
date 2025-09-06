@@ -90,7 +90,7 @@ PREV_OPERATOR_RELEASE_AMD     := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_N
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 14.1.2-0-2
+COHERENCE_VERSION_LTS ?= 14.1.2-0-3
 COHERENCE_CE_LATEST   ?= 25.03.1
 
 # The default Coherence image the Operator will run if no image is specified
@@ -523,6 +523,7 @@ clean: ## Cleans the build
 	rm pkg/data/zz_generated_*.go || true
 	rm pkg/data/assets/*.yaml || true
 	rm pkg/data/assets/*.json || true
+	rm api/v1/zz_generated.deepcopy.go || true
 	./mvnw -f java clean $(MAVEN_BUILD_OPTS)
 	./mvnw -f examples clean $(MAVEN_BUILD_OPTS)
 
