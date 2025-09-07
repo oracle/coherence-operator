@@ -153,12 +153,12 @@ GIT_REPO_URL=https://github.com/${COHERENCE_OPERATORS_REPO}.git
 GIT_CERT_BRANCH=cert-temp
 BUNDLE_PATH=operators/oracle-coherence/${OPERATOR_VERSION}
 
-if [ ! -e ${BUILD_DIR}/certified-operators ]; then
-  cd ${BUILD_DIR}
+if [ ! -e "${BUILD_DIR}/certified-operators" ]; then
+  cd "${BUILD_DIR}"
   git clone --quiet ${GIT_REPO_URL} certified-operators
 fi
 
-cd ${BUILD_DIR}/certified-operators
+cd "${BUILD_DIR}/certified-operators"
 git checkout main
 git pull
 
@@ -174,10 +174,10 @@ fi
 
 git branch ${GIT_CERT_BRANCH} -d || true
 git checkout -b ${GIT_CERT_BRANCH}
-rm -rf ${BUNDLE_PATH}
-mkdir -p ${BUNDLE_PATH}
-cp -R ${BUILD_DIR}/_output/bundle/coherence-operator/ operators/oracle-coherence/
-cp ${ROOT_DIR}/bundle/ci.yaml operators/oracle-coherence/
+rm -rf "${BUNDLE_PATH}"
+mkdir -p "${BUNDLE_PATH}"
+cp -R "${BUILD_DIR}/_output/bundle/coherence-operator/${OPERATOR_VERSION}" operators/oracle-coherence/
+cp "${ROOT_DIR}/bundle/ci.yaml" operators/oracle-coherence/
 git add -A operators/oracle-coherence/*
 git status
 git commit -m "Adding Oracle Coherence Operator v${OPERATOR_VERSION}"
