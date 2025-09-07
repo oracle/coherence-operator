@@ -7,5 +7,5 @@ resources:
 
 images:
 - name: controller
-  newName: container-registry.oracle.com/middleware/coherence-operator
+  newName: iad.ocir.io/odx-stateservice/test/coherence-operator
   newTag: 3.5.5

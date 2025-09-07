@@ -8,3 +8,14 @@ resources:
   - ../default
   - ../samples
   - ../scorecard
+
+replacements:
+  - source:
+      kind: Deployment
+      name: controller-manager
+      fieldPath: spec.template.spec.containers.0.image
+    targets:
+      - select:
+          kind: ClusterServiceVersion
+        fieldPaths:
+          - metadata.annotations.containerImage
