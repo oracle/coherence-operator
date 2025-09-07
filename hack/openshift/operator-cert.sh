@@ -172,7 +172,10 @@ if [ ! -z "${GITHUB_TOKEN:-}" ]; then
   fi
 fi
 
+git push origin -d ${GIT_CERT_BRANCH} || true
+git push origin -d ${GIT_CERT_BRANCH}-pinned || true
 git branch ${GIT_CERT_BRANCH} -d || true
+git branch ${GIT_CERT_BRANCH}-pinned -d || true
 git checkout -b ${GIT_CERT_BRANCH}
 rm -rf "${BUNDLE_PATH}"
 mkdir -p "${BUNDLE_PATH}"
@@ -194,12 +197,14 @@ fi
 # Delete any old runs
 oc delete $(tkn pipelinerun list -o name) || true
 
+GITHUB_REPO_URL="git@github.com:${COHERENCE_OPERATORS_REPO}.git"
+
 PIPELINE_TIMESTAMP=$(date +"%Y%m%d%H%M")
 PIPELINE_RUN_NAME="operator-cert-run-${PIPELINE_TIMESTAMP}"
 echo "Using PIPELINE_RUN_NAME ${PIPELINE_RUN_NAME}"
 cp ${ROOT_DIR}/hack/openshift/pipeline-run.yaml "${ROOT_DIR}/run.yaml"
 sed -i -e "s/PIPELINE_NAME_PLACEHOLDER/${PIPELINE_RUN_NAME}/g" "${ROOT_DIR}/run.yaml"
-sed -i -e "s^GIT_REPO_PLACEHOLDER^${GIT_REPO_URL}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^GIT_REPO_PLACEHOLDER^${GITHUB_REPO_URL}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^GIT_CERT_BRANCH_PLACEHOLDER^${GIT_CERT_BRANCH}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^BUNDLE_PATH_PLACEHOLDER^${BUNDLE_PATH}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^GITHUB_USERNAME_PLACEHOLDER^${GITHUB_USERNAME}^g" "${ROOT_DIR}/run.yaml"
