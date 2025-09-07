@@ -191,8 +191,6 @@ if [ -z "${UPSTREAM_REPO_NAME:-}" ]; then
   echo "UPSTREAM_REPO_NAME is not set, defaulting to ${UPSTREAM_REPO_NAME}"
 fi
 
-oc apply --filename "${ROOT_DIR}/tekton/workspace-pv.yaml"
-
 # Delete any old runs
 oc delete $(tkn pipelinerun list -o name) || true
 

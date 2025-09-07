@@ -7,19 +7,23 @@ spec:
     name: operator-ci-pipeline
   workspaces:
     - name: pipeline
-      persistentVolumeClaim:
-        claimName: operator-ci-pvc
+      volumeClaimTemplate:
+        metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
     - name: ssh-dir
       secret:
         secretName: github-ssh-credentials
     - name: registry-credentials
       secret:
         secretName: registry-dockerconfig-secret
-  taskRunSpecs:
-    - pipelineTaskName: git-clone
-      podTemplate:
-        securityContext:
-          fsGroup: 65532
+  taskRunTemplate:
+    serviceAccountName: pipeline
   timeouts:
     pipeline: "2h3m0s"
     tasks: "2h0m0s"
