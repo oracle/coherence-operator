@@ -189,7 +189,6 @@ cd "${ROOT_DIR}"
 if [ -z "${UPSTREAM_REPO_NAME:-}" ]; then
   UPSTREAM_REPO_NAME=${COHERENCE_OPERATORS_REPO}
   echo "UPSTREAM_REPO_NAME is not set, defaulting to ${UPSTREAM_REPO_NAME}"
-  exit 1
 fi
 
 oc apply --filename "${ROOT_DIR}/tekton/workspace-pv.yaml"
