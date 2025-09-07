@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: NAME_PLACEHOLDER
+  name: PIPELINE_NAME_PLACEHOLDER
 spec:
   pipelineRef:
     name: operator-ci-pipeline

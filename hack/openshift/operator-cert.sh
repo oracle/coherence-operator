@@ -198,7 +198,7 @@ PIPELINE_TIMESTAMP=$(date +"%Y%m%d%H%M")
 PIPELINE_RUN_NAME="operator-cert-run-${PIPELINE_TIMESTAMP}"
 echo "Using PIPELINE_RUN_NAME ${PIPELINE_RUN_NAME}"
 cp ${ROOT_DIR}/hack/openshift/pipeline-run.yaml "${ROOT_DIR}/run.yaml"
-sed -i -e "s/NAME_PLACEHOLDER/${PIPELINE_RUN_NAME}/g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s/PIPELINE_NAME_PLACEHOLDER/${PIPELINE_RUN_NAME}/g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^GIT_REPO_PLACEHOLDER^${GIT_REPO_URL}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^GIT_CERT_BRANCH_PLACEHOLDER^${GIT_CERT_BRANCH}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^BUNDLE_PATH_PLACEHOLDER^${BUNDLE_PATH}^g" "${ROOT_DIR}/run.yaml"
