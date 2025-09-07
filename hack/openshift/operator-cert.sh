@@ -172,10 +172,15 @@ if [ ! -z "${GITHUB_TOKEN:-}" ]; then
   fi
 fi
 
-git push origin -d ${GIT_CERT_BRANCH} || true
-git push origin -d ${GIT_CERT_BRANCH}-pinned || true
-git branch ${GIT_CERT_BRANCH} -d || true
-git branch ${GIT_CERT_BRANCH}-pinned -d || true
+# Delete the cert-test branch on GitHub (if it exists)
+git push -u "${GITHUB_PUSH_UPSTREAM}" -d ${GIT_CERT_BRANCH} || true
+# Delete the cert-test-pinned branch on GitHub (if it exists)
+git push -u "${GITHUB_PUSH_UPSTREAM}" -d ${GIT_CERT_BRANCH}-pinned || true
+# Delete the local cert-test branch (if it exists)
+git branch ${GIT_CERT_BRANCH} -D || true
+# Delete the local cert-test-pinned branch (if it exists)
+git branch ${GIT_CERT_BRANCH}-pinned -D || true
+# Create a new cert-test local branch
 git checkout -b ${GIT_CERT_BRANCH}
 rm -rf "${BUNDLE_PATH}"
 mkdir -p "${BUNDLE_PATH}"
