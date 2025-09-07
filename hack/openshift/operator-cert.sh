@@ -77,10 +77,17 @@ fi
 oc project ${PROJECT_NAME}
 
 # Step C.4 - Add the Kubeconfig secret
+
+# If the OpenShift kubeconfig env var is set use that for the
+# kubeconfig location, otherwise use the default KUBECONFIG
+# that was set earlier
+if [ -z "${OPENSHIFT_KUBECONFIG:-}" ]; then
+  export OPENSHIFT_KUBECONFIG="${KUBECONFIG}"
+fi
 if oc get secret kubeconfig >/dev/null 2>&1; then
   oc delete secret kubeconfig
 fi
-oc create secret generic kubeconfig --from-file=kubeconfig=${KUBECONFIG}
+oc create secret generic kubeconfig --from-file=kubeconfig="${OPENSHIFT_KUBECONFIG}"
 
 # Step C.5 - Import Red Hat Catalogs
 
