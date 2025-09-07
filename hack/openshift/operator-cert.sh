@@ -91,22 +91,18 @@ oc import-image certified-operator-index:${OPENSHIFT_VERSION} \
   --confirm
 
 # Step C.6 - Install the Certification Pipeline and dependencies into the cluster
-if [ ! -e ${PIPELINES_DIR} ]; then
-  cd ${BUILD_DIR}
+if [ ! -e "${PIPELINES_DIR}" ]; then
+  cd "${BUILD_DIR}"
   git clone --quiet https://github.com/redhat-openshift-ecosystem/operator-pipelines
 fi
 
-cd ${PIPELINES_DIR}
+cd "${PIPELINES_DIR}"
 
+GIT_ORIGIN=$(git config remote.origin.url)
+GITHUB_PUSH_UPSTREAM="${GIT_ORIGIN}"
 if [ ! -z "${GITHUB_TOKEN:-}" ]; then
-  GIT_ORIGIN=$(git config remote.origin.url)
-  GIT_URL=$(echo ${GIT_ORIGIN} | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
-  git remote set-url origin "${GIT_URL}"
+  GITHUB_PUSH_UPSTREAM=$(echo "${GIT_ORIGIN}" | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
   git config user.name "${GITHUB_USERNAME}"
-  git config user.email "${GITHUB_USER_EMAIL}"
-  if [ ! -z "${GITHUB_USERNAME:-}" ]; then
-    git config user.name "${GITHUB_USERNAME}"
-  fi
   if [ ! -z "${GITHUB_USER_EMAIL:-}" ]; then
     git config user.email "${GITHUB_USER_EMAIL}"
   fi
@@ -125,18 +121,18 @@ oc adm policy add-scc-to-user pipelines-custom-scc -z pipeline
 if oc get secret github-api-token >/dev/null 2>&1; then
   oc delete secret github-api-token
 fi
-oc create secret generic github-api-token --from-literal GITHUB_TOKEN=${GITHUB_TOKEN}
+oc create secret generic github-api-token --from-literal GITHUB_TOKEN="${GITHUB_TOKEN}"
 
 # Add Red Hat Container API access key
 if oc get secret pyxis-api-secret >/dev/null 2>&1; then
   oc delete secret pyxis-api-secret
 fi
-oc create secret generic pyxis-api-secret --from-literal pyxis_api_key=${OPENSHIFT_API_KEY}
+oc create secret generic pyxis-api-secret --from-literal pyxis_api_key="${OPENSHIFT_API_KEY}"
 
 if [ "${GITHUB_SSL_KEY_SECRET}" != "" ]; then
-  if [ -e ${GITHUB_SSL_KEY_SECRET} ]
+  if [ -e "${GITHUB_SSL_KEY_SECRET}" ]
   then
-    oc apply -f ${GITHUB_SSL_KEY_SECRET}
+    oc apply -f "${GITHUB_SSL_KEY_SECRET}"
   fi
 fi
 
@@ -144,14 +140,14 @@ if oc get secret registry-dockerconfig-secret >/dev/null 2>&1; then
   oc delete secret registry-dockerconfig-secret
 fi
 oc create secret docker-registry registry-dockerconfig-secret \
-    --docker-server=${REGISTRY_HOST} \
-    --docker-username=${REGISTRY_USERNAME} \
-    --docker-password=${REGISTRY_PASSWORD} \
+    --docker-server="${REGISTRY_HOST}" \
+    --docker-username="${REGISTRY_USERNAME}" \
+    --docker-password="${REGISTRY_PASSWORD}" \
     --docker-email=someone@oracle.com
 
 # Step E - Add Operator Bundle
 # Checkout the certified-operators fork
-OPERATOR_VERSION=$(cat ${BUILD_DIR}/_output/version.txt)
+OPERATOR_VERSION=$(cat "${BUILD_DIR}/_output/version.txt")
 COHERENCE_OPERATORS_REPO=coherence-community/certified-operators
 GIT_REPO_URL=https://github.com/${COHERENCE_OPERATORS_REPO}.git
 GIT_CERT_BRANCH=cert-temp
@@ -163,23 +159,19 @@ if [ ! -e ${BUILD_DIR}/certified-operators ]; then
 fi
 
 cd ${BUILD_DIR}/certified-operators
+git checkout main
+git pull
 
+GIT_ORIGIN=$(git config remote.origin.url)
+GITHUB_PUSH_UPSTREAM="${GIT_ORIGIN}"
 if [ ! -z "${GITHUB_TOKEN:-}" ]; then
-  GIT_ORIGIN=$(git config remote.origin.url)
-  GIT_URL=$(echo ${GIT_ORIGIN} | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
-  git remote set-url origin "${GIT_URL}"
+  GITHUB_PUSH_UPSTREAM=$(echo "${GIT_ORIGIN}" | sed -e s#://#://${GITHUB_USERNAME}:${GITHUB_TOKEN}@#)
   git config user.name "${GITHUB_USERNAME}"
-  git config user.email "${GITHUB_USER_EMAIL}"
-  if [ ! -z "${GITHUB_USERNAME:-}" ]; then
-    git config user.name "${GITHUB_USERNAME}"
-  fi
   if [ ! -z "${GITHUB_USER_EMAIL:-}" ]; then
     git config user.email "${GITHUB_USER_EMAIL}"
   fi
 fi
 
-git checkout main
-git pull
 git branch ${GIT_CERT_BRANCH} -d || true
 git checkout -b ${GIT_CERT_BRANCH}
 rm -rf ${BUNDLE_PATH}
@@ -189,10 +181,10 @@ cp ${ROOT_DIR}/bundle/ci.yaml operators/oracle-coherence/
 git add -A operators/oracle-coherence/*
 git status
 git commit -m "Adding Oracle Coherence Operator v${OPERATOR_VERSION}"
-git push -f --set-upstream origin cert-temp
+git push -u "${GITHUB_PUSH_UPSTREAM}" -f --set-upstream origin cert-temp
 
 # Step F - Run Pipeline
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 if [ -z "${UPSTREAM_REPO_NAME:-}" ]; then
   UPSTREAM_REPO_NAME=${COHERENCE_OPERATORS_REPO}
@@ -208,24 +200,24 @@ oc delete $(tkn pipelinerun list -o name) || true
 PIPELINE_TIMESTAMP=$(date +"%Y%m%d%H%M")
 PIPELINE_RUN_NAME="operator-cert-run-${PIPELINE_TIMESTAMP}"
 echo "Using PIPELINE_RUN_NAME ${PIPELINE_RUN_NAME}"
-cp ${ROOT_DIR}/hack/openshift/pipeline-run.yaml ${ROOT_DIR}/run.yaml
-sed -i -e "s/NAME_PLACEHOLDER/${PIPELINE_RUN_NAME}/g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^GIT_REPO_PLACEHOLDER^${GIT_REPO_URL}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^GIT_CERT_BRANCH_PLACEHOLDER^${GIT_CERT_BRANCH}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^BUNDLE_PATH_PLACEHOLDER^${BUNDLE_PATH}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^GITHUB_USERNAME_PLACEHOLDER^${GITHUB_USERNAME}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^GITHUB_USER_EMAIL_PLACEHOLDER^${GITHUB_USER_EMAIL}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^UPSTREAM_REPO_NAME_PLACEHOLDER^${UPSTREAM_REPO_NAME}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^REGISTRY_HOST_PLACEHOLDER^${REGISTRY_HOST}^g" ${ROOT_DIR}/run.yaml
-sed -i -e "s^REGISTRY_NAMESPACE_PLACEHOLDER^${REGISTRY_NAMESPACE}^g" ${ROOT_DIR}/run.yaml
+cp ${ROOT_DIR}/hack/openshift/pipeline-run.yaml "${ROOT_DIR}/run.yaml"
+sed -i -e "s/NAME_PLACEHOLDER/${PIPELINE_RUN_NAME}/g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^GIT_REPO_PLACEHOLDER^${GIT_REPO_URL}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^GIT_CERT_BRANCH_PLACEHOLDER^${GIT_CERT_BRANCH}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^BUNDLE_PATH_PLACEHOLDER^${BUNDLE_PATH}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^GITHUB_USERNAME_PLACEHOLDER^${GITHUB_USERNAME}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^GITHUB_USER_EMAIL_PLACEHOLDER^${GITHUB_USER_EMAIL}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^UPSTREAM_REPO_NAME_PLACEHOLDER^${UPSTREAM_REPO_NAME}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^REGISTRY_HOST_PLACEHOLDER^${REGISTRY_HOST}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^REGISTRY_NAMESPACE_PLACEHOLDER^${REGISTRY_NAMESPACE}^g" "${ROOT_DIR}/run.yaml"
 
-cat ${ROOT_DIR}/run.yaml
-oc create -f ${ROOT_DIR}/run.yaml
+cat "${ROOT_DIR}/run.yaml"
+oc create -f "${ROOT_DIR}/run.yaml"
 rm run.yaml
 
-tkn pipelinerun logs ${PIPELINE_RUN_NAME} -n ${PIPELINE_NAMESPACE} --follow
-tkn pipelinerun describe ${PIPELINE_RUN_NAME} -n ${PIPELINE_NAMESPACE}
-tkn pipelinerun describe ${PIPELINE_RUN_NAME} -n ${PIPELINE_NAMESPACE} -o jsonpath="{.status.conditions[0].reason}" > pipeline-result.txt
+tkn pipelinerun logs "${PIPELINE_RUN_NAME}" -n "${PIPELINE_NAMESPACE}" --follow
+tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PIPELINE_NAMESPACE}"
+tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PIPELINE_NAMESPACE}" -o jsonpath="{.status.conditions[0].reason}" > pipeline-result.txt
 echo "Pipeline result"
 cat pipeline-result.txt
 
