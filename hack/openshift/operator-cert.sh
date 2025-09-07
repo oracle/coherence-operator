@@ -181,7 +181,7 @@ cp ${ROOT_DIR}/bundle/ci.yaml operators/oracle-coherence/
 git add -A operators/oracle-coherence/*
 git status
 git commit -m "Adding Oracle Coherence Operator v${OPERATOR_VERSION}"
-git push -u "${GITHUB_PUSH_UPSTREAM}" -f --set-upstream origin cert-temp
+git push -u "${GITHUB_PUSH_UPSTREAM}" -f cert-temp
 
 # Step F - Run Pipeline
 cd "${ROOT_DIR}"
