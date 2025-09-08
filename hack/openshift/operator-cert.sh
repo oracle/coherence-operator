@@ -161,7 +161,6 @@ oc create secret docker-registry registry-dockerconfig-secret \
 COHERENCE_OPERATORS_REPO=coherence-community/certified-operators
 GIT_REPO_URL=https://github.com/${COHERENCE_OPERATORS_REPO}.git
 GIT_CERT_BRANCH=cert-temp
-BUNDLE_PATH=operators/oracle-coherence/${OPERATOR_VERSION}
 LATEST_RELEASE=""
 
 # If this is a certification run to submit a new release then we always
@@ -186,6 +185,12 @@ else
 # We will not be submitting results
   SUBMIT_RESULTS=false
 fi
+
+if [ -z "${OPERATOR_VERSION:-}" ]; then
+  echo "Error: OPERATOR_VERSION has not been set"
+  exit 1
+fi
+BUNDLE_PATH=operators/oracle-coherence/${OPERATOR_VERSION}
 
 # If the certified-operators repo does not exist locally then clone it
 if [ ! -e "${BUILD_DIR}/certified-operators" ]; then
