@@ -44,10 +44,6 @@ spec:
       value: GITHUB_USER_EMAIL_PLACEHOLDER
     - name: upstream_repo_name
       value: UPSTREAM_REPO_NAME_PLACEHOLDER
-    - name: registry
-      value: REGISTRY_HOST_PLACEHOLDER
-    - name: image_namespace
-      value: REGISTRY_NAMESPACE_PLACEHOLDER
     - name: submit
-      value: "false"
+      value: SUBMIT_RESULTS_PLACEHOLDER
 

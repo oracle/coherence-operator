@@ -22,6 +22,10 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
   exit 1
 fi
 
+if [ -z "${SUBMIT_RESULTS:-}" ]; then
+  SUBMIT_RESULTS=false
+fi
+
 # Step A - Get Project ID
 if [ -z "${OPENSHIFT_PROJECT_ID:-}" ]; then
   echo "Error: OPENSHIFT_PROJECT_ID is not set"
@@ -154,21 +158,48 @@ oc create secret docker-registry registry-dockerconfig-secret \
 
 # Step E - Add Operator Bundle
 # Checkout the certified-operators fork
-OPERATOR_VERSION=$(cat "${BUILD_DIR}/_output/version.txt")
 COHERENCE_OPERATORS_REPO=coherence-community/certified-operators
 GIT_REPO_URL=https://github.com/${COHERENCE_OPERATORS_REPO}.git
 GIT_CERT_BRANCH=cert-temp
 BUNDLE_PATH=operators/oracle-coherence/${OPERATOR_VERSION}
+LATEST_RELEASE=""
 
+# If this is a certification run to submit a new release then we always
+# clone a new repo, even one exist locally
+if [ "${USE_LATEST_OPERATOR_RELEASE}" = "true" ]; then
+# delete the old local repo to force a new one to be cloned
+  rm -rf "${BUILD_DIR}/certified-operators"
+# Use a proper name for git branch
+  GIT_CERT_BRANCH="release-${OPERATOR_VERSION}"
+# Find the latest release of the Coherence Operator on GitHub
+  LATEST_RELEASE=$(gh release list --repo oracle/coherence-operator --json name,isLatest --jq '.[] | select(.isLatest)|.name')
+# Strip the v from the front of the release to give the Operator version
+  OPERATOR_VERSION=${LATEST_RELEASE#"v"}
+  echo "Latest Operator version is ${OPERATOR_VERSION}"
+# Set the upstream repo for the pull request to be the official RedHat repo
+  UPSTREAM_REPO_NAME=redhat-openshift-ecosystem/certified-operators
+# make sure the certified-operators repo in Coherence Community is sync'ed with the RedHat repo
+  gh repo sync "${COHERENCE_OPERATORS_REPO}"
+else
+# We are just testing a local build, so use the current version
+  OPERATOR_VERSION=$(cat "${BUILD_DIR}/_output/version.txt")
+# We will not be submitting results
+  SUBMIT_RESULTS=false
+fi
+
+# If the certified-operators repo does not exist locally then clone it
 if [ ! -e "${BUILD_DIR}/certified-operators" ]; then
+  echo "Cloning repo ${GIT_REPO_URL}"
   cd "${BUILD_DIR}"
   git clone --quiet ${GIT_REPO_URL} certified-operators
 fi
 
+# cd to the certified-operators local repo and refresh
 cd "${BUILD_DIR}/certified-operators"
 git checkout main
 git pull
 
+# Configure Git in the local repo so we can push to it
 GIT_ORIGIN=$(git config remote.origin.url)
 GITHUB_PUSH_UPSTREAM="${GIT_ORIGIN}"
 if [ ! -z "${GITHUB_TOKEN:-}" ]; then
@@ -179,24 +210,52 @@ if [ ! -z "${GITHUB_TOKEN:-}" ]; then
   fi
 fi
 
-# Delete the cert-test branch on GitHub (if it exists)
+# Delete the branch from GitHub (if it exists)
 git push -u "${GITHUB_PUSH_UPSTREAM}" -d ${GIT_CERT_BRANCH} || true
-# Delete the cert-test-pinned branch on GitHub (if it exists)
+# Delete the pinned branch from GitHub (if it exists)
 git push -u "${GITHUB_PUSH_UPSTREAM}" -d ${GIT_CERT_BRANCH}-pinned || true
-# Delete the local cert-test branch (if it exists)
+# Delete the local branch (if it exists)
 git branch ${GIT_CERT_BRANCH} -D || true
-# Delete the local cert-test-pinned branch (if it exists)
+# Delete the local pinned branch (if it exists)
 git branch ${GIT_CERT_BRANCH}-pinned -D || true
-# Create a new cert-test local branch
+# Create a new local branch
 git checkout -b ${GIT_CERT_BRANCH}
-rm -rf "${BUNDLE_PATH}"
-mkdir -p "${BUNDLE_PATH}"
-cp -R "${BUILD_DIR}/_output/bundle/coherence-operator/${OPERATOR_VERSION}" operators/oracle-coherence/
-cp "${ROOT_DIR}/bundle/ci.yaml" operators/oracle-coherence/
+
+if [ "${USE_LATEST_OPERATOR_RELEASE}" = "true" ]; then
+# We are certifying a real release so make sure the latest release does not already exist
+# in the certified-operators repo
+  DIR_NAME=operators/coherence-operator/${OPERATOR_VERSION}
+  if [ -d ${DIR_NAME} ]; then
+    echo "Coherence Operator ${OPERATOR_VERSION} is already submitted to ${GIT_REPO_URL}"
+    exit 1
+  fi
+# download the bundle tar.gz from the Operator release on GitHub
+  gh release download ${LATEST_RELEASE} --repo oracle/coherence-operator --pattern coherence-operator-bundle.tar.gz
+# unpack the tar.gz into a temp location
+  rm -rf bundle-temp || true
+  TEMP_BUNDLE_DIR=bundle-temp
+  mkdir -p "${TEMP_BUNDLE_DIR}"
+  tar -xvf coherence-operator-bundle.tar.gz -C "${TEMP_BUNDLE_DIR}/"
+  rm coherence-operator-bundle.tar.gz
+# copy the bundle contents to the actual location in the certified-operators repo
+  mkdir -p "${BUNDLE_PATH}"
+  cp -R ""${TEMP_BUNDLE_DIR}"/coherence-operator/${OPERATOR_VERSION}" operators/oracle-coherence/
+#  make sure the ci.yaml file exists
+  echo "cert_project_id: ${OPENSHIFT_PROJECT_ID}" > operators/oracle-coherence/ci.yaml
+  rm -rf "${TEMP_BUNDLE_DIR}" || true
+else
+#  we are testing a local build, so copy the local bundle folder to the certified-operators repo
+  rm -rf "${BUNDLE_PATH}"
+  mkdir -p "${BUNDLE_PATH}"
+  cp -R "${BUILD_DIR}/_output/bundle/coherence-operator/${OPERATOR_VERSION}" operators/oracle-coherence/
+  cp "${ROOT_DIR}/bundle/ci.yaml" operators/oracle-coherence/
+fi
+
+# Add the new bundle files to git, commit and push them
 git add -A operators/oracle-coherence/*
 git status
 git commit -m "Adding Oracle Coherence Operator v${OPERATOR_VERSION}"
-git push -u "${GITHUB_PUSH_UPSTREAM}" -f cert-temp
+git push -u "${GITHUB_PUSH_UPSTREAM}" -f "${GIT_CERT_BRANCH}"
 
 # Step F - Run Pipeline
 cd "${ROOT_DIR}"
@@ -222,8 +281,7 @@ sed -i -e "s^BUNDLE_PATH_PLACEHOLDER^${BUNDLE_PATH}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^GITHUB_USERNAME_PLACEHOLDER^${GITHUB_USERNAME}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^GITHUB_USER_EMAIL_PLACEHOLDER^${GITHUB_USER_EMAIL}^g" "${ROOT_DIR}/run.yaml"
 sed -i -e "s^UPSTREAM_REPO_NAME_PLACEHOLDER^${UPSTREAM_REPO_NAME}^g" "${ROOT_DIR}/run.yaml"
-sed -i -e "s^REGISTRY_HOST_PLACEHOLDER^${REGISTRY_HOST}^g" "${ROOT_DIR}/run.yaml"
-sed -i -e "s^REGISTRY_NAMESPACE_PLACEHOLDER^${REGISTRY_NAMESPACE}^g" "${ROOT_DIR}/run.yaml"
+sed -i -e "s^SUBMIT_RESULTS_PLACEHOLDER^${SUBMIT_RESULTS}^g" "${ROOT_DIR}/run.yaml"
 
 cat "${ROOT_DIR}/run.yaml"
 oc create -f "${ROOT_DIR}/run.yaml"
@@ -234,23 +292,4 @@ tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PROJECT_NAME}"
 tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PROJECT_NAME}" -o jsonpath="{.status.conditions[0].reason}" > pipeline-result.txt
 echo "Pipeline result"
 cat pipeline-result.txt
-
-#echo "Running full pipeline with digest pinning"
-#tkn pipeline start operator-ci-pipeline \
-#  --use-param-defaults \
-#  --param git_repo_url=${GIT_REPO_URL} \
-#  --param git_branch=${GIT_CERT_BRANCH} \
-#  --param bundle_path=${BUNDLE_PATH} \
-#  --param env=prod \
-#  --param pin_digests=true \
-#  --param git_username=${GITHUB_USERNAME} \
-#  --param git_email=${GITHUB_USER_EMAIL} \
-#  --param upstream_repo_name=${UPSTREAM_REPO_NAME} \
-#  --param registry=${REGISTRY_HOST} \
-#  --param image_namespace=${REGISTRY_NAMESPACE} \
-#  --param submit=false \
-#  --workspace name=pipeline,volumeClaimTemplateFile=${PIPELINES_DIR}/templates/workspace-template.yml \
-#  --workspace name=ssh-dir,secret=github-ssh-credentials \
-#  --workspace name=registry-credentials,secret=registry-dockerconfig-secret \
-#  --showlog
 
