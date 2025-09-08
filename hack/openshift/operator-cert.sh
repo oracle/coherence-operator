@@ -229,9 +229,9 @@ cat "${ROOT_DIR}/run.yaml"
 oc create -f "${ROOT_DIR}/run.yaml"
 rm run.yaml
 
-tkn pipelinerun logs "${PIPELINE_RUN_NAME}" -n "${PIPELINE_NAMESPACE}" --follow
-tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PIPELINE_NAMESPACE}"
-tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PIPELINE_NAMESPACE}" -o jsonpath="{.status.conditions[0].reason}" > pipeline-result.txt
+tkn pipelinerun logs "${PIPELINE_RUN_NAME}" -n "${PROJECT_NAME}" --follow
+tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PROJECT_NAME}"
+tkn pipelinerun describe "${PIPELINE_RUN_NAME}" -n "${PROJECT_NAME}" -o jsonpath="{.status.conditions[0].reason}" > pipeline-result.txt
 echo "Pipeline result"
 cat pipeline-result.txt
 

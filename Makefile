@@ -154,7 +154,7 @@ GOPROXY         ?= https://proxy.golang.org
 # ----------------------------------------------------------------------------------------------------------------------
 # Set the location of the Operator SDK executable
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_SDK_VERSION := v1.39.1
+OPERATOR_SDK_VERSION := v1.41.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Options to append to the Maven command
@@ -1067,7 +1067,8 @@ bundle-image: bundle  ## Build the OLM image
 bundle-push: bundle-image ## Push the OLM bundle image.
 	$(DOCKER_CMD) push $(OPE) $(BUNDLE_IMAGE)
 
-OPM = $(TOOLS_BIN)/opm
+OPM         =  $(TOOLS_BIN)/opm
+OPM_VERSION := v1.57.0
 
 .PHONY: opm
 opm: $(TOOLS_BIN)/opm
@@ -1076,7 +1077,7 @@ $(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 	@{ \
 	set -e ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.51.0/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/$(OPM_VERSION)/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
 	chmod +x $(OPM) ;\
 	}
 
@@ -1120,6 +1121,7 @@ scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard te
 .PHONY: install-olm
 install-olm: ensure-sdk ## Install the Operator Lifecycle Manage into the K8s cluster
 	$(OPERATOR_SDK) olm install
+	$(KUBECTL_CMD) label namespace olm pod-security.kubernetes.io/enforce=baseline --overwrite
 
 .PHONY: uninstall-olm
 uninstall-olm: ensure-sdk ## Uninstall the Operator Lifecycle Manage from the K8s cluster

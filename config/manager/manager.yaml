@@ -104,6 +104,9 @@ spec:
             cpu: 100m
             memory: 256Mi
         securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
           allowPrivilegeEscalation: false
           capabilities:
             drop:
