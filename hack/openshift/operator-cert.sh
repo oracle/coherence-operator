@@ -168,13 +168,21 @@ LATEST_RELEASE=""
 if [ "${USE_LATEST_OPERATOR_RELEASE}" = "true" ]; then
 # delete the old local repo to force a new one to be cloned
   rm -rf "${BUILD_DIR}/certified-operators"
-# Use a proper name for git branch
-  GIT_CERT_BRANCH="release-${OPERATOR_VERSION}"
 # Find the latest release of the Coherence Operator on GitHub
   LATEST_RELEASE=$(gh release list --repo oracle/coherence-operator --json name,isLatest --jq '.[] | select(.isLatest)|.name')
 # Strip the v from the front of the release to give the Operator version
   OPERATOR_VERSION=${LATEST_RELEASE#"v"}
   echo "Latest Operator version is ${OPERATOR_VERSION}"
+# Check the latest release image exists on OCR
+  COHERENCE_OPERATOR_IMAGE="container-registry.oracle.com/middleware/coherence-operator:${OPERATOR_VERSION}"
+  echo "Checking Oracle Container Registry for image ${OCR_COHERENCE_IMAGE}"
+  podman manifest inspect "${OCR_COHERENCE_IMAGE}" > /dev/null
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Image ${OCR_COHERENCE_IMAGE} does not exist on OCR."
+    exit 1
+  fi
+# Use a proper name for the git branch
+  GIT_CERT_BRANCH="release-${OPERATOR_VERSION}"
 # Set the upstream repo for the pull request to be the official RedHat repo
   UPSTREAM_REPO_NAME=redhat-openshift-ecosystem/certified-operators
 # make sure the certified-operators repo in Coherence Community is sync'ed with the RedHat repo
@@ -184,6 +192,7 @@ else
   OPERATOR_VERSION=$(cat "${BUILD_DIR}/_output/version.txt")
 # We will not be submitting results
   SUBMIT_RESULTS=false
+  COHERENCE_OPERATOR_IMAGE="${REGISTRY_HOST}/${REGISTRY_NAMESPACE}/coherence-operator:${OPERATOR_VERSION}"
 fi
 
 if [ -z "${OPERATOR_VERSION:-}" ]; then
