@@ -1242,7 +1242,6 @@ preflight: ## Run the OpenShift preflight tests against the Operator Image in a 
 	  --env KUBECONFIG=/kubeconfig/config \
 	  --env PFLT_DOCKERCONFIG=/dockerconfig/$(PREFLIGHT_REGISTRY_AUTH_JSON) \
 	  --env PFLT_LOGLEVEL=trace \
-	  --env PFLT_CHANNEL=beta \
 	  --env PFLT_LOGFILE=/artifacts/preflight.log \
 	  -v $(BUILD_PREFLIGHT):/artifacts \
 	  -v $(HOME)/.kube/:/kubeconfig:ro \
