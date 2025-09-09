@@ -6,6 +6,6 @@
 #
 
 export REGISTRY_HOST=iad.ocir.io
-export REGISTRY_NAMESPACE=odx-stateservice/test
+export REGISTRY_NAMESPACE=odx-stateservice/openshift
 export OPERATOR_IMAGE_REGISTRY=iad.ocir.io/${REGISTRY_NAMESPACE}
 

@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: PIPELINE_NAME_PLACEHOLDER
+spec:
+  pipelineRef:
+    name: operator-ci-pipeline
+  workspaces:
+    - name: pipeline
+      volumeClaimTemplate:
+        metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+    - name: ssh-dir
+      secret:
+        secretName: github-ssh-credentials
+    - name: registry-credentials
+      secret:
+        secretName: registry-dockerconfig-secret
+  taskRunTemplate:
+    serviceAccountName: pipeline
+  timeouts:
+    pipeline: "2h3m0s"
+    tasks: "2h0m0s"
+  params:
+    - name: git_repo_url
+      value: GIT_REPO_PLACEHOLDER
+    - name: git_branch
+      value: GIT_CERT_BRANCH_PLACEHOLDER
+    - name: bundle_path
+      value: BUNDLE_PATH_PLACEHOLDER
+    - name: env
+      value: prod
+    - name: pin_digests
+      value: "true"
+    - name: git_username
+      value: GITHUB_USERNAME_PLACEHOLDER
+    - name: git_email
+      value: GITHUB_USER_EMAIL_PLACEHOLDER
+    - name: upstream_repo_name
+      value: UPSTREAM_REPO_NAME_PLACEHOLDER
+    - name: registry
+      value: REGISTRY_HOST_PLACEHOLDER
+    - name: image_namespace
+      value: REGISTRY_NAMESPACE_PLACEHOLDER
+    - name: submit
+      value: SUBMIT_RESULTS_PLACEHOLDER
+

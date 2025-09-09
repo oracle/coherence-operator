@@ -54,36 +54,43 @@ SHELL:=env PATH=$(subst $(SPACE),\$(SPACE),$(PATH)) $(SHELL)
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator image names
 # ----------------------------------------------------------------------------------------------------------------------
-ORACLE_REGISTRY         := container-registry.oracle.com/middleware
-GITHUB_REGISTRY         := ghcr.io/oracle
-OPERATOR_IMAGE_NAME     := coherence-operator
-OPERATOR_IMAGE_REGISTRY ?= $(ORACLE_REGISTRY)
-OPERATOR_IMAGE_ARM      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
-PREV_OPERATOR_IMAGE_ARM := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_VERSION)-arm64
-OPERATOR_IMAGE_AMD      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
-PREV_OPERATOR_IMAGE_AMD := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_VERSION)-amd64
-OPERATOR_IMAGE          := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
-PREV_OPERATOR_IMAGE     := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_VERSION)
-OPERATOR_IMAGE_DELVE    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
-OPERATOR_IMAGE_DEBUG    := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
-OPERATOR_BASE_IMAGE     ?= scratch
+ORACLE_REGISTRY           := container-registry.oracle.com/middleware
+GITHUB_REGISTRY           := ghcr.io/oracle
+OPERATOR_IMAGE_NAME       := coherence-operator
+OPERATOR_IMAGE_REGISTRY   ?= $(ORACLE_REGISTRY)
+OPERATOR_IMAGE_TAG_SUFFIX ?=
+OPERATOR_IMAGE_TAG        := $(VERSION)$(OPERATOR_IMAGE_TAG_SUFFIX)
+OPERATOR_IMAGE_TAG_ARM    := $(VERSION)-arm64$(OPERATOR_IMAGE_TAG_SUFFIX)
+OPERATOR_IMAGE_TAG_AMD    := $(VERSION)-amd64$(OPERATOR_IMAGE_TAG_SUFFIX)
+OPERATOR_IMAGE            := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG)
+OPERATOR_IMAGE_ARM        := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG_ARM)
+OPERATOR_IMAGE_AMD        := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG_AMD)
+PREV_IMAGE_TAG            := $(VERSION)$(OPERATOR_IMAGE_TAG_SUFFIX)
+PREV_IMAGE_TAG_ARM        := $(VERSION)-arm64$(OPERATOR_IMAGE_TAG_SUFFIX)
+PREV_IMAGE_TAG_AMD        := $(VERSION)-amd64$(OPERATOR_IMAGE_TAG_SUFFIX)
+PREV_OPERATOR_IMAGE       := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_IMAGE_TAG)
+PREV_OPERATOR_IMAGE_ARM   := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_IMAGE_TAG_ARM)
+PREV_OPERATOR_IMAGE_AMD   := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_IMAGE_TAG_AMD)
+OPERATOR_IMAGE_DELVE      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):delve
+OPERATOR_IMAGE_DEBUG      := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):debug
+OPERATOR_BASE_IMAGE       ?= scratch
 
 # The registry we release (push) the operator images to, which can be different to the registry
 # used to build and test the operator.
-OPERATOR_RELEASE_REGISTRY   ?= $(OPERATOR_IMAGE_REGISTRY)
-OPERATOR_RELEASE_IMAGE      := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)
-PREV_OPERATOR_RELEASE_IMAGE := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_VERSION)
-OPERATOR_RELEASE_ARM        := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-arm64
-PREV_OPERATOR_RELEASE_ARM   := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_VERSION)-arm64
-OPERATOR_RELEASE_AMD        := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(VERSION)-amd64
-PREV_OPERATOR_RELEASE_AMD   := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_VERSION)-amd64
+OPERATOR_RELEASE_REGISTRY     ?= $(OPERATOR_IMAGE_REGISTRY)
+OPERATOR_RELEASE_IMAGE        := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG)
+PREV_OPERATOR_RELEASE_IMAGE   := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_IMAGE_TAG)
+OPERATOR_RELEASE_ARM          := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG_ARM)
+PREV_OPERATOR_RELEASE_ARM     := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_IMAGE_TAG_ARM)
+OPERATOR_RELEASE_AMD          := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG_AMD)
+PREV_OPERATOR_RELEASE_AMD     := $(OPERATOR_RELEASE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(PREV_IMAGE_TAG_AMD)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence image to use for deployments that do not specify an image
 # ----------------------------------------------------------------------------------------------------------------------
 # The Coherence version to build against - must be a Java 8 compatible version
 COHERENCE_VERSION     ?= 21.12.5
-COHERENCE_VERSION_LTS ?= 14.1.2-0-2
+COHERENCE_VERSION_LTS ?= 14.1.2-0-3
 COHERENCE_CE_LATEST   ?= 25.03.1
 
 # The default Coherence image the Operator will run if no image is specified
@@ -147,7 +154,7 @@ GOPROXY         ?= https://proxy.golang.org
 # ----------------------------------------------------------------------------------------------------------------------
 # Set the location of the Operator SDK executable
 # ----------------------------------------------------------------------------------------------------------------------
-OPERATOR_SDK_VERSION := v1.39.1
+OPERATOR_SDK_VERSION := v1.41.1
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Options to append to the Maven command
@@ -158,14 +165,14 @@ MAVEN_BUILD_OPTS :=$(USE_MAVEN_SETTINGS) -Drevision=$(MVN_VERSION) -Dcoherence.v
 # ----------------------------------------------------------------------------------------------------------------------
 # Test image names
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_BASE_IMAGE           := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-test-base:$(VERSION)
+TEST_BASE_IMAGE           := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-test-base:$(OPERATOR_IMAGE_TAG)
 
 # Tanzu packages
 TANZU_REGISTRY            := $(GITHUB_REGISTRY)
 OPERATOR_PACKAGE_PREFIX   := $(TANZU_REGISTRY)/$(OPERATOR_IMAGE_NAME)-package
-OPERATOR_PACKAGE_IMAGE    := $(OPERATOR_PACKAGE_PREFIX):$(VERSION)
+OPERATOR_PACKAGE_IMAGE    := $(OPERATOR_PACKAGE_PREFIX):$(OPERATOR_IMAGE_TAG)
 OPERATOR_REPO_PREFIX      := $(TANZU_REGISTRY)/$(OPERATOR_IMAGE_NAME)-repo
-OPERATOR_REPO_IMAGE       := $(OPERATOR_REPO_PREFIX):$(VERSION)
+OPERATOR_REPO_IMAGE       := $(OPERATOR_REPO_PREFIX):$(OPERATOR_IMAGE_TAG)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
@@ -212,7 +219,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMAGE := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)
+BUNDLE_IMAGE := $(OLM_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(OPERATOR_IMAGE_TAG)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Testing properties
@@ -516,6 +523,7 @@ clean: ## Cleans the build
 	rm pkg/data/zz_generated_*.go || true
 	rm pkg/data/assets/*.yaml || true
 	rm pkg/data/assets/*.json || true
+	rm api/v1/zz_generated.deepcopy.go || true
 	./mvnw -f java clean $(MAVEN_BUILD_OPTS)
 	./mvnw -f examples clean $(MAVEN_BUILD_OPTS)
 
@@ -534,9 +542,13 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
 $(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUILD_TARGETS)/cli
-	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),amd64,$(OPERATOR_IMAGE))
-	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),arm64,$(OPERATOR_IMAGE))
-	$(DOCKER_CMD) tag $(OPERATOR_IMAGE)-$(IMAGE_ARCH) $(OPERATOR_IMAGE)
+	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),amd64,$(OPERATOR_IMAGE_AMD))
+	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),arm64,$(OPERATOR_IMAGE_ARM))
+ifeq (amd64,$(IMAGE_ARCH))
+	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_AMD) $(OPERATOR_IMAGE)
+else
+	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_ARM) $(OPERATOR_IMAGE)
+endif
 	printf $(VERSION) > $(BUILD_OUTPUT)/version.txt
 	touch $(BUILD_TARGETS)/build-operator
 
@@ -547,7 +559,7 @@ define buildOperatorImage
 		--build-arg operator_image=$(3) \
 		--build-arg release=$(GITCOMMIT) \
 		--build-arg target=$(2) \
-		--load -t $(3)-$(2) .
+		--load -t $(3) .
 endef
 
 OPERATOR_OL_BASE_IMAGE  ?= container-registry.oracle.com/java/jdk:17
@@ -1055,7 +1067,8 @@ bundle-image: bundle  ## Build the OLM image
 bundle-push: bundle-image ## Push the OLM bundle image.
 	$(DOCKER_CMD) push $(OPE) $(BUNDLE_IMAGE)
 
-OPM = $(TOOLS_BIN)/opm
+OPM         =  $(TOOLS_BIN)/opm
+OPM_VERSION := v1.57.0
 
 .PHONY: opm
 opm: $(TOOLS_BIN)/opm
@@ -1064,7 +1077,7 @@ $(TOOLS_BIN)/opm: ## Download opm locally if necessary.
 	@{ \
 	set -e ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.51.0/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/$(OPM_VERSION)/$${OS}-$${ARCH}-opm --header $(GH_AUTH) ;\
 	chmod +x $(OPM) ;\
 	}
 
@@ -1108,6 +1121,7 @@ scorecard: $(BUILD_PROPS) ensure-sdk bundle ## Run the Operator SDK scorecard te
 .PHONY: install-olm
 install-olm: ensure-sdk ## Install the Operator Lifecycle Manage into the K8s cluster
 	$(OPERATOR_SDK) olm install
+	$(KUBECTL_CMD) label namespace olm pod-security.kubernetes.io/enforce=baseline --overwrite
 
 .PHONY: uninstall-olm
 uninstall-olm: ensure-sdk ## Uninstall the Operator Lifecycle Manage from the K8s cluster
@@ -1185,35 +1199,27 @@ prepare-olm-e2e-test: reset-namespace create-ssl-secrets ensure-pull-secret olm-
 # ======================================================================================================================
 # Targets to run a local container registry
 # ======================================================================================================================
-REGISTRY_USER ?= operator
-REGISTRY_PWD  ?= secret
-
-$(TOOLS_DIRECTORY)/registry/auth/htpasswd:
-	mkdir -p ${TOOLS_DIRECTORY}/registry/{auth,certs,data} || true
-	htpasswd -bBc ${TOOLS_DIRECTORY}/registry/auth/htpasswd $(REGISTRY_USER) $(REGISTRY_PWD)
+REGISTRY_HOST  ?= localhost
 
 .PHONY: registry
-registry: $(TOOLS_DIRECTORY)/registry/auth/htpasswd
-	mkdir -p ${TOOLS_DIRECTORY}/registry/{auth,certs,data} || true
+registry:
+	mkdir -p ${TOOLS_DIRECTORY}/registry/{auth,certs,data,cli-config} || true
 	openssl req -newkey rsa:4096 -nodes -sha256 \
 	  -keyout $(TOOLS_DIRECTORY)/registry/certs/domain.key \
-	  -x509 -days 3650 -subj "/CN=localhost" \
+	  -x509 -days 3650 -subj "/CN=$(REGISTRY_HOST)" \
 	  -addext "subjectAltName = DNS:registry" \
 	  -out $(TOOLS_DIRECTORY)/registry/certs/domain.crt
+	echo "{\"auths\": {}}" > $(TOOLS_DIRECTORY)/registry/cli-config/auth.json
 	$(DOCKER_CMD) network create registry-network || true
 	$(DOCKER_CMD) run --name registry --network registry-network \
 	  -p 5555:5000  \
 	  -v ${TOOLS_DIRECTORY}/registry/data:/var/lib/registry:z \
 	  -v ${TOOLS_DIRECTORY}/registry/auth:/auth:z \
-	  -e "REGISTRY_AUTH=htpasswd" \
-	  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
-	  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
 	  -v ${TOOLS_DIRECTORY}/registry/certs:/certs:z \
 	  -e "REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt" \
 	  -e "REGISTRY_HTTP_TLS_KEY=/certs/domain.key" \
 	  -e REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true \
 	  -d docker.io/library/registry:latest
-	$(DOCKER_CMD) login localhost:5555 -u $(REGISTRY_USER) -p $(REGISTRY_PWD)
 
 .PHONY: registry-stop
 registry-stop:
@@ -1234,7 +1240,7 @@ preflight: ## Run the OpenShift preflight tests against the Operator Image in a 
 	$(DOCKER_CMD) run -it --rm --network registry-network \
 	  --security-opt=label=disable \
 	  --env KUBECONFIG=/kubeconfig/config \
-	  --env PFLT_DOCKERCONFIG=/dockerconfig/config.json \
+	  --env PFLT_DOCKERCONFIG=/dockerconfig/$(PREFLIGHT_REGISTRY_AUTH_JSON) \
 	  --env PFLT_LOGLEVEL=trace \
 	  --env PFLT_CHANNEL=beta \
 	  --env PFLT_LOGFILE=/artifacts/preflight.log \
@@ -1979,7 +1985,6 @@ define prepare_deploy
 	mkdir -p $(BUILD_DEPLOY)
 	cp -R config $(BUILD_OUTPUT)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal COHERENCE_IMAGE=$(COHERENCE_IMAGE)
-	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit add configmap env-vars --from-literal OPERATOR_IMAGE=$(1)
 	cd $(BUILD_DEPLOY)/manager && $(KUSTOMIZE) edit set image controller=$(1)
 	cd $(BUILD_DEPLOY)/default && $(KUSTOMIZE) edit set namespace $(2)
 endef
@@ -2534,7 +2539,7 @@ $(TOOLS_BIN)/controller-gen:
 # find or download kustomize
 # ----------------------------------------------------------------------------------------------------------------------
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-KUSTOMIZE_VERSION ?= v5.6.0
+KUSTOMIZE_VERSION ?= v5.7.1
 
 .PHONY: kustomize
 KUSTOMIZE = $(TOOLS_BIN)/kustomize
@@ -3039,7 +3044,7 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 	find helm-charts \( -name '*.yaml' -o -name '*.json' \) -exec $(SED) 's/$(subst .,\.,$(VERSION))/$(NEXT_VERSION)/g' {} +
 	$(SED) -e 's/<revision>$(subst .,\.,$(VERSION))<\/revision>/<revision>$(NEXT_VERSION)<\/revision>/g' java/pom.xml
 	yq -i e 'select(.schema == "olm.template.basic").entries[] |= select(.schema == "olm.channel" and .name == "stable").entries += [{"name" : "coherence-operator.v$(VERSION)", "replaces": "coherence-operator.v$(PREV_VERSION)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
-	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(GITHUB_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(VERSION)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
+	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(GITHUB_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(OPERATOR_IMAGE_TAG)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
 
 GIT_NEXT_BRANCH = "version-update-$(NEXT_VERSION)"
 GIT_LABEL       = "version-update"
