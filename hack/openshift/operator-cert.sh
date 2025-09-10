@@ -175,10 +175,10 @@ if [ "${USE_LATEST_OPERATOR_RELEASE}" = "true" ]; then
   echo "Latest Operator version is ${OPERATOR_VERSION}"
 # Check the latest release image exists on OCR
   COHERENCE_OPERATOR_IMAGE="container-registry.oracle.com/middleware/coherence-operator:${OPERATOR_VERSION}"
-  echo "Checking Oracle Container Registry for image ${OCR_COHERENCE_IMAGE}"
-  podman manifest inspect "${OCR_COHERENCE_IMAGE}" > /dev/null
+  echo "Checking Oracle Container Registry for image ${COHERENCE_OPERATOR_IMAGE}"
+  podman manifest inspect "${COHERENCE_OPERATOR_IMAGE}" > /dev/null
   if [ $? -ne 0 ]; then
-    echo "ERROR: Image ${OCR_COHERENCE_IMAGE} does not exist on OCR."
+    echo "ERROR: Image ${COHERENCE_OPERATOR_IMAGE} does not exist on OCR."
     exit 1
   fi
 # Use a proper name for the git branch

@@ -3045,7 +3045,7 @@ new-version: ## Update the Operator Version (must be run with NEXT_VERSION=x.y.z
 	yq -i e 'select(.schema == "olm.template.basic").entries[] |= select(.schema == "olm.channel" and .name == "stable").entries += [{"name" : "coherence-operator.v$(VERSION)", "replaces": "coherence-operator.v$(PREV_VERSION)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
 	yq -i e 'select(.schema == "olm.template.basic").entries += [{"schema" : "olm.bundle", "image": "$(GITHUB_REGISTRY)/$(OPERATOR_IMAGE_NAME)-bundle:$(OPERATOR_IMAGE_TAG)"}]' $(SCRIPTS_DIR)/olm/catalog-template.yaml
 
-GIT_NEXT_BRANCH = "version-update-$(NEXT_VERSION)"
+GIT_NEXT_BRANCH = "set-version-$(NEXT_VERSION)"
 GIT_LABEL       = "version-update"
 
 .PHONY: new-version-branch
