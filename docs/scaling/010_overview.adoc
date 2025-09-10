@@ -41,9 +41,114 @@ NOTE: The Operator will only apply safe scaling functionality to deployments tha
 If a deployment is storage disabled then it can be scaled up or down by the required number of members
 in one step as there is no fear of data loss in a storage disabled member.
 
+[#problem]
+== Kubectl Scale & Autoscaling
+
+When using the `kubectl scale` command or the Kubernetes autoscaler to scale Coherence clusters it is important
+to be aware of how replicas are controlled when later applying updates to a cluster.
+
+=== The Problem
+
+If the replica count that has been changed via one of the scaling commands, when later updating it using an edited
+version of the original YAML the replicas may be reverted and the cluster inadvertently resized.
+
+For example, a Coherence cluster can be defined with the `storage-cluster.yaml` file shown below.
+
+[source,yaml]
+.storage-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 6
+----
+
+Applying the YAML file will create a cluster with six Pods.
+[source,bash]
+----
+kubectl apply -f storage-cluster.yaml
+----
+
+The cluster can then be scaled using kubectl scale
+[source,bash]
+----
+kubectl scale coh/storage --replicas=9
+----
+
+The cluster now has nine Pods. Later an update is applied to add a new system property to the JVM by
+editing the original YAML file:
+
+[source,yaml]
+.storage-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  replicas: 6
+  jvm:
+    args:
+      - "-Dfoo=bar"
+----
+
+The update can be applied using kubectl apply:
+[source,bash]
+----
+kubectl apply -f storage-cluster.yaml
+----
+
+But, the YAML file contains the original replica count, so the cluster will be scaled back from nine to six Pods.
+This is probably not what was desired.
+
+One solution is to always make sure the replicas in the yaml is set to the "correct" value before applying it.
+This can be awkward in some environments, and especially if using the Kubernetes HPA to control scaling.
+
+=== The Solution
+
+If you intend to use `kubectl scale` or the Kubernetes HPA to control scaling then it is best to not set the
+`replicas` field in the YAML file used to create and update the Coherence cluster.
+
+For example, the initial YAML above could have been created like this:
+
+[source,yaml]
+.storage-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+----
+
+After applying the YAML, the cluster size would start with the default three Pods.
+After creation, the cluster can easily be scaled up to its required size using `kubectl scale`
+
+Later when applying the system property update, again the `replicas` field is unset in the YAML file:
+[source,yaml]
+.storage-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  jvm:
+    args:
+      - "-Dfoo=bar"
+----
+
+Now, when the above YAML is applied using `kubectl apply` the replicas value for the cluster will be unchanged and
+stay at whatever value it was scaled to.
+
+Another solution would be to create the initial YAML with the `replicas` field set to the desired initial size.
+Then later when applying updates, ensure that the `replicas` field has been deleted from the YAML file.
+
+
 == Controlling Safe Scaling
 
-The `Coherence` CRD has a number of fields that control the behaviour of scaling.
+The `Coherence` CRD has a number of fields that control the behavior of scaling.
 
 === Scaling Policy
 

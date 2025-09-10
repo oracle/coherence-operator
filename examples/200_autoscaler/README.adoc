@@ -32,12 +32,18 @@ The diagram below shows, at a high level, how this works.
 
 image::images/autoscaler.png[]
 
-Prometheus will obtain metrics from the Coherence Pod's metrics endpoints.
+Prometheus will get metrics from the Coherence Pod's metrics endpoints.
 The Prometheus Adapter exposes certain configured metrics polled from Prometheus as custom Kubernetes metrics.
 The HPA is configured to poll the custom metrics and use those to scale the `Coherence` resource (which will in turn cause
 the Coherence Operator to scale the `StatefulSet`).
 
+[IMPORTANT]
+====
+When using the HPA it is important to understand how the replica field in the Coherence resource
+is applied to avoid inadvertently resizing an autoscaled cluster when applying updates to the YAML.
 
+See the explanation in <<docs/scaling/010_overview.adoc#problem,Scale Coherence Deployments - The Problem>>
+====
 
 == Autoscaling Coherence Clusters
 

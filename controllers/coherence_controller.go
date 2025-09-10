@@ -9,7 +9,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -196,28 +195,6 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// failed to set the status
 			return reconcile.Result{}, err
 		}
-	}
-
-	// Check whether the deployment has a replica count specified
-	// Ideally we'd do this with a validating/defaulting web-hook but maybe in a later version.
-	if deployment.Spec.Replicas == nil {
-		// No replica count, so we patch the deployment to have the default replicas value.
-		// The reason we do this, is because the kubectl scale command will fail if the replicas
-		// field is not set to a non-nil value.
-		patch := &coh.Coherence{}
-		deployment.DeepCopyInto(patch)
-		replicas := deployment.GetReplicas()
-		patch.Spec.Replicas = &replicas
-		_, err = in.ThreeWayPatch(ctx, deployment.Name, deployment, deployment, patch)
-		if err != nil {
-			in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
-				fmt.Sprintf("failed to add default replicas to Coherence resource, %s", err.Error()))
-			return reconcile.Result{}, errors.Wrap(err, "failed to add default replicas to Coherence resource")
-		}
-		msg := "Added default replicas to Coherence resource, re-queuing request"
-		log.Info(msg, "Replicas", strconv.Itoa(int(replicas)))
-		in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, msg)
-		return reconcile.Result{}, err
 	}
 
 	// ensure that the Operator configuration Secret exists
