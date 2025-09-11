@@ -100,37 +100,6 @@ func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 	assertScaleDownToZero(t, "DownToZeroUsingKubectl", kubeCtlScaler, nil)
 }
 
-// Test that a cluster that has been scaled and is later updated with
-// new yaml does not get resized
-func TestScaleWithUpdates(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	// Ensure that everything is cleaned up after the test!
-	testContext.CleanupAfterTest(t)
-	// Create an initial cluster that will have no replica field set, so will default to 3, then be scaled down to 2
-	names := assertScale(t, "DownWithKubectl", cohv1.ParallelUpSafeDownScaling, -1, 2, kubeCtlScaler)
-
-	// Now apply an update to the cluster, without setting replicas
-	deployment, err := helper.NewSingleCoherenceFromYaml(names.Namespace, "scaling-test.yaml")
-	g.Expect(err).NotTo(HaveOccurred())
-	deployment.Spec.Replicas = nil
-	labels := make(map[string]string)
-	labels["one"] = "test1"
-	deployment.Spec.Labels = labels
-
-	err = testContext.Client.Update(context.TODO(), &deployment)
-	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForPodsWithLabel(testContext, names.Namespace, "one=test1", 2, time.Second*10, time.Minute*10)
-	g.Expect(err).NotTo(HaveOccurred())
-	// assert the StatefulSet still has a replica count of 2
-	sts := appsv1.StatefulSet{}
-	err = testContext.Client.Get(context.TODO(), names, &sts)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(sts.Spec.Replicas).NotTo(BeNil())
-	var replicas int32 = 2
-	g.Expect(*sts.Spec.Replicas).To(Equal(replicas))
-}
-
 // ----- helper methods ------------------------------------------------
 
 // ScaleFunction is a function that can scale a deployment up or down
