@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,22 +9,24 @@ package remote
 import (
 	goctx "context"
 	"fmt"
-	cohv1 "github.com/oracle/coherence-operator/api/v1"
-	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"golang.org/x/net/context"
 	"io"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/utils/ptr"
-	"sigs.k8s.io/testing_frameworks/integration"
 	"strings"
 	"testing"
 	"time"
+
+	cohv1 "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"golang.org/x/net/context"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
+	"sigs.k8s.io/testing_frameworks/integration"
 
 	. "github.com/onsi/gomega"
 )
 
 // Test scaling up and down with different policies.
-// This test is an example of using sub-tests to run the test with different test cases.
+// This test is an example of using subtests to run the test with different test cases.
 func TestScaling(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
@@ -91,7 +93,7 @@ func TestScaleDownToZeroWithSuspendFalse(t *testing.T) {
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
-// This test scales down using the "kubectl scale --relicas=0" command
+// This test scales down using the "kubectl scale --replicas=0" command
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
@@ -138,7 +140,7 @@ var kubeCtlScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) error
 }
 
 // Assert that a deployment can be created and scaled using the specified policy.
-func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) {
+func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasStart, replicasScale int32, scaler ScaleFunction) types.NamespacedName {
 	g := NewGomegaWithT(t)
 
 	testContext.CleanupAfterTest(t)
@@ -153,16 +155,24 @@ func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasSt
 	// Give the deployment a unique name based on the test name
 	deployment.SetName(fmt.Sprintf("%s-%s", deployment.GetName(), strings.ToLower(id)))
 
-	// update the replica count and scaling policy
-	deployment.SetReplicas(replicasStart)
+	// update the replica count if greater than or equal zero, otherwise do not set the replica count field
+	var initialReplicas int32
+	if replicasStart >= 0 {
+		deployment.SetReplicas(replicasStart)
+		initialReplicas = replicasStart
+	} else {
+		deployment.Spec.Replicas = nil
+		initialReplicas = cohv1.DefaultReplicas
+	}
 
+	// update the scaling policy
 	if deployment.Spec.Scaling == nil {
 		deployment.Spec.Scaling = &cohv1.ScalingSpec{}
 	}
 	deployment.Spec.Scaling.Policy = &policy
 
 	// Do the canary test unless parallel scaling down
-	doCanary := replicasStart < replicasScale || policy != cohv1.ParallelScaling
+	doCanary := initialReplicas < replicasScale || policy != cohv1.ParallelScaling
 
 	t.Logf("assertScale() - doCanary=%t", doCanary)
 	t.Log("assertScale() - Installing Coherence deployment...")
@@ -186,6 +196,8 @@ func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasSt
 		err = helper.CheckCanary(testContext, namespace, deployment.Name)
 		g.Expect(err).NotTo(HaveOccurred())
 	}
+
+	return types.NamespacedName{Namespace: deployment.Namespace, Name: deployment.Name}
 }
 
 func assertScaleDownToZero(t *testing.T, id string, scaler ScaleFunction, suspend *bool) {

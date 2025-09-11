@@ -84,10 +84,56 @@ func TestCertifyScaling(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
+// Test the scenario where we create a Coherence cluster without a replicas field, which will default to three Pods.
+// Then scale up the cluster to four.
+// The apply an update using the same Coherence resource with no replicas field.
+// After the update is applied, the cluster should still be four and not revert to three.
+func TestCertifyScalingWithUpdate(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	g := NewGomegaWithT(t)
+
+	ns := helper.GetTestClusterNamespace()
+
+	// the name of the cluster from scale-with-update-one.yaml and scale-with-update-two.yaml
+	name := "certify-scale-update"
+
+	// Start with the default three replicas
+	err := apply(t, ns, "scale-with-update-one.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = helper.WaitForPodsWithLabel(testContext, ns, "one=testOne", 3, time.Second*10, time.Minute*10)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Scale Up to four
+	err = scale(t, ns, name, 4)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = helper.WaitForStatefulSet(testContext, ns, name, 4, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// apply the update
+	err = apply(t, ns, "scale-with-update-two.yaml")
+	g.Expect(err).NotTo(HaveOccurred())
+	// There should eventually be four Pods with the additional label
+	_, err = helper.WaitForPodsWithLabel(testContext, ns, "two=testTwo", 4, time.Second*10, time.Minute*10)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
 func scale(t *testing.T, namespace, name string, replicas int32) error {
 	cmd := exec.Command("kubectl", "-n", namespace, "scale", fmt.Sprintf("--replicas=%d", replicas), "coherence/"+name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	t.Log("Executing Scale Command: " + strings.Join(cmd.Args, " "))
+	return cmd.Run()
+}
+
+func apply(t *testing.T, namespace, fileName string) error {
+	actualFile, err := helper.FindActualFile(fileName)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("kubectl", "-n", namespace, "apply", "-f", actualFile)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	t.Log("Executing Kubectl Command: " + strings.Join(cmd.Args, " "))
 	return cmd.Run()
 }
