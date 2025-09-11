@@ -132,6 +132,7 @@ func TestCertifyScalingWithUpdate(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	// There should eventually be four Pods with the new label
 	_, err = helper.WaitForPodsWithLabel(testContext, ns, "one=testOne", 4, time.Second*10, time.Minute*10)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func scale(t *testing.T, namespace, name string, replicas int32) error {
