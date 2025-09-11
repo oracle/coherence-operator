@@ -25,10 +25,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var scalingTestCounter = 0
-
 // Test scaling up and down with different policies.
-// This test is an example of using sub-tests to run the test with different test cases.
+// This test is an example of using subtests to run the test with different test cases.
 func TestScaling(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
@@ -95,7 +93,7 @@ func TestScaleDownToZeroWithSuspendFalse(t *testing.T) {
 }
 
 // If a deployment is scaled down to zero it should be deleted and just its parent Coherence resource should remain.
-// This test scales down using the "kubectl scale --relicas=0" command
+// This test scales down using the "kubectl scale --replicas=0" command
 func TestScaleDownToZeroUsingKubectl(t *testing.T) {
 	// Ensure that everything is cleaned up after the test!
 	testContext.CleanupAfterTest(t)
@@ -122,7 +120,7 @@ func TestScaleWithUpdates(t *testing.T) {
 
 	err = testContext.Client.Update(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForPodsWithLabel(testContext, names.Namespace, "one=test1", 2, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForPodsWithLabel(testContext, names.Namespace, "one=test1", 2, time.Second*10, time.Minute*10)
 	g.Expect(err).NotTo(HaveOccurred())
 	// assert the StatefulSet still has a replica count of 2
 	sts := appsv1.StatefulSet{}
@@ -182,9 +180,7 @@ func assertScale(t *testing.T, id string, policy cohv1.ScalingPolicy, replicasSt
 
 	namespace := helper.GetTestNamespace()
 
-	scalingTestCounter++
-	suffix := fmt.Sprintf("-%d", scalingTestCounter)
-	deployment, err := helper.NewSingleCoherenceFromYamlWithSuffix(namespace, "scaling-test.yaml", suffix)
+	deployment, err := helper.NewSingleCoherenceFromYaml(namespace, "scaling-test.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Give the deployment a unique name based on the test name

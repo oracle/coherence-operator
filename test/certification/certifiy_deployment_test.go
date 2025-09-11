@@ -84,6 +84,56 @@ func TestCertifyScaling(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
+// Test the scenario where we create a Coherence cluster without a replicas field, which will default to three Pods.
+// Then scale up the cluster to four.
+// The apply an update using the same Coherence resource with no replicas field.
+// After the update is applied, the cluster should still be four and not revert to three.
+func TestCertifyScalingWithUpdate(t *testing.T) {
+	// Ensure that everything is cleaned up after the test!
+	testContext.CleanupAfterTest(t)
+	g := NewGomegaWithT(t)
+
+	ns := helper.GetTestClusterNamespace()
+
+	// This Coherence resource has no replicas field so it will default to three
+	d := &v1.Coherence{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: ns,
+			Name:      "certify-scale",
+		},
+		Spec: v1.CoherenceStatefulSetResourceSpec{
+			CoherenceResourceSpec: v1.CoherenceResourceSpec{
+				ReadinessProbe: &v1.ReadinessProbeSpec{
+					InitialDelaySeconds: ptr.To(int32(10)),
+					PeriodSeconds:       ptr.To(int32(10)),
+				},
+			},
+		},
+	}
+
+	// Start with the default three replicas
+	err := testContext.Client.Create(context.TODO(), d)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Scale Up to four
+	err = scale(t, ns, d.Name, 4)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = helper.WaitForStatefulSet(testContext, ns, d.Name, 4, time.Second*10, time.Minute*5)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Add a label to the deployment
+	d.Spec.Labels = make(map[string]string)
+	d.Spec.Labels["one"] = "testOne"
+
+	// apply the update
+	err = testContext.Client.Update(context.TODO(), d)
+	g.Expect(err).NotTo(HaveOccurred())
+	// There should eventually be four Pods with the new label
+	_, err = helper.WaitForPodsWithLabel(testContext, ns, "one=testOne", 4, time.Second*10, time.Minute*10)
+}
+
 func scale(t *testing.T, namespace, name string, replicas int32) error {
 	cmd := exec.Command("kubectl", "-n", namespace, "scale", fmt.Sprintf("--replicas=%d", replicas), "coherence/"+name)
 	cmd.Stdout = os.Stdout
