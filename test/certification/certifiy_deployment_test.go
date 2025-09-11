@@ -95,43 +95,26 @@ func TestCertifyScalingWithUpdate(t *testing.T) {
 
 	ns := helper.GetTestClusterNamespace()
 
-	// This Coherence resource has no replicas field so it will default to three
-	d := &v1.Coherence{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: ns,
-			Name:      "certify-scale",
-		},
-		Spec: v1.CoherenceStatefulSetResourceSpec{
-			CoherenceResourceSpec: v1.CoherenceResourceSpec{
-				ReadinessProbe: &v1.ReadinessProbeSpec{
-					InitialDelaySeconds: ptr.To(int32(10)),
-					PeriodSeconds:       ptr.To(int32(10)),
-				},
-			},
-		},
-	}
+	// the name of the cluster from scale-with-update-one.yaml and scale-with-update-two.yaml
+	name := "certify-scale-update"
 
 	// Start with the default three replicas
-	err := testContext.Client.Create(context.TODO(), d)
+	err := apply(t, ns, "scale-with-update-one.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, d, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForPodsWithLabel(testContext, ns, "one=testOne", 3, time.Second*10, time.Minute*10)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale Up to four
-	err = scale(t, ns, d.Name, 4)
+	err = scale(t, ns, name, 4)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = helper.WaitForStatefulSet(testContext, ns, d.Name, 4, time.Second*10, time.Minute*5)
+	_, err = helper.WaitForStatefulSet(testContext, ns, name, 4, time.Second*10, time.Minute*5)
 	g.Expect(err).NotTo(HaveOccurred())
-
-	// Add a label to the deployment
-	d.Spec.Labels = make(map[string]string)
-	d.Spec.Labels["one"] = "testOne"
 
 	// apply the update
-	err = testContext.Client.Update(context.TODO(), d)
+	err = apply(t, ns, "scale-with-update-two.yaml")
 	g.Expect(err).NotTo(HaveOccurred())
-	// There should eventually be four Pods with the new label
-	_, err = helper.WaitForPodsWithLabel(testContext, ns, "one=testOne", 4, time.Second*10, time.Minute*10)
+	// There should eventually be four Pods with the additional label
+	_, err = helper.WaitForPodsWithLabel(testContext, ns, "two=testTwo", 4, time.Second*10, time.Minute*10)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -140,5 +123,17 @@ func scale(t *testing.T, namespace, name string, replicas int32) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	t.Log("Executing Scale Command: " + strings.Join(cmd.Args, " "))
+	return cmd.Run()
+}
+
+func apply(t *testing.T, namespace, fileName string) error {
+	actualFile, err := helper.FindActualFile(fileName)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("kubectl", "-n", namespace, "apply", "-f", actualFile)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	t.Log("Executing Kubectl Command: " + strings.Join(cmd.Args, " "))
 	return cmd.Run()
 }
