@@ -33,7 +33,7 @@ COMPATIBLE_SELECTOR ?= control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.33
+KUBERNETES_DOC_VERSION=v1.34
 
 # ========================= Setup Go With Gimme ================================
 # go version to use for build etc.
@@ -2174,16 +2174,17 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.33.1@sha256:050072256b9a903bd914c0b2866828150cb229cea0efe5892e2b644d5dd3b34f"
+KIND_IMAGE     ?= "kindest/node:v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a"
 CALICO_TIMEOUT ?= 300s
 KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
+KIND_CONFIG    ?= $(KIND_SCRIPTS)/kind-config.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
 kind:   ## Run a default KinD cluster
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config.yaml --image $(KIND_IMAGE)
+	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_CONFIG) --image $(KIND_IMAGE)
 	$(KIND_SCRIPTS)/kind-label-node.sh
 
 .PHONY: kind-dual

@@ -68,14 +68,16 @@ The default install for the Operator is to have one Operator deployment that man
 all the namespaces in a Kubernetes cluster. This requires the Operator to have cluster role RBAC permissions
 to manage and monitor all the resources.
 
-Sometimes, for security reasons or for example in a shared Kubernetes cluster this is not desirable.
+Sometimes, for security reasons or for example in a shared Kubernetes cluster, this is not desirable.
 The Operator can therefore be installed with plain namespaced scoped roles and role bindings.
 The Operator release includes a single yaml file named `coherence-operator-restricted.yaml` that may be used to install
 the Operator into a single namespace without any cluster roles.
 
-The Operator installed with this yaml
-
-* will not look-up Node labels for Coherence site and rack configurations
+The Operator installed with this yaml will not lookup Node labels for Coherence site and rack configurations.
+This means that the Coherence cluster will not be configured with a site and rack identity so Coherence will
+be unable to distribute cache partitions across availability domains in a Kubernetes cluster.
+See the <<docs/coherence/021_member_identity.adoc#down,Using Node Labels Via The Downwards API>>
+for an alternative way to specify site and rack on Kubernetes 1.34 and above.
 
 [NOTE]
 ====

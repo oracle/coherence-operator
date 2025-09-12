@@ -74,6 +74,102 @@ For example the command below labels the node in Docker dDesktop on MacOS to "tw
 kubectl label node docker-desktop topology.kubernetes.io/zone=twighlight-zone
 ----
 
+[#down]
+=== Using Node Labels Via The Downwards API
+
+In Kubernetes 1.34 the enhancement https://github.com/kubernetes/enhancements/blob/master/keps/sig-node/4742-node-topology-downward-api/README.md[KEP-4742]
+provides access to Kubernetes topology node labels in Pods using the downwards API.
+This means that the topology labels applied to a node that a Pod is scheduled onto are accessible in the Pod as environment variables.
+
+[NOTE]
+====
+In Kubernetes 1.34 this feature is in alpha and has to be enabled using a feature gate.
+====
+
+The two topology labels are
+
+|===
+|topology.kubernetes.io/region
+
+|topology.kubernetes.io/zone
+|===
+
+These are Kubernetes well-know label names configured by most cloud providers.
+For example in an Oracle Kubernetes cluster running in the Phoenix (PHX) region the labels on the node might look like this:
+
+[source,bash]
+----
+$ kubectl get nodes -L topology.kubernetes.io/region -L topology.kubernetes.io/zone
+NAME                                           STATUS   ROLES                  AGE    VERSION   REGION   ZONE
+compute-1.private.openshiftvcn.oraclevcn.com   Ready    worker                 191d   v1.34.0   phx      PHX-AD-1
+compute-2.private.openshiftvcn.oraclevcn.com   Ready    worker                 191d   v1.34.0   phx      PHX-AD-2
+compute-3.private.openshiftvcn.oraclevcn.com   Ready    worker                 191d   v1.34.0   phx      PHX-AD-3
+cp-1.private.openshiftvcn.oraclevcn.com        Ready    control-plane,master   191d   v1.34.0   phx      PHX-AD-1
+cp-2.private.openshiftvcn.oraclevcn.com        Ready    control-plane,master   191d   v1.34.0   phx      PHX-AD-2
+cp-3.private.openshiftvcn.oraclevcn.com        Ready    control-plane,master   191d   v1.34.0   phx      PHX-AD-3
+----
+
+All the nodes of this cluster run in the PHX region, as typically a cluster is in only one region.
+The nodes are evenly spread over three availability zones, PHX-AD-1, PHX-AD-2 and PHX-AD-3.
+
+When a Pod is created in K8s the downward API will apply the topology labels from the node as annotations on the Pod.
+These annotations can be applied to environment variables in the yaml.
+
+For example, the yaml below sets the `KUBERNETES_REGION` environment variable to the value of the
+`topology.kubernetes.io/region` label from the Node that the Pod is running on.
+
+[source,yaml]
+----
+  env:
+    - name: KUBERNETES_REGION
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.labels['topology.kubernetes.io/region']
+----
+
+This can be used in a Coherence resource to set the Coherence site and rack values.
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  env:
+    - name: KUBERNETES_REGION
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.labels['topology.kubernetes.io/region']
+    - name: KUBERNETES_ZONE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.labels['topology.kubernetes.io/zone']
+    - name: COHERENCE_SITE
+      value: "${KUBERNETES_REGION}-${KUBERNETES_ZONE}"
+    - name: COHERENCE_RACK
+      value: "${KUBERNETES_REGION}-${KUBERNETES_ZONE}"
+----
+
+In the example above, if the Pod was scheduled onto the node `os-cert-cp-1.private.openshiftvcn.oraclevcn.com` that is running
+in region `phx` in availability zon `PHX-AD-1` then the site would be `phx-PHX-AD-1` and the rack would be `phx-PHX-AD-1`.
+
+In this case both site and rack are the same. The reason is that when a Coherence cluster is deployed into a single Kubernetes cluster
+running in a single site, there is not really a topology node label to represent rack.
+We cannot use just the region label for site, because that would mean Coherence only has one site (in this case `phx`) so
+the partitions could not be site safe.
+So we combine both the region and zone values together and use them for both site and rack labels.
+
+[NOTE]
+====
+When setting site and rack this way the Pod will not perform a REST call back to the Coherence Operator
+to request the site and rack names. This technique is therfore useful in Kubernetes clusters where the
+operator is running without Node lookup RBAC permissions.
+====
+
 === Specify Site and Rack using Environment Variables
 
 The site and rack values can be set by setting the `COHERENCE_SITE` and `COHERENCE_RACK` environment variables.

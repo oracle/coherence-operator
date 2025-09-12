@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,9 @@ package fakes
 
 import (
 	"context"
+	"reflect"
+	"time"
+
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -17,10 +20,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"time"
 )
 
 // ClientWithErrors is a client.Client that can be configured
@@ -45,6 +46,10 @@ type clientWithErrors struct {
 	errorsOn   bool
 	errors     ClientErrors
 	operations []ClientOperation
+}
+
+func (c *clientWithErrors) Apply(ctx context.Context, obj runtime.ApplyConfiguration, opts ...client.ApplyOption) error {
+	return c.wrapped.Apply(ctx, obj, opts...)
 }
 
 func (c *clientWithErrors) GroupVersionKindFor(obj runtime.Object) (schema.GroupVersionKind, error) {
