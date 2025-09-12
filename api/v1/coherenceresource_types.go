@@ -178,7 +178,13 @@ func (in *Coherence) GetHeadlessServiceIPFamily() []corev1.IPFamily {
 // return either the actual Replicas value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
 func (in *Coherence) GetReplicas() int32 {
-	if in == nil || in.Spec.Replicas == nil {
+	if in == nil {
+		return DefaultReplicas
+	}
+	if in.Spec.Replicas == nil {
+		if in.Status.Replicas > 0 {
+			return in.Status.Replicas
+		}
 		return DefaultReplicas
 	}
 	return in.Spec.GetReplicas()
