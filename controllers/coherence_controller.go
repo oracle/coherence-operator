@@ -158,7 +158,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		return ctrl.Result{}, nil
 	}
 
-	// The request is an add or update
+	// This is an add request or update request
 
 	if deployment.Spec.AllowUnsafeDelete != nil && *deployment.Spec.AllowUnsafeDelete {
 		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
@@ -174,8 +174,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			log.Info("Finalizer not added to Coherence resource as AllowUnsafeDelete has been set to true")
 		}
 	} else {
-		// Add finalizer for this CR if required (it should have been added by the web-hook but may not have been if the
-		// Coherence resource was added when the Operator was uninstalled)
+		// Add a finalizer for this CR if required
 		if finalizerApplied, err := in.finalizerManager.EnsureFinalizerApplied(ctx, deployment); finalizerApplied || err != nil {
 			var msg string
 			if err != nil {
@@ -199,10 +198,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// Check whether the deployment has a replica count specified
-	// Ideally we'd do this with a validating/defaulting web-hook but maybe in a later version.
 	if deployment.Spec.Replicas == nil {
 		// No replica count, so we patch the deployment to have the default replicas value.
-		// The reason we do this, is because the kubectl scale command will fail if the replicas
+		// The reason we do this is the kubectl scale command will fail if the replicas
 		// field is not set to a non-nil value.
 		patch := &coh.Coherence{}
 		deployment.DeepCopyInto(patch)
