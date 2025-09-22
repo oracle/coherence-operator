@@ -10,4 +10,8 @@ spec:
     protocol: TCP
     targetPort: 8443
   selector:
-    control-plane: controller-manager
+    control-plane: coherence
+    app.kubernetes.io/name: coherence-operator
+    app.kubernetes.io/instance: coherence-operator-manager
+    app.kubernetes.io/version: "3.5.5"
+    app.kubernetes.io/component: manager
