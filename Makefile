@@ -177,7 +177,7 @@ OPERATOR_REPO_IMAGE       := $(OPERATOR_REPO_PREFIX):$(OPERATOR_IMAGE_TAG)
 # ----------------------------------------------------------------------------------------------------------------------
 # The test application images used in integration tests
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_APPLICATION_IMAGE               := $(OPERATOR_IMAGE_REGISTRY)/operator-test:1.0.0
+TEST_APPLICATION_IMAGE               ?= $(OPERATOR_IMAGE_REGISTRY)/operator-test:1.0.0
 TEST_COMPATIBILITY_IMAGE             := $(OPERATOR_IMAGE_REGISTRY)/operator-test-compatibility:1.0.0
 TEST_APPLICATION_IMAGE_CLIENT        := $(OPERATOR_IMAGE_REGISTRY)/operator-test-client:1.0.0
 TEST_APPLICATION_IMAGE_HELIDON       := $(OPERATOR_IMAGE_REGISTRY)/operator-test-helidon:1.0.0
@@ -679,11 +679,23 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the basic Operator Test image
 # ----------------------------------------------------------------------------------------------------------------------
+TEST_APPLICATION_IMAGE_BASE_IMAGE ?= container-registry.oracle.com/java/openjdk:21
+TEST_APPLICATION_MAIN_CLASS       ?= com.oracle.coherence.k8s.testing.RestServer
+
 .PHONY: build-basic-test-image
 build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test image
-	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
-		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
-		-Djib.to.image=$(TEST_APPLICATION_IMAGE)
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package -DskipTests
+	export DOCKER_CMD=$(DOCKER_CMD) \
+	&& export PROJECT_ROOT=$(CURRDIR) \
+	&& export AMD_BASE_IMAGE=$(TEST_APPLICATION_IMAGE_BASE_IMAGE) \
+	&& export ARM_BASE_IMAGE=$(TEST_APPLICATION_IMAGE_BASE_IMAGE) \
+	&& export IMAGE_NAME=$(TEST_APPLICATION_IMAGE) \
+	&& export MAIN_CLASS=$(TEST_APPLICATION_MAIN_CLASS) \
+	&& export VERSION=$(VERSION) \
+	&& export REVISION=$(GITCOMMIT) \
+	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& export DOCKER_CMD=$(DOCKER_CMD) \
+	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh BUILD
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image
@@ -1282,6 +1294,56 @@ oc-login:
 # oc policy add-role-to-user system:image-puller system:serviceaccount:operator-test:coherence-operator-service-account --namespace=oracle
 # Allow anything in operator-test to pull images
 # oc policy add-role-to-user system:image-puller system:serviceaccounts:operator-test --namespace=oracle
+
+REDHAT_EXAMPLE_BASE_IMAGE        ?= registry.redhat.io/ubi9/openjdk-21:latest
+REDHAT_EXAMPLE_IMAGE_NAME        := coherence-operator-operand
+REDHAT_EXAMPLE_IMAGE             := $(OPERATOR_RELEASE_REGISTRY)/$(REDHAT_EXAMPLE_IMAGE_NAME):$(COHERENCE_VERSION_LTS)-rh
+OPENSHIFT_COHERENCE_COMPONENT_ID := 68d28054a49e977fe49f4234
+OPENSHIFT_API_KEY                ?= FAKE
+SUBMIT_RESULTS                   ?= false
+
+.PHONY: build-redhat-coherence-image
+build-redhat-coherence-image: $(BUILD_TARGETS)/java ## Build the Red Hat Operator operand image
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package -DskipTests
+	mkdir -p java/operator-test/target/docker/licenses || true
+	cp LICENSE.txt java/operator-test/target/docker/licenses/LICENSE.txt
+	export DOCKER_CMD=$(DOCKER_CMD) \
+	&& export PROJECT_ROOT=$(CURRDIR) \
+	&& export COHERENCE_VERSION=$(COHERENCE_VERSION_LTS) \
+	&& export REDHAT_REGISTRY_USERNAME=$(REDHAT_REGISTRY_USERNAME) \
+	&& export REDHAT_REGISTRY_PASSWORD=$(REDHAT_REGISTRY_PASSWORD) \
+	&& export AMD_BASE_IMAGE=$(REDHAT_EXAMPLE_BASE_IMAGE) \
+	&& export ARM_BASE_IMAGE=$(REDHAT_EXAMPLE_BASE_IMAGE) \
+	&& export IMAGE_NAME=$(REDHAT_EXAMPLE_IMAGE) \
+	&& export IMAGE_ARCH=$(IMAGE_ARCH) \
+	&& export MAIN_CLASS="com.tangosol.net.Coherence" \
+	&& export VERSION=$(VERSION) \
+	&& export REVISION=$(GITCOMMIT) \
+	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& export DOCKER_CMD=$(DOCKER_CMD) \
+	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh BUILD
+
+.PHONY: push-redhat-coherence-image
+push-redhat-coherence-image: ## Push the Red Hat Operator operand image
+	chmod +x $(SCRIPTS_DIR)/buildah/run-buildah.sh
+	export IMAGE_NAME=$(REDHAT_EXAMPLE_IMAGE) \
+	export IMAGE_NAME_AMD=$(REDHAT_EXAMPLE_IMAGE)-amd64 \
+	export IMAGE_NAME_ARM=$(REDHAT_EXAMPLE_IMAGE)-arm64 \
+	&& export IMAGE_NAME_REGISTRY=$(OPERATOR_RELEASE_REGISTRY) \
+	&& export VERSION=$(COHERENCE_VERSION_LTS) \
+	&& export REVISION=$(COHERENCE_VERSION_LTS) \
+	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& export DOCKER_CMD=$(DOCKER_CMD) \
+	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh PUSH
+
+.PHONY: redhat-coherence-image-preflight
+redhat-coherence-image-preflight: ## Run the OpenShift preflight tests against the Operator operand image in a container
+	chmod +x $(SCRIPTS_DIR)/openshift/run-coherence-preflight.sh
+	mkdir -p $(BUILD_PREFLIGHT) || true
+	export OPENSHIFT_COHERENCE_COMPONENT_ID=$(OPENSHIFT_COHERENCE_COMPONENT_ID) \
+	&& export SUBMIT_RESULTS=$(SUBMIT_RESULTS) \
+	&& export REDHAT_EXAMPLE_IMAGE=$(REDHAT_EXAMPLE_IMAGE) \
+	&& $(SCRIPTS_DIR)/openshift/run-coherence-preflight.sh
 
 # ======================================================================================================================
 # Targets to run various tests
@@ -2667,10 +2729,10 @@ ifneq ("$(OPERATOR_RELEASE_REGISTRY)","$(OPERATOR_IMAGE_REGISTRY)")
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_AMD) $(OPERATOR_RELEASE_AMD)
 endif
 	chmod +x $(SCRIPTS_DIR)/buildah/run-buildah.sh
-	export OPERATOR_IMAGE=$(OPERATOR_RELEASE_IMAGE) \
-	&& export OPERATOR_IMAGE_AMD=$(OPERATOR_RELEASE_AMD) \
-	&& export OPERATOR_IMAGE_ARM=$(OPERATOR_RELEASE_ARM) \
-	&& export OPERATOR_IMAGE_REGISTRY=$(OPERATOR_RELEASE_REGISTRY) \
+	export IMAGE_NAME=$(OPERATOR_RELEASE_IMAGE) \
+	&& export IMAGE_NAME_AMD=$(OPERATOR_RELEASE_AMD) \
+	&& export IMAGE_NAME_ARM=$(OPERATOR_RELEASE_ARM) \
+	&& export IMAGE_NAME_REGISTRY=$(OPERATOR_RELEASE_REGISTRY) \
 	&& export VERSION=$(VERSION) \
 	&& export REVISION=$(GITCOMMIT) \
 	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
@@ -2692,10 +2754,10 @@ ifneq ("$(OPERATOR_RELEASE_REGISTRY)","$(OPERATOR_IMAGE_REGISTRY)")
 	$(DOCKER_CMD) tag $(PREV_OPERATOR_IMAGE_AMD) $(PREV_OPERATOR_RELEASE_AMD)
 endif
 	chmod +x $(SCRIPTS_DIR)/buildah/run-buildah.sh
-	export OPERATOR_IMAGE=$(PREV_OPERATOR_RELEASE_IMAGE) \
-	&& export OPERATOR_IMAGE_AMD=$(PREV_OPERATOR_RELEASE_AMD) \
-	&& export OPERATOR_IMAGE_ARM=$(PREV_OPERATOR_RELEASE_ARM) \
-	&& export OPERATOR_IMAGE_REGISTRY=$(PREV_OPERATOR_RELEASE_REGISTRY) \
+	export IMAGE_NAME=$(PREV_OPERATOR_RELEASE_IMAGE) \
+	&& export IMAGE_NAME_AMD=$(PREV_OPERATOR_RELEASE_AMD) \
+	&& export IMAGE_NAME_ARM=$(PREV_OPERATOR_RELEASE_ARM) \
+	&& export IMAGE_NAME_REGISTRY=$(PREV_OPERATOR_RELEASE_REGISTRY) \
 	&& export VERSION=$(PREV_VERSION) \
 	&& export REVISION=$(GITCOMMIT) \
 	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
@@ -2706,8 +2768,7 @@ endif
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
-push-test-images:
-	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE)
+push-test-images: push-basic-test-image
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_CLIENT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_2)
@@ -2720,6 +2781,19 @@ ifneq (true,$(SKIP_SPRING_CNBP))
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 endif
+
+.PHONY: push-basic-test-image
+push-basic-test-image:
+	chmod +x $(SCRIPTS_DIR)/buildah/run-buildah.sh
+	export IMAGE_NAME=$(TEST_APPLICATION_IMAGE) \
+	export IMAGE_NAME_AMD=$(TEST_APPLICATION_IMAGE)-amd64 \
+	export IMAGE_NAME_ARM=$(TEST_APPLICATION_IMAGE)-arm64 \
+	&& export IMAGE_NAME_REGISTRY=$(OPERATOR_RELEASE_REGISTRY) \
+	&& export VERSION=$(VERSION) \
+	&& export REVISION=$(GITCOMMIT) \
+	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
+	&& export DOCKER_CMD=$(DOCKER_CMD) \
+	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh PUSH
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Test images to ttl.sh

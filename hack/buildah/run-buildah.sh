@@ -14,21 +14,21 @@ set -x -e
 
 BASEDIR=$(dirname "$0")
 
-# Ensure the OPERATOR_IMAGE has been set - this is the name of the image to build
-if [ "${OPERATOR_IMAGE}" == "" ]
+# Ensure the IMAGE_NAME has been set - this is the name of the image to build
+if [ "${IMAGE_NAME}" == "" ]
 then
-  echo "ERROR: No OPERATOR_IMAGE environment variable has been set"
+  echo "ERROR: No IMAGE_NAME environment variable has been set"
   exit 1
 fi
 
-if [ "${OPERATOR_IMAGE_AMD}" == "" ]
+if [ "${IMAGE_NAME_AMD}" == "" ]
 then
-  OPERATOR_IMAGE_AMD="${OPERATOR_IMAGE}-amd64"
+  IMAGE_NAME_AMD="${IMAGE_NAME}-amd64"
 fi
 
-if [ "${OPERATOR_IMAGE_ARM}" == "" ]
+if [ "${IMAGE_NAME_ARM}" == "" ]
 then
-  OPERATOR_IMAGE_AMD="${OPERATOR_IMAGE}-arm64"
+  IMAGE_NAME_AMD="${IMAGE_NAME}-arm64"
 fi
 
 ARGS=
@@ -36,6 +36,9 @@ ARGS=
 if [ "$1" == "PUSH" ]
 then
   SCRIPT_NAME="${BASEDIR}/push-images.sh"
+elif [ "$1" == "BUILD" ]
+then
+  SCRIPT_NAME="${BASEDIR}/build-coherence-images.sh"
 elif [ "$1" == "EXEC" ]
 then
   SCRIPT_NAME=
@@ -100,18 +103,34 @@ else
     fi
   fi
 
-  $DOCKER_CMD run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
+  if [ "${PROJECT_ROOT}" == "" ]
+  then
+    PROJECT_ROOT="${BASEDIR}"
+  fi
+
+  $DOCKER_CMD run --rm ${ARGS} -v "${PROJECT_ROOT}:${PROJECT_ROOT}" \
       -v ${DOCKER_HOST}:${DOCKER_HOST}  \
       --privileged --network host \
+      -e PROJECT_ROOT="${PROJECT_ROOT}" \
       -e VERSION="${VERSION}" \
       -e REVISION="${REVISION}" \
-      -e OPERATOR_IMAGE="${OPERATOR_IMAGE}" \
-      -e OPERATOR_IMAGE_AMD="${OPERATOR_IMAGE_AMD}" \
-      -e OPERATOR_IMAGE_ARM="${OPERATOR_IMAGE_ARM}" \
+      -e OCR_DOCKER_USERNAME="${OCR_DOCKER_USERNAME}" \
+      -e OCR_DOCKER_USERNAME="${OCR_DOCKER_USERNAME}" \
+      -e OCR_DOCKER_SERVER="${OCR_DOCKER_SERVER}" \
+      -e REDHAT_REGISTRY_USERNAME="${REDHAT_REGISTRY_USERNAME}" \
+      -e REDHAT_REGISTRY_PASSWORD="${REDHAT_REGISTRY_PASSWORD}" \
+      -e COHERENCE_VERSION="${COHERENCE_VERSION}" \
+      -e IMAGE_NAME="${IMAGE_NAME}" \
+      -e AMD_BASE_IMAGE="${AMD_BASE_IMAGE}" \
+      -e IMAGE_NAME_AMD="${IMAGE_NAME_AMD}" \
+      -e ARM_BASE_IMAGE="${ARM_BASE_IMAGE}" \
+      -e IMAGE_NAME_ARM="${IMAGE_NAME_ARM}" \
+      -e IMAGE_ARCH="${IMAGE_ARCH}" \
+      -e MAIN_CLASS="${MAIN_CLASS}" \
       -e PODMAN_IMPORT="${PODMAN_IMPORT}" \
       -e DOCKER_HOST="${DOCKER_HOST}" \
       -e NO_DOCKER_DAEMON="${NO_DOCKER_DAEMON}" \
-      -e OPERATOR_IMAGE_REGISTRY="${OPERATOR_IMAGE_REGISTRY}" \
+      -e IMAGE_NAME_REGISTRY="${IMAGE_NAME_REGISTRY}" \
       -e REGISTRY_USERNAME="${REGISTRY_USERNAME}" \
       -e REGISTRY_PASSWORD="${REGISTRY_PASSWORD}" \
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
