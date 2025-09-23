@@ -203,10 +203,13 @@ common_image(){
       "container-${1}"
 
   # Copy files into the container
-  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/app"      /app
-  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/args"     /args
-  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/*.jar"           /app/libs
-  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/licenses" /licenses
+  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/app"  /app
+  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/args" /args
+  buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/*.jar"       /app/libs
+
+  if [ -d "${PROJECT_ROOT}/java/operator-test/target/docker/licenses" ]; then
+    buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/licenses" /licenses
+  fi
 
   # Commit the container to an image
   buildah commit "container-${1}" "coherence:${1}"
