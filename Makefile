@@ -1311,6 +1311,7 @@ build-redhat-coherence-image: $(BUILD_TARGETS)/java ## Build the Red Hat Operato
 	cp LICENSE.txt java/operator-test/target/docker/licenses/LICENSE.txt
 	export DOCKER_CMD=$(DOCKER_CMD) \
 	&& export PROJECT_ROOT=$(CURRDIR) \
+	&& export BUILD_ALL_IMAGES=true \
 	&& export COHERENCE_VERSION=$(COHERENCE_VERSION_LTS) \
 	&& export REDHAT_REGISTRY_USERNAME=$(REDHAT_REGISTRY_USERNAME) \
 	&& export REDHAT_REGISTRY_PASSWORD=$(REDHAT_REGISTRY_PASSWORD) \

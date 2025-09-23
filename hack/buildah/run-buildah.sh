@@ -133,6 +133,7 @@ else
       -e IMAGE_NAME_REGISTRY="${IMAGE_NAME_REGISTRY}" \
       -e REGISTRY_USERNAME="${REGISTRY_USERNAME}" \
       -e REGISTRY_PASSWORD="${REGISTRY_PASSWORD}" \
+      -e BUILD_ALL_IMAGES="${BUILD_ALL_IMAGES}" \
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \

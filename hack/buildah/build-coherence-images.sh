@@ -244,10 +244,16 @@ then
 fi
 
 # Build the amd64 image
-common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64" "${JAVA_EA_BASE_URL}"
+if [ "${BUILD_ALL_IMAGES}" == "true" ] || [ "${IMAGE_ARCH}" == "amd64" ]
+then
+  common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64"
+fi
 
 # Build the arm64 image
-common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64" "${JAVA_EA_BASE_URL}"
+if [ "${BUILD_ALL_IMAGES}" == "true" ] || [ "${IMAGE_ARCH}" == "arm64" ]
+then
+  common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64"
+fi
 
 # Push the relevant image to the docker daemon base on the build machine's o/s architecture
 if [ "${NO_DOCKER_DAEMON}" != "true" ]

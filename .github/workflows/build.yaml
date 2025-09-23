@@ -51,11 +51,23 @@ jobs:
         echo "Removing large packages"
         sudo docker image prune --all --force
         sudo docker builder prune -a
+        sudo apt-get remove -y '^aspnetcore-.*' || true
         sudo apt-get remove -y '^dotnet-.*' || true
         sudo apt-get remove -y '^llvm-.*' || true
+        sudo apt-get remove -y '^temurin-.*' || true
         sudo apt-get remove -y 'monodoc-http' || true
         sudo apt-get remove -y 'php.*' || true
-        sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel || true
+        sudo apt-get remove -y 'ruby.*' || true
+        sudo apt-get remove -y mercurial-common || true
+        sudo apt-get remove -y azure-cli || true
+        sudo apt-get remove -y google-cloud-cli-anthoscli || true
+        sudo apt-get remove -y google-cloud-sdk || true
+        sudo apt-get remove -y hhvm || true
+        sudo apt-get remove -y google-chrome-stable || true
+        sudo apt-get remove -y firefox || true
+        sudo apt-get remove -y microsoft-edge-stable || true
+        sudo apt-get remove -y powershell || true
+        sudo apt-get remove -y mono-devel || true
         sudo apt-get autoremove -y || true
         sudo apt-get clean
         df -h
