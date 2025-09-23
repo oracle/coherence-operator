@@ -24,6 +24,7 @@ env:
   MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
   LOAD_KIND: true
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SKIP_SPRING_CNBP: true
 
 jobs:
   build:

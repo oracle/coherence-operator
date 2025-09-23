@@ -687,9 +687,11 @@ build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test i
 	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package -DskipTests
 	export DOCKER_CMD=$(DOCKER_CMD) \
 	&& export PROJECT_ROOT=$(CURRDIR) \
+	&& export COHERENCE_VERSION=$(COHERENCE_VERSION_LTS) \
 	&& export AMD_BASE_IMAGE=$(TEST_APPLICATION_IMAGE_BASE_IMAGE) \
 	&& export ARM_BASE_IMAGE=$(TEST_APPLICATION_IMAGE_BASE_IMAGE) \
 	&& export IMAGE_NAME=$(TEST_APPLICATION_IMAGE) \
+	&& export IMAGE_ARCH=$(IMAGE_ARCH) \
 	&& export MAIN_CLASS=$(TEST_APPLICATION_MAIN_CLASS) \
 	&& export VERSION=$(VERSION) \
 	&& export REVISION=$(GITCOMMIT) \

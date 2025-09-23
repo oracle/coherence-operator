@@ -250,7 +250,7 @@ common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64" "${JAVA_EA_BA
 common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64" "${JAVA_EA_BASE_URL}"
 
 # Push the relevant image to the docker daemon base on the build machine's o/s architecture
-if [ "${NO_DAEMON}" != "true" ]
+if [ "${NO_DOCKER_DAEMON}" != "true" ]
 then
   buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}"
   echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
