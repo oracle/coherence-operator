@@ -41,19 +41,19 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
+          - v1.34
           - v1.33
           - v1.32
           - v1.31
-          - v1.30
         include:
+          - matrixName: v1.34
+            k8s: v1.34.0
           - matrixName: v1.33
             k8s: v1.33.1
           - matrixName: v1.32
             k8s: v1.32.5
           - matrixName: v1.31
             k8s: v1.31.9
-          - matrixName: v1.30
-            k8s: v1.30.13
 
     steps:
     - uses: actions/checkout@v4
@@ -69,17 +69,33 @@ jobs:
         dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
         df -h
         echo "Removing large packages"
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+        sudo apt-get remove -y '^aspnetcore-.*' || true
         sudo apt-get remove -y '^dotnet-.*' || true
         sudo apt-get remove -y '^llvm-.*' || true
+        sudo apt-get remove -y '^temurin-.*' || true
         sudo apt-get remove -y 'monodoc-http' || true
         sudo apt-get remove -y 'php.*' || true
-        sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel || true
+        sudo apt-get remove -y 'ruby.*' || true
+        sudo apt-get remove -y mercurial-common || true
+        sudo apt-get remove -y azure-cli || true
+        sudo apt-get remove -y google-cloud-cli-anthoscli || true
+        sudo apt-get remove -y google-cloud-sdk || true
+        sudo apt-get remove -y hhvm || true
+        sudo apt-get remove -y google-chrome-stable || true
+        sudo apt-get remove -y firefox || true
+        sudo apt-get remove -y microsoft-edge-stable || true
+        sudo apt-get remove -y powershell || true
+        sudo apt-get remove -y mono-devel || true
         sudo apt-get autoremove -y || true
         sudo apt-get clean
         df -h
         echo "Removing large directories"
         rm -rf /usr/share/dotnet/
         sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
         df -h
 
     - name: Set up JDK
@@ -122,11 +138,13 @@ jobs:
         kubectl version
         kubectl get nodes
         docker pull gcr.io/distroless/java
-        docker pull gcr.io/distroless/java11-debian11
-        docker pull gcr.io/distroless/java17-debian11
         docker pull gcr.io/distroless/java17-debian12
         docker pull gcr.io/distroless/java21-debian12
-        ./hack/k8s-certification.sh
+        make build-operator
+        make build-basic-test-image
+        make build-compatibility-image
+        make helm-chart
+        make certification-test
 
     - uses: actions/upload-artifact@v4
       if: ${{ failure() || cancelled() }}

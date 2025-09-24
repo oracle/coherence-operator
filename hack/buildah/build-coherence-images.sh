@@ -202,6 +202,9 @@ common_image(){
       --label "description"="Oracle Coherence CE version ${COHERENCE_VERSION}" \
       "container-${1}"
 
+  # Write JIB compatible main class file
+  echo "${MAIN_CLASS}" >> "${PROJECT_ROOT}/java/operator-test/target/docker/app/jib-main-class-file"
+
   # Copy files into the container
   buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/app"  /app
   buildah copy "container-${1}" "${PROJECT_ROOT}/java/operator-test/target/docker/args" /args
