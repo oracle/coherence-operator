@@ -219,7 +219,7 @@ common_image(){
   buildah tag "coherence:${1}" "${4}"
 
   # Export the image to the Docker daemon unless NO_DAEMON is true
-  if [ "${NO_DAEMON}" != "true" ]
+  if [ "${NO_DOCKER_DAEMON}" != "true" ]
   then
     buildah push -f v2s2 "coherence:${1}" "docker-daemon:${4}"
     echo "Pushed ${2}/${1} image ${4} to Docker daemon"
