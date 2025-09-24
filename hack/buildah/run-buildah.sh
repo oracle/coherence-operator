@@ -51,7 +51,7 @@ then
 fi
 
 BUILDAH=""
-if [ "${LOCAL_BUILDAH}" == "true" ]
+if [ "${LOCAL_BUILDAH}" != "false" ]
 then
   BUILDAH=$(which buildah || true)
 fi
