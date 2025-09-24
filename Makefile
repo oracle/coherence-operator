@@ -679,25 +679,11 @@ endif
 # ----------------------------------------------------------------------------------------------------------------------
 # Build the basic Operator Test image
 # ----------------------------------------------------------------------------------------------------------------------
-TEST_APPLICATION_IMAGE_BASE_IMAGE ?= container-registry.oracle.com/java/openjdk:21
-TEST_APPLICATION_MAIN_CLASS       ?= com.oracle.coherence.k8s.testing.RestServer
-
 .PHONY: build-basic-test-image
 build-basic-test-image: $(BUILD_TARGETS)/java ## Build the basic Operator test image
-	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package -DskipTests
-	export DOCKER_CMD=$(DOCKER_CMD) \
-	&& export PROJECT_ROOT=$(CURRDIR) \
-	&& export COHERENCE_VERSION=$(COHERENCE_VERSION_LTS) \
-	&& export AMD_BASE_IMAGE=$(TEST_APPLICATION_IMAGE_BASE_IMAGE) \
-	&& export ARM_BASE_IMAGE=$(TEST_APPLICATION_IMAGE_BASE_IMAGE) \
-	&& export IMAGE_NAME=$(TEST_APPLICATION_IMAGE) \
-	&& export IMAGE_ARCH=$(IMAGE_ARCH) \
-	&& export MAIN_CLASS=$(TEST_APPLICATION_MAIN_CLASS) \
-	&& export VERSION=$(VERSION) \
-	&& export REVISION=$(GITCOMMIT) \
-	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
-	&& export DOCKER_CMD=$(DOCKER_CMD) \
-	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh BUILD
+	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test clean package jib:dockerBuild -DskipTests \
+		-Djib.dockerClient.executable=$(JIB_EXECUTABLE) \
+		-Djib.to.image=$(TEST_APPLICATION_IMAGE)
 
 .PHONY: build-client-image
 build-client-image: ## Build the test client image

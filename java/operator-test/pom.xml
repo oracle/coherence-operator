@@ -51,6 +51,21 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${version.plugin.jib}</version>
+                <configuration>
+                    <from>
+                        <image>${coherence.test.base.image}</image>
+                    </from>
+                    <container>
+                        <mainClass>com.oracle.coherence.k8s.testing.RestServer</mainClass>
+                        <format>OCI</format>
+                    </container>
+                </configuration>
+            </plugin>
+
             <!-- The assembly plugin puts everything that will be copied to the image into the target/docker directory -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
