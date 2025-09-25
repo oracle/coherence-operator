@@ -2757,7 +2757,8 @@ endif
 # Push the Operator JIB Test Docker images
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: push-test-images
-push-test-images: push-basic-test-image
+push-test-images:
+	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_CLIENT)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_HELIDON_2)
@@ -2770,19 +2771,6 @@ ifneq (true,$(SKIP_SPRING_CNBP))
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 	$(DOCKER_CMD) push $(PUSH_ARGS) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
 endif
-
-.PHONY: push-basic-test-image
-push-basic-test-image:
-	chmod +x $(SCRIPTS_DIR)/buildah/run-buildah.sh
-	export IMAGE_NAME=$(TEST_APPLICATION_IMAGE) \
-	export IMAGE_NAME_AMD=$(TEST_APPLICATION_IMAGE)-amd64 \
-	export IMAGE_NAME_ARM=$(TEST_APPLICATION_IMAGE)-arm64 \
-	&& export IMAGE_NAME_REGISTRY=$(OPERATOR_RELEASE_REGISTRY) \
-	&& export VERSION=$(VERSION) \
-	&& export REVISION=$(GITCOMMIT) \
-	&& export NO_DOCKER_DAEMON=$(NO_DOCKER_DAEMON) \
-	&& export DOCKER_CMD=$(DOCKER_CMD) \
-	&& $(SCRIPTS_DIR)/buildah/run-buildah.sh PUSH
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Push the Operator Test images to ttl.sh
