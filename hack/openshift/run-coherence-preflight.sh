@@ -20,18 +20,14 @@ if [ -z "${REDHAT_EXAMPLE_IMAGE}" ]; then
     exit 1
 fi
 
-if [ "${SUBMIT_RESULTS}" = "true" ]; then
-  if [ -z "${OPENSHIFT_API_KEY:-}" ]; then
-    echo "Error: SUBMIT_RESULTS is set to 'true' but OPENSHIFT_API_KEY is not set"
-    exit 1
-  fi
-  if [ -z "${OPENSHIFT_COHERENCE_COMPONENT_ID:-}" ]; then
-    OPENSHIFT_COHERENCE_COMPONENT_ID="68d28054a49e977fe49f4234"
-  fi
-  EXTRA_ARGS="--pyxis-api-token=${OPENSHIFT_API_KEY} --certification-component-id=${OPENSHIFT_COHERENCE_COMPONENT_ID}"
-else
-  EXTRA_ARGS=""
+if [ -z "${OPENSHIFT_API_KEY:-}" ]; then
+  echo "Error: SUBMIT_RESULTS is set to 'true' but OPENSHIFT_API_KEY is not set"
+  exit 1
 fi
+if [ -z "${OPENSHIFT_COHERENCE_COMPONENT_ID:-}" ]; then
+  OPENSHIFT_COHERENCE_COMPONENT_ID="68d28054a49e977fe49f4234"
+fi
+EXTRA_ARGS="--pyxis-api-token=${OPENSHIFT_API_KEY} --certification-component-id=${OPENSHIFT_COHERENCE_COMPONENT_ID}"
 
 echo "Running preflight on ${REDHAT_EXAMPLE_IMAGE}"
 
