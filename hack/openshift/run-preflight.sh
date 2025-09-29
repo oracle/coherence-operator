@@ -15,17 +15,13 @@ if [ -z "${SUBMIT_RESULTS:-}" ]; then
   SUBMIT_RESULTS=false
 fi
 
-if [ "${SUBMIT_RESULTS}" = "true" ]; then
-  if [ -z "${OPENSHIFT_API_KEY:-}" ]; then
-    echo "Error: SUBMIT_RESULTS is set to 'true' but OPENSHIFT_API_KEY is not set"
-    exit 1
-  fi
-  if [ -z "${OPENSHIFT_IMAGE_COMPONENT_ID:-}" ]; then
-    OPENSHIFT_IMAGE_COMPONENT_ID="67bdf00eb9f79dcdb25aa8e2"
-  fi
-  EXTRA_ARGS="--pyxis-api-token=${OPENSHIFT_API_KEY} --certification-component-id=${OPENSHIFT_IMAGE_COMPONENT_ID}"
-else
-  EXTRA_ARGS=""
+if [ -z "${OPENSHIFT_API_KEY:-}" ]; then
+  echo "Error: SUBMIT_RESULTS is set to 'true' but OPENSHIFT_API_KEY is not set"
+  exit 1
+fi
+
+if [ -z "${OPENSHIFT_IMAGE_COMPONENT_ID:-}" ]; then
+  OPENSHIFT_IMAGE_COMPONENT_ID="67bdf00eb9f79dcdb25aa8e2"
 fi
 
 if [ "${USE_LATEST_OPERATOR_RELEASE}" = "true" ]; then
@@ -55,4 +51,6 @@ fi
 echo "Running preflight on ${COHERENCE_OPERATOR_IMAGE}"
 
 PREFLIGHT_LOG="${OUTPUT_DIR}/preflight.log"
-preflight check container --submit="${SUBMIT_RESULTS}" --logfile="${PREFLIGHT_LOG}" ${EXTRA_ARGS} ${COHERENCE_OPERATOR_IMAGE}
+preflight check container --submit="${SUBMIT_RESULTS}" \
+    --pyxis-api-token="${OPENSHIFT_API_KEY}" --certification-component-id="${OPENSHIFT_IMAGE_COMPONENT_ID}" \
+    --logfile="${PREFLIGHT_LOG}" "${COHERENCE_OPERATOR_IMAGE}"
