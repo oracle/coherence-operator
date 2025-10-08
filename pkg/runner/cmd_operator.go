@@ -107,6 +107,7 @@ func execute(v *viper.Viper) error {
 		tlsOpts = append(tlsOpts, disableHTTP2)
 	}
 
+	setupLog.Info("Obtaining kubernetes client config")
 	cfg := ctrl.GetConfigOrDie()
 	cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
 		t := rt.(*http.Transport)
@@ -114,12 +115,19 @@ func execute(v *viper.Viper) error {
 		return rt
 	}
 
+	setupLog.Info("Creating kubernetes client")
 	cs, err := clients.NewForConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "unable to create client set")
 	}
 
-	// The Operator web-hook server has been removed so we need to delete any existing web-hooks
+	version, err := cs.DiscoveryClient.ServerVersion()
+	if err != nil {
+		return errors.Wrap(err, "unable to get kubernetes server version")
+	}
+	setupLog.Info("Kubernetes server version", "Major", version.Major, "Minor", version.Minor, "Platform", version.Platform)
+
+	// The Operator web-hook server has been removed, so we need to delete any existing web-hooks
 	cl := cs.KubeClient.AdmissionregistrationV1()
 	// we ignore any errors
 	_ = cl.MutatingWebhookConfigurations().Delete(context.Background(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
