@@ -753,6 +753,9 @@ endif
 # Build the Java artifacts
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: build-mvn
+build-mvn: $(BUILD_TARGETS)/java
+
+.PHONY: build-java
 build-mvn: $(BUILD_TARGETS)/java ## Build the Java artefacts
 
 $(BUILD_TARGETS)/java: $(JAVA_FILES)

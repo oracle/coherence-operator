@@ -1,2 +1,5 @@
+# If using secure metrics comment out the monitor-http.yaml
+# resource and uncomment the monitor.yaml resource
 resources:
-- monitor.yaml
+- monitor-http.yaml
+#- monitor.yaml

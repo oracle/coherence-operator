@@ -154,7 +154,7 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().Bool(
 		FlagEnableHttp2,
 		false,
-		"If set, HTTP/2 will be enabled for the metrics and webhook servers",
+		"If set, HTTP/2 will be enabled for the metrics and REST servers",
 	)
 	cmd.Flags().Bool(
 		FlagEnableWebhook,
@@ -188,7 +188,7 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 	)
 	cmd.Flags().Bool(
 		FlagSecureMetrics,
-		true,
+		false,
 		"FlagSecureMetrics",
 	)
 	cmd.Flags().String(

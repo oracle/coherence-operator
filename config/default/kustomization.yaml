@@ -12,15 +12,22 @@ resources:
   - ../crd-small
   - ../rbac
   - ../manager
-# [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
-#- ../prometheus
 # [METRICS] Expose the controller manager metrics service.
   - metrics_service.yaml
-# [NETWORK POLICY] Protect the /metrics endpoint and Webhook Server with NetworkPolicy.
+# [PROMETHEUS] uncomment the line below to enable prometheus monitor.
+#- ../prometheus
+# [NETWORK POLICY] Protect the /metrics endpoint with a NetworkPolicy.
 # Only Pod(s) running a namespace labeled with 'metrics: enabled' will be able to gather the metrics.
 # Only CR(s) which requires webhooks and are applied on namespaces labeled with 'webhooks: enabled' will
 # be able to communicate with the Webhook Server.
 #- ../network-policy
+
+# [Secure Metrics] To enable https and access control for metrics uncomment the patches below
+#patches:
+#  - path: manager_metrics_patch.yaml
+#    target:
+#      kind: Deployment
+#      name: controller-manager
 
 labels:
   - pairs:
