@@ -93,8 +93,6 @@ func execute(v *viper.Viper) error {
 		c.NextProtos = []string{"http/1.1"}
 	}
 
-	vpr := operator.GetViper()
-
 	var tlsOpts []func(*tls.Config)
 	suiteConfig, err := operator.NewCipherSuiteConfig(v, setupLog)
 	if err != nil {
@@ -102,11 +100,12 @@ func execute(v *viper.Viper) error {
 	}
 	tlsOpts = append(tlsOpts, suiteConfig)
 
-	enableHTTP2 := vpr.GetBool(operator.FlagEnableHttp2)
+	enableHTTP2 := v.GetBool(operator.FlagEnableHttp2)
 	if !enableHTTP2 {
 		tlsOpts = append(tlsOpts, disableHTTP2)
 	}
 
+	setupLog.Info("Obtaining kubernetes client config")
 	cfg := ctrl.GetConfigOrDie()
 	cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
 		t := rt.(*http.Transport)
@@ -114,24 +113,44 @@ func execute(v *viper.Viper) error {
 		return rt
 	}
 
+	setupLog.Info("Creating kubernetes client")
 	cs, err := clients.NewForConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "unable to create client set")
 	}
 
-	// The Operator web-hook server has been removed so we need to delete any existing web-hooks
+	version, err := cs.DiscoveryClient.ServerVersion()
+	if err != nil {
+		return errors.Wrap(err, "unable to get kubernetes server version")
+	}
+	setupLog.Info("Kubernetes server version", "Major", version.Major, "Minor", version.Minor, "Platform", version.Platform)
+
+	// The Operator web-hook server has been removed, so we need to delete any existing web-hooks
+	setupLog.Info("Ensuring any existing webhook configurations are removed")
 	cl := cs.KubeClient.AdmissionregistrationV1()
 	// we ignore any errors
-	_ = cl.MutatingWebhookConfigurations().Delete(context.Background(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
-	_ = cl.ValidatingWebhookConfigurations().Delete(context.Background(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
+	_, err = cl.MutatingWebhookConfigurations().Get(context.Background(), operator.DefaultMutatingWebhookName, metav1.GetOptions{})
+	if err == nil {
+		// found web hook
+		setupLog.Info("Deleting existing MutatingWebhookConfigurations", "Names", operator.DefaultMutatingWebhookName)
+		_ = cl.MutatingWebhookConfigurations().Delete(context.Background(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
+	}
+	_, err = cl.ValidatingWebhookConfigurations().Get(context.Background(), operator.DefaultValidatingWebhookName, metav1.GetOptions{})
+	if err == nil {
+		// found web hook
+		setupLog.Info("Deleting existing ValidatingWebhookConfigurations", "Names", operator.DefaultValidatingWebhookName)
+		_ = cl.ValidatingWebhookConfigurations().Delete(context.Background(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
+	}
+	setupLog.Info("Done ensuring any existing webhook configurations are removed")
 
 	dryRun := operator.IsDryRun()
-	secureMetrics := vpr.GetBool(operator.FlagSecureMetrics)
+	secureMetrics := v.GetBool(operator.FlagSecureMetrics)
 
 	// Metrics endpoint is enabled in 'config/default/kustomization.yaml'. The Metrics options configure the server.
 	// More info:
 	// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/metrics/server
 	// - https://book.kubebuilder.io/reference/metrics.html
+	setupLog.Info("Configuring operator metrics", "Secure", secureMetrics)
 	metricsServerOptions := metricsserver.Options{
 		BindAddress:   viper.GetString(operator.FlagMetricsAddress),
 		SecureServing: secureMetrics,
@@ -202,12 +221,14 @@ func execute(v *viper.Viper) error {
 		}
 	}
 
+	setupLog.Info("Creating controller manager")
 	mgr, err := manager.New(cfg, options)
 	if err != nil {
 		return errors.Wrap(err, "unable to create controller manager")
 	}
 
 	// Set up the Coherence reconciler
+	setupLog.Info("Setting up Coherence reconciler")
 	if err = (&controllers.CoherenceReconciler{
 		Client:    mgr.GetClient(),
 		ClientSet: cs,
@@ -219,6 +240,7 @@ func execute(v *viper.Viper) error {
 
 	// Set up the CoherenceJob reconciler
 	if operator.ShouldSupportCoherenceJob() {
+		setupLog.Info("Setting up CoherenceJob reconciler")
 		if err = (&controllers.CoherenceJobReconciler{
 			Client:    mgr.GetClient(),
 			ClientSet: cs,
@@ -258,6 +280,8 @@ func execute(v *viper.Viper) error {
 			setupLog.Error(err, "problem running manager")
 			os.Exit(1)
 		}
+	} else {
+		setupLog.Info("Operator is running in dry-run mode")
 	}
 
 	return nil

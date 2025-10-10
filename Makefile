@@ -1552,10 +1552,6 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz un
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Executes the Go end-to-end tests that require Prometheus in the k8s cluster
-# using a LOCAL operator instance (i.e. the operator is not deployed to k8s).
-#
-# This target DOES NOT install Prometheus, use the e2e-prometheus-test target
-# to fully reset the test namespace.
 #
 # These tests will use whichever k8s cluster the local environment
 # is pointing to.
@@ -1563,6 +1559,7 @@ e2e-helm-test: $(BUILD_PROPS) $(BUILD_HELM)/coherence-operator-$(VERSION).tgz un
 .PHONY: e2e-prometheus-test
 e2e-prometheus-test: export MF = $(MAKEFLAGS)
 e2e-prometheus-test: reset-namespace install-prometheus create-ssl-secrets ensure-pull-secret deploy-and-wait  ## Run the Operator metrics/Prometheus end-to-end functional tests
+	sleep 10
 	$(MAKE) run-prometheus-test $${MF} \
 	; rc=$$? \
 	; $(MAKE) uninstall-prometheus $${MF} \

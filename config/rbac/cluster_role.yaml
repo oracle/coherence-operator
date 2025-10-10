@@ -1,6 +1,14 @@
 # -------------------------------------------------------------
 # This is the Cluster Roles required by the Coherence Operator
 # to self-manage its CRDs and Web-Hooks.
+#
+# The Operator no longer installs its own CRDs so this role
+# is now only used by the operator to ensure any existing
+# webhook config gets removed when the operator starts.
+#
+# If the operator has never been installed with web hooks
+# enabled, or the web hook config has been manually removed,
+# then this role is not required.
 # -------------------------------------------------------------
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
