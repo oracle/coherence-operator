@@ -9,6 +9,10 @@ package helper
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"testing"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
@@ -21,18 +25,14 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"net/http"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -199,7 +199,6 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 	testEnv := &envtest.Environment{
 		UseExistingCluster:       &useCluster,
 		AttachControlPlaneOutput: true,
-		CRDs:                     []*v1.CustomResourceDefinition{},
 	}
 
 	var err error

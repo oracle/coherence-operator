@@ -17,6 +17,11 @@ rules:
   - endpoints
   - pods
   verbs: ["get", "list", "watch"]
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
   - configmaps

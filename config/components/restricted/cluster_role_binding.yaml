@@ -1,0 +1,9 @@
+# --------------------------------------------------------------------
+# This is the Cluster Role binding required by the Coherence Operator
+# to self-manage its CRDs and Web-Hooks.
+# --------------------------------------------------------------------
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crd-webhook-install-rolebinding
+$patch: delete

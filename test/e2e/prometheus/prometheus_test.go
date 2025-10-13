@@ -10,21 +10,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	monitoring "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"net/http"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestPrometheus(t *testing.T) {
@@ -85,7 +86,9 @@ func ShouldGetPrometheusConfig(t *testing.T, pod corev1.Pod) {
 func ShouldEventuallySeeClusterMetrics(t *testing.T, promPod corev1.Pod, cohPods []corev1.Pod) {
 	g := NewGomegaWithT(t)
 
-	err := wait.PollUntilContextTimeout(context.Background(), time.Second*20, time.Minute*15, true, func(context.Context) (done bool, err error) {
+	t.Logf("Waiting for Coherence cluster metrics to appear in Prometheus")
+
+	err := wait.PollUntilContextTimeout(context.Background(), time.Second*20, time.Minute*2, true, func(context.Context) (done bool, err error) {
 		result := PrometheusVector{}
 		err = PrometheusQuery(t, promPod, "up", &result)
 		if err != nil {
@@ -163,6 +166,8 @@ func hasInterval(t *testing.T, sm *monitoring.ServiceMonitor) bool {
 
 func ShouldEventuallyHaveServiceMonitorWithState(t *testing.T, namespace, name string, predicate ServiceMonitorPredicate, promClient *client.MonitoringV1Client, retryInterval, timeout time.Duration) error {
 	var sm *monitoring.ServiceMonitor
+
+	t.Logf("Waiting for ServiceMonitor resource %s/%s to be available", namespace, name)
 
 	err := wait.PollUntilContextTimeout(context.Background(), retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		sm, err = promClient.ServiceMonitors(namespace).Get(testContext.Context, name, v1.GetOptions{})

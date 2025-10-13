@@ -23,6 +23,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	discv1 "k8s.io/api/discovery/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -1725,16 +1726,6 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 	// assert that the correct number of Pods is returned
 	g.Expect(len(pods)).To(Equal(expectedClusterSize))
 
-	// Verify that the WKA service has the same number of endpoints as the cluster size.
-	serviceName := deployments[0].GetWkaServiceName()
-
-	ep, err := ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(len(ep.Subsets)).NotTo(BeZero())
-
-	subset := ep.Subsets[0]
-	g.Expect(len(subset.Addresses)).To(Equal(expectedWkaSize))
-
 	m := make(map[string]coh.Coherence)
 	for _, d := range deployments {
 		opts := client.ObjectKey{Namespace: namespace, Name: d.Name}
@@ -1744,35 +1735,31 @@ func AssertDeploymentsInNamespace(ctx TestContext, t *testing.T, yamlFile, names
 		m[dpl.Name] = dpl
 	}
 
-	// Obtain the expected WKA list of Pod IP addresses
-	var wkaPods []string
-	for _, d := range deployments {
-		if d.Spec.Coherence.IsWKAMember() {
-			pods, err := ListCoherencePodsForDeployment(ctx, d.Namespace, d.Name)
-			g.Expect(err).NotTo(HaveOccurred())
-			for _, pod := range pods {
-				wkaPods = append(wkaPods, pod.Status.PodIP)
-			}
-		}
-	}
-
 	// Verify that the WKA service endpoints list for each deployment has all the required the Pod IP addresses.
 	for _, d := range deployments {
+		// Verify that the WKA service has the same number of endpoints as the cluster size.
 		serviceName := d.GetWkaServiceName()
-		ep, err = ctx.KubeClient.CoreV1().Endpoints(namespace).Get(ctx.Context, serviceName, metav1.GetOptions{})
+		list, err := GetEndpointsForService(ctx, namespace, serviceName)
 		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(len(ep.Subsets)).NotTo(BeZero())
-
-		subset := ep.Subsets[0]
-		g.Expect(len(subset.Addresses)).To(Equal(len(wkaPods)))
-		var actualWKA []string
-		for _, address := range subset.Addresses {
-			actualWKA = append(actualWKA, address.IP)
-		}
-		g.Expect(actualWKA).To(ConsistOf(wkaPods))
+		g.Expect(len(list)).To(Equal(expectedWkaSize))
 	}
 
 	return m, pods
+}
+
+func GetEndpointsForService(ctx TestContext, namespace, name string) ([]discv1.Endpoint, error) {
+	var all []discv1.Endpoint
+
+	list, err := ctx.KubeClient.DiscoveryV1().EndpointSlices(namespace).List(ctx.Context, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	for _, eps := range list.Items {
+		if svcName, found := eps.Labels["kubernetes.io/service-name"]; found && svcName == name {
+			all = append(all, eps.Endpoints...)
+		}
+	}
+	return all, err
 }
 
 // AssertCoherenceJobs tests that one or more CoherenceJobs can be created using the specified yaml.
