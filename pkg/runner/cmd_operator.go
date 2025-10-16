@@ -81,8 +81,8 @@ func operatorCommand(v *viper.Viper) *cobra.Command {
 func execute(v *viper.Viper) error {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	setupLog.Info(fmt.Sprintf("Operator Coherence Image: %s", operator.GetDefaultCoherenceImage()))
 	setupLog.Info(fmt.Sprintf("Operator Image: %s", operator.GetDefaultOperatorImage()))
+	setupLog.Info(fmt.Sprintf("Default Coherence Image (only used when no image is specified for a Coherence resource): %s", operator.GetDefaultCoherenceImage()))
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -127,7 +127,7 @@ func execute(v *viper.Viper) error {
 	// For example, incorrectly configured network polices or RBAC rules can prevent us from talking to the server.
 	sv, err := getServerVersion(cs, v)
 	if err != nil {
-		setupLog.Info("ERROR: failed to get the Kubernetes server version. This could be cause by misconfigured network policies, RBAC rules or firewalls.",
+		setupLog.Info("ERROR: failed to get the Kubernetes server version. This could be cause by misconfigured network policies, RBAC rules or firewalls, etc.",
 			"Host", cfg.Host, "Error", err.Error())
 		return errors.Wrap(err, "unable to get kubernetes server version")
 	}
