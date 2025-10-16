@@ -59,9 +59,9 @@ GITHUB_REGISTRY           := ghcr.io/oracle
 OPERATOR_IMAGE_NAME       := coherence-operator
 OPERATOR_IMAGE_REGISTRY   ?= $(ORACLE_REGISTRY)
 OPERATOR_IMAGE_TAG_SUFFIX ?=
-OPERATOR_IMAGE_TAG        := $(VERSION)$(OPERATOR_IMAGE_TAG_SUFFIX)
-OPERATOR_IMAGE_TAG_ARM    := $(VERSION)-arm64$(OPERATOR_IMAGE_TAG_SUFFIX)
-OPERATOR_IMAGE_TAG_AMD    := $(VERSION)-amd64$(OPERATOR_IMAGE_TAG_SUFFIX)
+OPERATOR_IMAGE_TAG        ?= $(VERSION)$(OPERATOR_IMAGE_TAG_SUFFIX)
+OPERATOR_IMAGE_TAG_ARM    ?= $(VERSION)-arm64$(OPERATOR_IMAGE_TAG_SUFFIX)
+OPERATOR_IMAGE_TAG_AMD    ?= $(VERSION)-amd64$(OPERATOR_IMAGE_TAG_SUFFIX)
 OPERATOR_IMAGE            := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG)
 OPERATOR_IMAGE_ARM        := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG_ARM)
 OPERATOR_IMAGE_AMD        := $(OPERATOR_IMAGE_REGISTRY)/$(OPERATOR_IMAGE_NAME):$(OPERATOR_IMAGE_TAG_AMD)
@@ -1945,7 +1945,7 @@ endif
 
 
 .PHONY: just-deploy
-just-deploy: ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
+just-deploy: $(TOOLS_BIN)/kustomize ensure-pull-secret ## Deploy the Coherence Operator without rebuilding anything
 	$(call prepare_deploy,$(OPERATOR_IMAGE),$(OPERATOR_NAMESPACE))
 ifeq ("$(OPERATOR_IMAGE_REGISTRY)","$(ORACLE_REGISTRY)")
 	$(KUSTOMIZE) build $(BUILD_DEPLOY)/default | $(KUBECTL_CMD) apply -f -
@@ -2709,7 +2709,10 @@ test-examples: build-examples
 PUSH_ARGS ?=
 
 .PHONY: push-operator-image
-push-operator-image: $(BUILD_TARGETS)/build-operator
+push-operator-image: $(BUILD_TARGETS)/build-operator just-push-operator-image
+
+.PHONY: just-push-operator-image
+just-push-operator-image:
 ifneq ("$(OPERATOR_RELEASE_REGISTRY)","$(OPERATOR_IMAGE_REGISTRY)")
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_ARM) $(OPERATOR_RELEASE_ARM)
 	$(DOCKER_CMD) tag $(OPERATOR_IMAGE_AMD) $(OPERATOR_RELEASE_AMD)

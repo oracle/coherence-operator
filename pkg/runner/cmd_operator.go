@@ -9,6 +9,7 @@ package runner
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -25,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/version"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	rest2 "k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
@@ -118,12 +120,18 @@ func execute(v *viper.Viper) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to create client set")
 	}
+	setupLog.Info("Successfully created kubernetes client", "Host", cfg.Host)
 
-	version, err := cs.DiscoveryClient.ServerVersion()
+	// Get and display the k8s version of the server.
+	// This will also verify that we can actually talk to the k8s API server.
+	// For example, incorrectly configured network polices or RBAC rules can prevent us from talking to the server.
+	sv, err := getServerVersion(cs, v)
 	if err != nil {
+		setupLog.Info("ERROR: failed to get the Kubernetes server version. This could be cause by misconfigured network policies, RBAC rules or firewalls.",
+			"Host", cfg.Host, "Error", err.Error())
 		return errors.Wrap(err, "unable to get kubernetes server version")
 	}
-	setupLog.Info("Kubernetes server version", "Major", version.Major, "Minor", version.Minor, "Platform", version.Platform)
+	setupLog.Info("Kubernetes server version", "Major", sv.Major, "Minor", sv.Minor, "Platform", sv.Platform, "Host", cfg.Host)
 
 	// The Operator web-hook server has been removed, so we need to delete any existing web-hooks
 	setupLog.Info("Ensuring any existing webhook configurations are removed")
@@ -285,4 +293,27 @@ func execute(v *viper.Viper) error {
 	}
 
 	return nil
+}
+
+// GetServerVersion fetches the Kubernetes server version using the provided ClientSet and returns it as a version.Info struct.
+// It uses the discovery client to send a GET request to the "/version" endpoint and parses the response into version.Info.
+// This method has a default timeout of 1 minute but can be overridden by setting the environment variable KUBERNETES_CHECK_TIMEOUT.
+// Returns an error if the request fails or if the JSON response cannot be parsed.
+func getServerVersion(cs clients.ClientSet, v *viper.Viper) (*version.Info, error) {
+	timeout := v.GetDuration(operator.FlagKubernetesCheckTimeout)
+	if timeout < operator.MinKubernetesCheckTimeout {
+		timeout = operator.MinKubernetesCheckTimeout
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	body, err := cs.DiscoveryClient.RESTClient().Get().AbsPath("/version").Do(ctx).Raw()
+	if err != nil {
+		return nil, err
+	}
+	var info version.Info
+	err = json.Unmarshal(body, &info)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse the server version: %v", err)
+	}
+	return &info, nil
 }
