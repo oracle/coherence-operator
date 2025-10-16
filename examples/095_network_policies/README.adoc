@@ -148,6 +148,17 @@ Configuring access to the API server is not as straight forward as other network
 The reason for this is that there is no Pod available with labels that can be used in the configuration,
 instead, the IP address of the API server itself must be used.
 
+[NOTE]
+====
+If the operator cannot connect to the API server it will fail to start.
+One of the first things the operator does on start-up os to log the Kubernetes version that the server is running.
+This is done by making a request to the API server with a default timeout of one minute.
+If the network policies are blocking the operator from connecting to the API server this request will time out.
+
+The error message in the operator's logs will include the host name and port that the operator attempted to use,
+so this can be used to then ensure egress is allowed to the correct host and port.
+====
+
 There are various methods to find the IP address of the API server.
 The exact method required may vary depending on the type of Kubernetes cluster being used, for example a simple
 development cluster running in KinD on a laptop may differ from a cluster running in a cloud provider's infrastructure.
