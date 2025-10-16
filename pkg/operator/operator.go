@@ -65,6 +65,7 @@ const (
 	FlagOperatorImage          = "operator-image"
 	FlagEnvVar                 = "env"
 	FlagJvmArg                 = "jvm"
+	FlagKubernetesCheckTimeout = "kubernetes-check-timeout"
 
 	// EnvVarWatchNamespace is the environment variable to use to set the watch namespace(s)
 	EnvVarWatchNamespace = "WATCH_NAMESPACE"
@@ -85,6 +86,11 @@ const (
 	LabelTestHostName = "coherence.oracle.com/test_hostname"
 	// LabelTestHealthPort is a label applied to Pods to set a testing health check port
 	LabelTestHealthPort = "coherence.oracle.com/test_health_port"
+
+	// DefaultKubernetesCheckTimeout is the default timeout applied to the initial Kubernetes API connection check.
+	DefaultKubernetesCheckTimeout = time.Minute
+	// MinKubernetesCheckTimeout is the minimum timeout applied to the initial Kubernetes API connection check.
+	MinKubernetesCheckTimeout = 10 * time.Second
 )
 
 var setupLog = ctrl.Log.WithName("setup")
@@ -245,6 +251,11 @@ func SetupFlags(cmd *cobra.Command, v *viper.Viper) {
 		time.Second*20,
 		"The duration the Operator uses for the leadership lease renewal timeout. "+
 			"If the value entered is less than 10s, then 10s will be used")
+	cmd.Flags().Duration(
+		FlagKubernetesCheckTimeout,
+		DefaultKubernetesCheckTimeout,
+		"The duration the Operator uses for the initial Kubernetes API connection check timeout. "+
+			"If the value entered is less than 60s, then 60s will be used")
 
 	// enable using dashed notation in flags and underscores in env
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))

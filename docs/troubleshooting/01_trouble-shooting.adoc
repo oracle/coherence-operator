@@ -39,6 +39,23 @@ This page will be updated and maintained over time to include common issues we s
 
 == Issues
 
+[#start-timeout]
+=== The Operator fails to start with a timeout error
+
+One of the first things the operator does on start-up os to log the Kubernetes server version.
+This is done by making a request to the API server with a default timeout of one minute.
+If the network policies, firewall rules, or RBAC are blocking the operator from connecting to the API server this
+request will time out with an error like the one below
+
+[source]
+----
+2025-10-16T09:05:29Z	INFO	setup	ERROR: failed to get Kubernetes server version	{"Host": "https://10.96.0.1:443", "Error": "Get \"https://10.96.0.1:443/version?timeout=32s\": dial tcp 10.96.0.1:443: i/o timeout"}
+Error: unable to get kubernetes server version: Get "https://10.96.0.1:443/version?timeout=32s": dial tcp 10.96.0.1:443: i/o timeout
+----
+
+The error message in the operator's logs will include the host name and port that the operator attempted to use,
+so this can be used to then ensure egress is allowed to the correct host and port.
+
 [#no-operator]
 === I Uninstalled the Operator and Cannot Delete the Coherence Clusters
 
@@ -96,6 +113,9 @@ not cleanly shut down and will then not be able to be restarted using the persis
 === Why are the Coherence Pods not reaching ready
 The readiness/liveness probe used by the Operator in the Coherence Pods checks a number of things to determine whether the Pods is ready, one of these is whether the JVM is a cluster member.
 If your application uses a custom main class and is not properly bootstrapping Coherence then the Pod will not be ready until your application code actually touches a Coherence resource causing Coherence to start and join the cluster.
+
+If you have overridden the configuration for the readiness or liveness probes for the Coherence cluster with custom endpoints,
+then you need to debug your own code.
 
 When running in clusters with the Operator using custom main classes it is advisable to properly bootstrap Coherence
 from within your `main` method. This can be done using the new Coherence bootstrap API available from CE release 20.12
