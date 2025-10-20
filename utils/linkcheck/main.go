@@ -8,12 +8,17 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"maps"
+	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -117,11 +122,17 @@ func run(cmd *cobra.Command) error {
 	excludes = append(excludes, "http://host")
 	excludes = append(excludes, "https://cert-manager.io")
 
-	exitCode, failedLinks := checkDocs(files, excludes)
+	exitCode, failedLinks, err := checkDocs(files, excludes)
+	if err != nil {
+		return err
+	}
 	if exitCode != 0 {
 		fmt.Println("Link checking FAILED")
-		for _, link := range failedLinks {
+		for link, pages := range failedLinks {
 			fmt.Println(link)
+			for _, page := range pages {
+				fmt.Println("    Page: " + page)
+			}
 		}
 		return fmt.Errorf("link checking failed")
 	}
@@ -129,105 +140,138 @@ func run(cmd *cobra.Command) error {
 	return nil
 }
 
-func checkDocs(paths []string, excludes []string) (int, []string) {
-	var failedLinks []string
+func checkDocs(paths []string, excludes []string) (int, map[string][]string, error) {
+	var err error
 	exitCode := 0
+
+	failedLinks := make(map[string][]string)
+
 	for _, path := range paths {
+		var mapFragments map[string]map[string][]string
+
 		if strings.HasSuffix(path, "/...") {
-			if rc, links := checkDirectory(path[0:len(path)-4], excludes); rc != 0 {
-				failedLinks = append(failedLinks, links...)
-				exitCode = 1
-			}
+			mapFragments, err = gatherLinksFromDirectory(path[0:len(path)-4], excludes)
 		} else {
-			if rc, links := checkDoc(path, excludes); rc != 0 {
-				failedLinks = append(failedLinks, links...)
-				exitCode = 1
+			mapFragments, err = gatherLinksFromDoc(path, excludes)
+		}
+
+		if err != nil {
+			return 1, failedLinks, err
+		}
+
+		sortedLinks := slices.Sorted(maps.Keys(mapFragments))
+		for _, link := range sortedLinks {
+			fragments := mapFragments[link]
+			if rc := checkLink(link, fragments, excludes); rc != 0 {
+				exitCode = rc
+				for _, fragment := range fragments {
+					failedLinks[link] = append(failedLinks[link], fragment...)
+				}
 			}
 		}
 	}
-	return exitCode, failedLinks
+
+	return exitCode, failedLinks, err
 }
 
-func checkDirectory(dirName string, excludes []string) (int, []string) {
-	var failedLinks []string
+func gatherLinksFromDirectory(dirName string, excludes []string) (map[string]map[string][]string, error) {
 	fmt.Printf("Checking directory %s\n", dirName)
 	info, err := os.Stat(dirName)
 	if err != nil {
-		fmt.Print(err.Error())
-		return 1, failedLinks
+		return nil, err
 	}
 	if !info.IsDir() {
-		fmt.Printf("%s is not a directory", dirName)
-		return 1, failedLinks
+		return nil, fmt.Errorf("%s is not a directory", dirName)
 	}
-	return checkFileInfo(dirName, info, excludes)
+	return gatherLinksFromFileInfo(dirName, info, excludes)
 }
 
-func checkFileInfo(dir string, info os.FileInfo, excludes []string) (int, []string) {
-	var failedLinks []string
+func gatherLinksFromFileInfo(dir string, info os.FileInfo, excludes []string) (map[string]map[string][]string, error) {
+	mapFragments := make(map[string]map[string][]string)
 
 	if info.IsDir() {
 		files, err := os.ReadDir(dir)
 		if err != nil {
-			fmt.Print(err.Error())
-			return 1, failedLinks
+			return mapFragments, err
 		}
 
-		exitCode := 0
-
 		for _, f := range files {
+			var fragments map[string]map[string][]string
+
 			name := f.Name()
 			if !strings.HasPrefix(name, ".") {
 				fullName := fmt.Sprintf("%s%s%s", dir, string(os.PathSeparator), name)
 				if f.IsDir() {
-					if rc, links := checkDirectory(fullName, excludes); rc != 0 {
-						failedLinks = append(failedLinks, links...)
-						exitCode = 1
+					fragments, err = gatherLinksFromDirectory(fullName, excludes)
+					if err != nil {
+						return mapFragments, err
 					}
+					appendMaps(fragments, mapFragments)
 				} else {
-					if rc, links := checkDoc(fullName, excludes); rc != 0 {
-						failedLinks = append(failedLinks, links...)
-						exitCode = 1
+					fragments, err = gatherLinksFromDoc(fullName, excludes)
+					if err != nil {
+						return mapFragments, err
 					}
+					appendMaps(fragments, mapFragments)
 				}
 			}
 		}
-		return exitCode, failedLinks
+
+		return mapFragments, err
 	} else {
-		return checkDoc(info.Name(), excludes)
+		return gatherLinksFromDoc(info.Name(), excludes)
 	}
 }
 
-func checkDoc(path string, excludes []string) (int, []string) {
-	var failedLinks []string
+func gatherLinksFromDoc(path string, excludes []string) (map[string]map[string][]string, error) {
+	var mapFragments map[string]map[string][]string
+	var err error
 
 	if !strings.HasSuffix(path, ".js") && !strings.HasSuffix(path, ".html") {
-		return 0, failedLinks
+		return mapFragments, nil
 	}
-
-	fmt.Printf("Checking file %s\n", path)
-	exitCode := 0
 
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return mapFragments, err
 	}
 	s := string(buf)
-	links, mapFragment, err := parseLinks(s, excludes)
+	mapFragments, err = parseLinks(s, excludes)
 	if err != nil {
-		panic(err)
+		return mapFragments, err
 	}
-	for _, link := range links {
-		fragments := mapFragment[link]
-		if checkLink(link, fragments, excludes) != 0 {
-			failedLinks = append(failedLinks, link)
-			exitCode = 1
+	for _, fragments := range mapFragments {
+		for i, fragment := range fragments {
+			fragment = append(fragment, path)
+			fragments[i] = fragment
 		}
 	}
-	return exitCode, failedLinks
+	return mapFragments, nil
 }
 
-func checkLink(link string, fragments []string, excludes []string) int {
+func appendMaps(source, dest map[string]map[string][]string) {
+	for srcLink, srcFragments := range source {
+		destFragments := dest[srcLink]
+		dest[srcLink] = appendMapOfStringArray(srcFragments, destFragments)
+	}
+}
+
+func appendMapOfStringArray(source, dest map[string][]string) map[string][]string {
+	if dest == nil {
+		dest = make(map[string][]string)
+	}
+	for k, v := range source {
+		a, found := dest[k]
+		if !found {
+			a = []string{}
+		}
+		a = append(a, v...)
+		dest[k] = a
+	}
+	return dest
+}
+
+func checkLink(link string, fragments map[string][]string, excludes []string) int {
 	var (
 		err      error
 		urlToGet *url.URL
@@ -260,114 +304,34 @@ func checkLink(link string, fragments []string, excludes []string) int {
 	return exitCode
 }
 
-func checkURL(urlToGet *url.URL, fragments []string) int {
+func checkURL(urlToGet *url.URL, fragments map[string][]string) int {
 	var (
 		err     error
-		resp    *http.Response
 		content []byte
 	)
 
 	fmt.Printf("%s", urlToGet)
 
-	var netClient = &http.Client{
-		Timeout: time.Minute * 1,
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Minute)
+	defer cancel()
 
-	urlStr := urlToGet.String()
-
-	// Create a new request using http
-	req, err := http.NewRequest("GET", urlStr, nil)
-	if err != nil {
+	if content, err = FetchWithBackoff(ctx, urlToGet); err != nil {
 		fmt.Printf(" FAILED error: %v\n", err)
 		return 1
 	}
 
-	if strings.HasPrefix(urlStr, "https://github.com") {
-		if token, found := os.LookupEnv("GH_TOKEN"); found && token != "" {
-			// Create a Bearer string by appending string access token
-			var bearer = "Bearer " + token
-			// add authorization header to the req
-			req.Header.Add("Authorization", bearer)
-			fmt.Print(" (URL is GitHub, GH_TOKEN is set)")
-		} else {
-			fmt.Print(" (URL is GitHub, but no auth token in GH_TOKEN)")
-		}
-	}
+	fmt.Println(" OK")
 
-	if resp, err = netClient.Do(req); err != nil {
-		if isTimeout(err) {
-			fmt.Println(" request timed out, backing off for one minute")
-			time.Sleep(1 * time.Minute)
+	pageContent := string(content)
 
-			if resp, err = netClient.Do(req); err != nil {
-				fmt.Printf(" FAILED error: %v\n", err)
+	for fragment, _ := range fragments {
+		if fragment != "" {
+			fmt.Printf("%s#%s", urlToGet, fragment)
+			if !checkFragment(fragment, pageContent) {
 				return 1
 			}
-		} else {
-			fmt.Printf(" FAILED error: %v\n", err)
-			return 1
+			fmt.Println(" OK")
 		}
-	}
-
-	retryCount := 10
-	if retryCountStr, found := os.LookupEnv("LINK_CHECK_RETRY_COUNT"); found {
-		if c, err := strconv.Atoi(retryCountStr); err == nil {
-			retryCount = c
-		}
-	}
-
-	if resp.StatusCode == 429 {
-		for i := 0; i < retryCount; i++ {
-			_ = resp.Body.Close()
-			fmt.Println(" received 429 status waiting for one minute")
-			time.Sleep(1 * time.Minute)
-
-			if resp, err = netClient.Do(req); err != nil {
-				fmt.Printf(" FAILED error: %v\n", err)
-				return 1
-			}
-
-			if resp.StatusCode != 429 {
-				break
-			}
-		}
-	}
-
-	defer resp.Body.Close()
-
-	// Check if the request was successful
-	if resp.StatusCode != 200 {
-		body := ""
-		if content, err = io.ReadAll(resp.Body); err == nil {
-			body = string(content)
-		}
-		fmt.Printf(" FAILED response: %d\n%v\n%s\n", resp.StatusCode, body, resp.Header)
-		return 1
-	}
-
-	count := len(fragments)
-	if (count == 1 && fragments[0] != "") || count > 1 {
-		// Read the body of the HTTP response
-		if content, err = io.ReadAll(resp.Body); err != nil {
-			fmt.Printf(" FAILED error: %v\n", err)
-			return 1
-		}
-
-		fmt.Println(" OK")
-
-		pageContent := string(content)
-
-		for _, fragment := range fragments {
-			if fragment != "" {
-				fmt.Printf("%s#%s", urlToGet, fragment)
-				if !checkFragment(fragment, pageContent) {
-					return 1
-				}
-				fmt.Println(" OK")
-			}
-		}
-	} else {
-		fmt.Println(" OK")
 	}
 
 	return 0
@@ -385,20 +349,22 @@ func checkFragment(fragment, pageContent string) bool {
 	headings = append(headings, fmt.Sprintf("href=\"#%s\"", fragment))
 	headings = append(headings, fmt.Sprintf("href=\\\"#%s\\\"", fragment))
 
+	fmt.Printf("\n    Checking fragment %s", fragment)
 	for _, heading := range headings {
 		if strings.Contains(pageContent, heading) {
+			fmt.Print(" OK")
 			return true
 		}
 	}
 
-	fmt.Println(" FAILED could not find any of the following headings:")
+	fmt.Print(" FAILED could not find any of the following headings:")
 	for _, heading := range headings {
 		fmt.Printf("   %s", heading)
 	}
 	return false
 }
 
-func parseLinks(content string, excludes []string) ([]string, map[string][]string, error) {
+func parseLinks(content string, excludes []string) (map[string]map[string][]string, error) {
 	var (
 		err       error
 		matches   [][]string
@@ -409,7 +375,7 @@ func parseLinks(content string, excludes []string) ([]string, map[string][]strin
 	// Retrieve all anchor tag URLs from string
 	matches = findLinks.FindAllStringSubmatch(content, -1)
 
-	linkMap := make(map[string][]string)
+	linkMap := make(map[string]map[string][]string)
 
 	for _, val := range matches {
 		var linkUrl *url.URL
@@ -429,7 +395,7 @@ func parseLinks(content string, excludes []string) ([]string, map[string][]strin
 		}
 
 		if linkUrl, err = url.Parse(u); err != nil {
-			return links, linkMap, err
+			return linkMap, err
 		}
 
 		if linkUrl.IsAbs() {
@@ -437,8 +403,12 @@ func parseLinks(content string, excludes []string) ([]string, map[string][]strin
 			if linkUrl.Fragment != "" {
 				s = s[0:(len(s) - 1 - len(linkUrl.Fragment))]
 			}
-
-			linkMap[s] = append(linkMap[s], linkUrl.Fragment)
+			f, found := linkMap[s]
+			if !found {
+				f = make(map[string][]string)
+			}
+			f[linkUrl.Fragment] = make([]string, 0)
+			linkMap[s] = f
 		}
 
 		links = make([]string, 0)
@@ -448,5 +418,179 @@ func parseLinks(content string, excludes []string) ([]string, map[string][]strin
 	}
 
 	sort.Strings(links)
-	return links, linkMap, err
+	return linkMap, err
+}
+
+// FetchWithBackoff retrieves the body of the given URL with retries and exponential backoff.
+// - Retries up to maxTotalTime (10 minutes) overall.
+// - Uses per-attempt timeout (default 30s).
+// - Retries on transient network errors, HTTP 429, and 5xx.
+// - Honors Retry-After header when present (seconds or HTTP date).
+func FetchWithBackoff(ctx context.Context, u *url.URL) ([]byte, error) {
+	if u == nil {
+		return nil, errors.New("nil URL")
+	}
+	if !u.IsAbs() {
+		return nil, fmt.Errorf("URL must be absolute: %q", u.String())
+	}
+
+	const (
+		perAttemptTimeout = 1 * time.Minute
+		maxTotalTime      = 10 * time.Minute
+		initialBackoff    = 500 * time.Millisecond
+		maxBackoff        = 1 * time.Minute
+	)
+
+	client := &http.Client{Timeout: perAttemptTimeout}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	urlStr := u.String()
+	if strings.HasPrefix(urlStr, "https://github.com") {
+		if token, found := os.LookupEnv("GH_TOKEN"); found && token != "" {
+			// Create a Bearer string by appending string access token
+			var bearer = "Bearer " + token
+			// add an authorization header to the req
+			req.Header.Add("Authorization", bearer)
+			fmt.Print(" (URL is GitHub, GH_TOKEN is set)")
+		} else {
+			fmt.Print(" (URL is GitHub, but no auth token in GH_TOKEN)")
+		}
+	}
+
+	start := time.Now()
+	backoff := initialBackoff
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for {
+		// If total time exhausted, stop.
+		if time.Since(start) >= maxTotalTime {
+			return nil, fmt.Errorf("fetch timeout: exceeded %s total backoff window", maxTotalTime)
+		}
+
+		// Do a single attempt (with per-attempt timeout).
+		resp, err := client.Do(req)
+		if err == nil {
+			// Got a response; decide based on status code.
+			if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+				defer resp.Body.Close()
+				body, readErr := io.ReadAll(resp.Body)
+				if readErr != nil {
+					// Reading body failed; treat as transient and retry.
+					_ = resp.Body.Close()
+					if !shouldRetryError(readErr) {
+						return nil, readErr
+					}
+					if err := sleepWithRetryAfter(ctx, backoffWithJitter(backoff, rng), resp); err != nil {
+						return nil, err
+					}
+					backoff = nextBackoff(backoff, maxBackoff)
+					continue
+				}
+				return body, nil
+			}
+
+			// Decide if this HTTP status is retryable.
+			retryable := resp.StatusCode == http.StatusTooManyRequests || (resp.StatusCode >= 500 && resp.StatusCode <= 599)
+			if !retryable {
+				// Non-retryable HTTP error.
+				defer resp.Body.Close()
+				b, _ := io.ReadAll(io.LimitReader(resp.Body, 8<<10)) // limit to 8KB in error
+				return nil, fmt.Errorf("http %d: %s", resp.StatusCode, strings.TrimSpace(string(b)))
+			}
+
+			// Retryable HTTP status (429/5xx): honor Retry-After if present.
+			if err := sleepWithRetryAfter(ctx, backoffWithJitter(backoff, rng), resp); err != nil {
+				_ = resp.Body.Close()
+				return nil, err
+			}
+			_ = resp.Body.Close()
+			backoff = nextBackoff(backoff, maxBackoff)
+			continue
+		}
+
+		// Network or context error.
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
+		if !shouldRetryError(err) {
+			return nil, err
+		}
+
+		// Transient network error: back off and retry.
+		if err := sleepCtx(ctx, backoffWithJitter(backoff, rng)); err != nil {
+			return nil, err
+		}
+		backoff = nextBackoff(backoff, maxBackoff)
+	}
+}
+
+func shouldRetryError(err error) bool {
+	var ne net.Error
+	if errors.As(err, &ne) {
+		// Retry on timeouts or temporary errors
+		return ne.Timeout() || ne.Temporary()
+	}
+	if err.Error() == "unexpected EOF" {
+		return true
+	}
+	// Conservative default: don't retry unknown permanent errors.
+	return false
+}
+
+func nextBackoff(current, max time.Duration) time.Duration {
+	next := current * 2
+	if next > max {
+		return max
+	}
+	return next
+}
+
+func backoffWithJitter(base time.Duration, rng *rand.Rand) time.Duration {
+	if base <= 0 {
+		return 0
+	}
+	// +/-20% jitter
+	jitter := base / 5
+	delta := time.Duration(rng.Int63n(int64(2*jitter+1))) - jitter
+	return base + delta
+}
+
+func sleepCtx(ctx context.Context, d time.Duration) error {
+	if d <= 0 {
+		return nil
+	}
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-t.C:
+		return nil
+	}
+}
+
+func sleepWithRetryAfter(ctx context.Context, fallback time.Duration, resp *http.Response) error {
+	if resp == nil {
+		return sleepCtx(ctx, fallback)
+	}
+	ra := resp.Header.Get("Retry-After")
+	if ra == "" {
+		return sleepCtx(ctx, fallback)
+	}
+
+	// Retry-After can be delta-seconds or HTTP-date
+	if secs, err := strconv.Atoi(strings.TrimSpace(ra)); err == nil && secs >= 0 {
+		return sleepCtx(ctx, time.Duration(secs)*time.Second)
+	}
+	if t, err := http.ParseTime(ra); err == nil {
+		d := time.Until(t)
+		if d > 0 {
+			return sleepCtx(ctx, d)
+		}
+	}
+	// Fallback if header unparsable or in the past
+	return sleepCtx(ctx, fallback)
 }
