@@ -15,18 +15,18 @@
 # ======================================================================================================================
 
 # The version of the Operator being build - this should be a valid SemVer format
-VERSION ?= 3.5.6
+VERSION ?= 3.5.7
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.5.5
+PREV_VERSION ?= 3.5.6
 NEXT_VERSION := $(shell sh ./hack/next-version.sh "$(VERSION)")
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.5.5
+COMPATIBLE_VERSION  ?= 3.5.6
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
