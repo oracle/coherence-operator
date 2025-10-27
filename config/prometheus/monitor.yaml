@@ -6,7 +6,7 @@ metadata:
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/version: "3.5.6"
+    app.kubernetes.io/version: "3.5.7"
     app.kubernetes.io/part-of: coherence-operator
   name: controller-manager-metrics-monitor
   namespace: default
@@ -32,5 +32,5 @@ spec:
       control-plane: coherence
       app.kubernetes.io/name: coherence-operator
       app.kubernetes.io/instance: coherence-operator-manager
-      app.kubernetes.io/version: "3.5.6"
+      app.kubernetes.io/version: "3.5.7"
       app.kubernetes.io/component: manager
