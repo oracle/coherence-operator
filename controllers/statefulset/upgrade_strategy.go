@@ -276,7 +276,7 @@ func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe *coh.Probe, fn PodNode
 			err = deletePods(ctx, podsToUpdate, c)
 		} else {
 			log.Info("Pods failed Status HA check, upgrade is deferred for one minute", "Namespace", sts.Namespace, "Name", sts.Name, "NodeId", idName, "IdValue", nodeId)
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+			return reconcile.Result{RequeueAfter: time.Minute}, nil
 		}
 	}
 

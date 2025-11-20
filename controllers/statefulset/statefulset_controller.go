@@ -94,7 +94,7 @@ func (in *ReconcileStatefulSet) Reconcile(ctx context.Context, request reconcile
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
-		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
@@ -173,7 +173,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 					case probe.ServiceSuspendFailed:
 						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonScaling,
 							"failed suspending Coherence services in statefuleset %s", request.Name)
-						return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
+						return reconcile.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
 					case probe.ServiceSuspendSkipped:
 						logger.Info("skipping suspension of Coherence services prior to deletion of StatefulSet")
 						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
@@ -294,7 +294,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 			Reason:  "StatusQuorum",
 			Message: reason,
 		})
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 30}, nil
 	}
 
 	err := in.Create(ctx, deployment.GetName(), storage, logger)
@@ -323,12 +323,12 @@ func (in *ReconcileStatefulSet) updateStatefulSet(ctx context.Context, deploymen
 	if !found {
 		// Desired state not found requeue and the request should sort itself out next time around
 		logger.Info("Cannot locate desired state for StatefulSet, possibly a deletion, re-queuing request")
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 	if resource.IsDelete() {
 		// we should never get here, requeue and the request should sort itself out next time around
 		logger.Info("In update path for StatefulSet, but is a deletion - re-queuing request")
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	desired := resource.Spec.(*appsv1.StatefulSet)
@@ -445,7 +445,7 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 		msg := fmt.Sprintf("upddates to the statefuleset would have been invalid, the update will not be re-queued: %v", errorList)
 		evts := in.GetEventRecorder()
 		evts.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
-		return reconcile.Result{Requeue: false}, errors.New(msg)
+		return reconcile.Result{}, errors.New(msg)
 	}
 
 	// Replicas is normally handled by scaling, so we set the desired replicas to match the current replicas
@@ -657,18 +657,22 @@ func (in *ReconcileStatefulSet) safeScale(ctx context.Context, deployment coh.Co
 		if err == nil {
 			if replicas == desired {
 				// we're at the desired size so finished scaling
-				return reconcile.Result{Requeue: false}, nil
+				return reconcile.Result{}, nil
 			}
 			// scaled by one but not yet at the desired size - requeue request after one minute
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
+			return reconcile.Result{RequeueAfter: time.Minute}, nil
 		}
 		// failed
 		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToScaleMessage, deployment.GetName(), current, replicas, err.Error()), logger)
 	}
 
-	// Not StatusHA - wait one minute
-	logger.Info("Coherence cluster is not StatusHA - Re-queuing scaling request")
-	return reconcile.Result{Requeue: true, RequeueAfter: in.statusHARetry}, nil
+	// Not StatusHA - wait at least one minute
+	retryIn := in.statusHARetry
+	if retryIn < time.Minute {
+		retryIn = time.Minute
+	}
+	logger.Info("Coherence cluster is not StatusHA - Re-queuing scaling request", "Retry", retryIn)
+	return reconcile.Result{RequeueAfter: retryIn}, nil
 }
 
 // parallelScale will scale the StatefulSet by the required amount in one request.
@@ -732,7 +736,10 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment co
 	msg := fmt.Sprintf("scaled StatefulSet %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
 	evts.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
 
-	return reconcile.Result{Requeue: scaleDown}, nil
+	if scaleDown {
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
+	}
+	return reconcile.Result{}, nil
 }
 
 // updateDeploymentStatus updates the Coherence resource's status.

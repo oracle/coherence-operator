@@ -69,7 +69,7 @@ func (in *ReconcileJob) Reconcile(ctx context.Context, request reconcile.Request
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
-		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 10}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
@@ -190,7 +190,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 			Reason:  "StatusQuorum",
 			Message: reason,
 		})
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 30}, nil
 	}
 
 	err := in.Create(ctx, deployment.GetName(), storage, logger)
@@ -216,12 +216,12 @@ func (in *ReconcileJob) updateJob(ctx context.Context, deployment coh.CoherenceR
 	if !found {
 		// Desired state not found requeue and the request should sort itself out next time around
 		logger.Info("Cannot locate desired state for Job, possibly a deletion, re-queuing request")
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 	if resource.IsDelete() {
 		// we should never get here, requeue and the request should sort itself out next time around
 		logger.Info("In update path for Job, but is a deletion - re-queuing request")
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	desired := resource.Spec.(*batchv1.Job)
@@ -254,7 +254,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 		msg := fmt.Sprintf("upddates to the job would have been invalid, the update will not be re-queued: %v", errorList)
 		events := in.GetEventRecorder()
 		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
-		return reconcile.Result{Requeue: false}, errors.New(msg)
+		return reconcile.Result{}, errors.New(msg)
 	}
 
 	// copy the job, so we do not alter the passed in job
@@ -326,7 +326,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 		logger.Info("Error patching Job " + err.Error())
 		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(FailedToPatchMessage, deployment.GetName(), err.Error()), logger)
 	case !patched:
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	return reconcile.Result{}, nil
