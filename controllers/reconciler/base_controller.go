@@ -449,7 +449,7 @@ func isOperationError(err error) bool {
 func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, deployment *coh.Coherence, msg string, logger logr.Logger) (reconcile.Result, error) {
 	if err == nil {
 		logger.V(0).Info(msg)
-		return reconcile.Result{Requeue: false}, nil
+		return reconcile.Result{}, nil
 	}
 
 	// Add caller information to the error if it's not already an OperationError
@@ -481,7 +481,7 @@ func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, d
 			WithContext("reason", "permanent")
 	}
 
-	return reconcile.Result{Requeue: false}, nil
+	return reconcile.Result{}, nil
 }
 
 // Failed is a common error handler (deprecated, use HandleErrAndRequeue instead)
@@ -514,7 +514,7 @@ func (in *CommonReconciler) Failed(ctx context.Context, err error, deployment co
 		}
 	}
 
-	return reconcile.Result{Requeue: requeue}, err
+	return reconcile.Result{}, err
 }
 
 // getErrorHandler returns an error handler for this reconciler

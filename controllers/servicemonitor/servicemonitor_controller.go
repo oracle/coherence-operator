@@ -9,6 +9,8 @@ package servicemonitor
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
@@ -69,7 +71,7 @@ func (in *ReconcileServiceMonitor) Reconcile(ctx context.Context, request reconc
 	// Attempt to lock the requested resource. If the resource is locked then another
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
-		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 10}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)

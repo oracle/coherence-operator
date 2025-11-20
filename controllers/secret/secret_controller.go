@@ -8,6 +8,8 @@ package secret
 
 import (
 	"context"
+	"time"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/clients"
@@ -70,7 +72,7 @@ func (in *ReconcileSecret) Reconcile(ctx context.Context, request reconcile.Requ
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
 		logger.Info("Completed reconcile. Already locked, re-queuing")
-		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 10}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)

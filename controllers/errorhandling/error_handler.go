@@ -98,10 +98,10 @@ func (eh *ErrorHandler) HandleError(ctx context.Context, err error, resource coh
 		return eh.attemptRecovery(ctx, err, resource)
 	case ErrorCategoryPermanent:
 		// For permanent errors, don't requeue
-		return reconcile.Result{Requeue: false}, nil
+		return reconcile.Result{}, nil
 	default:
 		// For unknown errors, requeue with a short delay
-		return reconcile.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
+		return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 }
 
@@ -360,7 +360,7 @@ func (eh *ErrorHandler) handleTransientError(resource coh.CoherenceResource) (re
 		"errorCount", count,
 		"backoff", backoff)
 
-	return reconcile.Result{Requeue: true, RequeueAfter: backoff}, nil
+	return reconcile.Result{RequeueAfter: backoff}, nil
 }
 
 // attemptRecovery attempts to recover from a recoverable error
@@ -371,7 +371,7 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 		Namespace: resource.GetNamespace(),
 		Name:      resource.GetName(),
 	}, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Get the annotations
@@ -391,7 +391,7 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 					"resource", resource.GetName(),
 					"namespace", resource.GetNamespace(),
 					"lastAttempt", lastAttempt)
-				return reconcile.Result{Requeue: true, RequeueAfter: 1 * time.Minute}, nil
+				return reconcile.Result{RequeueAfter: 1 * time.Minute}, nil
 			}
 		}
 	}
@@ -402,7 +402,7 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 
 	// Update the resource
 	if err := eh.Client.Update(ctx, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Log the recovery attempt with detailed diagnostics
@@ -463,7 +463,7 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 		eh.Log.Error(updateErr, "Failed to update resource with diagnostic information")
 	}
 
-	return reconcile.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
+	return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
 // recoverFromServiceSuspensionFailure attempts to recover from a service suspension failure
@@ -485,7 +485,7 @@ func (eh *ErrorHandler) recoverFromServiceSuspensionFailure(ctx context.Context,
 		Namespace: resource.GetNamespace(),
 		Name:      resource.GetName(),
 	}, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Check if this is a deletion and has the Coherence finalizer
@@ -503,7 +503,7 @@ func (eh *ErrorHandler) recoverFromServiceSuspensionFailure(ctx context.Context,
 		// Update the resource with the annotation
 		if err := eh.Client.Update(ctx, latest); err != nil {
 			eh.Log.Error(err, "Failed to add finalizer bypass annotation")
-			return reconcile.Result{Requeue: true}, err
+			return reconcile.Result{RequeueAfter: time.Minute}, err
 		}
 
 		eh.Log.Info("Added finalizer bypass annotation to resource",
@@ -515,7 +515,7 @@ func (eh *ErrorHandler) recoverFromServiceSuspensionFailure(ctx context.Context,
 	}
 
 	// 4. Return a result that requeues after a short delay to check if recovery was successful
-	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+	return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
 }
 
 // recoverFromPDBIssue attempts to recover from Pod Disruption Budget issues
@@ -536,7 +536,7 @@ func (eh *ErrorHandler) recoverFromPDBIssue(ctx context.Context, resource coh.Co
 		Namespace: resource.GetNamespace(),
 		Name:      resource.GetName(),
 	}, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Add diagnostic information
@@ -552,7 +552,7 @@ func (eh *ErrorHandler) recoverFromPDBIssue(ctx context.Context, resource coh.Co
 	// Update the resource with the annotation
 	if err := eh.Client.Update(ctx, latest); err != nil {
 		eh.Log.Error(err, "Failed to add PDB issue annotation")
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	eh.Log.Info("Added PDB issue annotation to resource",
@@ -563,7 +563,7 @@ func (eh *ErrorHandler) recoverFromPDBIssue(ctx context.Context, resource coh.Co
 		"Added PDB issue annotation to resource")
 
 	// Return a result that requeues after a delay
-	return reconcile.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
+	return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
 // recoverFromStatefulSetPatchIssue attempts to recover from StatefulSet patching issues
@@ -583,7 +583,7 @@ func (eh *ErrorHandler) recoverFromStatefulSetPatchIssue(ctx context.Context, re
 		Namespace: resource.GetNamespace(),
 		Name:      resource.GetName(),
 	}, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Add diagnostic information
@@ -598,7 +598,7 @@ func (eh *ErrorHandler) recoverFromStatefulSetPatchIssue(ctx context.Context, re
 	// Update the resource with the annotation
 	if err := eh.Client.Update(ctx, latest); err != nil {
 		eh.Log.Error(err, "Failed to add force-reconcile annotation")
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	eh.Log.Info("Added force-reconcile annotation to resource",
@@ -609,7 +609,7 @@ func (eh *ErrorHandler) recoverFromStatefulSetPatchIssue(ctx context.Context, re
 		"Added force-reconcile annotation to resource to address StatefulSet patching issue")
 
 	// Return a result that requeues after a delay
-	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+	return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
 }
 
 // recoverFromQuotaIssue attempts to recover from resource quota issues
@@ -629,7 +629,7 @@ func (eh *ErrorHandler) recoverFromQuotaIssue(ctx context.Context, resource coh.
 		Namespace: resource.GetNamespace(),
 		Name:      resource.GetName(),
 	}, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Add diagnostic information
@@ -645,7 +645,7 @@ func (eh *ErrorHandler) recoverFromQuotaIssue(ctx context.Context, resource coh.
 	// Update the resource with the annotation
 	if err := eh.Client.Update(ctx, latest); err != nil {
 		eh.Log.Error(err, "Failed to add quota issue annotation")
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	eh.Log.Info("Added quota issue annotation to resource",
@@ -656,7 +656,7 @@ func (eh *ErrorHandler) recoverFromQuotaIssue(ctx context.Context, resource coh.
 		"Resource quota exceeded - manual intervention may be required to increase quota or reduce resource requests")
 
 	// Return a result that requeues after a longer delay
-	return reconcile.Result{Requeue: true, RequeueAfter: 2 * time.Minute}, nil
+	return reconcile.Result{RequeueAfter: 2 * time.Minute}, nil
 }
 
 // recoverFromSchedulingIssue attempts to recover from pod scheduling issues
@@ -676,7 +676,7 @@ func (eh *ErrorHandler) recoverFromSchedulingIssue(ctx context.Context, resource
 		Namespace: resource.GetNamespace(),
 		Name:      resource.GetName(),
 	}, latest); err != nil {
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	// Add diagnostic information
@@ -692,7 +692,7 @@ func (eh *ErrorHandler) recoverFromSchedulingIssue(ctx context.Context, resource
 	// Update the resource with the annotation
 	if err := eh.Client.Update(ctx, latest); err != nil {
 		eh.Log.Error(err, "Failed to add scheduling issue annotation")
-		return reconcile.Result{Requeue: true}, err
+		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
 	eh.Log.Info("Added scheduling issue annotation to resource",
@@ -703,7 +703,7 @@ func (eh *ErrorHandler) recoverFromSchedulingIssue(ctx context.Context, resource
 		"Pod scheduling issue detected - manual intervention may be required to address node resources or affinity rules")
 
 	// Return a result that requeues after a longer delay
-	return reconcile.Result{Requeue: true, RequeueAfter: 2 * time.Minute}, nil
+	return reconcile.Result{RequeueAfter: 2 * time.Minute}, nil
 }
 
 // RetryOnError retries the given function with exponential backoff on error

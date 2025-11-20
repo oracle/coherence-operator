@@ -69,7 +69,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	// request for the same resource is already in progress so requeue this one.
 	if ok := in.Lock(request); !ok {
 		log.Info("CoherenceJob resource " + request.Namespace + "/" + request.Name + " is already locked, requeue request")
-		return reconcile.Result{Requeue: true, RequeueAfter: 0}, nil
+		return reconcile.Result{RequeueAfter: time.Second * 10}, nil
 	}
 	// Make sure that the request is unlocked when this method exits
 	defer in.Unlock(request)
