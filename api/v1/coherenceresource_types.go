@@ -181,11 +181,10 @@ func (in *Coherence) GetReplicas() int32 {
 	if in == nil {
 		return DefaultReplicas
 	}
-	if in.Spec.Replicas == nil {
+	if in.Spec.Replicas == nil && in.Spec.InitialReplicas == nil {
 		if in.Status.Replicas > 0 {
 			return in.Status.Replicas
 		}
-		return DefaultReplicas
 	}
 	return in.Spec.GetReplicas()
 }
