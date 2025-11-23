@@ -106,10 +106,21 @@ This is probably not what was desired.
 One solution is to always make sure the replicas in the yaml is set to the "correct" value before applying it.
 This can be awkward in some environments, and especially if using the Kubernetes HPA to control scaling.
 
-=== The Solution
+=== The Solutions
 
-If you intend to use `kubectl scale` or the Kubernetes HPA to control scaling then it is best to not set the
+If you intend to use `kubectl scale` or the Kubernetes HPA to control scaling there are two options to fix the
+issue described above.
+
+1: <<replicas_not_set,Do not set the replicas field.>>
+
+2: <<initial_replicas_set,Set the initial cluster size using the `initialReplicas` field.>>
+
+[#replicas_not_set]
+==== 1: Do Not Set Replicas
+
+If you intend to use `kubectl scale` or the Kubernetes HPA to control scaling then you can choose not to set the
 `replicas` field in the YAML file used to create and update the Coherence cluster.
+The operator will then create a cluster with the default three replicas.
 
 For example, the initial YAML above could have been created like this:
 
@@ -145,6 +156,34 @@ stay at whatever value it was scaled to.
 Another solution would be to create the initial YAML with the `replicas` field set to the desired initial size.
 Then later when applying updates, ensure that the `replicas` field has been deleted from the YAML file.
 
+[#initial_replicas_set]
+==== 2: Use the `initialReplicas` Field
+
+The `Coherence` resource spec contains an `initialReplicas` field which can be used to specify the initial size of the
+cluster. This field can be used when a cluster needs an initial size greater or smaller than the operator's default
+size of three replicas.
+
+For example, the yaml below will create a StatefulSet with a replica count of six.
+[source,yaml]
+.storage-cluster.yaml
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: storage
+spec:
+  initialReplicas: 6
+----
+
+[NOTE]
+====
+If both the `initialReplicas` field and the `replicas` field are set then the `replicas` field willl be used to set the cluster size.
+====
+
+When the Coherence cluster is scaled using either the HPA or the `kubectl scale` command then they will set the `replicas`
+field in the Coherence spec which will scale up or down the cluster.
+When an upgrade is performed by editing the original yaml that contains no `replicas` field and only the `initialReplicas`
+field the resulting patch applied will not change whatever the current `replicas` value is that was set by the HPA or scale command.
 
 == Controlling Safe Scaling
 

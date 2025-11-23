@@ -8,13 +8,14 @@ package v1_test
 
 import (
 	"fmt"
+	"testing"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"testing"
 )
 
 func TestCreateStatefulSetFromMinimalRoleSpec(t *testing.T) {
@@ -56,6 +57,40 @@ func TestCreateStatefulSetWithReplicas(t *testing.T) {
 	deployment := createTestDeployment(spec)
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Replicas = ptr.To(int32(50))
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithInitialReplicas(t *testing.T) {
+	// create a spec with a name
+	spec := coh.CoherenceResourceSpec{
+		InitialReplicas: ptr.To(int32(50)),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Replicas = ptr.To(int32(50))
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWhenReplicasAndInitialReplicasSet(t *testing.T) {
+	// create a spec with a name
+	spec := coh.CoherenceResourceSpec{
+		Replicas:        ptr.To(int32(100)),
+		InitialReplicas: ptr.To(int32(50)),
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Replicas = ptr.To(int32(100))
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)

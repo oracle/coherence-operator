@@ -10,14 +10,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/oracle/coherence-operator/pkg/operator"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"strconv"
-	"strings"
 )
 
 // NOTE: This file is used to generate the CRDs use by the Operator. The CRD files should not be manually edited
@@ -46,12 +47,30 @@ type CoherenceResourceSpec struct {
 	// +optional
 	ImagePullSecrets []LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// The desired number of cluster members of this deployment.
+	//
+	// If the cluster will be scaled using the Horizontal Pod Autoscaler or the kubectl scale command
+	// then this field should be left unset and the initial cluster size should be specified using the
+	// `initialReplicas` field.
+	//
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// If not specified a default value of 3 will be used.
 	// This field cannot be negative.
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
+	// The initial number of cluster members of this deployment when first created.
+	//
+	// If the `replicas` field is set this field is ignored.
+	//
+	// This field is to set an initial size for a cluster that is then resized only using the
+	// Horizontal Pod Autoscaler or the kubectl scale command.
+	//
+	// This is a pointer to distinguish between explicit zero and not specified.
+	// If not specified a default value of 3 will be used.
+	// This field cannot be negative.
+	// +kubebuilder:validation:Minimum:=0
+	// +optional
+	InitialReplicas *int32 `json:"initialReplicas,omitempty"`
 	// The name of the role that this deployment represents in a Coherence cluster.
 	// This value will be used to set the Coherence role property for all members of this role
 	// +optional
@@ -327,8 +346,14 @@ type ActionJob struct {
 // return either the actual Replica value or the default (DefaultReplicas const)
 // if the Replicas field is nil.
 func (in *CoherenceResourceSpec) GetReplicas() int32 {
-	if in == nil || in.Replicas == nil {
+	if in == nil {
 		return DefaultReplicas
+	}
+	if in.Replicas == nil {
+		if in.InitialReplicas == nil {
+			return DefaultReplicas
+		}
+		return *in.InitialReplicas
 	}
 	return *in.Replicas
 }

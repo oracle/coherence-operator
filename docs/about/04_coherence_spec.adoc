@@ -281,7 +281,18 @@ CoherenceResourceSpec defines the specification of a Coherence resource. A Coher
 m| image | The name of the image. More info: https://kubernetes.io/docs/concepts/containers/images m| &#42;string | false
 m| imagePullPolicy | Image pull policy. One of Always, Never, IfNotPresent. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images m| &#42;https://pkg.go.dev/k8s.io/api/core/v1#PullPolicy | false
 m| imagePullSecrets | ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any of the images used by this PodSpec. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod m| []<<LocalObjectReference,LocalObjectReference>> | false
-m| replicas | The desired number of cluster members of this deployment. This is a pointer to distinguish between explicit zero and not specified. If not specified a default value of 3 will be used. This field cannot be negative. m| &#42;int32 | false
+m| replicas | The desired number of cluster members of this deployment. +
+ +
+If the cluster will be scaled using the Horizontal Pod Autoscaler or the kubectl scale command then this field should be left unset and the initial cluster size should be specified using the `initialReplicas` field. +
+ +
+This is a pointer to distinguish between explicit zero and not specified. If not specified a default value of 3 will be used. This field cannot be negative. m| &#42;int32 | false
+m| initialReplicas | The initial number of cluster members of this deployment when first created. +
+ +
+If the `replicas` field is set this field is ignored. +
+ +
+This field is to set an initial size for a cluster that is then resized only using the Horizontal Pod Autoscaler or the kubectl scale command. +
+ +
+This is a pointer to distinguish between explicit zero and not specified. If not specified a default value of 3 will be used. This field cannot be negative. m| &#42;int32 | false
 m| role | The name of the role that this deployment represents in a Coherence cluster. This value will be used to set the Coherence role property for all members of this role m| string | false
 m| appLabel | An optional app label to apply to resources created for this deployment. This is useful for example to apply an app label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
 m| versionLabel | An optional version label to apply to resources created for this deployment. This is useful for example to apply a version label for use by Istio. This field follows standard Kubernetes label syntax. m| &#42;string | false
