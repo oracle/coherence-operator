@@ -23,6 +23,8 @@ entries:
         replaces: coherence-operator.v3.5.4
       - name: coherence-operator.v3.5.6
         replaces: coherence-operator.v3.5.5
+      - name: coherence-operator.v3.5.7
+        replaces: coherence-operator.v3.5.6
   - schema: olm.bundle
     image: ghcr.io/oracle/coherence-operator-bundle:3.4.3
   - schema: olm.bundle
@@ -39,3 +41,5 @@ entries:
     image: ghcr.io/oracle/coherence-operator-bundle:3.5.5
   - schema: olm.bundle
     image: ghcr.io/oracle/coherence-operator-bundle:3.5.6
+  - schema: olm.bundle
+    image: ghcr.io/oracle/coherence-operator-bundle:3.5.7
