@@ -1,6 +1,14 @@
 #!/bin/sh
 
-REQUIRED_VERSION="$(curl -s https://api.github.com/repos/operator-framework/operator-sdk/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')"
+
+#
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
+OPERATOR_SDK_VERSION=$1
+#OPERATOR_SDK_VERSION="$(curl -s https://api.github.com/repos/operator-framework/operator-sdk/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')"
 OPERATOR_SDK_HOME=$2
 
 UNAME_S=$(uname -s)
@@ -19,7 +27,7 @@ else
   echo "Operator SDK found, checking version - ${OPERATOR_SDK}"
   VERSION=$(${OPERATOR_SDK} version)
   echo "${VERSION}"
-  echo ${VERSION} | grep "operator-sdk version: \"${REQUIRED_VERSION}\""
+  echo ${VERSION} | grep "operator-sdk version: \"${OPERATOR_SDK_VERSION}\""
   OK=$?
 fi
 
@@ -28,19 +36,19 @@ if [ ${OK} != 0 ]; then
 
   if [ "${UNAME_S}" = "Darwin" ]; then
     if [ "${UNAME_M}" = "x86_64" ]; then
-      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_darwin_amd64"
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_darwin_amd64"
     else
-      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_darwin_arm64"
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_darwin_arm64"
     fi
   else
     if [ "${UNAME_M}" = "x86_64" ]; then
-      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_linux_amd64"
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_linux_amd64"
     else
-      URL="https://github.com/operator-framework/operator-sdk/releases/download/${REQUIRED_VERSION}/operator-sdk_linux_arm64"
+      URL="https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_linux_arm64"
     fi
   fi
 
-  echo "Downloading Operator SDK ${UNAME_S}/${UNAME_M} version ${REQUIRED_VERSION} from ${URL}"
+  echo "Downloading Operator SDK ${UNAME_S}/${UNAME_M} version ${OPERATOR_SDK_VERSION} from ${URL}"
   curl -L ${URL} -o ${OPERATOR_SDK}
   chmod +x ${OPERATOR_SDK}
 fi
