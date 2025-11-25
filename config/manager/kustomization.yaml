@@ -8,4 +8,4 @@ resources:
 images:
 - name: controller
   newName: container-registry.oracle.com/middleware/coherence-operator
-  newTag: 3.5.7
+  newTag: 3.5.8
