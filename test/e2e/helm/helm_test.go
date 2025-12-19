@@ -7,7 +7,7 @@
 package helm
 
 import (
-	goctx "context"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -766,7 +766,7 @@ func AssertThreeReplicas() error {
 func AssertRBAC(allowNode bool) error {
 	rbacClient := testContext.KubeClient.RbacV1()
 
-	crList, err := rbacClient.ClusterRoles().List(goctx.TODO(), metav1.ListOptions{})
+	crList, err := rbacClient.ClusterRoles().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -779,7 +779,7 @@ func AssertRBAC(allowNode bool) error {
 		}
 	}
 
-	crbList, err := rbacClient.ClusterRoleBindings().List(goctx.TODO(), metav1.ListOptions{})
+	crbList, err := rbacClient.ClusterRoleBindings().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -793,12 +793,12 @@ func AssertRBAC(allowNode bool) error {
 	}
 
 	ns := helper.GetTestNamespace()
-	_, err = rbacClient.Roles(ns).Get(goctx.TODO(), "coherence-operator", metav1.GetOptions{})
+	_, err = rbacClient.Roles(ns).Get(context.TODO(), "coherence-operator", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
-	_, err = rbacClient.RoleBindings(ns).Get(goctx.TODO(), "coherence-operator", metav1.GetOptions{})
+	_, err = rbacClient.RoleBindings(ns).Get(context.TODO(), "coherence-operator", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -852,7 +852,7 @@ func AssertHelmInstallWithStatefulSetSubTest(t *testing.T, id string, cmd *exec.
 
 	defer deleteCoherence(t, &deployment)
 
-	err = testContext.Client.Create(goctx.TODO(), &deployment)
+	err = testContext.Client.Create(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	var sts *appsv1.StatefulSet
@@ -863,7 +863,7 @@ func AssertHelmInstallWithStatefulSetSubTest(t *testing.T, id string, cmd *exec.
 }
 
 func deleteCoherence(t *testing.T, d *coh.Coherence) {
-	if err := testContext.Client.Delete(goctx.TODO(), d); err != nil {
+	if err := testContext.Client.Delete(context.TODO(), d); err != nil {
 		t.Logf("Error deleting Coherence deployment %s - %s", d.GetNamespacedName(), err.Error())
 	}
 }
@@ -884,12 +884,12 @@ func RemoveWebHook() error {
 	// DefaultValidatingWebhookName
 	client := testContext.KubeClient.AdmissionregistrationV1()
 
-	err := client.MutatingWebhookConfigurations().Delete(goctx.TODO(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
+	err := client.MutatingWebhookConfigurations().Delete(context.TODO(), operator.DefaultMutatingWebhookName, metav1.DeleteOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 
-	err = client.ValidatingWebhookConfigurations().Delete(goctx.TODO(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
+	err = client.ValidatingWebhookConfigurations().Delete(context.TODO(), operator.DefaultValidatingWebhookName, metav1.DeleteOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
@@ -901,14 +901,14 @@ func RemoveWebHook() error {
 func RemoveCRDs() error {
 	cohCrd := crdv1.CustomResourceDefinition{}
 	cohCrd.Name = "coherence.coherence.oracle.com"
-	err := testContext.Client.Delete(goctx.TODO(), &cohCrd)
+	err := testContext.Client.Delete(context.TODO(), &cohCrd)
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 
 	cohJobCrd := crdv1.CustomResourceDefinition{}
 	cohJobCrd.Name = "coherencejob.coherence.oracle.com"
-	err = testContext.Client.Delete(goctx.TODO(), &cohJobCrd)
+	err = testContext.Client.Delete(context.TODO(), &cohJobCrd)
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
@@ -924,27 +924,27 @@ func RemoveRBAC() error {
 	clusterRolesClient := rbacClient.ClusterRoles()
 	clusterRoleBindingsClient := rbacClient.ClusterRoleBindings()
 
-	crList, err := clusterRolesClient.List(goctx.TODO(), metav1.ListOptions{})
+	crList, err := clusterRolesClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
 
 	for _, cr := range crList.Items {
 		if strings.HasPrefix(strings.ToLower(cr.Name), "coherence-operator") {
-			if err := clusterRolesClient.Delete(goctx.TODO(), cr.Name, metav1.DeleteOptions{}); err != nil {
+			if err := clusterRolesClient.Delete(context.TODO(), cr.Name, metav1.DeleteOptions{}); err != nil {
 				return err
 			}
 		}
 	}
 
-	crbList, err := clusterRoleBindingsClient.List(goctx.TODO(), metav1.ListOptions{})
+	crbList, err := clusterRoleBindingsClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
 
 	for _, crb := range crbList.Items {
 		if strings.HasPrefix(strings.ToLower(crb.Name), "coherence-operator") {
-			if err := clusterRoleBindingsClient.Delete(goctx.TODO(), crb.Name, metav1.DeleteOptions{}); err != nil {
+			if err := clusterRoleBindingsClient.Delete(context.TODO(), crb.Name, metav1.DeleteOptions{}); err != nil {
 				return err
 			}
 		}
@@ -954,14 +954,14 @@ func RemoveRBAC() error {
 	rolesClient := rbacClient.Roles(ns)
 	roleBindingsClient := rbacClient.RoleBindings(ns)
 
-	if role, err := rolesClient.Get(goctx.TODO(), "coherence-operator", metav1.GetOptions{}); err == nil {
-		if err := rolesClient.Delete(goctx.TODO(), role.Name, metav1.DeleteOptions{}); err != nil {
+	if role, err := rolesClient.Get(context.TODO(), "coherence-operator", metav1.GetOptions{}); err == nil {
+		if err := rolesClient.Delete(context.TODO(), role.Name, metav1.DeleteOptions{}); err != nil {
 			return err
 		}
 	}
 
-	if roleBinding, err := roleBindingsClient.Get(goctx.TODO(), "coherence-operator", metav1.GetOptions{}); err == nil {
-		if err := roleBindingsClient.Delete(goctx.TODO(), roleBinding.Name, metav1.DeleteOptions{}); err != nil {
+	if roleBinding, err := roleBindingsClient.Get(context.TODO(), "coherence-operator", metav1.GetOptions{}); err == nil {
+		if err := roleBindingsClient.Delete(context.TODO(), roleBinding.Name, metav1.DeleteOptions{}); err != nil {
 			return err
 		}
 	}

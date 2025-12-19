@@ -13,6 +13,7 @@ import (
 	"os"
 	"testing"
 
+	"context"
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers"
@@ -23,7 +24,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -264,6 +264,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 			Log:    ctrl.Log.WithName("controllers").WithName("Coherence"),
 		}).SetupWithManager(k8sManager, cs)
 		if err != nil {
+			cancel()
 			return TestContext{}, err
 		}
 
@@ -273,6 +274,7 @@ func NewContext(startController bool, watchNamespaces ...string) (TestContext, e
 			Log:    ctrl.Log.WithName("controllers").WithName("CoherenceJob"),
 		}).SetupWithManager(k8sManager, cs)
 		if err != nil {
+			cancel()
 			return TestContext{}, err
 		}
 	}

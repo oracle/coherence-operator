@@ -7,16 +7,16 @@
 package remote
 
 import (
-	goctx "context"
+	"context"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/management"
 	"github.com/oracle/coherence-operator/pkg/operator"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"golang.org/x/net/context"
-	"net/http"
-	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -110,7 +110,7 @@ func assertLabel(t *testing.T, name string, fileName string, labels, prefixLabel
 	deployment.SetName(name + "-zone-test")
 
 	// deploy to k8s
-	err = testContext.Client.Create(goctx.TODO(), &deployment)
+	err = testContext.Client.Create(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	replicas := deployment.GetReplicas()

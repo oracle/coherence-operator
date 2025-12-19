@@ -7,13 +7,14 @@
 package local
 
 import (
-	goctx "context"
+	"context"
+	"testing"
+	"time"
+
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
-	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
 )
@@ -60,7 +61,7 @@ func assertStatusHA(t *testing.T, tc StatusHATestCase) {
 	g := NewGomegaWithT(t)
 	ns := helper.GetTestNamespace()
 
-	err := testContext.Client.Create(goctx.TODO(), tc.Deployment)
+	err := testContext.Client.Create(context.TODO(), tc.Deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	sts, err := helper.WaitForStatefulSetForDeployment(testContext, ns, tc.Deployment, time.Second*10, time.Minute*5)

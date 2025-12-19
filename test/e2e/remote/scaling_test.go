@@ -7,7 +7,7 @@
 package remote
 
 import (
-	goctx "context"
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -16,7 +16,6 @@ import (
 
 	cohv1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
-	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
@@ -113,7 +112,7 @@ var deploymentScaler = func(t *testing.T, d *cohv1.Coherence, replicas int32) er
 	}
 	current.Spec.SetReplicas(replicas)
 	t.Logf("Scaling %s to %d", current.Name, replicas)
-	return testContext.Client.Update(goctx.TODO(), current)
+	return testContext.Client.Update(context.TODO(), current)
 }
 
 // A scaler function that scales a deployment using the kubectl scale command
