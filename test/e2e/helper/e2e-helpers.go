@@ -8,7 +8,7 @@
 package helper
 
 import (
-	goctx "context"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,7 +19,6 @@ import (
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
-	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -355,7 +354,8 @@ func WaitForCoherence(ctx TestContext, namespace, name string, retryInterval, ti
 func WaitForCoherenceCondition(testCtx TestContext, namespace, name string, condition DeploymentStateCondition, retryInterval, timeout time.Duration) (*coh.Coherence, error) {
 	var deployment *coh.Coherence
 
-	ctx, _ := context.WithTimeout(testCtx.Context, timeout)
+	ctx, cancel := context.WithTimeout(testCtx.Context, timeout)
+	defer cancel()
 
 	err := wait.PollUntilContextTimeout(ctx, retryInterval, timeout, true, func(context.Context) (done bool, err error) {
 		deployment, err = GetCoherence(testCtx, namespace, name)
@@ -699,7 +699,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	}
 
 	list := &coh.CoherenceList{}
-	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err = ctx.Client.List(context.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -708,14 +708,14 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 	for i := range list.Items {
 		item := list.Items[i]
 		ctx.Logf("Deleting Coherence resource %s in namespace %s", item.Name, item.Namespace)
-		err = ctx.Client.Delete(goctx.TODO(), &item)
+		err = ctx.Client.Delete(context.TODO(), &item)
 		if err != nil {
 			ctx.Logf("Error deleting Coherence resource %s - %s", item.Name, err.Error())
 		}
 	}
 
 	// Obtain any remaining Coherence resources
-	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err = ctx.Client.List(context.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -729,7 +729,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 			ctx.Logf("error patching Coherence %s: %+v", item.Name, err)
 		}
 		ctx.Logf("Deleting Coherence resource %s in namespace %s", item.Name, item.Namespace)
-		err = ctx.Client.Delete(goctx.TODO(), &item)
+		err = ctx.Client.Delete(context.TODO(), &item)
 		if err != nil {
 			ctx.Logf("Error deleting Coherence resource %s - %s", item.Name, err.Error())
 		}
@@ -737,7 +737,7 @@ func WaitForCoherenceCleanup(ctx TestContext, namespace string) error {
 
 	// Wait for removal of the Coherence resources
 	err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
-		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+		err = ctx.Client.List(context.TODO(), list, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || apierrors.IsNotFound(err) {
 			if len(list.Items) > 0 {
 				ctx.Logf("Waiting for deletion of %d Coherence resources", len(list.Items))
@@ -774,7 +774,7 @@ func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
 	ctx.Logf("Waiting for clean-up of CoherenceJob resources in namespace %s", namespace)
 
 	list := &coh.CoherenceJobList{}
-	err := ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err := ctx.Client.List(context.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -783,14 +783,14 @@ func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
 	for i := range list.Items {
 		item := list.Items[i]
 		ctx.Logf("Deleting CoherenceJob resource %s in namespace %s", item.Name, item.Namespace)
-		err = ctx.Client.Delete(goctx.TODO(), &item)
+		err = ctx.Client.Delete(context.TODO(), &item)
 		if err != nil {
 			ctx.Logf("Error deleting CoherenceJob resource %s - %s", item.Name, err.Error())
 		}
 	}
 
 	// Obtain any remaining CoherenceJob resources
-	err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+	err = ctx.Client.List(context.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		return err
 	}
@@ -804,7 +804,7 @@ func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
 			ctx.Logf("error patching CoherenceJob %s: %+v", item.Name, err)
 		}
 		ctx.Logf("Deleting CoherenceJob resource %s in namespace %s", item.Name, item.Namespace)
-		err = ctx.Client.Delete(goctx.TODO(), &item)
+		err = ctx.Client.Delete(context.TODO(), &item)
 		if err != nil {
 			ctx.Logf("Error deleting CoherenceJob resource %s - %s", item.Name, err.Error())
 		}
@@ -812,7 +812,7 @@ func waitForCoherenceJobCleanup(ctx TestContext, namespace string) error {
 
 	// Wait for removal of the CoherenceJob resources
 	err = wait.PollUntilContextTimeout(ctx.Context, RetryInterval, Timeout, true, func(context.Context) (done bool, err error) {
-		err = ctx.Client.List(goctx.TODO(), list, client.InNamespace(namespace))
+		err = ctx.Client.List(context.TODO(), list, client.InNamespace(namespace))
 		if err == nil || isNoResources(err) || apierrors.IsNotFound(err) {
 			if len(list.Items) > 0 {
 				ctx.Logf("Waiting for deletion of %d CoherenceJob resources", len(list.Items))

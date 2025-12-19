@@ -7,16 +7,17 @@
 package compatibility
 
 import (
-	goctx "context"
+	"context"
 	"encoding/json"
 	"fmt"
+	"testing"
+	"time"
+
 	. "github.com/onsi/gomega"
 	v1 "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
-	"testing"
-	"time"
 )
 
 // Deploy a Coherence resource with persistence enabled (this should enable active persistence).
@@ -149,7 +150,7 @@ func ensurePods(g *GomegaWithT, yamlFile, ns string) (v1.Coherence, []corev1.Pod
 	d, _ := json.Marshal(deployment)
 	fmt.Printf("Persistence Test installing deployment:\n%s\n", string(d))
 
-	err = testContext.Client.Create(goctx.TODO(), &deployment)
+	err = testContext.Client.Create(context.TODO(), &deployment)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = helper.WaitForStatefulSetForDeployment(testContext, ns, &deployment, helper.RetryInterval, helper.Timeout)
