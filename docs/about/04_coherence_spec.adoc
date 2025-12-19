@@ -1000,7 +1000,7 @@ m| targetLabels | TargetLabels transfers labels on the Kubernetes Service onto t
 m| podTargetLabels | PodTargetLabels transfers labels on the Kubernetes Pod onto the target. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec m| []string | false
 m| sampleLimit | SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec m| &#42;uint64 | false
 m| path | HTTP path to scrape for metrics. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| string | false
-m| scheme | HTTP scheme to use for scraping. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| string | false
+m| scheme | HTTP scheme to use for scraping. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| &#42;monitoringv1.Scheme | false
 m| params | Optional HTTP URL parameters See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| map[string][]string | false
 m| interval | Interval at which metrics should be scraped See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| monitoringv1.Duration | false
 m| scrapeTimeout | Timeout after which the scrape is ended See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| monitoringv1.Duration | false
