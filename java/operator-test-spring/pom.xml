@@ -110,7 +110,7 @@
           </image>
           <docker>
             <host>${env.DOCKER_HOST}</host>
-            <bindHostToBuilder>true</bindHostToBuilder>
+            <bindHostToBuilder>false</bindHostToBuilder>
           </docker>
         </configuration>
       </plugin>
