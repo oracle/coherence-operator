@@ -41,14 +41,18 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
+          - v1.35
           - v1.34
           - v1.33
           - v1.32
           - v1.31
           - v1.30
           - v1.29
-          - v1.28
         include:
+          - matrixName: v1.35
+            k8s: kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f
+            kindCommand: kind-calico
+            runNetTests: true
           - matrixName: v1.34
             k8s: kindest/node:v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a
             kindCommand: kind-calico
@@ -71,10 +75,6 @@ jobs:
             runNetTests: true
           - matrixName: v1.29
             k8s: kindest/node:v1.29.12@sha256:62c0672ba99a4afd7396512848d6fc382906b8f33349ae68fb1dbfe549f70dec
-            kindCommand: kind-calico
-            runNetTests: true
-          - matrixName: v1.28
-            k8s: kindest/node:v1.28.13@sha256:45d319897776e11167e4698f6b14938eb4d52eb381d9e3d7a9086c16c69a8110
             kindCommand: kind-calico
             runNetTests: true
 

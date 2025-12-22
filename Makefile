@@ -33,7 +33,7 @@ COMPATIBLE_SELECTOR ?= control-plane=coherence
 # The GitHub project URL
 PROJECT_URL = https://github.com/oracle/coherence-operator
 
-KUBERNETES_DOC_VERSION=v1.34
+KUBERNETES_DOC_VERSION=v1.35
 
 # ========================= Setup Go With Gimme ================================
 # go version to use for build etc.
@@ -2222,7 +2222,7 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a"
+KIND_IMAGE     ?= "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f"
 CALICO_TIMEOUT ?= 300s
 KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
 KIND_CONFIG    ?= $(KIND_SCRIPTS)/kind-config.yaml
