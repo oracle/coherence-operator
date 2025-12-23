@@ -26,7 +26,7 @@ labels:
   - pairs:
       control-plane: coherence
       app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/version: "3.5.8"
+      app.kubernetes.io/version: "3.5.9"
       app.kubernetes.io/part-of: coherence-operator
 
 replacements:

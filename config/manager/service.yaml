@@ -8,7 +8,7 @@ metadata:
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-rest
-    app.kubernetes.io/version: "3.5.8"
+    app.kubernetes.io/version: "3.5.9"
     app.kubernetes.io/component: rest
     app.kubernetes.io/part-of: coherence-operator
 spec:
@@ -20,5 +20,5 @@ spec:
     control-plane: coherence
     app.kubernetes.io/name: coherence-operator
     app.kubernetes.io/instance: coherence-operator-manager
-    app.kubernetes.io/version: "3.5.8"
+    app.kubernetes.io/version: "3.5.9"
     app.kubernetes.io/component: manager
