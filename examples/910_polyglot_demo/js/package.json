@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@oracle/coherence": "^1.2.3",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "classnames": "^2.2.6",
     "prop-types": "^15.7.2",
     "typescript": "^3.9.7",
