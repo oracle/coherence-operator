@@ -2028,7 +2028,7 @@ type ServiceSpec struct {
 	// can be specified for headless services when proxying is not required.
 	// Only applies to types ClusterIP, NodePort, and LoadBalancer. Ignored if
 	// type is ExternalName.
-	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// More info: https://kubernetes.io/docs/reference/networking/virtual-ips/
 	// +optional
 	ClusterIP *string `json:"clusterIP,omitempty"`
 	// ClusterIPs is a list of IP addresses assigned to this service, and are
@@ -2056,7 +2056,7 @@ type ServiceSpec struct {
 	// entries (dual-stack IPs, in either order).  These IPs must correspond to
 	// the values of the ipFamilies field. Both clusterIPs and ipFamilies are
 	// governed by the ipFamilyPolicy field.
-	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// More info: https://kubernetes.io/docs/reference/networking/virtual-ips/
 	// +listType=atomic
 	// +optional
 	ClusterIPs []string `json:"clusterIPs,omitempty"`
@@ -2075,7 +2075,7 @@ type ServiceSpec struct {
 	// Enable client IP based session affinity.
 	// Must be ClientIP or None.
 	// Defaults to None.
-	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// More info: https://kubernetes.io/docs/reference/networking/virtual-ips/
 	// +optional
 	SessionAffinity *corev1.ServiceAffinity `json:"sessionAffinity,omitempty"`
 	// If specified and supported by the platform, this will restrict traffic through the cloud-provider
