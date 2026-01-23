@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -125,7 +125,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 	stsCurrent, stsExists, err := in.MaybeFindStatefulSet(ctx, request.Namespace, request.Name)
 	if err != nil {
 		logger.Info("Finished reconciling StatefulSet. Error getting StatefulSet", "error", err.Error())
-		in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonReconciling,
+		in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeWarning, reconciler.EventReasonReconciling, "",
 			"error getting StatefulSet %s, %s", request.Name, err.Error())
 		return result, errors.Wrapf(err, "getting StatefulSet %s/%s", request.Namespace, request.Name)
 	}
@@ -140,7 +140,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 		// find the owning Coherence resource
 		if deployment, err = in.FindOwningCoherenceResource(ctx, stsCurrent); err != nil {
 			logger.Info("Finished reconciling StatefulSet. Error finding parent Coherence resource", "error", err.Error())
-			in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonReconciling,
+			in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeWarning, reconciler.EventReasonReconciling, "",
 				"finding parent Coherence resource %s, %s", request.Name, err.Error())
 			return reconcile.Result{}, err
 		}
@@ -156,7 +156,7 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				// If the Coherence resource did not exist then service suspension already happened
 				// when the Coherence resource was deleted.
 				logger.Info("Scaling down to zero")
-				in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+				in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonScaling, "",
 					"scaling statefuleset %s down to zero", request.Name)
 				err = in.UpdateDeploymentStatusActionsState(ctx, request.NamespacedName, false)
 				// TODO: what to do with error?
@@ -165,21 +165,21 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 				}
 				stsSpec, _ := deployment.GetStatefulSetSpec()
 				if stsSpec.IsSuspendServicesOnShutdown() {
-					in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+					in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonScaling, "",
 						"suspending Coherence services in statefuleset %s", request.Name)
 					// we are scaling down to zero and suspend services flag is true, so suspend services
 					suspended := in.suspendServices(ctx, deployment, stsCurrent)
 					switch suspended {
 					case probe.ServiceSuspendFailed:
-						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeWarning, reconciler.EventReasonScaling,
+						in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeWarning, reconciler.EventReasonScaling, "",
 							"failed suspending Coherence services in statefuleset %s", request.Name)
 						return reconcile.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
 					case probe.ServiceSuspendSkipped:
 						logger.Info("skipping suspension of Coherence services prior to deletion of StatefulSet")
-						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+						in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonScaling, "",
 							"skipped suspended Coherence services in statefuleset %s", request.Name)
 					case probe.ServiceSuspendSuccessful:
-						in.GetEventRecorder().Eventf(deployment, corev1.EventTypeNormal, reconciler.EventReasonScaling,
+						in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonScaling, "",
 							"suspended Coherence services in statefuleset %s", request.Name)
 					}
 				}
@@ -287,7 +287,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 
 	if !ok {
 		// start quorum not met, send event and update deployment status
-		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "Waiting", reason)
+		in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, "Waiting", "", reason)
 		_ = in.UpdateCoherenceStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
 			Type:    coh.ConditionTypeWaiting,
 			Status:  corev1.ConditionTrue,
@@ -307,7 +307,7 @@ func (in *ReconcileStatefulSet) createStatefulSet(ctx context.Context, deploymen
 
 		// send a successful creation event
 		msg := fmt.Sprintf(CreateMessage, deployment.GetName())
-		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, reconciler.EventReasonCreated, msg)
+		in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonCreated, "", msg)
 	}
 
 	logger.Info("Created statefulSet")
@@ -444,7 +444,7 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 	if len(errorList) > 0 {
 		msg := fmt.Sprintf("upddates to the statefuleset would have been invalid, the update will not be re-queued: %v", errorList)
 		evts := in.GetEventRecorder()
-		evts.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
+		evts.Eventf(deployment, nil, corev1.EventTypeWarning, reconciler.EventReasonUpdated, "", msg)
 		return reconcile.Result{}, errors.New(msg)
 	}
 
@@ -728,13 +728,13 @@ func (in *ReconcileStatefulSet) parallelScale(ctx context.Context, deployment co
 	if err != nil {
 		// send a failed scale event
 		msg := fmt.Sprintf("failed to scale StatefulSet %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
-		evts.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
+		evts.Eventf(deployment, nil, corev1.EventTypeNormal, EventReasonScale, "", msg)
 		return reconcile.Result{}, errors.Wrap(err, msg)
 	}
 
 	// send a successful scale event
 	msg := fmt.Sprintf("scaled StatefulSet %s from %d to %d", sts.Name, in.getReplicas(sts), replicas)
-	evts.Event(deployment, corev1.EventTypeNormal, EventReasonScale, msg)
+	evts.Eventf(deployment, nil, corev1.EventTypeNormal, EventReasonScale, "", msg)
 
 	if scaleDown {
 		return reconcile.Result{RequeueAfter: time.Minute}, nil

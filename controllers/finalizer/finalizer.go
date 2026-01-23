@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -9,6 +9,8 @@ package finalizer
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/events"
@@ -19,17 +21,16 @@ import (
 	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/record"
+	events2 "k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strconv"
 )
 
 // FinalizerManager manages finalizers for Coherence resources
 type FinalizerManager struct {
 	Client        client.Client
 	Log           logr.Logger
-	EventRecorder record.EventRecorder
+	EventRecorder events2.EventRecorder
 	Patcher       patching.ResourcePatcher
 }
 
@@ -75,7 +76,7 @@ func (fm *FinalizerManager) FinalizeDeployment(ctx context.Context, c *coh.Coher
 		if _, bypass := annotations["coherence.oracle.com/finalizer-bypass"]; bypass {
 			fm.Log.Info("Bypassing service suspension due to finalizer-bypass annotation",
 				"Namespace", c.Namespace, "Name", c.Name)
-			fm.EventRecorder.Event(c, corev1.EventTypeNormal, "FinalizerBypassed",
+			fm.EventRecorder.Eventf(c, nil, corev1.EventTypeNormal, "FinalizerBypassed", "Finalize",
 				"Service suspension bypassed due to finalizer-bypass annotation")
 			return nil
 		}
@@ -128,7 +129,7 @@ func (fm *FinalizerManager) FinalizeDeployment(ctx context.Context, c *coh.Coher
 				if errorCount > 3 {
 					fm.Log.Info("Service suspension failed multiple times, allowing deletion to proceed",
 						"Namespace", c.Namespace, "Name", c.Name, "ErrorCount", errorCount)
-					fm.EventRecorder.Event(c, corev1.EventTypeWarning, "ServiceSuspensionFailed",
+					fm.EventRecorder.Eventf(c, nil, corev1.EventTypeWarning, "ServiceSuspensionFailed", "SuspendServices",
 						"Service suspension failed multiple times, allowing deletion to proceed anyway")
 					return nil
 				}
