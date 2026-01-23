@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -391,7 +391,7 @@ func parseLinks(content string, excludes []string) (map[string]map[string][]stri
 		}
 
 		if skip {
-			break
+			continue
 		}
 
 		if linkUrl, err = url.Parse(u); err != nil {
