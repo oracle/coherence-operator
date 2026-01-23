@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -20,7 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -51,7 +51,7 @@ const (
 type ErrorHandler struct {
 	Client        client.Client
 	Log           logr.Logger
-	EventRecorder record.EventRecorder
+	EventRecorder events.EventRecorder
 }
 
 // HandleError handles an error in the reconciliation loop
@@ -81,7 +81,7 @@ func (eh *ErrorHandler) HandleError(ctx context.Context, err error, resource coh
 	eventType := corev1.EventTypeWarning
 	eventReason := "ReconcileError"
 	eventMsg := fmt.Sprintf("%s: %s (Category: %s)", msg, err.Error(), category)
-	eh.EventRecorder.Event(resource, eventType, eventReason, eventMsg)
+	eh.EventRecorder.Eventf(resource, nil, eventType, eventReason, "HandleError", eventMsg)
 
 	// Update the status to reflect the error
 	if statusErr := eh.updateStatus(ctx, resource, category); statusErr != nil {
@@ -415,7 +415,7 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 		"deletionTimestamp", latest.GetDeletionTimestamp())
 
 	// Record an event with detailed information
-	eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAttempt",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAttempt", "AttemptRecovery",
 		fmt.Sprintf("Attempting to recover from error: %s", err.Error()))
 
 	// Implement recovery logic based on the error
@@ -474,7 +474,7 @@ func (eh *ErrorHandler) recoverFromServiceSuspensionFailure(ctx context.Context,
 		"namespace", resource.GetNamespace())
 
 	// 2. Record an event
-	eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAttempt",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAttempt", "RecoverServiceSuspension",
 		"Attempting to recover from service suspension failure")
 
 	// 3. Implement the recovery logic
@@ -510,7 +510,7 @@ func (eh *ErrorHandler) recoverFromServiceSuspensionFailure(ctx context.Context,
 			"resource", resource.GetName(),
 			"namespace", resource.GetNamespace())
 
-		eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAction",
+		eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAction", "BypassFinalizer",
 			"Added finalizer bypass annotation to allow deletion despite service suspension failure")
 	}
 
@@ -526,7 +526,7 @@ func (eh *ErrorHandler) recoverFromPDBIssue(ctx context.Context, resource coh.Co
 		"namespace", resource.GetNamespace())
 
 	// Record an event
-	eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAttempt",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAttempt", "RecoverPDB",
 		"Attempting to recover from Pod Disruption Budget issue")
 
 	// For PDB issues, we'll add an annotation to indicate that we're aware of the issue
@@ -559,7 +559,7 @@ func (eh *ErrorHandler) recoverFromPDBIssue(ctx context.Context, resource coh.Co
 		"resource", resource.GetName(),
 		"namespace", resource.GetNamespace())
 
-	eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAction",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAction", "AnnotatePDBIssue",
 		"Added PDB issue annotation to resource")
 
 	// Return a result that requeues after a delay
@@ -574,7 +574,7 @@ func (eh *ErrorHandler) recoverFromStatefulSetPatchIssue(ctx context.Context, re
 		"namespace", resource.GetNamespace())
 
 	// Record an event
-	eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAttempt",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAttempt", "RecoverStatefulSetPatch",
 		"Attempting to recover from StatefulSet patching issue")
 
 	// For StatefulSet patching issues, we'll add an annotation to force a recreation
@@ -605,7 +605,7 @@ func (eh *ErrorHandler) recoverFromStatefulSetPatchIssue(ctx context.Context, re
 		"resource", resource.GetName(),
 		"namespace", resource.GetNamespace())
 
-	eh.EventRecorder.Event(resource, corev1.EventTypeNormal, "RecoveryAction",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAction", "ForceReconcile",
 		"Added force-reconcile annotation to resource to address StatefulSet patching issue")
 
 	// Return a result that requeues after a delay
@@ -620,7 +620,7 @@ func (eh *ErrorHandler) recoverFromQuotaIssue(ctx context.Context, resource coh.
 		"namespace", resource.GetNamespace())
 
 	// Record an event
-	eh.EventRecorder.Event(resource, corev1.EventTypeWarning, "RecoveryAttempt",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeWarning, "RecoveryAttempt", "RecoverQuota",
 		"Attempting to recover from resource quota issue - this may require manual intervention")
 
 	// For quota issues, we'll add an annotation to indicate the issue
@@ -652,7 +652,7 @@ func (eh *ErrorHandler) recoverFromQuotaIssue(ctx context.Context, resource coh.
 		"resource", resource.GetName(),
 		"namespace", resource.GetNamespace())
 
-	eh.EventRecorder.Event(resource, corev1.EventTypeWarning, "ResourceQuotaIssue",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeWarning, "ResourceQuotaIssue", "QuotaIssue",
 		"Resource quota exceeded - manual intervention may be required to increase quota or reduce resource requests")
 
 	// Return a result that requeues after a longer delay
@@ -667,7 +667,7 @@ func (eh *ErrorHandler) recoverFromSchedulingIssue(ctx context.Context, resource
 		"namespace", resource.GetNamespace())
 
 	// Record an event
-	eh.EventRecorder.Event(resource, corev1.EventTypeWarning, "RecoveryAttempt",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeWarning, "RecoveryAttempt", "RecoverScheduling",
 		"Attempting to recover from pod scheduling issue - this may require manual intervention")
 
 	// For scheduling issues, we'll add an annotation to indicate the issue
@@ -699,7 +699,7 @@ func (eh *ErrorHandler) recoverFromSchedulingIssue(ctx context.Context, resource
 		"resource", resource.GetName(),
 		"namespace", resource.GetNamespace())
 
-	eh.EventRecorder.Event(resource, corev1.EventTypeWarning, "SchedulingIssue",
+	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeWarning, "SchedulingIssue", "SchedulingIssue",
 		"Pod scheduling issue detected - manual intervention may be required to address node resources or affinity rules")
 
 	// Return a result that requeues after a longer delay
@@ -995,7 +995,7 @@ func GetCallerInfo(skip int) string {
 }
 
 // NewErrorHandler creates a new ErrorHandler
-func NewErrorHandler(client client.Client, log logr.Logger, recorder record.EventRecorder) *ErrorHandler {
+func NewErrorHandler(client client.Client, log logr.Logger, recorder events.EventRecorder) *ErrorHandler {
 	return &ErrorHandler{
 		Client:        client,
 		Log:           log,

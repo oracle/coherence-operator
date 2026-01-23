@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -114,7 +114,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		}
 		// else... error reading the current deployment state from k8s.
 		msg := fmt.Sprintf("failed to find Coherence resource, %s", err.Error())
-		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed, msg)
+		in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning, reconciler.EventReasonFailed, "GetResource", msg)
 		// returning an error will requeue the event so we will try again
 		wrappedErr := errorhandling.NewGetResourceError(request.Name, request.Namespace, err)
 		return reconcile.Result{}, wrappedErr
@@ -129,10 +129,10 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			// Run finalization logic.
 			// If the finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
-			in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonDeleted, "running finalizers")
+			in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeNormal, reconciler.EventReasonDeleted, "Finalize", "running finalizers")
 			if err := in.finalizerManager.FinalizeDeployment(ctx, deployment, in.MaybeFindStatefulSet); err != nil {
 				msg := fmt.Sprintf("failed to finalize Coherence resource, %s", err.Error())
-				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
+				in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning, reconciler.EventReasonFailed, "Finalize", msg)
 				log.Error(err, "Failed to remove finalizer")
 				return ctrl.Result{RequeueAfter: time.Minute}, nil
 			}
@@ -145,7 +145,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 					return ctrl.Result{}, nil
 				}
 				msg := fmt.Sprintf("failed to remove finalizers from Coherence resource, %s", err.Error())
-				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonDeleted, msg)
+				in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning, reconciler.EventReasonFailed, "RemoveFinalizer", msg)
 				wrappedErr := errorhandling.NewOperationError("remove_finalizer", err).
 					WithContext("resource", deployment.GetName()).
 					WithContext("namespace", deployment.GetNamespace())
@@ -179,9 +179,9 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 			var msg string
 			if err != nil {
 				msg = fmt.Sprintf("failed to add finalizers to Coherence resource, %s", err.Error())
-				in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed, msg)
+				in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning, reconciler.EventReasonFailed, "AddFinalizer", msg)
 			} else {
-				in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, "added finalizer")
+				in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, "AddFinalizer", "added finalizer")
 			}
 			// we need to requeue as we have updated the Coherence resource
 			return ctrl.Result{RequeueAfter: time.Minute}, err
@@ -208,13 +208,13 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		patch.Spec.Replicas = &replicas
 		_, err = in.ThreeWayPatch(ctx, deployment.Name, deployment, deployment, patch)
 		if err != nil {
-			in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+			in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning, reconciler.EventReasonFailed, "PatchReplicas",
 				fmt.Sprintf("failed to add default replicas to Coherence resource, %s", err.Error()))
 			return reconcile.Result{}, errors.Wrap(err, "failed to add default replicas to Coherence resource")
 		}
 		msg := "Added default replicas to Coherence resource, re-queuing request"
 		log.Info(msg, "Replicas", strconv.Itoa(int(replicas)))
-		in.GetEventRecorder().Event(deployment, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, msg)
+		in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeNormal, reconciler.EventReasonUpdated, "PatchReplicas", msg)
 		return reconcile.Result{}, err
 	}
 
@@ -230,7 +230,7 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 		err = errorhandling.NewOperationError("obtain_state_store", err).
 			WithContext("resource", deployment.GetName()).
 			WithContext("namespace", deployment.GetNamespace())
-		in.GetEventRecorder().Event(deployment, coreV1.EventTypeWarning, reconciler.EventReasonFailed,
+		in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning, reconciler.EventReasonFailed, "GetStateStore",
 			fmt.Sprintf("failed to obtain state store: %s", err.Error()))
 		return in.HandleErrAndRequeue(ctx, err, deployment, fmt.Sprintf(reconcileFailedMessage, request.Name, request.Namespace, err), in.Log)
 	}

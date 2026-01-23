@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -29,7 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -66,7 +66,7 @@ type BaseReconciler interface {
 	GetManager() manager.Manager
 	GetClient() client.Client
 	GetClientSet() clients.ClientSet
-	GetEventRecorder() record.EventRecorder
+	GetEventRecorder() events.EventRecorder
 	GetLog() logr.Logger
 	GetReconciler() reconcile.Reconciler
 	GetPatcher() patching.ResourcePatcher
@@ -88,8 +88,8 @@ func (in *CommonReconciler) GetManager() manager.Manager     { return in.mgr }
 func (in *CommonReconciler) GetClient() client.Client        { return in.mgr.GetClient() }
 func (in *CommonReconciler) GetClientSet() clients.ClientSet { return in.clientSet }
 func (in *CommonReconciler) GetMutex() *sync.Mutex           { return in.mutex }
-func (in *CommonReconciler) GetEventRecorder() record.EventRecorder {
-	return in.mgr.GetEventRecorderFor(in.name)
+func (in *CommonReconciler) GetEventRecorder() events.EventRecorder {
+	return in.mgr.GetEventRecorder(in.name)
 }
 func (in *CommonReconciler) GetLog() logr.Logger {
 	return in.logger
@@ -471,7 +471,7 @@ func (in *CommonReconciler) HandleErrAndFinish(ctx context.Context, err error, d
 		}
 
 		// send a failure event
-		in.GetEventRecorder().Event(deployment, corev1.EventTypeWarning, "Failed", msg+": "+err.Error())
+		in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeWarning, "Failed", "HandleError", msg+": "+err.Error(), "")
 	}
 
 	// Return the error as a permanent error so it won't be requeued
@@ -738,7 +738,7 @@ func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Con
 					return reconcile.Result{}, errors.Wrapf(err, "Failed to delete resource %v/%s", in.Kind, del.Name)
 				}
 				if err == nil {
-					in.GetEventRecorder().Event(resource, corev1.EventTypeNormal, EventReasonDeleted, fmt.Sprintf("Deleted resource after update to Coherence resource %s", deployment.GetName()))
+					in.GetEventRecorder().Eventf(resource, nil, corev1.EventTypeNormal, EventReasonDeleted, "", fmt.Sprintf("Deleted resource after update to Coherence resource %s", deployment.GetName()))
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -183,7 +183,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 
 	if !ok {
 		// start quorum not met, send event and update deployment status
-		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, "Waiting", reason)
+		in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, "Waiting", "StartQuorum", reason)
 		_ = in.UpdateCoherenceJobStatusCondition(ctx, deployment.GetNamespacedName(), coh.Condition{
 			Type:    coh.ConditionTypeWaiting,
 			Status:  corev1.ConditionTrue,
@@ -203,7 +203,7 @@ func (in *ReconcileJob) createJob(ctx context.Context, deployment coh.CoherenceR
 
 		// send a successful creation event
 		msg := fmt.Sprintf(CreateMessage, deployment.GetName())
-		in.GetEventRecorder().Event(deployment, corev1.EventTypeNormal, reconciler.EventReasonCreated, msg)
+		in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonCreated, "CreateJob", msg)
 	}
 
 	logger.Info("Created Job")
@@ -253,7 +253,7 @@ func (in *ReconcileJob) patchJob(ctx context.Context, deployment coh.CoherenceRe
 	if len(errorList) > 0 {
 		msg := fmt.Sprintf("upddates to the job would have been invalid, the update will not be re-queued: %v", errorList)
 		events := in.GetEventRecorder()
-		events.Event(deployment, corev1.EventTypeWarning, reconciler.EventReasonUpdated, msg)
+		events.Eventf(deployment, nil, corev1.EventTypeWarning, reconciler.EventReasonUpdated, "ValidateJobUpdate", msg)
 		return reconcile.Result{}, errors.New(msg)
 	}
 
