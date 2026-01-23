@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -1514,20 +1514,10 @@ type ServiceMonitorSpec struct {
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	ScrapeTimeout monitoringv1.Duration `json:"scrapeTimeout,omitempty"`
-	// TLS configuration to use when scraping the endpoint
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
-	// +optional
-	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
 	// File to read bearer token for scraping targets.
 	// Deprecated: use `authorization` instead.
 	// +optional
 	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
-	// Secret to mount to read bearer token for scraping targets. The secret
-	// needs to be in the same namespace as the service monitor and accessible by
-	// the Prometheus Operator.
-	// Deprecated: use `authorization` instead.
-	// +optional
-	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
 	// `authorization` configures the Authorization header credentials to use when
 	// scraping the target.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
@@ -1544,11 +1534,6 @@ type ServiceMonitorSpec struct {
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	HonorTimestamps *bool `json:"honorTimestamps,omitempty"`
-	// BasicAuth allow an endpoint to authenticate over basic authentication
-	// More info: https://prometheus.io/docs/operating/configuration/#endpoints
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
-	// +optional
-	BasicAuth *monitoringv1.BasicAuth `json:"basicAuth,omitempty"`
 	// MetricRelabelings to apply to samples before ingestion.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +listType=atomic
@@ -1560,10 +1545,11 @@ type ServiceMonitorSpec struct {
 	// +listType=atomic
 	// +optional
 	Relabelings []monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
-	// ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
-	// +optional
-	ProxyURL *string `json:"proxyURL,omitempty"`
+	// TODO: VP
+	// HTTPConfigWithProxyAndTLSFiles defines the configuration for the HTTP client
+	// with proxy configuration and TLS configuration. It is used for
+	// ServiceMonitor endpoints.
+	HTTPConfigWithProxyAndTLSFiles monitoringv1.HTTPConfigWithProxyAndTLSFiles `json:",inline"`
 }
 
 func (in *ServiceMonitorSpec) CreateServiceMonitor() monitoringv1.ServiceMonitorSpec {
@@ -1585,22 +1571,17 @@ func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
 	}
 
 	return monitoringv1.Endpoint{
-		Path:                 in.Path,
-		Scheme:               in.Scheme,
-		Params:               in.Params,
-		Interval:             in.Interval,
-		ScrapeTimeout:        in.ScrapeTimeout,
-		TLSConfig:            in.TLSConfig,
-		BearerTokenFile:      in.BearerTokenFile,
-		BearerTokenSecret:    in.BearerTokenSecret,
-		HonorLabels:          in.HonorLabels,
-		HonorTimestamps:      in.HonorTimestamps,
-		BasicAuth:            in.BasicAuth,
-		MetricRelabelConfigs: in.MetricRelabelings,
-		RelabelConfigs:       in.Relabelings,
-		ProxyConfig: monitoringv1.ProxyConfig{
-			ProxyURL: in.ProxyURL,
-		},
+		Path:                           in.Path,
+		Scheme:                         in.Scheme,
+		Params:                         in.Params,
+		Interval:                       in.Interval,
+		ScrapeTimeout:                  in.ScrapeTimeout,
+		BearerTokenFile:                in.BearerTokenFile,
+		HonorLabels:                    in.HonorLabels,
+		HonorTimestamps:                in.HonorTimestamps,
+		MetricRelabelConfigs:           in.MetricRelabelings,
+		RelabelConfigs:                 in.Relabelings,
+		HTTPConfigWithProxyAndTLSFiles: in.HTTPConfigWithProxyAndTLSFiles,
 	}
 }
 
