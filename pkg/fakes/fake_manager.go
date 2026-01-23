@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -8,6 +8,8 @@ package fakes
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
@@ -20,8 +22,8 @@ import (
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/tools/record"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/conversion"
 )
 
 // NewFakeManager creates a fake manager.Manager for use when testing controllers.
@@ -123,6 +126,14 @@ func (f *FakeManager) GetAPIReader() client.Reader {
 }
 
 func (f *FakeManager) GetWebhookServer() webhook.Server {
+	panic("implement me")
+}
+
+func (f *FakeManager) GetEventRecorder(name string) events.EventRecorder {
+	panic("implement me")
+}
+
+func (f *FakeManager) GetConverterRegistry() conversion.Registry {
 	panic("implement me")
 }
 
