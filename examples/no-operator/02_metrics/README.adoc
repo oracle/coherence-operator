@@ -253,7 +253,7 @@ spec:
 The `ServiceMonitor` above contains a single endpoint that scrapes the port named `metrics` in any `Service` with labels matching those in the `matchLabels` array, which in this case are the labels we applied to the `storage-metrics` service above.
 
 The full specification of what can be in a `ServiceMonitor` can be found in the Prometheus
-https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec[ServiceMonitorSpec]
+https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitorSpec[ServiceMonitorSpec]
 documentation.
 
 We can combine both of the above pieces of yaml into a single file and deploy them.
