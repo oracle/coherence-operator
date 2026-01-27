@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -70,6 +70,9 @@ func main() {
 	selfLinks["corev1.ServiceType"] = "https://pkg.go.dev/k8s.io/api/core/v1#ServiceType"
 	selfLinks["corev1.VolumeSource"] = fmt.Sprintf("%svolume-v1-core", k8sLink)
 	selfLinks["intstr.IntOrString"] = "https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString"
+	selfLinks["corev1.ServiceExternalTrafficPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#ServiceExternalTrafficPolicy"
+	selfLinks["corev1.ServiceInternalTrafficPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#ServiceInternalTrafficPolicy"
+	selfLinks["corev1.IPFamilyPolicy"] = "https://pkg.go.dev/k8s.io/api/core/v1#IPFamilyPolicy"
 
 	printAPIDocs(os.Args[1:])
 }

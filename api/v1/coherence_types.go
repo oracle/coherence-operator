@@ -1545,11 +1545,8 @@ type ServiceMonitorSpec struct {
 	// +listType=atomic
 	// +optional
 	Relabelings []monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
-	// TODO: VP
-	// HTTPConfigWithProxyAndTLSFiles defines the configuration for the HTTP client
-	// with proxy configuration and TLS configuration. It is used for
-	// ServiceMonitor endpoints.
-	HTTPConfigWithProxyAndTLSFiles monitoringv1.HTTPConfigWithProxyAndTLSFiles `json:",inline"`
+
+	monitoringv1.HTTPConfigWithProxyAndTLSFiles `json:",inline"`
 }
 
 func (in *ServiceMonitorSpec) CreateServiceMonitor() monitoringv1.ServiceMonitorSpec {
