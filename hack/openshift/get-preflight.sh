@@ -13,7 +13,7 @@ TOOLS_BIN=${ROOT_DIR}/build/tools/bin
 UNAME_S=$(uname -s)
 UNAME_M=$(uname -m)
 
-PREFLIGHT_VERSION=1.14.1
+PREFLIGHT_VERSION=1.16.0
 PREFLIGHT_ROOT_URL="https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/${PREFLIGHT_VERSION}"
 
 if [ "Darwin" = "${UNAME_S}" ]; then
