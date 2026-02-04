@@ -1514,10 +1514,22 @@ type ServiceMonitorSpec struct {
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	ScrapeTimeout monitoringv1.Duration `json:"scrapeTimeout,omitempty"`
+	// TLS configuration to use when scraping the endpoint
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// +optional
+	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
 	// File to read bearer token for scraping targets.
+	//
 	// Deprecated: use `authorization` instead.
 	// +optional
 	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
+	// Secret to mount to read bearer token for scraping targets. The secret
+	// needs to be in the same namespace as the service monitor and accessible by
+	// the Prometheus Operator.
+	//
+	// Deprecated: use `authorization` instead.
+	// +optional
+	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
 	// `authorization` configures the Authorization header credentials to use when
 	// scraping the target.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
@@ -1534,6 +1546,11 @@ type ServiceMonitorSpec struct {
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +optional
 	HonorTimestamps *bool `json:"honorTimestamps,omitempty"`
+	// BasicAuth allow an endpoint to authenticate over basic authentication
+	// More info: https://prometheus.io/docs/operating/configuration/#endpoints
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// +optional
+	BasicAuth *monitoringv1.BasicAuth `json:"basicAuth,omitempty"`
 	// MetricRelabelings to apply to samples before ingestion.
 	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
 	// +listType=atomic
@@ -1545,8 +1562,10 @@ type ServiceMonitorSpec struct {
 	// +listType=atomic
 	// +optional
 	Relabelings []monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
-
-	monitoringv1.HTTPConfigWithProxyAndTLSFiles `json:",inline"`
+	// ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
+	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// +optional
+	ProxyURL *string `json:"proxyURL,omitempty"`
 }
 
 func (in *ServiceMonitorSpec) CreateServiceMonitor() monitoringv1.ServiceMonitorSpec {
@@ -1568,17 +1587,29 @@ func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
 	}
 
 	return monitoringv1.Endpoint{
-		Path:                           in.Path,
-		Scheme:                         in.Scheme,
-		Params:                         in.Params,
-		Interval:                       in.Interval,
-		ScrapeTimeout:                  in.ScrapeTimeout,
-		BearerTokenFile:                in.BearerTokenFile,
-		HonorLabels:                    in.HonorLabels,
-		HonorTimestamps:                in.HonorTimestamps,
-		MetricRelabelConfigs:           in.MetricRelabelings,
-		RelabelConfigs:                 in.Relabelings,
-		HTTPConfigWithProxyAndTLSFiles: in.HTTPConfigWithProxyAndTLSFiles,
+		Path:                 in.Path,
+		Scheme:               in.Scheme,
+		Params:               in.Params,
+		Interval:             in.Interval,
+		ScrapeTimeout:        in.ScrapeTimeout,
+		BearerTokenFile:      in.BearerTokenFile,
+		HonorLabels:          in.HonorLabels,
+		HonorTimestamps:      in.HonorTimestamps,
+		MetricRelabelConfigs: in.MetricRelabelings,
+		RelabelConfigs:       in.Relabelings,
+		HTTPConfigWithProxyAndTLSFiles: monitoringv1.HTTPConfigWithProxyAndTLSFiles{
+			HTTPConfigWithTLSFiles: monitoringv1.HTTPConfigWithTLSFiles{
+				TLSConfig: in.TLSConfig,
+				HTTPConfigWithoutTLS: monitoringv1.HTTPConfigWithoutTLS{
+					Authorization:     in.Authorization,
+					BasicAuth:         in.BasicAuth,
+					BearerTokenSecret: in.BearerTokenSecret,
+				},
+			},
+			ProxyConfig: monitoringv1.ProxyConfig{
+				ProxyURL: in.ProxyURL,
+			},
+		},
 	}
 }
 
@@ -2058,6 +2089,7 @@ type ServiceSpec struct {
 	// +optional
 	ClusterIPs []string `json:"clusterIPs,omitempty"`
 	// LoadBalancerIP is the IP address of the load balancer
+	//
 	// Deprecated: This field is deprecated in the Kubernetes API.
 	// +optional
 	LoadBalancerIP *string `json:"loadBalancerIP,omitempty"`

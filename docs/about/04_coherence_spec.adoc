@@ -1004,14 +1004,18 @@ m| scheme | HTTP scheme to use for scraping. See https://github.com/prometheus-o
 m| params | Optional HTTP URL parameters See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| map[string][]string | false
 m| interval | Interval at which metrics should be scraped See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| monitoringv1.Duration | false
 m| scrapeTimeout | Timeout after which the scrape is ended See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| monitoringv1.Duration | false
+m| tlsConfig | TLS configuration to use when scraping the endpoint See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| &#42;monitoringv1.TLSConfig | false
 m| bearerTokenFile | File to read bearer token for scraping targets. Deprecated: use `authorization` instead. m| string | false
+m| bearerTokenSecret | Secret to mount to read bearer token for scraping targets. The secret needs to be in the same namespace as the service monitor and accessible by the Prometheus Operator. Deprecated: use `authorization` instead. m| &#42;https://{k8s-doc-link}/#secretkeyselector-v1-core[corev1.SecretKeySelector] | false
 m| authorization | `authorization` configures the Authorization header credentials to use when scraping the target. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint +
  +
 Cannot be set at the same time as `basicAuth`, or `oauth2`. m| &#42;monitoringv1.SafeAuthorization | false
 m| honorLabels | HonorLabels chooses the metric labels on collisions with target labels. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| bool | false
 m| honorTimestamps | HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| &#42;bool | false
+m| basicAuth | BasicAuth allow an endpoint to authenticate over basic authentication More info: https://prometheus.io/docs/operating/configuration/#endpoints See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| &#42;monitoringv1.BasicAuth | false
 m| metricRelabelings | MetricRelabelings to apply to samples before ingestion. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| []monitoringv1.RelabelConfig | false
 m| relabelings | Relabelings to apply to samples before scraping. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| []monitoringv1.RelabelConfig | false
+m| proxyURL | ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint m| &#42;string | false
 |===
 
 <<Table of Contents,Back to TOC>>
