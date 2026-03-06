@@ -2569,7 +2569,7 @@ endif
 get-trivy: $(TOOLS_BIN)/trivy
 
 $(TOOLS_BIN)/trivy:
-	test -s $(TOOLS_BIN)/trivy || curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $(TOOLS_BIN) v0.56.2
+	test -s $(TOOLS_BIN)/trivy || curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $(TOOLS_BIN) v0.69.3
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
