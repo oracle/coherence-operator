@@ -206,7 +206,7 @@ jobs:
         kubectl get nodes
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         echo "${{ secrets.OCR_DOCKER_PASSWORD }}" | docker login container-registry.oracle.com -u "${{ secrets.OCR_DOCKER_USERNAME }}" --password-stdin
-        echo "${{ secrets.OCI_PASSWORD }}" | docker login "${{ secrets.OCI_REGISTRY }}"  -u "${{ secrets.OCI_USERNAME }}" --password-stdin
+        # echo "${{ secrets.OCI_PASSWORD }}" | docker login "${{ secrets.OCI_REGISTRY }}"  -u "${{ secrets.OCI_USERNAME }}" --password-stdin
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
