@@ -1477,45 +1477,45 @@ type ServiceMonitorSpec struct {
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// The label to use to retrieve the job name from.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitorSpec
 	// +optional
 	JobLabel string `json:"jobLabel,omitempty"`
 	// TargetLabels transfers labels on the Kubernetes Service onto the target.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitorSpec
 	// +listType=atomic
 	// +optional
 	TargetLabels []string `json:"targetLabels,omitempty"`
 	// PodTargetLabels transfers labels on the Kubernetes Pod onto the target.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitorSpec
 	// +listType=atomic
 	// +optional
 	PodTargetLabels []string `json:"podTargetLabels,omitempty"`
 	// SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitorspec
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.ServiceMonitorSpec
 	// +optional
 	SampleLimit *uint64 `json:"sampleLimit,omitempty"`
 	// HTTP path to scrape for metrics.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	Path string `json:"path,omitempty"`
 	// HTTP scheme to use for scraping.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	Scheme *monitoringv1.Scheme `json:"scheme,omitempty"`
 	// Optional HTTP URL parameters
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	Params map[string][]string `json:"params,omitempty"`
 	// Interval at which metrics should be scraped
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	Interval monitoringv1.Duration `json:"interval,omitempty"`
 	// Timeout after which the scrape is ended
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	ScrapeTimeout monitoringv1.Duration `json:"scrapeTimeout,omitempty"`
 	// TLS configuration to use when scraping the endpoint
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	TLSConfig *monitoringv1.TLSConfig `json:"tlsConfig,omitempty"`
 	// File to read bearer token for scraping targets.
@@ -1532,38 +1532,38 @@ type ServiceMonitorSpec struct {
 	BearerTokenSecret *corev1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
 	// `authorization` configures the Authorization header credentials to use when
 	// scraping the target.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	//
 	// Cannot be set at the same time as `basicAuth`, or `oauth2`.
 	//
 	// +optional
 	Authorization *monitoringv1.SafeAuthorization `json:"authorization,omitempty"`
 	// HonorLabels chooses the metric labels on collisions with target labels.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	HonorLabels bool `json:"honorLabels,omitempty"`
 	// HonorTimestamps controls whether Prometheus respects the timestamps present in scraped data.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	HonorTimestamps *bool `json:"honorTimestamps,omitempty"`
 	// BasicAuth allow an endpoint to authenticate over basic authentication
 	// More info: https://prometheus.io/docs/operating/configuration/#endpoints
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	BasicAuth *monitoringv1.BasicAuth `json:"basicAuth,omitempty"`
 	// MetricRelabelings to apply to samples before ingestion.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +listType=atomic
 	// +optional
 	MetricRelabelings []monitoringv1.RelabelConfig `json:"metricRelabelings,omitempty"`
 	// Relabelings to apply to samples before scraping.
 	// More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +listType=atomic
 	// +optional
 	Relabelings []monitoringv1.RelabelConfig `json:"relabelings,omitempty"`
 	// ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
-	// See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#endpoint
+	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
 	// +optional
 	ProxyURL *string `json:"proxyURL,omitempty"`
 }
