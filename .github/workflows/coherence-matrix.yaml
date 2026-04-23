@@ -34,19 +34,19 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
-          - "15.1.1-0-SNAPSHOT"
-          - "15.1.1-0-SNAPSHOT-Graal"
+#          - "15.1.1-0-SNAPSHOT"
+#          - "15.1.1-0-SNAPSHOT-Graal"
           - "25.03"
           - "25.03-Graal"
           - "14.1.2-0"
-          - "14.1.2-0-SNAPSHOT"
+#          - "14.1.2-0-SNAPSHOT"
           - "22.06"
-          - "14.1.1-2206-SNAPSHOT"
-          - "14.1.1-0-SNAPSHOT"
+#          - "14.1.1-2206-SNAPSHOT"
+#          - "14.1.1-0-SNAPSHOT"
           - "14.1.1-0"
           - "14.1.1.0.0"
           - "12.2.1.4.0"
-          - "12.2.1-4-SNAPSHOT"
+#          - "12.2.1-4-SNAPSHOT"
         include:
           - matrixName: "15.1.1-0-SNAPSHOT"
             coherenceVersion: "15.1.1-0-0-SNAPSHOT"
@@ -63,15 +63,15 @@ jobs:
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "25.03"
-            coherenceVersion: "25.03.1"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:25.03.1"
+            coherenceVersion: "25.03.2"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:25.03.2"
             javaVersion: 17
             coherenceIsJava8: false
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "25.03-Graal"
-            coherenceVersion: "25.03.1"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:25.03.1-graal"
+            coherenceVersion: "25.03.2"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:25.03.2-graal"
             javaVersion: 17
             coherenceIsJava8: false
             baseImage: "gcr.io/distroless/java17-debian12"
@@ -84,15 +84,15 @@ jobs:
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "14.1.2-0"
-            coherenceVersion: "14.1.2-0-2"
+            coherenceVersion: "14.1.2-0-5"
             javaVersion: 17
             coherenceIsJava8: false
-            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.2-0-2"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.2-0-5"
             baseImage: "gcr.io/distroless/java17-debian12"
 
           - matrixName: "22.06"
-            coherenceVersion: "22.06.12"
-            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.12"
+            coherenceVersion: "22.06.15"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:22.06.15"
             javaVersion: 11
             coherenceIsJava8: false
             baseImage: "gcr.io/distroless/java11-debian11"
@@ -112,10 +112,10 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0"
-            coherenceVersion: "14.1.1-0-20"
+            coherenceVersion: "14.1.1-0-24"
             javaVersion: 11
             coherenceIsJava8: false
-            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-20"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-24"
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1.0.0"
@@ -206,7 +206,7 @@ jobs:
         kubectl get nodes
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
         docker login container-registry.oracle.com -u "${{ secrets.OCR_DOCKER_USERNAME }}" -p "${{ secrets.OCR_DOCKER_PASSWORD }}"
-        docker login "${{ secrets.OCI_REGISTRY }}" -u "${{ secrets.OCI_USERNAME }}" -p "${{ secrets.OCI_PASSWORD }}"
+        # docker login "${{ secrets.OCI_REGISTRY }}" -u "${{ secrets.OCI_USERNAME }}" -p "${{ secrets.OCI_PASSWORD }}"
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
