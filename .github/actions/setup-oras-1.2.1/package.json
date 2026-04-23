@@ -18,7 +18,7 @@
   "homepage": "https://github.com/oras-project/setup-oras#readme",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/tool-cache": "^2.0.1",
+    "@actions/tool-cache": "^2.0.2",
     "@types/node": "^22.7.7",
     "@vercel/ncc": "^0.38.2",
     "typescript": "^5.6.3"
