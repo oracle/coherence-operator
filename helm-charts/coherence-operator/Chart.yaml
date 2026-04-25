@@ -11,4 +11,4 @@ home: https://github.com/oracle/coherence-operator
 sources:
 - https://github.com/oracle/coherence-operator
 icon: "https://docs.oracle.com/en/dcommon/img/oracle-doc-logo.png"
-kubeVersion: ">=1.26"
+kubeVersion: ">=1.29-0"
