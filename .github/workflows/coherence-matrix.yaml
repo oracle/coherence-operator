@@ -257,6 +257,35 @@ jobs:
         export TEST_LOGS_DIR=build/_output/test-logs/${{ matrix.matrixName }}
         make coherence-compatibility-test 
 
+    - name: Collect failure diagnostics
+      if: ${{ failure() || cancelled() }}
+      shell: bash
+      continue-on-error: true
+      run: |
+        DIAG_DIR="build/_output/test-logs/${{ matrix.matrixName }}/diagnostics"
+        mkdir -p "${DIAG_DIR}"
+
+        collect() {
+          local name="$1"
+          shift
+          echo "Collecting ${name}"
+          {
+            echo "$ $*"
+            "$@"
+          } > "${DIAG_DIR}/${name}.log" 2>&1 || true
+        }
+
+        collect nodes kubectl get nodes -o wide
+        collect pods-all-namespaces kubectl get pods -A -o wide
+        collect events-all-namespaces kubectl get events -A --sort-by=.lastTimestamp
+        collect operator-test-all kubectl -n operator-test get all
+        collect operator-pods kubectl -n operator-test get pod -l control-plane=coherence -o wide
+        collect operator-pod-describe kubectl -n operator-test describe pod -l control-plane=coherence
+        collect operator-logs kubectl -n operator-test logs -l control-plane=coherence --all-containers --prefix --tail=-1
+        collect operator-logs-previous kubectl -n operator-test logs -l control-plane=coherence --all-containers --previous --prefix --tail=-1
+        collect coherence-crds kubectl get crd coherence.coherence.oracle.com coherencejob.coherence.oracle.com
+        collect coherence-resources kubectl get coherence.coherence.oracle.com,coherencejob.coherence.oracle.com -A
+
     - uses: actions/upload-artifact@v4
       if: ${{ failure() || cancelled() }}
       with:
