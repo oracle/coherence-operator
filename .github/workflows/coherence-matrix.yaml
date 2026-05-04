@@ -112,10 +112,10 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1-0"
-            coherenceVersion: "14.1.1-0-24"
+            coherenceVersion: "14.1.1-0-22"
             javaVersion: 11
             coherenceIsJava8: false
-            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-24"
+            coherenceImage: "ghcr.io/oracle/coherence-ce:14.1.1-0-22"
             baseImage: "gcr.io/distroless/java11-debian11"
 
           - matrixName: "14.1.1.0.0"
