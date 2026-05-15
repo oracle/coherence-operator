@@ -1349,8 +1349,9 @@ test-operator: export COHERENCE_IMAGE := $(COHERENCE_IMAGE)
 test-operator: export OPERATOR_IMAGE := $(OPERATOR_IMAGE)
 test-operator: $(BUILD_PROPS) $(BUILD_TARGETS)/manifests $(BUILD_TARGETS)/generate install-crds gotestsum  ## Run the Operator unit tests
 	@echo "Running operator tests"
+	# Include the chart metadata test here so CI guards Helm kubeVersion semantics without requiring the e2e Helm suite.
 	$(GOTESTSUM) --format standard-verbose --junitfile $(TEST_LOGS_DIR)/operator-test.xml \
-	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./pkg/...
+	  -- $(GO_TEST_FLAGS) -v ./api/... ./controllers/... ./pkg/... ./helm-charts/coherence-operator/...
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Build and test the Java artifacts
