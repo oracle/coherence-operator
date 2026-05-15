@@ -117,6 +117,8 @@ TEST_COHERENCE_GID     ?= $(COHERENCE_GROUP_ID)
 OPENSHIFT_MIN_VERSION   := v4.15
 OPENSHIFT_MAX_VERSION   := v4.18
 OPENSHIFT_COMPONENT_PID := 67b738ef88736e8a179ac976
+# The minimum Kubernetes version used for OLM validation, kept aligned with install metadata to validate the supported floor.
+KUBERNETES_MIN_VERSION  := 1.29
 
 # The current working directory
 CURRDIR := $(shell pwd)
@@ -1046,10 +1048,10 @@ bundle: $(BUILD_PROPS) ensure-sdk $(TOOLS_BIN)/kustomize $(BUILD_TARGETS)/manife
 	@echo "LABEL org.opencontainers.image.description=\"This is the Operator Lifecycle Manager bundle for the Coherence Kubernetes Operator\"" >> bundle.Dockerfile
 	@echo "cert_project_id: $(OPENSHIFT_COMPONENT_PID)" > bundle/ci.yaml
 	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY)
-	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional suite=operatorframework --optional-values=k8s-version=1.26
-	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=operatorhubv2 --optional-values=k8s-version=1.26
-	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=capabilities --optional-values=k8s-version=1.26
-	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=categories --optional-values=k8s-version=1.26
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional suite=operatorframework --optional-values=k8s-version=$(KUBERNETES_MIN_VERSION)
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=operatorhubv2 --optional-values=k8s-version=$(KUBERNETES_MIN_VERSION)
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=capabilities --optional-values=k8s-version=$(KUBERNETES_MIN_VERSION)
+	$(OPERATOR_SDK) bundle validate $(BUNDLE_DIRECTORY) --select-optional name=categories --optional-values=k8s-version=$(KUBERNETES_MIN_VERSION)
 	rm -rf $(BUNDLE_BUILD) || true
 	mkdir -p $(BUNDLE_BUILD)/coherence-operator/$(VERSION) || true
 	sh $(SCRIPTS_DIR)/bundle.sh
