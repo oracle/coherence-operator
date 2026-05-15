@@ -117,7 +117,8 @@ spec:
   - email: jonathan.knight@oracle.com
     name: Jonathan Knight
   maturity: mature
-  minKubeVersion: 1.26.0
+  # Keep the OLM install gate aligned with the Helm chart floor so OperatorHub users see the same supported Kubernetes range.
+  minKubeVersion: 1.29.0
   provider:
     name: Oracle Corporation
     url: https://github.com/oracle/coherence-operator
