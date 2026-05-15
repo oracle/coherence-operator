@@ -11,6 +11,7 @@ module github.com/oracle/coherence-operator
 go 1.26.2
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v1.4.3
