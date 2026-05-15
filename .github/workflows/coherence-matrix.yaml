@@ -195,24 +195,39 @@ jobs:
     - name: Edit DNS Resolve
       shell: bash
       run: |
-        sudo chown -R runner:runner /run/systemd/resolve/stub-resolv.conf
-        sudo echo nameserver 8.8.8.8 > /run/systemd/resolve/stub-resolv.conf
+        # Use sudo tee so the resolver override is written with elevated
+        # permissions; this keeps the DNS behavior while avoiding redirect
+        # failures when the runner user does not own the systemd stub file.
+        printf 'nameserver 8.8.8.8\n' | sudo tee /run/systemd/resolve/stub-resolv.conf > /dev/null
 
     - name: Start KinD Cluster
       shell: bash
+      env:
+        COHERENCE_IMAGE: ${{ matrix.coherenceImage }}
+        OCR_DOCKER_USERNAME: ${{ secrets.OCR_DOCKER_USERNAME }}
+        OCR_DOCKER_PASSWORD: ${{ secrets.OCR_DOCKER_PASSWORD }}
       run: |
         make kind
         kubectl version
         kubectl get nodes
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-        docker login container-registry.oracle.com -u "${{ secrets.OCR_DOCKER_USERNAME }}" -p "${{ secrets.OCR_DOCKER_PASSWORD }}"
+        # Only authenticate to OCR when credentials exist. Public GHCR matrix entries
+        # should continue without being blocked by Docker's non-TTY login failure.
+        if [[ -n "${OCR_DOCKER_USERNAME}" && -n "${OCR_DOCKER_PASSWORD}" ]]; then
+          echo "${OCR_DOCKER_PASSWORD}" | docker login container-registry.oracle.com -u "${OCR_DOCKER_USERNAME}" --password-stdin
+        elif [[ "${COHERENCE_IMAGE}" == container-registry.oracle.com/* ]]; then
+          echo "::error::OCR_DOCKER_USERNAME and OCR_DOCKER_PASSWORD are required to pull ${COHERENCE_IMAGE}"
+          exit 1
+        else
+          echo "Skipping OCR login because this matrix image is not hosted by container-registry.oracle.com"
+        fi
         # docker login "${{ secrets.OCI_REGISTRY }}" -u "${{ secrets.OCI_USERNAME }}" -p "${{ secrets.OCI_PASSWORD }}"
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
         docker pull gcr.io/distroless/java17-debian12
         docker pull gcr.io/distroless/java21-debian12
-        docker pull ${{ matrix.coherenceImage }}
+        docker pull "${COHERENCE_IMAGE}"
 
     - name: Coherence Certification Tests
       shell: bash
