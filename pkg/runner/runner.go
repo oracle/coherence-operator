@@ -1056,83 +1056,67 @@ func cohPost2206(details *run_details.RunDetails) {
 }
 
 func addManagementSSL(details *run_details.RunDetails) {
-	addSSL(v1.EnvVarCohMgmtPrefix, v1.PortNameManagement, details)
+	addSSL(v1.EnvVarCohMgmtPrefix, v1.PortNameManagement, "ManagementSSLProvider", details)
 }
 
 func addMetricsSSL(details *run_details.RunDetails) {
-	addSSL(v1.EnvVarCohMetricsPrefix, v1.PortNameMetrics, details)
+	addSSL(v1.EnvVarCohMetricsPrefix, v1.PortNameMetrics, "MetricsSSLProvider", details)
 }
 
-func addSSL(prefix, prop string, details *run_details.RunDetails) {
-	var urlPrefix string
-
-	sslCerts := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLCerts)
-	if sslCerts != "" {
-		if !strings.HasSuffix(sslCerts, "/") {
-			sslCerts += "/"
-		}
-		if strings.HasSuffix(sslCerts, "file:") {
-			urlPrefix = sslCerts
-		} else {
-			urlPrefix = "file:" + sslCerts
-		}
-	} else {
-		urlPrefix = "file:"
-	}
+func addSSL(prefix, prop, provider string, details *run_details.RunDetails) {
+	urlPrefix, pathPrefix := getSSLPrefixes(prefix, details)
+	securityPrefix := "coherence." + prop + ".security."
 
 	if details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLEnabled) != "" {
-		details.AddArg("-Dcoherence." + prop + ".http.provider=ManagementSSLProvider")
+		details.AddSystemPropertyArg("coherence."+prop+".http.provider", provider)
 	}
 
-	ks := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStore)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.keystore=" + urlPrefix + ks)
-	}
-	kspw := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreCredFile)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.keystore.password=" + urlPrefix + kspw)
-	}
-	kpw := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyCredFile)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.key.password=" + urlPrefix + kpw)
-	}
-	kalg := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreAlgo)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.keystore.algorithm=" + urlPrefix + kalg)
-	}
-	kprov := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreProvider)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.keystore.provider=" + urlPrefix + kprov)
-	}
-	ktyp := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLKeyStoreType)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.keystore.type=" + urlPrefix + ktyp)
-	}
-
-	ts := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStore)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.truststore=" + urlPrefix + ts)
-	}
-	tspw := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreCredFile)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.truststore.password=" + urlPrefix + tspw)
-	}
-	talg := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreAlgo)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.truststore.algorithm=" + urlPrefix + talg)
-	}
-	tprov := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreProvider)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.truststore.provider=" + urlPrefix + tprov)
-	}
-	ttyp := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLTrustStoreType)
-	if ks != "" {
-		details.AddArg("-Dcoherence." + prop + ".security.truststore.type=" + urlPrefix + ttyp)
-	}
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLKeyStore, securityPrefix+"keystore", urlPrefix, details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLKeyStoreCredFile, securityPrefix+"keystore.password", pathPrefix, details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLKeyCredFile, securityPrefix+"key.password", pathPrefix, details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLKeyStoreAlgo, securityPrefix+"keystore.algorithm", "", details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLKeyStoreProvider, securityPrefix+"keystore.provider", "", details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLKeyStoreType, securityPrefix+"keystore.type", "", details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLTrustStore, securityPrefix+"truststore", urlPrefix, details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLTrustStoreCredFile, securityPrefix+"truststore.password", pathPrefix, details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLTrustStoreAlgo, securityPrefix+"truststore.algorithm", "", details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLTrustStoreProvider, securityPrefix+"truststore.provider", "", details)
+	addSSLProperty(prefix, v1.EnvVarSuffixSSLTrustStoreType, securityPrefix+"truststore.type", "", details)
 
 	if details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLRequireClientCert) != "" {
-		details.AddArg("-Dcoherence." + prop + ".http.auth=cert")
+		details.AddSystemPropertyArg("coherence."+prop+".http.auth", "cert")
 	}
+}
+
+func getSSLPrefixes(prefix string, details *run_details.RunDetails) (string, string) {
+	sslCerts := details.GetenvWithPrefix(prefix, v1.EnvVarSuffixSSLCerts)
+	if sslCerts == "" {
+		return "file:", ""
+	}
+
+	// _SSL_CERTS is produced from an operator volume mount path. Stripping a
+	// leading file: keeps future callers from double-prefixing keystore URLs
+	// and from passing URL strings to FileBasedPasswordProvider, which expects
+	// plain file paths.
+	sslCerts = strings.TrimPrefix(sslCerts, "file:")
+	if !strings.HasSuffix(sslCerts, "/") {
+		sslCerts += "/"
+	}
+
+	return "file:" + sslCerts, sslCerts
+}
+
+func addSSLProperty(prefix, envSuffix, property, valuePrefix string, details *run_details.RunDetails) {
+	value := details.GetenvWithPrefix(prefix, envSuffix)
+	if value == "" {
+		return
+	}
+
+	// Each SSL field is emitted from its own env var so an empty or unrelated
+	// keystore setting cannot create file: placeholders or suppress truststore
+	// overrides. The prefix argument carries the expected value form: URL,
+	// filesystem path, or literal.
+	details.AddSystemPropertyArg(property, valuePrefix+value)
 }
 
 func closeFile(f *os.File, log logr.Logger) {
