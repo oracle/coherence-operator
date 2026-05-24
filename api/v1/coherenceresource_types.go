@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -62,12 +62,6 @@ const (
 )
 
 type CoherenceType string
-
-// The package init function that will automatically register the Coherence resource types with
-// the default k8s Scheme.
-func init() {
-	SchemeBuilder.Register(&Coherence{}, &CoherenceList{}, &CoherenceJob{}, &CoherenceJobList{})
-}
 
 // ----- Coherence type ------------------------------------------------------------------
 
