@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	utilnet "k8s.io/apimachinery/pkg/util/net"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/version"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -49,6 +50,10 @@ const (
 	// This value should not be changed, otherwise a rolling upgrade of the Operator
 	// would have two leaders.
 	lockName = "ca804aa8.oracle.com"
+
+	// maxRoundTripperUnwrapDepth bounds how many wrapper layers can be followed.
+	// Deeper or cyclic custom chains are left unchanged instead of risking an operator startup hang.
+	maxRoundTripperUnwrapDepth = 32
 )
 
 var (
@@ -109,11 +114,13 @@ func execute(v *viper.Viper) error {
 
 	setupLog.Info("Obtaining kubernetes client config")
 	cfg := ctrl.GetConfigOrDie()
-	cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
-		t := rt.(*http.Transport)
-		suiteConfig(t.TLSClientConfig)
+	cfg.Wrap(func(rt http.RoundTripper) http.RoundTripper {
+		// Use Wrap so any existing client-go transport hook runs before this one;
+		// HTTPWrappersForConfig then adds auth/user-agent layers around the same wrapper
+		// shape after this hook mutates the reachable TLS transport.
+		configureTransportTLS(rt, suiteConfig)
 		return rt
-	}
+	})
 
 	setupLog.Info("Creating kubernetes client")
 	cs, err := clients.NewForConfig(cfg)
@@ -293,6 +300,39 @@ func execute(v *viper.Viper) error {
 	}
 
 	return nil
+}
+
+func configureTransportTLS(rt http.RoundTripper, configure func(*tls.Config)) {
+	t, ok := findHTTPTransport(rt)
+	if !ok {
+		// Unknown transports are left unchanged so startup remains best-effort, but
+		// log the skipped mutation because Kubernetes client cipher settings may not apply.
+		setupLog.Info("Skipping Kubernetes client transport TLS configuration", "TransportType", fmt.Sprintf("%T", rt))
+		return
+	}
+	if t.TLSClientConfig == nil {
+		t.TLSClientConfig = &tls.Config{}
+	}
+	configure(t.TLSClientConfig)
+}
+
+func findHTTPTransport(rt http.RoundTripper) (*http.Transport, bool) {
+	for depth := 0; rt != nil; depth++ {
+		if t, ok := rt.(*http.Transport); ok {
+			return t, true
+		}
+		if depth >= maxRoundTripperUnwrapDepth {
+			return nil, false
+		}
+		wrapper, ok := rt.(utilnet.RoundTripperWrapper)
+		if !ok {
+			return nil, false
+		}
+		// client-go v0.36 may pass cache-managed wrapper transports here before this
+		// wrapper runs, so unwrap layers to preserve cipher-suite behavior without panicking.
+		rt = wrapper.WrappedRoundTripper()
+	}
+	return nil, false
 }
 
 // GetServerVersion fetches the Kubernetes server version using the provided ClientSet and returns it as a version.Info struct.
