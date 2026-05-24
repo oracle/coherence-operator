@@ -1062,16 +1062,22 @@ type SSLSpec struct {
 	//   This value MUST be provided if SSL is enabled on the Coherence management over REST endpoint.
 	// +optional
 	Secrets *string `json:"secrets,omitempty"`
-	// Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore
-	//   when configuring component over REST to use SSL.
+	// Keystore is the Java key store value used as the SSL keystore when configuring component
+	//   over REST to use SSL. When Secrets is set this is a file name in that k8s secret;
+	//   without Secrets it is an explicit path in the container, which lets users provide
+	//   externally mounted stores without rewriting them as secret keys.
 	// +optional
 	KeyStore *string `json:"keyStore,omitempty"`
-	// KeyStorePasswordFile is the name of the file in the k8s secret containing the keystore
-	//   password when configuring component over REST to use SSL.
+	// KeyStorePasswordFile is the file containing the keystore password when configuring
+	//   component over REST to use SSL. When Secrets is set this is a file name in that k8s
+	//   secret; without Secrets it is an explicit path in the container read by the
+	//   operator's FileBasedPasswordProvider.
 	// +optional
 	KeyStorePasswordFile *string `json:"keyStorePasswordFile,omitempty"`
-	// KeyStorePasswordFile is the name of the file in the k8s secret containing the key
-	//   password when configuring component over REST to use SSL.
+	// KeyPasswordFile is the file containing the key password when configuring component over
+	//   REST to use SSL. When Secrets is set this is a file name in that k8s secret; without
+	//   Secrets it is an explicit path in the container read by the operator's
+	//   FileBasedPasswordProvider.
 	// +optional
 	KeyPasswordFile *string `json:"keyPasswordFile,omitempty"`
 	// KeyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret
@@ -1086,12 +1092,16 @@ type SSLSpec struct {
 	//   when configuring component over REST to use SSL. If not set the default is JKS.
 	// +optional
 	KeyStoreType *string `json:"keyStoreType,omitempty"`
-	// TrustStore is the name of the Java trust store file in the k8s secret to use as the SSL
-	//   trust store when configuring component over REST to use SSL.
+	// TrustStore is the Java trust store value used as the SSL trust store when configuring
+	//   component over REST to use SSL. When Secrets is set this is a file name in that k8s
+	//   secret; without Secrets it is an explicit path in the container, which keeps trust-only
+	//   configurations independent from the keystore settings.
 	// +optional
 	TrustStore *string `json:"trustStore,omitempty"`
-	// TrustStorePasswordFile is the name of the file in the k8s secret containing the trust store
-	//   password when configuring component over REST to use SSL.
+	// TrustStorePasswordFile is the file containing the trust store password when configuring
+	//   component over REST to use SSL. When Secrets is set this is a file name in that k8s
+	//   secret; without Secrets it is an explicit path in the container read by the
+	//   operator's FileBasedPasswordProvider.
 	// +optional
 	TrustStorePasswordFile *string `json:"trustStorePasswordFile,omitempty"`
 	// TrustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s

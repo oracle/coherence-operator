@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -10,12 +10,15 @@ import (
 	"fmt"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/runner/run_details"
 	"github.com/oracle/coherence-operator/test/e2e/helper"
+	"github.com/spf13/viper"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	"os"
 	"os/exec"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
 	"testing"
 )
@@ -378,4 +381,214 @@ func filterStringArray(ss []string, test func(string) bool) (ret []string) {
 		}
 	}
 	return
+}
+
+// The SSL tests call addSSL through its management and metrics wrappers because
+// the JVM arguments are the behavioral contract; env-var-only tests cannot catch
+// invalid file URL prefixes on password files or literal SSL metadata.
+func TestAddMetricsSSLWithoutSecretsUsesURLPathAndLiteralValues(t *testing.T) {
+	g := NewGomegaWithT(t)
+	details := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLEnabled:          "true",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStore:         "/keystore/cacerts.p12",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreType:     "PKCS12",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreCredFile: "/config/storepass.txt",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyCredFile:      "/config/keypass.txt",
+	})
+
+	addMetricsSSL(details)
+
+	args := details.GetArguments()
+	g.Expect(args).To(ContainElements(
+		"-Dcoherence.metrics.http.provider=MetricsSSLProvider",
+		"-Dcoherence.metrics.security.keystore=file:/keystore/cacerts.p12",
+		"-Dcoherence.metrics.security.keystore.type=PKCS12",
+		"-Dcoherence.metrics.security.keystore.password=/config/storepass.txt",
+		"-Dcoherence.metrics.security.key.password=/config/keypass.txt",
+	))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.http.provider=ManagementSSLProvider"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.keystore.type=file:PKCS12"))
+	assertNoArgHasPrefix(t, args, "-Dcoherence.metrics.security.keystore.algorithm=")
+	assertNoArgHasPrefix(t, args, "-Dcoherence.metrics.security.keystore.provider=")
+	assertNoArgHasPrefix(t, args, "-Dcoherence.metrics.security.truststore=")
+	assertNoArgHasPrefix(t, args, "-Dcoherence.metrics.security.truststore.type=")
+	assertNoArgEndsWith(t, args, "=file:")
+}
+
+func TestAddMetricsSSLWithSecretsResolvesFilesAndPreservesLiterals(t *testing.T) {
+	g := NewGomegaWithT(t)
+	details := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLCerts:              "/coherence/certs/metrics",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStore:           "server.jks",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreCredFile:   "storepass.txt",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyCredFile:        "keypass.txt",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreAlgo:       "SunX509",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreProvider:   "SunJSSE",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreType:       "PKCS12",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStore:         "truststore.jks",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStoreCredFile: "trustpass.txt",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStoreAlgo:     "PKIX",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStoreProvider: "SunJSSE",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStoreType:     "JKS",
+	})
+
+	addMetricsSSL(details)
+
+	args := details.GetArguments()
+	g.Expect(args).To(ContainElements(
+		"-Dcoherence.metrics.security.keystore=file:/coherence/certs/metrics/server.jks",
+		"-Dcoherence.metrics.security.keystore.password=/coherence/certs/metrics/storepass.txt",
+		"-Dcoherence.metrics.security.key.password=/coherence/certs/metrics/keypass.txt",
+		"-Dcoherence.metrics.security.keystore.algorithm=SunX509",
+		"-Dcoherence.metrics.security.keystore.provider=SunJSSE",
+		"-Dcoherence.metrics.security.keystore.type=PKCS12",
+		"-Dcoherence.metrics.security.truststore=file:/coherence/certs/metrics/truststore.jks",
+		"-Dcoherence.metrics.security.truststore.password=/coherence/certs/metrics/trustpass.txt",
+		"-Dcoherence.metrics.security.truststore.algorithm=PKIX",
+		"-Dcoherence.metrics.security.truststore.provider=SunJSSE",
+		"-Dcoherence.metrics.security.truststore.type=JKS",
+	))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.keystore.algorithm=file:SunX509"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.keystore.provider=file:SunJSSE"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.keystore.type=file:PKCS12"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.truststore.algorithm=file:PKIX"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.truststore.provider=file:SunJSSE"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.truststore.type=file:JKS"))
+	assertNoArgEndsWith(t, args, "=file:")
+}
+
+func TestAddManagementSSLUsesManagementProperties(t *testing.T) {
+	g := NewGomegaWithT(t)
+	details := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMgmtPrefix + coh.EnvVarSuffixSSLEnabled:          "true",
+		coh.EnvVarCohMgmtPrefix + coh.EnvVarSuffixSSLKeyStore:         "/management/server.p12",
+		coh.EnvVarCohMgmtPrefix + coh.EnvVarSuffixSSLKeyStoreCredFile: "/management/storepass.txt",
+		coh.EnvVarCohMgmtPrefix + coh.EnvVarSuffixSSLKeyStoreType:     "PKCS12",
+	})
+
+	addManagementSSL(details)
+
+	args := details.GetArguments()
+	g.Expect(args).To(ContainElements(
+		"-Dcoherence.management.http.provider=ManagementSSLProvider",
+		"-Dcoherence.management.security.keystore=file:/management/server.p12",
+		"-Dcoherence.management.security.keystore.password=/management/storepass.txt",
+		"-Dcoherence.management.security.keystore.type=PKCS12",
+	))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.http.provider=MetricsSSLProvider"))
+}
+
+func TestAddSSLTrustStoreGuardsUseTrustStoreValues(t *testing.T) {
+	g := NewGomegaWithT(t)
+	trustOnly := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStore:         "/trust/truststore.jks",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStoreCredFile: "/trust/trustpass.txt",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLTrustStoreType:     "PKCS12",
+	})
+
+	addMetricsSSL(trustOnly)
+
+	trustOnlyArgs := trustOnly.GetArguments()
+	g.Expect(trustOnlyArgs).To(ContainElements(
+		"-Dcoherence.metrics.security.truststore=file:/trust/truststore.jks",
+		"-Dcoherence.metrics.security.truststore.password=/trust/trustpass.txt",
+		"-Dcoherence.metrics.security.truststore.type=PKCS12",
+	))
+	assertNoArgHasPrefix(t, trustOnlyArgs, "-Dcoherence.metrics.security.keystore=")
+
+	keyOnly := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStore: "/key/keystore.jks",
+	})
+
+	addMetricsSSL(keyOnly)
+
+	keyOnlyArgs := keyOnly.GetArguments()
+	g.Expect(keyOnlyArgs).To(ContainElement("-Dcoherence.metrics.security.keystore=file:/key/keystore.jks"))
+	assertNoArgHasPrefix(t, keyOnlyArgs, "-Dcoherence.metrics.security.truststore")
+}
+
+func TestAddSSLProviderRequiresSSLEnabled(t *testing.T) {
+	metrics := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStore: "/metrics/server.jks",
+	})
+	management := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMgmtPrefix + coh.EnvVarSuffixSSLKeyStore: "/management/server.jks",
+	})
+
+	addMetricsSSL(metrics)
+	addManagementSSL(management)
+
+	assertNoArgHasPrefix(t, metrics.GetArguments(), "-Dcoherence.metrics.http.provider=")
+	assertNoArgHasPrefix(t, management.GetArguments(), "-Dcoherence.management.http.provider=")
+}
+
+func TestAddSSLRequireClientCertControlsHTTPAuth(t *testing.T) {
+	g := NewGomegaWithT(t)
+	withClientCert := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLRequireClientCert: "true",
+	})
+	withoutClientCert := newSSLRunDetails(nil)
+
+	addMetricsSSL(withClientCert)
+	addMetricsSSL(withoutClientCert)
+
+	g.Expect(withClientCert.GetArguments()).To(ContainElement("-Dcoherence.metrics.http.auth=cert"))
+	g.Expect(withoutClientCert.GetArguments()).NotTo(ContainElement("-Dcoherence.metrics.http.auth=cert"))
+}
+
+func TestAddSSLNormalizesFileQualifiedCertsDirectory(t *testing.T) {
+	g := NewGomegaWithT(t)
+	details := newSSLRunDetails(map[string]string{
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLCerts:            "file:/coherence/certs/metrics",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStore:         "server.jks",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreCredFile: "storepass.txt",
+		coh.EnvVarCohMetricsPrefix + coh.EnvVarSuffixSSLKeyStoreType:     "PKCS12",
+	})
+
+	addMetricsSSL(details)
+
+	args := details.GetArguments()
+	g.Expect(args).To(ContainElements(
+		"-Dcoherence.metrics.security.keystore=file:/coherence/certs/metrics/server.jks",
+		"-Dcoherence.metrics.security.keystore.password=/coherence/certs/metrics/storepass.txt",
+		"-Dcoherence.metrics.security.keystore.type=PKCS12",
+	))
+	assertNoArgContains(t, args, "file:file:")
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.keystore.password=file:/coherence/certs/metrics/storepass.txt"))
+	g.Expect(args).NotTo(ContainElement("-Dcoherence.metrics.security.keystore.type=file:PKCS12"))
+}
+
+func newSSLRunDetails(env map[string]string) *run_details.RunDetails {
+	v := viper.New()
+	for k, val := range env {
+		v.Set(k, val)
+	}
+	return run_details.NewRunDetails(v, ctrl.Log.WithName("test").WithName("ssl"))
+}
+
+func assertNoArgEndsWith(t *testing.T, args []string, suffix string) {
+	t.Helper()
+	for _, arg := range args {
+		if strings.HasSuffix(arg, suffix) {
+			t.Fatalf("argument %q ends with %q", arg, suffix)
+		}
+	}
+}
+
+func assertNoArgHasPrefix(t *testing.T, args []string, prefix string) {
+	t.Helper()
+	for _, arg := range args {
+		if strings.HasPrefix(arg, prefix) {
+			t.Fatalf("argument %q starts with %q", arg, prefix)
+		}
+	}
+}
+
+func assertNoArgContains(t *testing.T, args []string, value string) {
+	t.Helper()
+	for _, arg := range args {
+		if strings.Contains(arg, value) {
+			t.Fatalf("argument %q contains %q", arg, value)
+		}
+	}
 }
