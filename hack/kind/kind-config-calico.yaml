@@ -8,11 +8,11 @@ nodes:
 networking:
   disableDefaultCNI: true
 kubeadmConfigPatches:
+# Keep this patch unversioned so kind can convert it to the kubeadm API used by
+# each Kubernetes node image; this preserves the Calico CIDRs across v1beta3 and
+# v1beta4 clusters instead of pinning the old v1beta2 format.
 - |
-  apiVersion: kubeadm.k8s.io/v1beta2
   kind: ClusterConfiguration
-  metadata:
-    name: config
   networking:
     serviceSubnet: "10.96.0.1/12"
     podSubnet: "192.168.0.0/16"

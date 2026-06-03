@@ -9,5 +9,8 @@ set -o errexit
 
 # desired cluster name; default is "kind"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-operator}"
+# Allow callers to use the project-pinned kind binary so this wrapper creates
+# clusters with the same CLI compatibility guarantees as the Makefile targets.
+KIND_CMD="${KIND_CMD:-kind}"
 
-kind create cluster --name "${KIND_CLUSTER_NAME}" $@
+"${KIND_CMD}" create cluster --name "${KIND_CLUSTER_NAME}" "$@"

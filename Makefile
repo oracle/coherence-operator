@@ -2225,30 +2225,55 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 ##@ KinD
 
 KIND_CLUSTER   ?= operator
-KIND_IMAGE     ?= "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f"
+KIND_VERSION   ?= v0.32.0
+# Kind v0.32.0 is pinned with the v1.36.1 node image because the release updates
+# containerd handling; using the matching CLI keeps image loading reliable.
+KIND           = $(TOOLS_BIN)/kind
+KIND_IMAGE     ?= "kindest/node:v1.36.1@sha256:3489c7674813ba5d8b1a9977baea8a6e553784dab7b84759d1014dbd78f7ebd5"
 CALICO_TIMEOUT ?= 300s
 KIND_SCRIPTS   := $(SCRIPTS_DIR)/kind
 KIND_CONFIG    ?= $(KIND_SCRIPTS)/kind-config.yaml
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Install Kind
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: kind-install $(TOOLS_BIN)/kind
+kind-install: $(TOOLS_BIN)/kind ## Install the pinned KinD CLI version used by local and CI clusters
+	$(KIND) version
+
+$(TOOLS_BIN)/kind:
+	mkdir -p $(TOOLS_BIN) || true
+	if ! test -x $(KIND) || ! $(KIND) version | grep -q "$(KIND_VERSION)"; then \
+		case "$(UNAME_S)-$(UNAME_M)" in \
+			Darwin-x86_64) kind_asset=kind-darwin-amd64 ;; \
+			Darwin-arm64) kind_asset=kind-darwin-arm64 ;; \
+			Linux-x86_64) kind_asset=kind-linux-amd64 ;; \
+			Linux-aarch64|Linux-arm64) kind_asset=kind-linux-arm64 ;; \
+			*) echo "Unsupported platform for kind: $(UNAME_S)-$(UNAME_M)" >&2; exit 1 ;; \
+		esac; \
+		curl -Lsf "https://github.com/kubernetes-sigs/kind/releases/download/$(KIND_VERSION)/$${kind_asset}" -o $(KIND); \
+		chmod +x $(KIND); \
+	fi
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind
-kind:   ## Run a default KinD cluster
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_CONFIG) --image $(KIND_IMAGE)
+kind: kind-install  ## Run a default KinD cluster
+	$(KIND) create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_CONFIG) --image $(KIND_IMAGE)
 	$(KIND_SCRIPTS)/kind-label-node.sh
 
 .PHONY: kind-dual
-kind-dual:   ## Run a KinD cluster configured for a dual stack IPv4 and IPv6 network
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config-dual.yaml --image $(KIND_IMAGE)
+kind-dual: kind-install  ## Run a KinD cluster configured for a dual stack IPv4 and IPv6 network
+	$(KIND) create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config-dual.yaml --image $(KIND_IMAGE)
 	$(KIND_SCRIPTS)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Start a Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-single-worker
-kind-single-worker:   ## Run a KinD cluster with a single worker node
-	kind create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config-single.yaml --image $(KIND_IMAGE)
+kind-single-worker: kind-install  ## Run a KinD cluster with a single worker node
+	$(KIND) create cluster --name $(KIND_CLUSTER) --wait 10m --config $(KIND_SCRIPTS)/kind-config-single.yaml --image $(KIND_IMAGE)
 	$(KIND_SCRIPTS)/kind-label-node.sh
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2258,8 +2283,8 @@ CALICO_VERSION ?= v3.30.0
 
 .PHONY: kind-calico
 kind-calico: export KIND_CONFIG=$(KIND_SCRIPTS)/kind-config-calico.yaml
-kind-calico:   ## Run a KinD cluster with Calico
-	kind create cluster --name $(KIND_CLUSTER) --config $(KIND_SCRIPTS)/kind-config-calico.yaml --image $(KIND_IMAGE)
+kind-calico: kind-install  ## Run a KinD cluster with Calico
+	$(KIND) create cluster --name $(KIND_CLUSTER) --config $(KIND_SCRIPTS)/kind-config-calico.yaml --image $(KIND_IMAGE)
 	$(KIND_SCRIPTS)/kind-label-node.sh
 	$(KUBECTL_CMD) apply -f $(SCRIPTS_DIR)/calico/calico-$(CALICO_VERSION).yaml
 	$(KUBECTL_CMD) -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
@@ -2271,43 +2296,43 @@ kind-calico:   ## Run a KinD cluster with Calico
 # Stop and delete the Kind cluster
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-stop
-kind-stop:   ## Stop and delete the KinD cluster named "$(KIND_CLUSTER)"
-	kind delete cluster --name $(KIND_CLUSTER)
+kind-stop: kind-install  ## Stop and delete the KinD cluster named "$(KIND_CLUSTER)"
+	$(KIND) delete cluster --name $(KIND_CLUSTER)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load
-kind-load: kind-load-operator kind-load-coherence  ## Load all images into the KinD cluster
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_CLIENT) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_3) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_2) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_2) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) || true
+kind-load: kind-install kind-load-operator kind-load-coherence  ## Load all images into the KinD cluster
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_CLIENT) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_3) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_HELIDON_2) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_2) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2) || true
 ifneq (true,$(SKIP_SPRING_CNBP))
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP) || true
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) || true
 endif
 
 .PHONY: kind-load-coherence
-kind-load-coherence:   ## Load the Coherence image into the KinD cluster
+kind-load-coherence: kind-install  ## Load the Coherence image into the KinD cluster
 	$(DOCKER_CMD) pull $(COHERENCE_IMAGE)
-	kind load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
 
 .PHONY: kind-load-operator
-kind-load-operator:   ## Load the Operator images into the KinD cluster
-	kind load docker-image --name $(KIND_CLUSTER) $(OPERATOR_IMAGE) || true
+kind-load-operator: kind-install  ## Load the Operator images into the KinD cluster
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(OPERATOR_IMAGE) || true
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load compatibility images into Kind
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: kind-load-compatibility
-kind-load-compatibility:   ## Load the compatibility test images into the KinD cluster
-	kind load docker-image --name $(KIND_CLUSTER) $(TEST_COMPATIBILITY_IMAGE) || true
+kind-load-compatibility: kind-install  ## Load the compatibility test images into the KinD cluster
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_COMPATIBILITY_IMAGE) || true
 
 # ======================================================================================================================
 # Targets related to running k3d clusters
