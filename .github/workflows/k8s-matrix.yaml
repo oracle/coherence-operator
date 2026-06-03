@@ -41,6 +41,7 @@ jobs:
       fail-fast: false
       matrix:
         matrixName:
+          - v1.36
           - v1.35
           - v1.34
           - v1.33
@@ -49,16 +50,22 @@ jobs:
           - v1.30
           - v1.29
         include:
+          # These top matrix entries use node images published with kind v0.32.0,
+          # keeping CI coverage aligned with the locally pinned kind binary.
+          - matrixName: v1.36
+            k8s: kindest/node:v1.36.1@sha256:3489c7674813ba5d8b1a9977baea8a6e553784dab7b84759d1014dbd78f7ebd5
+            kindCommand: kind-calico
+            runNetTests: true
           - matrixName: v1.35
-            k8s: kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f
+            k8s: kindest/node:v1.35.5@sha256:ce977ae6d65918d0b58a5f8b5e940429c2ce42fa3a5619ec2bbc60b949c0ac95
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.34
-            k8s: kindest/node:v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a
+            k8s: kindest/node:v1.34.8@sha256:02722c2dedddcfc00febf5d27fbeb9b7b2c14294c82109ff4a85d89ac9ba3256
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.33
-            k8s: kindest/node:v1.33.4@sha256:25a6018e48dfcaee478f4a59af81157a437f15e6e140bf103f85a2e7cd0cbbf2
+            k8s: kindest/node:v1.33.12@sha256:3f5c8443c620245e4d355cfe09e96a91ead32ceaa569d3f1ca9edf0cb2fe2ff4
             kindCommand: kind-calico
             runNetTests: true
           - matrixName: v1.32
