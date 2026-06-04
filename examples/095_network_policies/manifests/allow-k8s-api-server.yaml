@@ -8,13 +8,16 @@ spec:
       app.kubernetes.io/name: coherence-operator
   policyTypes:
     - Egress
-    - Ingress
   egress:
+    # The test harness replaces these template IPs with the live API endpoint
+    # and service IP. Keep them host-scoped so Kubernetes 1.36 strict CIDR
+    # validation accepts the generated NetworkPolicy and the operator can
+    # reach the API server after deny-all egress is applied.
     - to:
         - ipBlock:
-            cidr: 172.18.0.2/24
+            cidr: 172.18.0.2/32
         - ipBlock:
-            cidr: 10.96.0.1/24
+            cidr: 10.96.0.1/32
       ports:
         - port: 6443
           protocol: TCP

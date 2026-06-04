@@ -797,7 +797,6 @@ kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-dns.
 kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-k8s-api-server.yaml
 kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-operator-cluster-member-egress.yaml
 kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-operator-rest-ingress.yaml
-kubectl -n coherence apply -f examples/095_network_policies/manifests/allow-webhook-ingress-from-all.yaml
 
 kubectl -n coh-test apply -f examples/095_network_policies/manifests/allow-dns.yaml
 kubectl -n coh-test apply -f examples/095_network_policies/manifests/allow-cluster-member-access.yaml
