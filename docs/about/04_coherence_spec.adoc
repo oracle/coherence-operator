@@ -922,22 +922,32 @@ m| enabled | Enabled is a boolean flag indicating whether enables or disables SS
 m| secrets | Secrets is the name of the k8s secret containing the Java key stores and password files. +
   The secret should be in the same namespace as the Coherence resource. + +
   This value MUST be provided if SSL is enabled on the Coherence management over REST endpoint. + m| &#42;string | false
-m| keyStore | Keystore is the name of the Java key store file in the k8s secret to use as the SSL keystore +
-  when configuring component over REST to use SSL. + m| &#42;string | false
-m| keyStorePasswordFile | KeyStorePasswordFile is the name of the file in the k8s secret containing the keystore +
-  password when configuring component over REST to use SSL. + m| &#42;string | false
-m| keyPasswordFile | KeyStorePasswordFile is the name of the file in the k8s secret containing the key +
-  password when configuring component over REST to use SSL. + m| &#42;string | false
+m| keyStore | Keystore is the Java key store value used as the SSL keystore when configuring component +
+  over REST to use SSL. When Secrets is set this is a file name in that k8s secret; + +
+  without Secrets it is an explicit path in the container, which lets users provide + +
+  externally mounted stores without rewriting them as secret keys. + m| &#42;string | false
+m| keyStorePasswordFile | KeyStorePasswordFile is the file containing the keystore password when configuring +
+  component over REST to use SSL. When Secrets is set this is a file name in that k8s + +
+  secret; without Secrets it is an explicit path in the container read by the + +
+  operator's FileBasedPasswordProvider. + m| &#42;string | false
+m| keyPasswordFile | KeyPasswordFile is the file containing the key password when configuring component over +
+  REST to use SSL. When Secrets is set this is a file name in that k8s secret; without + +
+  Secrets it is an explicit path in the container read by the operator's + +
+  FileBasedPasswordProvider. + m| &#42;string | false
 m| keyStoreAlgorithm | KeyStoreAlgorithm is the name of the keystore algorithm for the keystore in the k8s secret +
   used when configuring component over REST to use SSL. If not set the default is SunX509 + m| &#42;string | false
 m| keyStoreProvider | KeyStoreProvider is the name of the keystore provider for the keystore in the k8s secret +
   used when configuring component over REST to use SSL. + m| &#42;string | false
 m| keyStoreType | KeyStoreType is the name of the Java keystore type for the keystore in the k8s secret used +
   when configuring component over REST to use SSL. If not set the default is JKS. + m| &#42;string | false
-m| trustStore | TrustStore is the name of the Java trust store file in the k8s secret to use as the SSL +
-  trust store when configuring component over REST to use SSL. + m| &#42;string | false
-m| trustStorePasswordFile | TrustStorePasswordFile is the name of the file in the k8s secret containing the trust store +
-  password when configuring component over REST to use SSL. + m| &#42;string | false
+m| trustStore | TrustStore is the Java trust store value used as the SSL trust store when configuring +
+  component over REST to use SSL. When Secrets is set this is a file name in that k8s + +
+  secret; without Secrets it is an explicit path in the container, which keeps trust-only + +
+  configurations independent from the keystore settings. + m| &#42;string | false
+m| trustStorePasswordFile | TrustStorePasswordFile is the file containing the trust store password when configuring +
+  component over REST to use SSL. When Secrets is set this is a file name in that k8s + +
+  secret; without Secrets it is an explicit path in the container read by the + +
+  operator's FileBasedPasswordProvider. + m| &#42;string | false
 m| trustStoreAlgorithm | TrustStoreAlgorithm is the name of the keystore algorithm for the trust store in the k8s +
   secret used when configuring component over REST to use SSL.  If not set the default is SunX509. + m| &#42;string | false
 m| trustStoreProvider | TrustStoreProvider is the name of the keystore provider for the trust store in the k8s +
