@@ -28,5 +28,5 @@ inputs:
     description: SHA256 of the customized ORAS CLI. Required if 'url' is present.
     required: false
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
