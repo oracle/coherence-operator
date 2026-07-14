@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -136,19 +136,22 @@ func (s *server) Start(context.Context) error {
 	mux.Handle("/rack/", handler{fn: s.getRackLabelForNode})
 	mux.Handle("/status/", handler{fn: s.getCoherenceStatus})
 
-	address := fmt.Sprintf("%s:%d", operator.GetRestHost(), operator.GetRestPort())
+	address := net.JoinHostPort(operator.GetRestHost(), strconv.Itoa(int(operator.GetRestPort())))
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return errors.Wrap(err, "failed to start REST server")
 	}
 
 	s.listener = listener
+	s.httpServer = &http.Server{Handler: mux}
 
 	close(s.running)
 
 	go func() {
 		log.Info("Serving REST requests", "listenAddress", s.listener.Addr().String())
-		panic(http.Serve(s.listener, mux))
+		if serveErr := s.httpServer.Serve(s.listener); serveErr != nil && serveErr != http.ErrServerClosed {
+			log.Error(serveErr, "REST server stopped unexpectedly")
+		}
 	}()
 	return nil
 }
@@ -163,6 +166,9 @@ func (s *server) GetPort() int32 {
 }
 
 func (s *server) Close() error {
+	if s.httpServer == nil {
+		return nil
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	s.httpServer.SetKeepAlivesEnabled(false)
@@ -180,15 +186,17 @@ func (s *server) GetHostAndPort() string {
 	case serviceName != "":
 		// use the service name if it was specifically set
 		service = serviceName
-	case restHost != "0.0.0.0":
+	case !isWildcardHost(restHost):
 		// if no service name was set but REST is bound to a specific address then use that
 		service = restHost
 	default:
-		// REST is bound to 0.0.0.0 so use any of our local addresses.
+		// REST is bound to a wildcard address so use any of our local addresses.
 		// This does not guarantee we're reachable but would be OK in local testing
 		ip, err := onet.GetLocalAddress()
 		if err == nil && ip != nil {
-			service = fmt.Sprint(ip.String())
+			service = ip.String()
+		} else {
+			service = "localhost"
 		}
 	}
 
@@ -204,7 +212,14 @@ func (s *server) GetHostAndPort() string {
 		port = s.GetPort()
 	}
 
-	return fmt.Sprintf("%s:%d", service, port)
+	return net.JoinHostPort(service, strconv.Itoa(int(port)))
+}
+
+func isWildcardHost(host string) bool {
+	host = strings.TrimPrefix(host, "[")
+	host = strings.TrimSuffix(host, "]")
+	ip := net.ParseIP(host)
+	return host == "" || ip != nil && ip.IsUnspecified()
 }
 
 // getSiteLabelForNode is a GET request that returns the node label on a k8s node to use for a Coherence site value.

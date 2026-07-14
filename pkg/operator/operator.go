@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	DefaultRestHost       = "0.0.0.0"
+	DefaultRestHost       = ""
 	DefaultRestPort int32 = 8000
 
 	DefaultMutatingWebhookName   = "coherence-operator-mutating-webhook-configuration"
@@ -288,7 +288,11 @@ func GetDefaultOperatorImage() string {
 }
 
 func GetRestHost() string {
-	return GetViper().GetString(FlagRestHost)
+	host := GetViper().GetString(FlagRestHost)
+	if strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
+		return strings.TrimSuffix(strings.TrimPrefix(host, "["), "]")
+	}
+	return host
 }
 
 func GetRestPort() int32 {

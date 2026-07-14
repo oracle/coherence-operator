@@ -9,12 +9,18 @@ package coherenceoperator
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	semver "github.com/Masterminds/semver/v3"
 	"github.com/ghodss/yaml"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -34,6 +40,19 @@ type csvMetadata struct {
 	Spec struct {
 		MinKubeVersion string `json:"minKubeVersion"`
 	} `json:"spec"`
+}
+
+type chartValuesSchema struct {
+	Properties struct {
+		RestService struct {
+			Properties struct {
+				IPFamilies struct {
+					MaxItems    int  `json:"maxItems"`
+					UniqueItems bool `json:"uniqueItems"`
+				} `json:"ipFamilies"`
+			} `json:"properties"`
+		} `json:"restService"`
+	} `json:"properties"`
 }
 
 type kubernetesVersionFloor struct {
@@ -104,6 +123,232 @@ func TestKubernetesMinimumVersionsAreAligned(t *testing.T) {
 		t.Fatalf("Kubernetes minimum versions differ: Chart.yaml=%s, CSV=%s, Makefile=%s",
 			chartFloor.minorString(), csvFloor.minorString(), makefileFloor.minorString())
 	}
+}
+
+func TestRestServiceDefaultRendering(t *testing.T) {
+	service := renderRestService(t)
+	if service.Spec.IPFamilyPolicy != nil {
+		t.Fatalf("default ipFamilyPolicy = %q, want omitted", *service.Spec.IPFamilyPolicy)
+	}
+	if service.Spec.IPFamilies != nil {
+		t.Fatalf("default ipFamilies = %v, want omitted", service.Spec.IPFamilies)
+	}
+
+	if service.Namespace != "default" || service.Annotations != nil {
+		t.Fatalf("REST Service metadata changed unexpectedly: namespace=%q annotations=%v", service.Namespace, service.Annotations)
+	}
+	wantLabels := map[string]string{
+		"control-plane":                "coherence",
+		"app.kubernetes.io/name":       "coherence-operator",
+		"app.kubernetes.io/instance":   "coherence-operator-rest",
+		"app.kubernetes.io/version":    "${VERSION}",
+		"app.kubernetes.io/component":  "rest",
+		"app.kubernetes.io/part-of":    "coherence-operator",
+		"app.kubernetes.io/managed-by": "helm",
+	}
+	if !reflect.DeepEqual(service.Labels, wantLabels) {
+		t.Fatalf("REST Service labels = %v, want %v", service.Labels, wantLabels)
+	}
+	wantPorts := []corev1.ServicePort{{
+		Name:       "http-rest",
+		Port:       8000,
+		TargetPort: intstr.FromInt32(8000),
+	}}
+	if !reflect.DeepEqual(service.Spec.Ports, wantPorts) {
+		t.Fatalf("REST Service ports = %v, want %v", service.Spec.Ports, wantPorts)
+	}
+	wantSelector := map[string]string{
+		"app.kubernetes.io/name":      "coherence-operator",
+		"app.kubernetes.io/instance":  "coherence-operator-manager",
+		"app.kubernetes.io/version":   "${VERSION}",
+		"app.kubernetes.io/component": "manager",
+	}
+	if !reflect.DeepEqual(service.Spec.Selector, wantSelector) {
+		t.Fatalf("REST Service selector = %v, want %v", service.Spec.Selector, wantSelector)
+	}
+}
+
+func TestRestServiceFieldsRenderIndependently(t *testing.T) {
+	t.Run("policy only", func(t *testing.T) {
+		service := renderRestService(t, "--set", "restService.ipFamilyPolicy=PreferDualStack")
+		if service.Spec.IPFamilyPolicy == nil || *service.Spec.IPFamilyPolicy != corev1.IPFamilyPolicyPreferDualStack {
+			t.Fatalf("ipFamilyPolicy = %v, want PreferDualStack", service.Spec.IPFamilyPolicy)
+		}
+		if service.Spec.IPFamilies != nil {
+			t.Fatalf("ipFamilies = %v, want omitted", service.Spec.IPFamilies)
+		}
+	})
+
+	t.Run("families only", func(t *testing.T) {
+		service := renderRestService(t, "--set", "restService.ipFamilies={IPv6}")
+		if service.Spec.IPFamilyPolicy != nil {
+			t.Fatalf("ipFamilyPolicy = %v, want omitted", service.Spec.IPFamilyPolicy)
+		}
+		assertIPFamilies(t, service, corev1.IPv6Protocol)
+	})
+}
+
+func TestRestServiceIPFamilies(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		families []corev1.IPFamily
+	}{
+		{name: "IPv4 only", value: "{IPv4}", families: []corev1.IPFamily{corev1.IPv4Protocol}},
+		{name: "IPv6 only", value: "{IPv6}", families: []corev1.IPFamily{corev1.IPv6Protocol}},
+		{name: "IPv4 then IPv6", value: "{IPv4,IPv6}", families: []corev1.IPFamily{corev1.IPv4Protocol, corev1.IPv6Protocol}},
+		{name: "IPv6 then IPv4", value: "{IPv6,IPv4}", families: []corev1.IPFamily{corev1.IPv6Protocol, corev1.IPv4Protocol}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := renderRestService(t, "--set", "restService.ipFamilies="+tt.value)
+			assertIPFamilies(t, service, tt.families...)
+		})
+	}
+}
+
+func TestRestServiceIPFamilyPolicies(t *testing.T) {
+	policies := []corev1.IPFamilyPolicy{
+		corev1.IPFamilyPolicySingleStack,
+		corev1.IPFamilyPolicyPreferDualStack,
+		corev1.IPFamilyPolicyRequireDualStack,
+	}
+
+	for _, policy := range policies {
+		t.Run(string(policy), func(t *testing.T) {
+			service := renderRestService(t, "--set", "restService.ipFamilyPolicy="+string(policy))
+			if service.Spec.IPFamilyPolicy == nil || *service.Spec.IPFamilyPolicy != policy {
+				t.Fatalf("ipFamilyPolicy = %v, want %s", service.Spec.IPFamilyPolicy, policy)
+			}
+		})
+	}
+}
+
+func TestRestServiceSchemaValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{name: "invalid policy", args: []string{"--set", "restService.ipFamilyPolicy=SometimesDualStack"}},
+		{name: "invalid family", args: []string{"--set", "restService.ipFamilies={IPv5}"}},
+		{name: "duplicate families", args: []string{"--set", "restService.ipFamilies={IPv4,IPv4}"}},
+		{name: "scalar families", args: []string{"--set", "restService.ipFamilies=IPv4"}},
+		{name: "more than two families", args: []string{"--set", "restService.ipFamilies={IPv4,IPv6,IPv4}"}},
+		{name: "unknown setting", args: []string{"--set", "restService.ipFamilyPolcy=PreferDualStack"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := helmTemplate(t, tt.args...)
+			if err == nil {
+				t.Fatal("helm template succeeded, want schema validation error")
+			}
+		})
+	}
+}
+
+func TestRestServiceSchemaListConstraints(t *testing.T) {
+	data, err := os.ReadFile("values.schema.json")
+	if err != nil {
+		t.Fatalf("failed to read Helm values schema: %v", err)
+	}
+
+	var schema chartValuesSchema
+	if err = yaml.Unmarshal(data, &schema); err != nil {
+		t.Fatalf("failed to parse Helm values schema: %v", err)
+	}
+
+	ipFamilies := schema.Properties.RestService.Properties.IPFamilies
+	if ipFamilies.MaxItems != 2 {
+		t.Fatalf("ipFamilies maxItems = %d, want 2", ipFamilies.MaxItems)
+	}
+	if !ipFamilies.UniqueItems {
+		t.Fatal("ipFamilies uniqueItems = false, want true")
+	}
+}
+
+func renderRestService(t *testing.T, args ...string) *corev1.Service {
+	t.Helper()
+
+	output, err := helmTemplate(t, args...)
+	if err != nil {
+		t.Fatalf("helm template failed: %v\n%s", err, output)
+	}
+
+	for _, document := range strings.Split(output, "\n---") {
+		var resource struct {
+			Kind     string `json:"kind"`
+			Metadata struct {
+				Name string `json:"name"`
+			} `json:"metadata"`
+		}
+		if err = yaml.Unmarshal([]byte(document), &resource); err != nil {
+			t.Fatalf("failed to parse rendered manifest: %v\n%s", err, document)
+		}
+		if resource.Kind == "Service" && resource.Metadata.Name == "coherence-operator-rest" {
+			service := &corev1.Service{}
+			if err = yaml.Unmarshal([]byte(document), service); err != nil {
+				t.Fatalf("failed to parse rendered REST Service: %v\n%s", err, document)
+			}
+			return service
+		}
+	}
+
+	t.Fatalf("rendered chart does not contain coherence-operator-rest Service:\n%s", output)
+	return nil
+}
+
+func assertIPFamilies(t *testing.T, service *corev1.Service, want ...corev1.IPFamily) {
+	t.Helper()
+
+	if len(service.Spec.IPFamilies) != len(want) {
+		t.Fatalf("ipFamilies = %v, want %v", service.Spec.IPFamilies, want)
+	}
+	for i := range want {
+		if service.Spec.IPFamilies[i] != want[i] {
+			t.Fatalf("ipFamilies = %v, want %v", service.Spec.IPFamilies, want)
+		}
+	}
+}
+
+func helmTemplate(t *testing.T, args ...string) (string, error) {
+	t.Helper()
+
+	chart := copyTestChart(t)
+	commandArgs := []string{"template", "operator", chart, "--show-only", "templates/deployment.yaml"}
+	commandArgs = append(commandArgs, args...)
+	cmd := exec.Command("helm", commandArgs...)
+	output, err := cmd.CombinedOutput()
+	return string(output), err
+}
+
+func copyTestChart(t *testing.T) string {
+	t.Helper()
+
+	destination := filepath.Join(t.TempDir(), "coherence-operator")
+	err := filepath.Walk(".", func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		target := filepath.Join(destination, path)
+		if info.IsDir() {
+			return os.MkdirAll(target, info.Mode())
+		}
+
+		data, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+		if path == "Chart.yaml" {
+			data = []byte(strings.ReplaceAll(string(data), "${VERSION}", "1.0.0"))
+		}
+		return os.WriteFile(target, data, info.Mode())
+	})
+	if err != nil {
+		t.Fatalf("failed to prepare Helm chart for testing: %v", err)
+	}
+	return destination
 }
 
 func readChartMetadata(t *testing.T) chartMetadata {

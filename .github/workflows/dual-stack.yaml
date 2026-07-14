@@ -1,0 +1,85 @@
+# Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+name: Operator REST Dual Stack
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - gh-pages
+      - 1.0.0
+      - 2.x
+      - 3.x
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches-ignore:
+      - gh-pages
+      - 1.0.0
+      - 2.x
+      - 3.x
+
+jobs:
+  dual-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: oracle-actions/setup-java@v1
+        with:
+          website: oracle.com
+          release: 21
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mods-
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Start dual-stack KinD cluster
+        run: make kind-dual
+
+      - name: Build operator image and Helm chart
+        run: make build-operator helm-chart
+
+      - name: Load operator image
+        run: make kind-load-operator
+
+      - name: Install dual-stack REST Service
+        run: |
+          chart_version="$(<build/_output/version.txt)"
+          helm upgrade --install coherence-operator "build/_output/helm-charts/coherence-operator-${chart_version}.tgz" \
+            --namespace operator-test \
+            --create-namespace \
+            --set replicas=1 \
+            --set restService.ipFamilyPolicy=RequireDualStack \
+            --set 'restService.ipFamilies={IPv4,IPv6}' \
+            --wait \
+            --timeout 5m
+
+      - name: Verify IPv4 and IPv6 REST access
+        run: hack/kind/verify-operator-rest-dual-stack.sh
+
+      - name: Collect diagnostics
+        if: ${{ failure() || cancelled() }}
+        run: |
+          kubectl get all --all-namespaces -o wide
+          kubectl --namespace operator-test describe service coherence-operator-rest || true
+          kubectl --namespace operator-test logs deployment/coherence-operator --all-pods=true || true
