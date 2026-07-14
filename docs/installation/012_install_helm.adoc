@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2026, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -190,6 +190,71 @@ helm install  \
 ----
 
 The `payments`, `catalog` and `customers` namespaces will be watched by the Operator.
+
+[#helm-rest-service-ip-families]
+=== Configure the Operator REST Service IP Families
+
+The `restService.ipFamilyPolicy` and `restService.ipFamilies` values configure the corresponding
+Kubernetes fields on the `coherence-operator-rest` Service. Both values are unset by default, so
+Kubernetes applies the cluster's normal Service defaults. Either value may be set independently.
+
+Valid values for `restService.ipFamilyPolicy` are `SingleStack`, `PreferDualStack`, and
+`RequireDualStack`. The `restService.ipFamilies` value is an ordered list containing at most two
+distinct entries, each of which must be `IPv4` or `IPv6`.
+
+The following values configure an IPv4-only REST Service:
+
+[source,yaml]
+----
+restService:
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv4
+----
+
+For an IPv6-only REST Service, use:
+
+[source,yaml]
+----
+restService:
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv6
+----
+
+For a dual-stack REST Service with IPv4 as the primary family, use:
+
+[source,yaml]
+----
+restService:
+  ipFamilyPolicy: RequireDualStack
+  ipFamilies:
+    - IPv4
+    - IPv6
+----
+
+The family order can be reversed to make IPv6 primary:
+
+[source,yaml]
+----
+restService:
+  ipFamilyPolicy: PreferDualStack
+  ipFamilies:
+    - IPv6
+    - IPv4
+----
+
+Helm validates the value types, policy and family names, family count, and uniqueness. Kubernetes
+still validates whether the requested policy and family combination is supported by the target
+cluster. If it is not supported, the Kubernetes API server rejects the Service and the Helm install
+or upgrade fails.
+
+Separately from these Service settings, the Operator REST listener binds to the unspecified wildcard
+address by default. This allows IPv4 and IPv6 connections when the platform supports dual-stack
+sockets, and falls back to IPv4 when IPv6 is unavailable. The `--rest-host` flag remains available for
+an explicit bind address; use `0.0.0.0` for an IPv4-only wildcard, `::` for an IPv6 wildcard, or
+specify an individual IPv4 or IPv6 address. IPv6 addresses may optionally be enclosed in square
+brackets. Changing the listener address does not change the Service's IP-family allocation.
 
 ==== Set the Watch Namespace to the Operator's Install Namespace
 
@@ -617,4 +682,3 @@ To uninstall the operator:
 ----
 helm delete coherence-operator --namespace <namespace>
 ----
-

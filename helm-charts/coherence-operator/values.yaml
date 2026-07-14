@@ -1,4 +1,4 @@
-# Copyright 2020, 2024, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2026, Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -14,6 +14,19 @@ defaultCoherenceImage:
   registry: "${COHERENCE_IMAGE_REGISTRY}"
   name: "${COHERENCE_IMAGE_NAME}"
   tag: "${COHERENCE_IMAGE_TAG}"
+
+# restService configures IP-family settings for the coherence-operator-rest Service.
+# Both settings are omitted by default, allowing Kubernetes to apply the cluster defaults.
+# Valid ipFamilyPolicy values are SingleStack, PreferDualStack, and RequireDualStack.
+# ipFamilies may contain IPv4, IPv6, or both values in the preferred order.
+#
+# For example:
+# restService:
+#   ipFamilyPolicy: PreferDualStack
+#   ipFamilies:
+#   - IPv4
+#   - IPv6
+restService: {}
 
 # watchNamespaces is the comma-delimited list of namespaces that the operator should
 # manage Coherence resources in. The default is to manage all namespaces.
@@ -238,4 +251,3 @@ leaderElectionDuration:
 # Normally this will be a number of seconds. For example, 30 seconds is "30s" and
 # there would not be any reason to have values in minutes or hours.
 leaderElectionRenewTimeout:
-

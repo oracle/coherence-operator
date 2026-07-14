@@ -20,6 +20,13 @@ metadata:
 {{ toYaml .Values.globalAnnotations | indent 4 }}
 {{- end }}
 spec:
+{{- with .Values.restService.ipFamilyPolicy }}
+  ipFamilyPolicy: {{ . }}
+{{- end }}
+{{- with .Values.restService.ipFamilies }}
+  ipFamilies:
+{{ toYaml . | indent 2 }}
+{{- end }}
   ports:
   - name: http-rest
     port: 8000
