@@ -140,7 +140,7 @@ jobs:
             baseImage: "gcr.io/distroless/java11-debian11"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0
 
@@ -178,7 +178,7 @@ jobs:
 #        go-version-file: go.mod
 
     - name: Cache Go Modules
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
@@ -186,7 +186,7 @@ jobs:
           ${{ runner.os }}-go-mods-
 
     - name: Cache Maven packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -286,7 +286,7 @@ jobs:
         collect coherence-crds kubectl get crd coherence.coherence.oracle.com coherencejob.coherence.oracle.com
         collect coherence-resources kubectl get coherence.coherence.oracle.com,coherencejob.coherence.oracle.com -A
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       if: ${{ failure() || cancelled() }}
       with:
         name: test-output-${{ matrix.matrixName }}

@@ -36,7 +36,7 @@ jobs:
 #   Checkout the source, we need a depth of zero to fetch all of the history otherwise
 #   the copyright check cannot work out the date of the files from Git.
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0
 
@@ -85,7 +85,7 @@ jobs:
         release: 21
 
     - name: Cache Go Modules
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
@@ -93,7 +93,7 @@ jobs:
           ${{ runner.os }}-go-mods-
 
     - name: Cache Maven packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -167,7 +167,7 @@ jobs:
         make fips-test
 
     - name: Upload Manifests
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success()
       with:
         name: coherence-operator-manifests.tar.gz
@@ -175,7 +175,7 @@ jobs:
         if-no-files-found: ignore
 
     - name: Upload Yaml
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success()
       with:
         name: coherence-operator.yaml
@@ -183,14 +183,14 @@ jobs:
         if-no-files-found: ignore
 
     - name: Upload CRD
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success()
       with:
         name: coherence.oracle.com_coherence.yaml
         path: build/_output/manifests/crd/coherence.oracle.com_coherence.yaml
         if-no-files-found: ignore
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       if: ${{ failure() || cancelled() }}
       with:
         name: test-output
