@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -18,6 +18,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/rest"
+	"net"
 	"net/http"
 	"net/url"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -151,10 +152,10 @@ func (in *CoherenceProbe) SuspendServices(ctx context.Context, deployment coh.Co
 
 	log.Info("Suspending Coherence services in StatefulSet "+sts.Name, "Namespace", ns, "Name", name)
 	if in.ExecuteProbe(ctx, sts, deployment.GetWkaServiceName(), stsSpec.GetSuspendProbe()) {
-		in.EventRecorder.Warnf("ServiceSuspendFailed", "failed to suspend Coherence services in StatefulSet %s", sts.Name)
+		in.EventRecorder.Infof("ServiceSuspended", "suspended Coherence services in StatefulSet %s", sts.Name)
 		return ServiceSuspendSuccessful
 	}
-	in.EventRecorder.Infof("ServiceSuspended", "suspended Coherence services in StatefulSet %s", sts.Name)
+	in.EventRecorder.Warnf("ServiceSuspendFailed", "failed to suspend Coherence services in StatefulSet %s", sts.Name)
 	return ServiceSuspendFailed
 }
 
@@ -289,7 +290,6 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, svc string, handler *co
 		scheme   corev1.URIScheme
 		hostOrIP string
 		port     int
-		path     string
 	)
 
 	action := handler.HTTPGet
@@ -311,13 +311,7 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, svc string, handler *co
 		return false, err
 	}
 
-	if strings.HasPrefix(action.Path, "/") {
-		path = action.Path[1:]
-	} else {
-		path = action.Path
-	}
-
-	u, err := url.Parse(fmt.Sprintf("%s://%s:%d/%s", scheme, hostOrIP, port, path))
+	u, err := buildHTTPProbeURL(scheme, hostOrIP, port, action.Path)
 	if err != nil {
 		return false, err
 	}
@@ -342,6 +336,12 @@ func (in *CoherenceProbe) ProbeUsingHTTP(pod corev1.Pod, svc string, handler *co
 	log.Info("Executed HTTP Probe", "URL", u, "Result", fmt.Sprintf("%v", result), "Msg", s, "Error", err)
 
 	return result == Success, err
+}
+
+func buildHTTPProbeURL(scheme corev1.URIScheme, host string, port int, path string) (*url.URL, error) {
+	hostAndPort := net.JoinHostPort(host, strconv.Itoa(port))
+	path = strings.TrimPrefix(path, "/")
+	return url.Parse(fmt.Sprintf("%s://%s/%s", scheme, hostAndPort, path))
 }
 
 func (in *CoherenceProbe) ProbeUsingTCP(pod corev1.Pod, handler *coh.Probe) (bool, error) {
