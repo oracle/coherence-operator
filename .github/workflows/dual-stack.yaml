@@ -53,6 +53,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Validate verification script syntax
+        run: bash -n hack/kind/verify-operator-rest-dual-stack.sh
+
       - name: Start dual-stack KinD cluster
         run: make kind-dual
 
@@ -62,24 +65,63 @@ jobs:
       - name: Load operator image
         run: make kind-load-operator
 
-      - name: Install dual-stack REST Service
+      - name: Verify REST Service IP-family matrix
         run: |
-          chart_version="$(<build/_output/version.txt)"
-          helm upgrade --install coherence-operator "build/_output/helm-charts/coherence-operator-${chart_version}.tgz" \
-            --namespace operator-test \
-            --create-namespace \
-            --set replicas=1 \
-            --set restService.ipFamilyPolicy=RequireDualStack \
-            --set 'restService.ipFamilies={IPv4,IPv6}' \
-            --wait \
-            --timeout 5m
+          set -o errexit
+          set -o nounset
+          set -o pipefail
 
-      - name: Verify IPv4 and IPv6 REST access
-        run: hack/kind/verify-operator-rest-dual-stack.sh
+          chart_version="$(<build/_output/version.txt)"
+          chart="build/_output/helm-charts/coherence-operator-${chart_version}.tgz"
+
+          verify_scenario() {
+            local scenario="$1"
+            local expected_policy="$2"
+            local expected_families_csv="$3"
+            local configured_policy="$4"
+            local configured_families="$5"
+            local expected_families=()
+            local helm_args=(--set replicas=1)
+
+            IFS=',' read -r -a expected_families <<< "${expected_families_csv}"
+            if [[ -n "${configured_policy}" ]]; then
+              helm_args+=(--set "restService.ipFamilyPolicy=${configured_policy}")
+            fi
+            if [[ -n "${configured_families}" ]]; then
+              helm_args+=(--set "restService.ipFamilies={${configured_families}}")
+            fi
+
+            echo "Verifying scenario: ${scenario}"
+            helm upgrade --install coherence-operator "${chart}" \
+              --namespace operator-test \
+              --create-namespace \
+              --wait \
+              --timeout 5m \
+              "${helm_args[@]}"
+
+            hack/kind/verify-operator-rest-dual-stack.sh \
+              operator-test coherence-operator-rest "${expected_policy}" "${expected_families[@]}"
+
+            helm uninstall coherence-operator --namespace operator-test --wait --timeout 5m
+            kubectl --namespace operator-test wait --for=delete \
+              service/coherence-operator-rest --timeout=2m
+          }
+
+          verify_scenario default SingleStack IPv4 "" ""
+          verify_scenario single-stack-ipv4 SingleStack IPv4 SingleStack IPv4
+          verify_scenario single-stack-ipv6 SingleStack IPv6 SingleStack IPv6
+          verify_scenario prefer-dual-stack-ipv4-first PreferDualStack IPv4,IPv6 PreferDualStack IPv4,IPv6
+          verify_scenario prefer-dual-stack-ipv6-first PreferDualStack IPv6,IPv4 PreferDualStack IPv6,IPv4
+          verify_scenario require-dual-stack-ipv4-first RequireDualStack IPv4,IPv6 RequireDualStack IPv4,IPv6
+          verify_scenario require-dual-stack-ipv6-first RequireDualStack IPv6,IPv4 RequireDualStack IPv6,IPv4
 
       - name: Collect diagnostics
         if: ${{ failure() || cancelled() }}
         run: |
           kubectl get all --all-namespaces -o wide
-          kubectl --namespace operator-test describe service coherence-operator-rest || true
+          kubectl --namespace operator-test get service coherence-operator-rest -o yaml || true
+          kubectl --namespace operator-test get endpointslices \
+            --selector kubernetes.io/service-name=coherence-operator-rest -o yaml || true
+          kubectl --namespace operator-test get pods \
+            -o custom-columns='NAME:.metadata.name,POD_IPS:.status.podIPs[*].ip,NODE:.spec.nodeName' || true
           kubectl --namespace operator-test logs deployment/coherence-operator --all-pods=true || true
