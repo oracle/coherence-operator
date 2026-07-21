@@ -120,7 +120,7 @@ jobs:
 
       - name: Verify IPv6 suspend finalization
         run: |
-          make run-e2e-test \
+          RUN_IPV6_FINALIZER_TEST=true make run-e2e-test \
             OPERATOR_NAMESPACE=operator-test \
             GO_TEST_FLAGS_E2E='-run=^TestSuspendServicesWithIPv6PodIP$ -count=1'
 
