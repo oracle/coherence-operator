@@ -2,7 +2,7 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
-name: Operator REST Dual Stack
+name: Coherence Operator Dual Stack
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ on:
 jobs:
   dual-stack:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       - uses: actions/checkout@v5
@@ -59,11 +59,11 @@ jobs:
       - name: Start dual-stack KinD cluster
         run: make kind-dual
 
-      - name: Build operator image and Helm chart
-        run: make build-operator helm-chart
+      - name: Build operator image, Helm chart, and basic test image
+        run: make build-operator helm-chart build-basic-test-image
 
-      - name: Load operator image
-        run: make kind-load-operator
+      - name: Load operator and basic test images
+        run: make kind-load-operator kind-load-basic-test-image
 
       - name: Verify REST Service IP-family matrix
         run: |
@@ -80,6 +80,7 @@ jobs:
             local expected_families_csv="$3"
             local configured_policy="$4"
             local configured_families="$5"
+            local keep_release="${6:-false}"
             local expected_families=()
             local helm_args=(--set replicas=1)
 
@@ -102,26 +103,95 @@ jobs:
             hack/kind/verify-operator-rest-dual-stack.sh \
               operator-test coherence-operator-rest "${expected_policy}" "${expected_families[@]}"
 
-            helm uninstall coherence-operator --namespace operator-test --wait --timeout 5m
-            kubectl --namespace operator-test wait --for=delete \
-              service/coherence-operator-rest --timeout=2m
+            if [[ "${keep_release}" == false ]]; then
+              helm uninstall coherence-operator --namespace operator-test --wait --timeout 5m
+              kubectl --namespace operator-test wait --for=delete \
+                service/coherence-operator-rest --timeout=2m
+            fi
           }
 
-          verify_scenario default SingleStack IPv4 "" ""
+          verify_scenario default SingleStack IPv6 "" ""
           verify_scenario single-stack-ipv4 SingleStack IPv4 SingleStack IPv4
           verify_scenario single-stack-ipv6 SingleStack IPv6 SingleStack IPv6
           verify_scenario prefer-dual-stack-ipv4-first PreferDualStack IPv4,IPv6 PreferDualStack IPv4,IPv6
           verify_scenario prefer-dual-stack-ipv6-first PreferDualStack IPv6,IPv4 PreferDualStack IPv6,IPv4
           verify_scenario require-dual-stack-ipv4-first RequireDualStack IPv4,IPv6 RequireDualStack IPv4,IPv6
-          verify_scenario require-dual-stack-ipv6-first RequireDualStack IPv6,IPv4 RequireDualStack IPv6,IPv4
+          verify_scenario require-dual-stack-ipv6-first RequireDualStack IPv6,IPv4 RequireDualStack IPv6,IPv4 true
+
+      - name: Verify IPv6 suspend finalization
+        run: |
+          make run-e2e-test \
+            OPERATOR_NAMESPACE=operator-test \
+            GO_TEST_FLAGS_E2E='-run=^TestSuspendServicesWithIPv6PodIP$ -count=1'
 
       - name: Collect diagnostics
         if: ${{ failure() || cancelled() }}
         run: |
-          kubectl get all --all-namespaces -o wide
-          kubectl --namespace operator-test get service coherence-operator-rest -o yaml || true
-          kubectl --namespace operator-test get endpointslices \
-            --selector kubernetes.io/service-name=coherence-operator-rest -o yaml || true
+          diagnostics=build/_output/test-logs/dual-stack-diagnostics
+          mkdir -p "${diagnostics}"
+
+          kubectl get all --all-namespaces -o wide \
+            | tee "${diagnostics}/all-resources.txt" || true
+          kubectl --namespace operator-test get coherence.coherence.oracle.com -o yaml \
+            > "${diagnostics}/coherence.yaml" || true
+          kubectl get storageclasses -o yaml \
+            > "${diagnostics}/storageclasses.yaml" || true
+          kubectl --namespace operator-test get persistentvolumeclaims -o yaml \
+            > "${diagnostics}/persistentvolumeclaims.yaml" || true
+          kubectl --namespace operator-test get statefulsets -o yaml \
+            > "${diagnostics}/statefulsets.yaml" || true
+          kubectl --namespace operator-test get pods -o yaml \
+            > "${diagnostics}/pods.yaml" || true
           kubectl --namespace operator-test get pods \
-            -o custom-columns='NAME:.metadata.name,POD_IPS:.status.podIPs[*].ip,NODE:.spec.nodeName' || true
-          kubectl --namespace operator-test logs deployment/coherence-operator --all-pods=true || true
+            -o custom-columns='NAME:.metadata.name,PRIMARY_IP:.status.podIP,POD_IPS:.status.podIPs[*].ip,NODE:.spec.nodeName' \
+            | tee "${diagnostics}/pod-addresses.txt" || true
+          kubectl --namespace operator-test get service coherence-operator-rest -o yaml \
+            > "${diagnostics}/operator-rest-service.yaml" || true
+          kubectl --namespace operator-test get endpointslices \
+            --selector kubernetes.io/service-name=coherence-operator-rest -o yaml \
+            > "${diagnostics}/operator-rest-endpointslices.yaml" || true
+          kubectl --namespace operator-test get events \
+            --sort-by=.metadata.creationTimestamp -o wide \
+            | tee "${diagnostics}/events.txt" || true
+          kubectl --namespace operator-test logs deployment/coherence-operator \
+            --all-pods=true --all-containers=true --prefix \
+            > "${diagnostics}/operator.log" || true
+
+          while read -r pod; do
+            if [[ -n "${pod}" ]]; then
+              pod_name="${pod#pod/}"
+              kubectl --namespace operator-test logs "${pod}" \
+                --all-containers=true --prefix \
+                > "${diagnostics}/${pod_name}.log" || true
+            fi
+          done < <(kubectl --namespace operator-test get pods \
+            --selector coherenceComponent=coherencePod -o name 2>/dev/null)
+
+      - name: Clean up dual-stack resources
+        if: ${{ always() }}
+        run: |
+          for resource in $(kubectl --namespace operator-test get \
+            coherence.coherence.oracle.com -o name 2>/dev/null); do
+            kubectl --namespace operator-test patch "${resource}" --type=merge \
+              --patch '{"metadata":{"finalizers":[]}}' || true
+            kubectl --namespace operator-test delete "${resource}" \
+              --ignore-not-found --wait=false || true
+          done
+          kubectl --namespace operator-test delete pod \
+            coherence-operator-rest-dual-stack-probe --ignore-not-found --wait=false || true
+          kubectl --namespace operator-test delete statefulsets \
+            --selector coherenceComponent=coherence --ignore-not-found --wait=false || true
+          kubectl --namespace operator-test delete pods \
+            --selector coherenceComponent=coherencePod --ignore-not-found --wait=false || true
+          kubectl --namespace operator-test delete persistentvolumeclaims \
+            --selector coherenceComponent=coherence-volume --ignore-not-found --wait=false || true
+          helm uninstall coherence-operator --namespace operator-test \
+            --wait --timeout 5m || true
+
+      - name: Upload dual-stack test logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: dual-stack-test-logs
+          path: build/_output/test-logs
+          if-no-files-found: warn
