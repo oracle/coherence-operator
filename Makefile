@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2019, 2026, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 #
@@ -2326,6 +2326,10 @@ kind-load-coherence: kind-install  ## Load the Coherence image into the KinD clu
 .PHONY: kind-load-operator
 kind-load-operator: kind-install  ## Load the Operator images into the KinD cluster
 	$(KIND) load docker-image --name $(KIND_CLUSTER) $(OPERATOR_IMAGE) || true
+
+.PHONY: kind-load-basic-test-image
+kind-load-basic-test-image: kind-install  ## Load the basic Operator test image into the KinD cluster
+	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Load compatibility images into Kind
