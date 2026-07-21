@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -31,7 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const testFinalizer = "coherence.oracle.com/test"
+const (
+	testFinalizer           = "coherence.oracle.com/test"
+	runIPv6FinalizerTestEnv = "RUN_IPV6_FINALIZER_TEST"
+)
 
 func TestSuspendServices(t *testing.T) {
 	g := NewGomegaWithT(t)
@@ -43,6 +47,10 @@ func TestSuspendServices(t *testing.T) {
 }
 
 func TestSuspendServicesWithIPv6PodIP(t *testing.T) {
+	if os.Getenv(runIPv6FinalizerTestEnv) != "true" {
+		t.Skipf("set %s=true to run the IPv6-primary dual-stack test", runIPv6FinalizerTestEnv)
+	}
+
 	g := NewGomegaWithT(t)
 
 	ns := helper.GetTestNamespace()
