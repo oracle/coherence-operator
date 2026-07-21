@@ -7,6 +7,8 @@
 package events
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	events2 "k8s.io/client-go/tools/events"
@@ -38,7 +40,7 @@ func NewOwnedEventRecorder(owner runtime.Object, recorder events2.EventRecorder)
 // The resulting event will be created in the same namespace as the reference object.
 func (in *OwnedEventRecorder) Event(eventType, reason, message string) {
 	if in != nil && in.owner != nil && in.recorder != nil {
-		in.recorder.Eventf(in.owner, nil, eventType, reason, "Operator", message)
+		in.recorder.Eventf(in.owner, nil, eventType, reason, "Operator", "%s", message)
 	}
 }
 
@@ -54,9 +56,7 @@ func (in *OwnedEventRecorder) Info(reason, message string) {
 
 // Eventf is just like Event, but with Sprintf for the message field.
 func (in *OwnedEventRecorder) Eventf(eventType, reason, messageFmt string, args ...interface{}) {
-	if in != nil && in.owner != nil && in.recorder != nil {
-		in.recorder.Eventf(in.owner, nil, eventType, reason, "", messageFmt, args...)
-	}
+	in.Event(eventType, reason, fmt.Sprintf(messageFmt, args...))
 }
 
 // Warnf is just like Eventf, and sends a Warning event.
