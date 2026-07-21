@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -11,10 +11,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/ghodss/yaml"
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/pkg/operator"
@@ -22,11 +24,62 @@ import (
 	"github.com/oracle/coherence-operator/test/e2e/helper/matchers"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func TestEventsV1RBAC(t *testing.T) {
+	t.Run("cluster role", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		result, err := helmInstall()
+		g.Expect(err).NotTo(HaveOccurred())
+
+		role := &rbacv1.ClusterRole{}
+		g.Expect(result.Get("coherence-operator", role)).To(Succeed())
+		assertEventsV1WriteRule(t, role.Rules)
+	})
+
+	t.Run("namespaced role", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		result, err := helmInstall("--set", "clusterRoles=false")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		role := &rbacv1.Role{}
+		g.Expect(result.Get("coherence-operator", role)).To(Succeed())
+		assertEventsV1WriteRule(t, role.Rules)
+	})
+}
+
+func TestGeneratedEventsV1RBAC(t *testing.T) {
+	g := NewGomegaWithT(t)
+	root, err := helper.FindProjectRootDir()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	data, err := os.ReadFile(filepath.Join(root, "config", "rbac", "role.yaml"))
+	g.Expect(err).NotTo(HaveOccurred())
+
+	role := &rbacv1.ClusterRole{}
+	g.Expect(yaml.Unmarshal(data, role)).To(Succeed())
+	assertEventsV1WriteRule(t, role.Rules)
+}
+
+func assertEventsV1WriteRule(t *testing.T, rules []rbacv1.PolicyRule) {
+	t.Helper()
+	g := NewGomegaWithT(t)
+
+	for _, rule := range rules {
+		if len(rule.APIGroups) == 1 && rule.APIGroups[0] == "events.k8s.io" &&
+			len(rule.Resources) == 1 && rule.Resources[0] == "events" {
+			g.Expect(rule.Verbs).To(ConsistOf("create", "patch"))
+			return
+		}
+	}
+
+	t.Fatalf("expected an events.k8s.io events rule with exactly create and patch verbs; rules=%v", rules)
+}
 
 func TestPodSecurityContext(t *testing.T) {
 	g := NewGomegaWithT(t)
