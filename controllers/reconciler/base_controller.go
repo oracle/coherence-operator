@@ -738,7 +738,7 @@ func (in *ReconcileSecondaryResource) ReconcileAllResourceOfKind(ctx context.Con
 					return reconcile.Result{}, errors.Wrapf(err, "Failed to delete resource %v/%s", in.Kind, del.Name)
 				}
 				if err == nil {
-					in.GetEventRecorder().Eventf(resource, nil, corev1.EventTypeNormal, EventReasonDeleted, "", fmt.Sprintf("Deleted resource after update to Coherence resource %s", deployment.GetName()))
+					in.GetEventRecorder().Eventf(resource, nil, corev1.EventTypeNormal, EventReasonDeleted, "DeleteResource", fmt.Sprintf("Deleted resource after update to Coherence resource %s", deployment.GetName()))
 				}
 			}
 		}
