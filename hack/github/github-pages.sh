@@ -41,6 +41,13 @@ rm -rf ${BUILD_GH_PAGES}/dashboards/latest || true
 cp -R ${BUILD_GH_PAGES}/dashboards/${OPERATOR_VERSION} ${BUILD_GH_PAGES}/dashboards/latest
 git add -A dashboards/latest/*
 
+mkdir ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION} || true
+rm -rf ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION}/ || true
+cp -R ${BUILD_OUTPUT}/docs ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION}/
+rm -rf ${BUILD_GH_PAGES}/docs/latest
+cp -R ${BUILD_GH_PAGES}/docs/${OPERATOR_VERSION} ${BUILD_GH_PAGES}/docs/latest
+git add -A docs/*
+
 mkdir -p ${BUILD_GH_PAGES}/charts || true
 cp ${BUILD_OUTPUT}/helm-charts/coherence-operator-${OPERATOR_VERSION}.tgz ${BUILD_GH_PAGES}/charts/
 ls -al ${BUILD_GH_PAGES}/charts
