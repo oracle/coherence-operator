@@ -10,8 +10,7 @@ Obviously the features of the Operator such as safe scaling, safe rolling upgrad
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
 <p ><p>We really recommend that you try and use the Coherence Operator for managing Coherence clusters in Kubernetes.
-It is possible to run the Operator with fewer RBAC permissions, for example without <code>ClusterRoles</code> and only using <code>Roles</code> restricted to a single namespace. The Operator can also run without installing its web-hooks. Ultimately though it requires the CRD to be installed, which could be done manually instead of allowing the Operator to install it.
-If you really cannot change the minds of those dictating policies that mean you cannot use the Operator then these examples may be useful.</p>
+It is possible to run the Operator with fewer RBAC permissions, for example without <code>ClusterRoles</code> and only using <code>Roles</code> restricted to a single namespace.</p>
 </p>
 </div>
 <div class="admonition tip">
