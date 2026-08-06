@@ -1583,11 +1583,19 @@ func (in *ServiceMonitorSpec) CreateServiceMonitor() monitoringv1.ServiceMonitor
 		return monitoringv1.ServiceMonitorSpec{}
 	}
 
+	var sampleLimit *int64
+	if in.SampleLimit != nil {
+		// Prometheus Operator v0.93.0 changed this Go type from uint64 to int64.
+		// Keep the Coherence API stable and convert only at the dependency boundary.
+		value := int64(*in.SampleLimit)
+		sampleLimit = &value
+	}
+
 	return monitoringv1.ServiceMonitorSpec{
 		JobLabel:        in.JobLabel,
 		TargetLabels:    in.TargetLabels,
 		PodTargetLabels: in.PodTargetLabels,
-		SampleLimit:     in.SampleLimit,
+		SampleLimit:     sampleLimit,
 	}
 }
 
