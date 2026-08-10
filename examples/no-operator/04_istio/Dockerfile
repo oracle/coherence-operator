@@ -1,4 +1,4 @@
-FROM container-registry.oracle.com/middlewarecoherence-operator:3.5.16 AS Builder
+FROM container-registry.oracle.com/middlewarecoherence-operator:3.5.17 AS Builder
 
 FROM container-registry.oracle.com/middleware/coherence-ce:14.1.2-0-1
 COPY --from=Builder /files /files
