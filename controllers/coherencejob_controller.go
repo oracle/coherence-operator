@@ -155,7 +155,7 @@ func (in *CoherenceJobReconciler) ReconcileDeployment(ctx context.Context, reque
 	}
 
 	// create the result
-	result := ctrl.Result{Requeue: false}
+	result := ctrl.Result{}
 
 	hash := deployment.GetGenerationString()
 	storeHash, _ := storage.GetHash()
