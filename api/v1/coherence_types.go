@@ -1610,7 +1610,7 @@ func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
 		Params:               in.Params,
 		Interval:             in.Interval,
 		ScrapeTimeout:        in.ScrapeTimeout,
-		BearerTokenFile:      in.BearerTokenFile,
+		BearerTokenFile:      in.BearerTokenFile, //nolint:staticcheck // Preserve the deprecated CRD field for compatibility.
 		HonorLabels:          in.HonorLabels,
 		HonorTimestamps:      in.HonorTimestamps,
 		MetricRelabelConfigs: in.MetricRelabelings,
@@ -1621,7 +1621,7 @@ func (in *ServiceMonitorSpec) CreateEndpoint() monitoringv1.Endpoint {
 				HTTPConfigWithoutTLS: monitoringv1.HTTPConfigWithoutTLS{
 					Authorization:     in.Authorization,
 					BasicAuth:         in.BasicAuth,
-					BearerTokenSecret: in.BearerTokenSecret,
+					BearerTokenSecret: in.BearerTokenSecret, //nolint:staticcheck // Preserve the deprecated CRD field for compatibility.
 				},
 			},
 			ProxyConfig: monitoringv1.ProxyConfig{
