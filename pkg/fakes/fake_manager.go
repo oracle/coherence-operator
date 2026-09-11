@@ -22,7 +22,6 @@ import (
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -31,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/recorder"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/conversion"
 )
@@ -129,8 +129,8 @@ func (f *FakeManager) GetWebhookServer() webhook.Server {
 	panic("implement me")
 }
 
-func (f *FakeManager) GetEventRecorder(name string) events.EventRecorder {
-	panic("implement me")
+func (f *FakeManager) GetEventRecorder(name string) recorder.EventRecorder {
+	return fakeEventRecorderV1{recorder: f.Events}
 }
 
 func (f *FakeManager) GetConverterRegistry() conversion.Registry {

@@ -20,6 +20,19 @@ type FakeEventRecorder struct {
 	Events chan FakeEvent
 }
 
+// fakeEventRecorderV1 adapts FakeEventRecorder to the events.k8s.io/v1 recorder API.
+type fakeEventRecorderV1 struct {
+	recorder *FakeEventRecorder
+}
+
+func (f fakeEventRecorderV1) Eventf(regarding runtime.Object, _ runtime.Object, eventtype, reason, _ string, note string, args ...interface{}) {
+	f.recorder.Eventf(regarding, eventtype, reason, note, args...)
+}
+
+func (f fakeEventRecorderV1) AnnotatedEventf(regarding runtime.Object, _ runtime.Object, annotations map[string]string, eventtype, reason, _ string, note string, args ...interface{}) {
+	f.recorder.AnnotatedEventf(regarding, annotations, eventtype, reason, note, args...)
+}
+
 type FakeEvent struct {
 	Owner       runtime.Object
 	Type        string
