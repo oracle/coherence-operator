@@ -1,0 +1,29 @@
+{
+  "name": "setup-oras",
+  "version": "2.0.0",
+  "description": "Set up your GitHub Actions workflow with a specific version of ORAS",
+  "scripts": {
+    "build": "esbuild src/setup.ts --bundle --platform=node --format=cjs --target=node24 --metafile=dist/meta.json --outfile=dist/index.js && node scripts/generate-licenses.js dist/meta.json dist/licenses.txt && rm dist/meta.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oras-project/setup-oras.git"
+  },
+  "keywords": [],
+  "author": "ORAS",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/oras-project/setup-oras/issues"
+  },
+  "homepage": "https://github.com/oras-project/setup-oras#readme",
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/tool-cache": "^4.0.0",
+    "@types/node": "^26.1.0",
+    "esbuild": "^0.28.1",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "undici": ">=8.9.0"
+  }
+}
