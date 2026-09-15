@@ -144,7 +144,7 @@ Otherwise, you can continue to the next step.
 
 1. Python 3.9 or Later - https://www.python.org/downloads/[https://www.python.org/downloads/]
 2. Node 18.15.x or later and NPM 9.x or later - https://nodejs.org/en/download[https://nodejs.org/en/download]
-3. Go 1.23 or later - https://go.dev/doc/install[https://go.dev/doc/install]
+3. Go 1.25 or later - https://go.dev/doc/install[https://go.dev/doc/install]
 
 TIP: If you are just going to run the example within your Kubernetes cluster then you do not need the software.
 
@@ -747,6 +747,5 @@ make undeploy-operator
 ----
 make delete-namespace
 ----
-
 
 

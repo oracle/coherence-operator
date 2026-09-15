@@ -5,7 +5,7 @@
 # http://oss.oracle.com/licenses/upl.
 # tag::dockerfile[]
 
-FROM golang:1.24 as builder
+FROM golang:1.25 AS builder
 
 WORKDIR /app
 
