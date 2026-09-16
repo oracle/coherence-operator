@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2026, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -172,4 +172,19 @@ spec:
 ----
 <1> The `serviceMonitor.enabled` field is set to `true` for the `metrics` port.
 
-See <<docs/ports/040_servicemonitors.adoc,Exposing ports and Services - Service Monitors>> documentation for more details.
+To disable the built-in target label-drop rule that removes `endpoint`, `instance`,
+`job`, and `service`, add the following setting to the existing metrics port
+(requires matching Operator and CRDs):
+
+[source,yaml]
+----
+serviceMonitor:
+  enabled: true
+  useDefaultLabelDrop: false
+----
+
+Omitted or `true` preserves existing behavior. Custom relabelings still apply.
+Retaining target labels changes series label sets and can affect label collisions,
+queries, and dashboards.
+See <<docs/ports/040_servicemonitors.adoc,Exposing ports and Services - Service Monitors>>
+for a custom rule that drops only `endpoint` and `service`, and compatibility details.

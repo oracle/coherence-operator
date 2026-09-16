@@ -1372,11 +1372,18 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *mon
 	selector[LabelPort] = in.Name
 
 	endpoint := in.ServiceMonitor.CreateEndpoint()
+	if endpoint.RelabelConfigs != nil {
+		rules := make([]monitoringv1.RelabelConfig, len(endpoint.RelabelConfigs))
+		copy(rules, endpoint.RelabelConfigs)
+		endpoint.RelabelConfigs = rules
+	}
 	endpoint.Port = in.Name
-	endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, monitoringv1.RelabelConfig{
-		Action: "labeldrop",
-		Regex:  "(endpoint|instance|job|service)",
-	})
+	if in.ServiceMonitor.UseDefaultLabelDrop == nil || *in.ServiceMonitor.UseDefaultLabelDrop {
+		endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, monitoringv1.RelabelConfig{
+			Action: "labeldrop",
+			Regex:  "(endpoint|instance|job|service)",
+		})
+	}
 
 	spec := in.ServiceMonitor.CreateServiceMonitor()
 	spec.Selector = metav1.LabelSelector{MatchLabels: selector}
@@ -1566,6 +1573,14 @@ type ServiceMonitorSpec struct {
 	// +listType=atomic
 	// +optional
 	MetricRelabelings []monitoringv1.RelabelConfig `json:"metricRelabelings,omitempty"`
+	// UseDefaultLabelDrop controls whether the Operator appends its built-in target
+	// labeldrop rule for endpoint, instance, job, and service.
+	// Set false to prevent this built-in rule from removing endpoint, instance, job,
+	// and service.
+	// User-provided relabelings and metricRelabelings are unaffected by this flag;
+	// custom rules may still remove these labels. Defaults to true when omitted.
+	// +optional
+	UseDefaultLabelDrop *bool `json:"useDefaultLabelDrop,omitempty"`
 	// Relabelings to apply to samples before scraping.
 	// More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
 	// See https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.Endpoint
