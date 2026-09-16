@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2025 Oracle and/or its affiliates.
+    Copyright (c) 2020, 2026 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -77,3 +77,50 @@ to allow the `ServiceMonitor` to be configured for most use-cases.
 In situations where the `Coherence` CRD does not have the required fields, for example when a different version
 of Prometheus has been installed to that used to build the Coherence Operator, then the solution would be to
 manually create `ServiceMonitors` instead of letting them be created by the Coherence Operator.
+
+=== Preserve target labels
+
+Set `spec.ports[].serviceMonitor.useDefaultLabelDrop: false` to stop the built-in
+rule from removing `endpoint`, `instance`, `job`, and `service`. Omitted or `true`
+retains the existing `labeldrop (endpoint|instance|job|service)` rule, appended
+after user relabelings.
+This optional setting applies per port to both `Coherence` and `CoherenceJob`.
+Install the matching Operator and CRDs before using it.
+
+To drop only `endpoint` and `service`, configure a custom rule:
+
+[source,yaml]
+----
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: example
+spec:
+  coherence:
+    metrics:
+      enabled: true
+  ports:
+    - name: metrics
+      serviceMonitor:
+        enabled: true
+        useDefaultLabelDrop: false
+        relabelings:
+          - action: labeldrop
+            regex: (endpoint|service)
+----
+
+Omit the custom rule to retain all four labels. Merge these settings into each
+existing affected port entry; do not replace the deployment's complete ports list.
+`coherence.metrics.enabled` enables the metrics endpoint, while
+`ports[].serviceMonitor.enabled` separately requests a ServiceMonitor.
+
+User `relabelings` retain their order and behavior, including rules that remove
+`job` or `instance`. The option does not change `metricRelabelings` or `honorLabels`.
+Target relabelings run before scraping; changing metric relabelings cannot repair
+target labels needed for scrape reports.
+
+Retaining target labels changes series label sets. With the existing default
+`honorLabels: false`, conflicting application labels may become `exported_job`
+or `exported_instance`. Check affected queries and dashboards; see the
+https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config[Prometheus scrape configuration].
+Restore `true` or remove the field to restore the built-in broad rule.
