@@ -35,18 +35,26 @@ jobs:
         java: ['8', '17', '25']
     steps:
       - uses: actions/checkout@v4
+      - name: Install build JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-      # This matrix verifies the selected Java runtime. These focused tests do not exercise the
+      # Compile Java 8 bytecode with JDK 17 because the Spring build dependency requires JDK 17.
+      # Surefire runs these focused tests on the selected Java runtime. They do not exercise the
       # Coherence 21.12.5 code path that requires the legacy JDK 17 toolchain on Java 24 and later.
       - name: Test packaged validator and TLS provider mapping
-        run: >-
-          ./mvnw -B -f java -pl coherence-operator -am test
-          -P=-legacy-coherence-toolchain
-          -Dtest=SecretLoginModuleTest,HealthSSLProviderConfigTest
-          -Dsurefire.failIfNoSpecifiedTests=false
+        run: |
+          test_java="${JAVA_HOME}/bin/java"
+          JAVA_HOME="${JAVA_HOME_17_X64}" ./mvnw -B -f java -pl coherence-operator -am test \
+            -P=-legacy-coherence-toolchain \
+            -Djvm="${test_java}" \
+            -Dtest=SecretLoginModuleTest,HealthSSLProviderConfigTest \
+            -Dsurefire.failIfNoSpecifiedTests=false
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
