@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -86,7 +86,7 @@ func TestJobWithSingleFailedReplica(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
-func TestJobWithReadyAction(t *testing.T) {
+func TestJobWithReadyExecAction(t *testing.T) {
 	// Make sure we defer clean-up when we're done!!
 	testContext.CleanupAfterTest(t)
 	g := NewWithT(t)

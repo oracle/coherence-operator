@@ -65,7 +65,6 @@ bundle.Dockerfile
 node_modules
 .coh-history
 .cohql-history
-runner
 venv
 
 .oca/

@@ -168,12 +168,12 @@ func (in *ReconcileStatefulSet) ReconcileAllResourceOfKind(ctx context.Context, 
 					in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonScaling, "SuspendServices",
 						"suspending Coherence services in statefuleset %s", request.Name)
 					// we are scaling down to zero and suspend services flag is true, so suspend services
-					suspended := in.suspendServices(ctx, deployment, stsCurrent)
+					suspended, suspendErr := in.suspendServices(ctx, deployment, stsCurrent)
 					switch suspended {
 					case probe.ServiceSuspendFailed:
 						in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeWarning, reconciler.EventReasonScaling, "SuspendServices",
-							"failed suspending Coherence services in statefuleset %s", request.Name)
-						return reconcile.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to scaling down to zero")
+							"failed suspending Coherence services in statefuleset %s: %s", request.Name, suspendErr.Error())
+						return reconcile.Result{RequeueAfter: time.Minute}, suspendErr
 					case probe.ServiceSuspendSkipped:
 						logger.Info("skipping suspension of Coherence services prior to deletion of StatefulSet")
 						in.GetEventRecorder().Eventf(deployment, nil, corev1.EventTypeNormal, reconciler.EventReasonScaling, "SuspendServices",
@@ -223,8 +223,9 @@ func (in *ReconcileStatefulSet) execActions(ctx context.Context, sts *appsv1.Sta
 	spec, found := deployment.GetStatefulSetSpec()
 	if found {
 		coherenceProbe := probe.CoherenceProbe{
-			Client: in.GetClient(),
-			Config: in.GetManager().GetConfig(),
+			Client:        in.GetClient(),
+			Config:        in.GetManager().GetConfig(),
+			EventRecorder: events.NewOwnedEventRecorder(deployment, in.GetEventRecorder()),
 		}
 
 		for _, action := range spec.Actions {
@@ -553,19 +554,6 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 		logger.V(0).Info("WARNING - Updating StatefulSet without a StatusHA test, update was forced")
 	}
 
-	// if there is only a single replica we need to do service suspension before update
-	if current.Status.ReadyReplicas == 1 {
-		suspended := in.suspendServices(ctx, deployment, current)
-		switch suspended {
-		case probe.ServiceSuspendFailed:
-			return reconcile.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to suspend services prior to updating single member deployment")
-		case probe.ServiceSuspendSkipped:
-			logger.Info("Skipping suspension of Coherence services in single member deployment " + deployment.GetName() +
-				" prior to update StatefulSet")
-		case probe.ServiceSuspendSuccessful:
-		}
-	}
-
 	// now apply the patch
 	patched, err := in.ApplyThreeWayPatchWithCallback(ctx, current.GetName(), current, patch, data, callback)
 
@@ -582,13 +570,13 @@ func (in *ReconcileStatefulSet) maybePatchStatefulSet(ctx context.Context, deplo
 }
 
 // suspendServices suspends Coherence services in the target deployment.
-func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) probe.ServiceSuspendStatus {
+func (in *ReconcileStatefulSet) suspendServices(ctx context.Context, deployment coh.CoherenceResource, current *appsv1.StatefulSet) (probe.ServiceSuspendStatus, error) {
 	p := probe.CoherenceProbe{
 		Client:        in.GetClient(),
 		Config:        in.GetManager().GetConfig(),
 		EventRecorder: events.NewOwnedEventRecorder(deployment, in.GetEventRecorder()),
 	}
-	return p.SuspendServices(ctx, deployment, current)
+	return p.SuspendServicesWithError(ctx, deployment, current)
 }
 
 // Scale will scale a StatefulSet up or down

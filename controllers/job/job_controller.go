@@ -15,6 +15,7 @@ import (
 	coh "github.com/oracle/coherence-operator/api/v1"
 	"github.com/oracle/coherence-operator/controllers/reconciler"
 	"github.com/oracle/coherence-operator/pkg/clients"
+	cohevents "github.com/oracle/coherence-operator/pkg/events"
 	"github.com/oracle/coherence-operator/pkg/patching"
 	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/oracle/coherence-operator/pkg/utils"
@@ -414,8 +415,9 @@ func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job,
 	}
 
 	p := probe.CoherenceProbe{
-		Client: in.GetClient(),
-		Config: in.GetManager().GetConfig(),
+		Client:        in.GetClient(),
+		Config:        in.GetManager().GetConfig(),
+		EventRecorder: cohevents.NewOwnedEventRecorder(deployment, in.GetEventRecorder()),
 	}
 
 	status := deployment.GetStatus()
@@ -424,10 +426,14 @@ func (in *ReconcileJob) maybeExecuteProbe(ctx context.Context, job *batchv1.Job,
 		probeStatus := status.FindJobProbeStatus(name)
 		podCondition := in.findPodReadyCondition(pod)
 		if in.shouldExecuteProbe(probeStatus, podCondition) {
-			_, err := p.RunProbe(ctx, pod, deployment.GetWkaServiceName(), &action.Probe)
+			success, err := p.RunProbe(ctx, pod, deployment.GetWkaServiceName(), &action.Probe)
+			if err == nil && !success {
+				err = fmt.Errorf("probe returned an unsuccessful result")
+			}
 			if err == nil {
 				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", "nil")
 				probeStatus.Success = ptr.To(true)
+				probeStatus.Error = nil
 			} else {
 				logger.Info(fmt.Sprintf("Executed probe using pod %s", name), "Error", err)
 				probeStatus.Success = ptr.To(false)
@@ -456,7 +462,7 @@ func (in *ReconcileJob) shouldExecuteProbe(probeStatus coh.CoherenceJobProbeStat
 	if podCondition == nil || podCondition.Status != corev1.ConditionTrue {
 		return false
 	}
-	if podCondition.LastTransitionTime.Before(probeStatus.LastReadyTime) {
+	if probeStatus.LastReadyTime != nil && !podCondition.LastTransitionTime.After(probeStatus.LastReadyTime.Time) {
 		return false
 	}
 	return true

@@ -823,10 +823,12 @@ config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(A
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd/bases
+	go run ./utils/crd-fixup/ config/crd/bases/*.yaml
 	cp -R config/crd/ config/crd-small
 	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd-small/bases
+	go run ./utils/crd-fixup/ config/crd-small/bases/*.yaml
 	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd/bases/coherence.oracle.com_coherence.yaml
 	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd/bases/coherence.oracle.com_coherencejob.yaml
 	$(YQ) eval -i '.metadata.labels["app.kubernetes.io/version"] = "$(VERSION)"' config/crd-small/bases/coherence.oracle.com_coherence.yaml
@@ -872,6 +874,7 @@ docs/about/04_coherence_spec.adoc: $(API_GO_FILES) utils/docgen/main.go
 		api/v1/coherence_types.go \
 		api/v1/coherenceresource_types.go \
 		api/v1/coherencejobresource_types.go \
+		api/v1/health_mutator.go \
 		> docs/about/04_coherence_spec.adoc
 
 # ----------------------------------------------------------------------------------------------------------------------

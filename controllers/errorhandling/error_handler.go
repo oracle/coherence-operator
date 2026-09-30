@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-logr/logr"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"github.com/oracle/coherence-operator/pkg/probe"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -107,6 +108,13 @@ func (eh *ErrorHandler) HandleError(ctx context.Context, err error, resource coh
 
 // categorizeError categorizes an error based on its type and content
 func (eh *ErrorHandler) categorizeError(err error) ErrorCategory {
+	// Preserve the existing service-suspension recovery policy for typed errors,
+	// without classifying sanitized authentication details as permanent failures.
+	var suspension *probe.SuspensionError
+	if errors.As(err, &suspension) {
+		return ErrorCategoryRecoverable
+	}
+
 	// Check for Kubernetes API errors
 	if apierrors.IsNotFound(err) {
 		return ErrorCategoryTransient // Resource might appear later
@@ -422,7 +430,8 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 	errStr := err.Error()
 
 	// Service suspension failure
-	if strings.Contains(errStr, "failed to suspend services") {
+	var suspension *probe.SuspensionError
+	if errors.As(err, &suspension) || strings.Contains(errStr, "failed to suspend services") {
 		return eh.recoverFromServiceSuspensionFailure(ctx, resource)
 	}
 
@@ -468,53 +477,36 @@ func (eh *ErrorHandler) attemptRecovery(ctx context.Context, err error, resource
 
 // recoverFromServiceSuspensionFailure attempts to recover from a service suspension failure
 func (eh *ErrorHandler) recoverFromServiceSuspensionFailure(ctx context.Context, resource coh.CoherenceResource) (reconcile.Result, error) {
-	// 1. Log the recovery attempt
 	eh.Log.Info("Attempting to recover from service suspension failure",
-		"resource", resource.GetName(),
-		"namespace", resource.GetNamespace())
-
-	// 2. Record an event
+		"resource", resource.GetName(), "namespace", resource.GetNamespace())
 	eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAttempt", "RecoverServiceSuspension",
 		"Attempting to recover from service suspension failure")
 
-	// 3. Implement the recovery logic
-	// For service suspension failures, we'll try to force remove the finalizer
-	// This allows the resource to be deleted even if service suspension failed
 	latest := resource.DeepCopyResource()
 	if err := eh.Client.Get(ctx, types.NamespacedName{
-		Namespace: resource.GetNamespace(),
-		Name:      resource.GetName(),
+		Namespace: resource.GetNamespace(), Name: resource.GetName(),
 	}, latest); err != nil {
 		return reconcile.Result{RequeueAfter: time.Minute}, err
 	}
 
-	// Check if this is a deletion and has the Coherence finalizer
+	// Preserve the existing escape hatch for deletion; normal scaling and updates
+	// must not acquire a deletion bypass merely because suspension failed.
 	if latest.GetDeletionTimestamp() != nil {
-		// This is a deletion, so we'll try to remove the finalizer
 		annotations := latest.GetAnnotations()
 		if annotations == nil {
 			annotations = make(map[string]string)
 		}
-
-		// Add an annotation to indicate we're bypassing the finalizer
 		annotations["coherence.oracle.com/finalizer-bypass"] = "true"
 		latest.SetAnnotations(annotations)
-
-		// Update the resource with the annotation
 		if err := eh.Client.Update(ctx, latest); err != nil {
 			eh.Log.Error(err, "Failed to add finalizer bypass annotation")
 			return reconcile.Result{RequeueAfter: time.Minute}, err
 		}
-
 		eh.Log.Info("Added finalizer bypass annotation to resource",
-			"resource", resource.GetName(),
-			"namespace", resource.GetNamespace())
-
+			"resource", resource.GetName(), "namespace", resource.GetNamespace())
 		eh.EventRecorder.Eventf(resource, nil, corev1.EventTypeNormal, "RecoveryAction", "BypassFinalizer",
 			"Added finalizer bypass annotation to allow deletion despite service suspension failure")
 	}
-
-	// 4. Return a result that requeues after a short delay to check if recovery was successful
 	return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -380,6 +380,7 @@ func configureCommand(details *run_details.RunDetails) error {
 	details.AddSystemPropertyArg(v1.SysPropCoherenceOverride, "k8s-coherence-override.xml")
 	details.AddSystemPropertyFromEnvVar(v1.EnvVarCohOverride, v1.SysPropOperatorOverride)
 
+	details.ResolvedOperatorHealth = true
 	post2206 := checkCoherenceVersion("14.1.1.2206.0", details)
 	if post2206 {
 		// at least CE 22.06
@@ -603,6 +604,10 @@ func configureCommand(details *run_details.RunDetails) error {
 	extraJvmArgs := operator.GetExtraJvmArgs()
 	if extraJvmArgs != nil {
 		details.AddArgs(extraJvmArgs...)
+	}
+
+	if err := configureHealthMutators(details); err != nil {
+		return err
 	}
 
 	return nil
@@ -1049,6 +1054,7 @@ func cohPost2206(details *run_details.RunDetails) {
 		if strings.EqualFold("true", useOperator) {
 			details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "true")
 		} else {
+			details.ResolvedOperatorHealth = false
 			details.AddSystemPropertyArg(v1.SysPropOperatorHealthEnabled, "false")
 			details.SetSystemPropertyFromEnvVarOrDefault(v1.EnvVarCohHealthPort, v1.SysPropCoherenceHealthHttpPort, fmt.Sprintf("%d", v1.DefaultHealthPort))
 		}

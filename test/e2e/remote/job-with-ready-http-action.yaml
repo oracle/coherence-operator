@@ -5,18 +5,20 @@
 apiVersion: coherence.oracle.com/v1
 kind: CoherenceJob
 metadata:
-  name: job-with-ready
+  name: job-with-ready-http
 spec:
-  cluster: test
+  cluster: ready-http-test
   replicas: 3
   image: ${TEST_APPLICATION_IMAGE}
   imagePullPolicy: ${TEST_IMAGE_PULL_POLICY}
   restartPolicy: Never
   readyAction:
-    exec:
-      command:
-      - java
-      - -version
+    httpGet:
+      port: rest
+      path: test
+  ports:
+  - name: rest
+    port: 8080
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10

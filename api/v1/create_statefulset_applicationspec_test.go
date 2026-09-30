@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -190,6 +190,27 @@ func TestCreateStatefulSetWithApplicationEntryPoint(t *testing.T) {
 	// Create expected StatefulSet
 	stsExpected := createMinimalExpectedStatefulSet(deployment)
 	stsExpected.Spec.Template.Spec.Containers[0].Command = []string{"foo", "bar"}
+
+	// assert that the StatefulSet is as expected
+	assertStatefulSetCreation(t, deployment, stsExpected)
+}
+
+func TestCreateStatefulSetWithApplicationEntryPointAndImageEntryPointDelivery(t *testing.T) {
+	spec := coh.CoherenceResourceSpec{
+		Application: &coh.ApplicationSpec{
+			EntryPoint:         []string{"foo", "bar"},
+			UseImageEntryPoint: ptr.To(true),
+		},
+	}
+
+	// Create the test deployment
+	deployment := createTestDeployment(spec)
+	// Create expected StatefulSet
+	stsExpected := createMinimalExpectedStatefulSet(deployment)
+	stsExpected.Spec.Template.Spec.Containers[0].Command = []string{"foo", "bar"}
+	stsExpected.Spec.Template.Spec.Containers[0].Args = nil
+	stsExpected.Spec.Template.Spec.Containers[0].Env = append(stsExpected.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{Name: coh.EnvVarJdkOptions, Value: "@/coherence-operator/utils/coherence-entrypoint-args.txt"})
 
 	// assert that the StatefulSet is as expected
 	assertStatefulSetCreation(t, deployment, stsExpected)
