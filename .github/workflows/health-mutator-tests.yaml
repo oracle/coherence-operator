@@ -1,0 +1,158 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+name: Health mutator tests
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  client-and-admission:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: .go-version
+      - name: Generate API and schema
+        run: make generate manifests
+      - name: Client and controller tests
+        run: |
+          go test ./api/... ./controllers/... ./pkg/probe
+          go test ./pkg/runner -run '^(TestManagedHealth|TestHealthSecurityCheck)'
+      - name: Install isolated API server
+        run: |
+          go install sigs.k8s.io/controller-runtime/tools/setup-envtest@32e5e9e948a572779280969aaaf7db92f76d8252
+          echo "KUBEBUILDER_ASSETS=$(setup-envtest use -p path 1.30.x!)" >> "$GITHUB_ENV"
+      - name: Admission tests
+        run: HEALTH_MUTATOR_RUNNER_SUITE=true go test -v ./test/health-mutator
+  java-support:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['8', '17', '25']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      # This matrix verifies the selected Java runtime. These focused tests do not exercise the
+      # Coherence 21.12.5 code path that requires the legacy JDK 17 toolchain on Java 24 and later.
+      - name: Test packaged validator and TLS provider mapping
+        run: >-
+          ./mvnw -B -f java -pl coherence-operator -am test
+          -P=-legacy-coherence-toolchain
+          -Dtest=SecretLoginModuleTest,HealthSSLProviderConfigTest
+          -Dsurefire.failIfNoSpecifiedTests=false
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-mutator-java-support-${{ matrix.java }}
+          path: java/coherence-operator/target/surefire-reports/
+  runtime-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      COHERENCE_VERSION_LTS: 15.1.1-0-5
+      KIND_CLUSTER: health-mutator
+      OPERATOR_IMAGE_REGISTRY: health-mutator.local
+      OPERATOR_IMAGE_TAG: ${{ github.sha }}
+      TEST_APPLICATION_IMAGE: health-mutator.local/operator-test:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: .go-version
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Install runtime test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes gettext-base
+      - name: Build candidate and test application images
+        run: make build-operator build-basic-test-image
+      - name: Create isolated Kind cluster
+        run: make kind-single-worker
+      - name: Load digest-pinned images
+        id: images
+        shell: bash
+        run: |
+          operator_image="${OPERATOR_IMAGE_REGISTRY}/coherence-operator:${OPERATOR_IMAGE_TAG}"
+
+          build/tools/bin/kind load docker-image --name "${KIND_CLUSTER}" "${operator_image}"
+          build/tools/bin/kind load docker-image --name "${KIND_CLUSTER}" "${TEST_APPLICATION_IMAGE}"
+
+          first_node=$(build/tools/bin/kind get nodes --name "${KIND_CLUSTER}" | head -n 1)
+          operator_manifest_digest=$(docker exec "${first_node}" ctr --namespace k8s.io images list | \
+            awk -v ref="${operator_image}" '$1 == ref {print $3}')
+          fixture_manifest_digest=$(docker exec "${first_node}" ctr --namespace k8s.io images list | \
+            awk -v ref="${TEST_APPLICATION_IMAGE}" '$1 == ref {print $3}')
+          operator_digest="${operator_image%:*}@${operator_manifest_digest}"
+          fixture_digest="${TEST_APPLICATION_IMAGE%:*}@${fixture_manifest_digest}"
+          if [[ "${operator_digest}" != *@sha256:* || "${fixture_digest}" != *@sha256:* ]]; then
+            echo "The locally built images do not have immutable manifest digests" >&2
+            exit 1
+          fi
+
+          while read -r node; do
+            docker exec "${node}" ctr --namespace k8s.io images tag --force \
+              "${operator_image}" "${operator_digest}"
+            docker exec "${node}" ctr --namespace k8s.io images tag --force \
+              "${TEST_APPLICATION_IMAGE}" "${fixture_digest}"
+          done < <(build/tools/bin/kind get nodes --name "${KIND_CLUSTER}")
+
+          echo "operator_digest=${operator_digest}" >> "${GITHUB_OUTPUT}"
+          echo "fixture_digest=${fixture_digest}" >> "${GITHUB_OUTPUT}"
+      - name: Deploy candidate Operator
+        shell: bash
+        run: |
+          make prepare-deploy
+          (
+            cd build/_output/config/manager
+            "${GITHUB_WORKSPACE}/build/tools/bin/kustomize" edit set image \
+              "controller=${{ steps.images.outputs.operator_digest }}"
+          )
+          build/tools/bin/kustomize build build/_output/config/default | kubectl apply -f -
+          kubectl -n operator-test scale \
+            deployment/coherence-operator-controller-manager --replicas=1
+          kubectl -n operator-test rollout status \
+            deployment/coherence-operator-controller-manager --timeout=10m
+          deployed_image=$(kubectl -n operator-test get \
+            deployment/coherence-operator-controller-manager \
+            -o jsonpath='{.spec.template.spec.containers[0].image}')
+          if [[ "${deployed_image}" != "${{ steps.images.outputs.operator_digest }}" ]]; then
+            echo "The deployed Operator image does not match the locally built digest" >&2
+            exit 1
+          fi
+      - name: Run health mutator runtime acceptance
+        shell: bash
+        run: |
+          context="kind-${KIND_CLUSTER}"
+          namespace=health-mutator-e2e
+          material="${RUNNER_TEMP}/health-mutator-e2e"
+          bash test/health-mutator/apply.sh \
+            "${context}" "${namespace}" "${{ steps.images.outputs.fixture_digest }}" "${material}"
+          bash test/health-mutator/verify.sh "${context}" "${namespace}" "${material}"
+      - name: Collect failure diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          context="kind-${KIND_CLUSTER}"
+          kubectl --context "${context}" get nodes -o wide || true
+          kubectl --context "${context}" get pods,statefulsets,pvc -A -o wide || true
+          kubectl --context "${context}" -n health-mutator-e2e \
+            get coherence.coherence.oracle.com health-secure -o yaml || true
+          kubectl --context "${context}" -n operator-test logs \
+            -l control-plane=coherence --all-containers --prefix --tail=1000 || true
+          kubectl --context "${context}" get events -A \
+            --sort-by=.metadata.creationTimestamp || true
+      - name: Delete isolated Kind cluster
+        if: always()
+        run: make kind-stop

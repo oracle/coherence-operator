@@ -1,0 +1,122 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+# Repository qualification fixture for application-owned Basic-over-TLS.
+# Render IMAGE_DIGEST and NAMESPACE with envsubst before applying. Replace the
+# application main class, cache configuration, and test REST port with the
+# corresponding settings and recovery proof for another application.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: application-health-jaas-v1
+  namespace: ${NAMESPACE}
+data:
+  jaas.conf: |
+    CoherenceREST {
+      com.oracle.coherence.k8s.SecretLoginModule required
+        usernameFile="/application/health-auth/username"
+        passwordFile="/application/health-auth/password";
+    };
+---
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: application-owned-health
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 3
+  image: ${IMAGE_DIGEST}
+  imagePullPolicy: IfNotPresent
+  healthPort: 8089
+
+  securityContext:
+    fsGroup: 65532
+    fsGroupChangePolicy: OnRootMismatch
+  containerSecurityContext:
+    runAsUser: 65532
+    runAsGroup: 65532
+    runAsNonRoot: true
+
+  application:
+    # Qualification-image entry point; this is not configured by the Operator's
+    # health client.
+    main: com.oracle.coherence.k8s.testing.HealthMutatorDemo
+
+  # The application owns every Coherence Health security property. There is
+  # deliberately no healthMutatorConnection block.
+  jvm:
+    args:
+      - -Dcoherence.health.http.mutators.enabled=true
+      - -Dcoherence.health.http.auth=basic
+      - -Dcoherence.health.http.provider=HealthSSLProvider
+      - -Dcoherence.health.security.keystore=file:/application/health-tls/server.jks
+      - -Dcoherence.health.security.keystore.password=/application/health-tls/store-password
+      - -Dcoherence.health.security.key.password=/application/health-tls/store-password
+      - -Dcoherence.health.security.keystore.type=JKS
+      - -Djava.security.auth.login.config=/application/health-jaas/jaas.conf
+
+  volumes:
+    - name: application-health-auth
+      secret:
+        secretName: health-auth-v1
+    - name: application-health-tls
+      secret:
+        secretName: health-stores-v1
+    - name: application-health-jaas
+      configMap:
+        name: application-health-jaas-v1
+  volumeMounts:
+    - name: application-health-auth
+      mountPath: /application/health-auth
+      readOnly: true
+    - name: application-health-tls
+      mountPath: /application/health-tls
+      readOnly: true
+    - name: application-health-jaas
+      mountPath: /application/health-jaas
+      readOnly: true
+
+  # This block configures only the Operator client. The application-owned JVM
+  # arguments, JAAS file, and volumes above configure the member server.
+  suspendProbe:
+    timeoutSeconds: 60
+    http:
+      method: PUT
+      scheme: HTTPS
+      path: /suspend
+      port: 8089
+      basicAuth:
+        username: {name: health-auth-v1, key: username}
+        password: {name: health-auth-v1, key: password}
+      tls:
+        caSecret: {name: health-ca-v1, key: ca.pem}
+        serverName: health.example
+
+  # Custom probes are necessary because healthMutatorConnection is absent, so
+  # the Operator does not rewrite generated probes to HTTPS.
+  readinessProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /ready
+      port: 8089
+  livenessProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /live
+      port: 8089
+
+  coherence:
+    # Qualification-image cache configuration.
+    cacheConfig: test-cache-config.xml
+    persistence:
+      mode: active
+      persistentVolumeClaim:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  ports:
+    # Qualification-only canary endpoints; not part of Coherence Health.
+    - name: test-rest
+      port: 8080
