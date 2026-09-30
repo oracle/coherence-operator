@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <!--
-  ~ Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2019, 2026, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -113,6 +113,38 @@
               <type system-property="coherence.metrics.security.truststore.type"/>
             </key-store>
           </trust-manager>
+        </ssl>
+      </socket-provider>
+      <socket-provider id="HealthSSLProvider">
+        <ssl>
+          <identity-manager>
+            <algorithm system-property="coherence.health.security.keystore.algorithm"/>
+            <provider system-property="coherence.health.security.keystore.provider"/>
+            <key-store>
+              <url system-property="coherence.health.security.keystore">file:/coherence/health-tls/server.jks</url>
+              <password-provider id="file">
+                <class-name>com.oracle.coherence.k8s.FileBasedPasswordProvider</class-name>
+                <init-params>
+                  <init-param>
+                    <param-type>String</param-type>
+                    <param-value system-property="coherence.health.security.keystore.password">/coherence/health-tls/storepass.txt</param-value>
+                  </init-param>
+                </init-params>
+              </password-provider>
+              <type system-property="coherence.health.security.keystore.type"/>
+            </key-store>
+            <password-provider id="file">
+              <class-name>com.oracle.coherence.k8s.FileBasedPasswordProvider</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>String</param-type>
+                  <param-value system-property="coherence.health.security.key.password">/coherence/health-tls/keypass.txt</param-value>
+                </init-param>
+              </init-params>
+            </password-provider>
+          </identity-manager>
+          <!-- Without a trust-manager Coherence uses one-way server TLS. Keep client-auth
+               implicit because older Coherence schemas do not support that element. -->
         </ssl>
       </socket-provider>
     </socket-providers>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -493,7 +493,7 @@ public class OperatorRestServerIT {
             // wait for ready
             Eventually.assertDeferred(() -> httpRequest(httpPort, OperatorRestServer.PATH_READY), is(200));
             // suspend services
-            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_SUSPEND), is(200));
+            Eventually.assertDeferred(() -> this.httpRequest(httpPort, OperatorRestServer.PATH_SUSPEND, "PUT"), is(200));
 
             Eventually.assertDeferred(() -> this.isServiceOneSuspended(app), is(true));
             Eventually.assertDeferred(() -> this.isServiceTwoSuspended(app), is(true));
@@ -1034,10 +1034,15 @@ public class OperatorRestServerIT {
 
     // Must be public - used in Eventually.assertThat
     public int httpRequest(Capture<Integer> httpPort, String path) {
+        return httpRequest(httpPort, path, "GET");
+    }
+
+    // Must be public - used in Eventually.assertThat
+    public int httpRequest(Capture<Integer> httpPort, String path, String method) {
         try {
             URI uri = URI.create("http://127.0.0.1:" + httpPort.get() + path);
             HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
-            connection.setRequestMethod("GET");
+            connection.setRequestMethod(method);
             connection.connect();
             return connection.getResponseCode();
         }
