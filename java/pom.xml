@@ -43,6 +43,7 @@
         <!--  The Coherence jar version (compile time dependency) -->
         <coherence.legacy.groupId>com.oracle.coherence.ce</coherence.legacy.groupId>
         <coherence.legacy.version>21.12.5</coherence.legacy.version>
+        <coherence.legacy.java.version>[17,18)</coherence.legacy.java.version>
 
         <coherence.version>14.1.2-0-0</coherence.version>
         <coherence.ce.version>24.09.2</coherence.ce.version>
@@ -100,6 +101,7 @@
         <version.plugin.maven.resource>3.1.0</version.plugin.maven.resource>
         <version.plugin.maven.source>2.2.1</version.plugin.maven.source>
         <version.plugin.maven.surefire>3.0.0-M5</version.plugin.maven.surefire>
+        <version.plugin.maven.toolchains>3.3.0</version.plugin.maven.toolchains>
         <version.plugin.nexus.staging>1.6.7</version.plugin.nexus.staging>
     </properties>
 
@@ -248,6 +250,12 @@
                             <test.certs.location>${test.certs.location}</test.certs.location>
                         </systemProperties>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-toolchains-plugin</artifactId>
+                    <version>${version.plugin.maven.toolchains}</version>
                 </plugin>
 
                 <plugin>

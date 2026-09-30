@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ~ Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+  ~ Copyright (c) 2020, 2026, Oracle and/or its affiliates.
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
@@ -213,6 +213,35 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>legacy-coherence-toolchain</id>
+            <activation>
+                <!--
+                  Coherence 21.12.5 uses Subject.getSubject(), which JEP 486 made unsupported on Java 24
+                  and later. Only then does this module need a separate JDK 17 to compile and test with.
+                -->
+                <jdk>[24,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-toolchains-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>select-jdk-toolchain</goal>
+                                </goals>
+                                <configuration>
+                                    <version>${coherence.legacy.java.version}</version>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>release</id>
             <build>
