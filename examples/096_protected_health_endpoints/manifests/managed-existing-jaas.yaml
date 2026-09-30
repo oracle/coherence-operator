@@ -1,0 +1,51 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Managed Health security with an application-owned JAAS file. The file must
+# retain the exact CoherenceREST context.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: health-jaas-v1
+  namespace: ${NAMESPACE}
+data:
+  jaas.conf: |
+    CoherenceREST {
+      com.oracle.coherence.k8s.SecretLoginModule required
+        usernameFile="/coherence/health-auth/username/value"
+        passwordFile="/coherence/health-auth/password/value";
+    };
+---
+# Merge this spec fragment into a StatefulSet-backed Coherence resource.
+spec:
+  healthPort: 8089
+  jvm:
+    args:
+      - -Djava.security.auth.login.config=/application/security/jaas.conf
+  volumes:
+    - name: health-jaas
+      configMap:
+        name: health-jaas-v1
+  volumeMounts:
+    - name: health-jaas
+      mountPath: /application/security
+      readOnly: true
+  healthMutatorConnection:
+    secure: true
+    basicAuth:
+      username: {name: health-auth-v1, key: username}
+      password: {name: health-auth-v1, key: password}
+    tls:
+      caSecret: {name: health-ca-v1, key: ca.pem}
+      serverName: health.example
+    serverTLS:
+      enabled: true
+      requireClientCert: false
+      secrets: health-stores-v1
+      keyStore: server.jks
+      keyStorePasswordFile: store-password
+      keyPasswordFile: store-password
+      keyStoreType: JKS
+    jaas:
+      mode: existing

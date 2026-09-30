@@ -1,0 +1,34 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Use explicit paths when the application owns the TLS volume mount. The
+# credentials and client CA are still namespace-local Secret references.
+spec:
+  healthPort: 8089
+  volumes:
+    - name: application-health-tls
+      secret:
+        secretName: health-stores-v1
+  volumeMounts:
+    - name: application-health-tls
+      mountPath: /application/health-tls
+      readOnly: true
+  healthMutatorConnection:
+    secure: true
+    basicAuth:
+      username: {name: health-auth-v1, key: username}
+      password: {name: health-auth-v1, key: password}
+    tls:
+      caSecret: {name: health-ca-v1, key: ca.pem}
+      serverName: health.example
+    serverTLS:
+      enabled: true
+      requireClientCert: false
+      # No 'secrets' field: every value below is an absolute container path.
+      keyStore: /application/health-tls/server.jks
+      keyStorePasswordFile: /application/health-tls/store-password
+      keyPasswordFile: /application/health-tls/store-password
+      keyStoreType: JKS
+    jaas:
+      mode: packaged

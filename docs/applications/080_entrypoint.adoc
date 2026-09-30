@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2025, Oracle and/or its affiliates.
+    Copyright (c) 2025, 2026, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -165,12 +165,16 @@ spec:
     alternateJdkJavaOptions: "ALT_JAVA_OPTS"
 ----
 
-In the Coherence container the application code can then access the The `ALT_JAVA_OPTS` environment variable
-to obtain the JVM options the Operator configured.
+In the Coherence container the application code can then access the `ALT_JAVA_OPTS` environment variable
+to obtain the JVM options the Operator configured. The image entry point is responsible for passing the value of this
+environment variable, including the generated Java argument-file reference, to the actual Coherence member JVM.
+
+This is required when Operator-managed protected Health endpoints are enabled with
+`spec.healthMutatorConnection.secure: true`. In that mode, `useJdkJavaOptions: false` is accepted only when a non-empty
+`alternateJdkJavaOptions` is configured as the explicit JVM-argument delivery contract.
 
 ==== Use Java Argument Files Directly
 
 In use cases where the `JDK_JAVA_OPTIONS` environment variable has been disabled application code
 could also directly access the Java argument files the operator configured and use those to
 configure the Coherence JVM.
-

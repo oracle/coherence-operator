@@ -1,0 +1,390 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2026, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Protected Coherence Health Endpoints
+:description: Coherence Operator Documentation - Protected Coherence Health Endpoints
+:keywords: oracle coherence, kubernetes, operator, health, basic authentication, TLS, scale to zero
+
+Recent Coherence releases protect the state-changing Health endpoints used to suspend and resume cache services.
+Coherence Operator 3.6.0 is the first Operator release that can configure and call these protected endpoints during
+safe shutdown and scale-to-zero.
+
+The recommended configuration uses `spec.healthMutatorConnection` to configure both sides of the connection:
+
+* the Coherence member exposes `PUT /suspend` using Basic authentication over TLS; and
+* the Operator reads credentials and a CA certificate from Kubernetes Secrets and sends an authenticated, verified
+  HTTPS request.
+
+Authentication or TLS failure blocks the transition. The Operator does not retry anonymously, use `GET`, or disable
+certificate verification.
+
+== Hardened Health mutator behavior
+
+The hardened Coherence Health server changes the mutator endpoints as follows:
+
+* `/suspend` and `/resume` accept `PUT` only. The old `GET` routes are not available.
+* Mutators are disabled by default. A request returns `403` until
+  `coherence.health.http.mutators.enabled=true` is configured.
+* An enabled mutator must use `basic`, `cert`, or `cert+basic` authentication. There is no unauthenticated mode.
+* Read-only endpoints such as `/ready`, `/started`, `/live`, `/healthz`, `/safe`, and `/ha` remain available for
+  Kubernetes and Operator health checks without mutator credentials.
+
+An older Operator sends an unauthenticated `GET /suspend`, so it cannot safely scale a deployment using a hardened
+Coherence Health server to zero. Operator 3.6.0 sends `PUT` and adds the managed and application-owned configuration
+options described on this page.
+
+== Compatible versions
+
+The following are the first releases on each maintained Coherence line that contain the Health mutator hardening. Later
+patches on the same line also contain it.
+
+[cols="2,2",options="header"]
+|===
+|Coherence line |First hardened release
+
+|Oracle Coherence 14.1.1.2206
+|14.1.1.2206.18
+
+|Oracle Coherence 14.1.2
+|14.1.2.0.8
+
+|Oracle Coherence 15.1.1
+|15.1.1.0.4
+
+|Coherence Community Edition 14.1.2
+|14.1.2-0-8
+
+|Coherence Community Edition 15.1.1
+|15.1.1-0-4
+
+|Coherence Community Edition 22.06
+|22.06.18
+
+|Coherence Community Edition feature releases
+|26.07
+|===
+
+Use Coherence Operator 3.6.0 or later with a hardened Coherence release. The Operator image and CRD must be upgraded
+together so that the `healthMutatorConnection` and method-aware `suspendProbe.http` fields are both available.
+
+== Choose a configuration model
+
+[cols="2,3,3",options="header"]
+|===
+|Model |Use when |Configuration owner
+
+|Operator-managed Basic authentication and one-way TLS (recommended)
+|The application can use the Coherence Health server and Basic authentication.
+|The Operator configures the Coherence listener, TLS identity, JAAS, kubelet probes, and Operator client from
+`healthMutatorConnection`.
+
+|Operator-managed security with an existing JAAS file
+|The application already owns the JVM's global JAAS configuration.
+|The application provides the `CoherenceREST` JAAS entry; the Operator configures the remaining server and client
+settings.
+
+|Operator-managed security with application-mounted TLS files
+|The application already mounts the member keystore and password files.
+|The application owns the volume; the Operator uses explicit file paths and configures the remaining settings.
+
+|Application-owned server with an Operator HTTP action
+|The application already configures a Basic-authenticated HTTPS Health server.
+|The application configures Coherence, TLS, JAAS, and kubelet probes. The Operator configures only the authenticated
+`PUT` request.
+
+|Application-owned server with an exec action
+|The server uses client certificates, `cert+basic`, or another client flow that the Operator HTTP action cannot express.
+|The application image supplies and owns the client command and all server configuration.
+
+|No managed security
+|The deployment uses an older, unhardened Health endpoint or a completely application-owned endpoint.
+|Omit `healthMutatorConnection`. The application is responsible for any endpoint configuration and protection.
+|===
+
+For complete manifests and application instructions for each model, see the
+<<examples/096_protected_health_endpoints/README.adoc,Protected Coherence Health Endpoints Example>>.
+
+== Operator-managed Basic authentication over one-way TLS
+
+Set `spec.healthMutatorConnection.secure` to `true` to enable managed security. The Operator then:
+
+* enables Coherence Health mutators;
+* selects Basic authentication and the `CoherenceREST` JAAS context;
+* configures the member's `HealthSSLProvider` and server keystore;
+* reads the Basic username, password, and client CA from namespace-local Secrets;
+* sends `PUT /suspend` over verified HTTPS; and
+* changes generated readiness, liveness, and startup probes on the Health port to HTTPS.
+
+Managed mode uses one-way TLS. The member presents a certificate to the Operator and kubelet, but does not request a
+client certificate. The member therefore needs a keystore, but no truststore. The separate `tls.caSecret` is the CA
+used by the Operator to verify the member certificate.
+
+=== Required Secrets
+
+Create the following Secrets in the same namespace as the `Coherence` resource. Use your normal credential and
+certificate management process; do not put credentials or private keys directly in the `Coherence` resource.
+
+[cols="2,2,3",options="header"]
+|===
+|Secret |Required keys |Purpose
+
+|`health-auth-v1`
+|`username`, `password`
+|Credentials used by the Operator and the `CoherenceREST` JAAS login module.
+
+|`health-stores-v1`
+|`server.jks`, `store-password`
+|Member certificate and password files. The key and store passwords may use different keys when required.
+
+|`health-ca-v1`
+|`ca.pem`
+|PEM CA bundle used by the Operator to verify the member certificate.
+|===
+
+Secret key values are consumed as exact bytes. Avoid an unintended trailing newline in usernames and passwords. Prefer
+immutable, versioned Secrets so that a resource update clearly selects a new credential or certificate generation.
+
+=== Managed configuration example
+
+The recommended example uses the Operator-provided JAAS login module and Secret-mounted JKS material. The
+<<examples/096_protected_health_endpoints/README.adoc,Protected Coherence Health Endpoints Example>> contains the
+complete resource, Secret creation, rendering, application, and verification steps.
+
+The important fields are:
+
+[cols="2,4",options="header"]
+|===
+|Field |Meaning
+
+|`secure: true`
+|Enables the complete managed configuration. Security fields are rejected when this value is `false`.
+
+|`basicAuth`
+|References non-optional username and password keys in namespace-local Secrets.
+
+|`tls.caSecret`
+|References the PEM CA bundle used by the Operator client. It is not a member truststore.
+
+|`tls.serverName`
+|DNS name verified against the member certificate's subject alternative names.
+
+|`serverTLS`
+|Configures the member's TLS identity. `enabled` must be `true` and `requireClientCert` must be `false`.
+
+|`serverTLS.keyStoreProvider`
+|Optionally selects the Java keystore provider propagated to the managed `HealthSSLProvider`.
+
+|`jaas.mode`
+|Selects `packaged` (the default) or `existing` JAAS configuration.
+|===
+
+The managed `HealthSSLProvider` does not use the `serverTLS.trustStore`, `trustStorePasswordFile`, `trustStoreType`,
+`trustStoreAlgorithm`, or `trustStoreProvider` fields. They remain accepted for compatibility with the shared TLS API,
+but are not used for one-way TLS.
+
+=== Use an existing JAAS configuration
+
+Set `jaas.mode: existing` when the application already sets `java.security.auth.login.config`. The existing file must
+contain a login context named exactly `CoherenceREST` and must validate the same Secret-backed credentials used by the
+Operator client.
+
+Do not use the default `packaged` mode when another global JAAS file is already configured. Managed mode refuses to
+overwrite it. The published example includes the required `ConfigMap`, volume mount, JVM argument, and
+`healthMutatorConnection` fragment.
+
+=== Use application-mounted TLS files
+
+If the application already mounts the server keystore and password files, omit `serverTLS.secrets` and specify absolute
+container paths instead. The published example includes the required volume and explicit-path configuration.
+
+The Operator still manages the Coherence Health properties, JAAS mode, Basic credentials, client CA, and authenticated
+request.
+
+=== Supported application packaging
+
+Managed mode supports normal Java/classpath applications and Spring Boot 2 or 3 applications whose executable JAR is
+configured with `spec.application.springBootFatJar`. It does not support Cloud Native Buildpack launchers or a Spring
+Boot application without a configured fat JAR.
+
+Managed mode also requires an explicit path for the Operator's generated JVM arguments to reach the member JVM. The
+supported launcher configurations are:
+
+* the default Operator-controlled launcher, with no custom `spec.application.entryPoint` and
+  `spec.application.useImageEntryPoint` omitted or `false`;
+* `spec.application.useImageEntryPoint: true` with `useJdkJavaOptions` omitted or `true`, which supplies the generated
+  argument-file reference through `JDK_JAVA_OPTIONS`; or
+* `spec.application.useImageEntryPoint: true` with `useJdkJavaOptions: false` and a non-empty
+  `alternateJdkJavaOptions` environment variable name.
+
+The last configuration is an explicit application contract: the image entry point must read the named environment
+variable and pass its generated argument-file reference to the actual member JVM. The Operator cannot verify that the
+application honors this contract. A custom `application.entryPoint` is supported only when
+`useImageEntryPoint: true` also selects one of the two environment-variable delivery paths above.
+
+The Operator rejects an unsupported launcher combination before reconciling the workload. This validation applies only
+to `healthMutatorConnection.secure: true`; omitted or insecure managed Health configuration retains the existing
+launcher behavior.
+
+Managed mode requires the Coherence Health server. Do not set `COHERENCE_OPERATOR_HEALTH_CHECK=true`; that selects the
+legacy Operator Health server and the Pod configuration fails closed.
+
+[[application_owned]]
+== Application-owned Health security
+
+Use an application-owned configuration when the application already configures its Health listener, needs certificate
+authentication, or cannot use the managed launcher arrangement. Omit `healthMutatorConnection`; do not combine managed
+and application-owned server properties.
+
+The application must configure all of the following:
+
+* `coherence.health.http.mutators.enabled=true`;
+* `coherence.health.http.auth=basic`, `cert`, or `cert+basic`;
+* an HTTPS socket provider selected by `coherence.health.http.provider`;
+* the socket provider's identity and, for client-certificate authentication, trust configuration;
+* a JAAS `CoherenceREST` context when Basic authentication is used; and
+* explicit readiness, liveness, and startup probes that can use the application's TLS contract, because the Operator
+  does not rewrite probes in application-owned mode.
+
+The read-only endpoints do not require mutator authentication. With one-way TLS, Kubernetes HTTP probes can call them
+over HTTPS. If the listener requires a client certificate, use an exec or other probe capable of presenting it.
+
+=== Basic authentication with an Operator HTTP action
+
+For a Basic-authenticated endpoint, configure a method-aware `suspendProbe.http`. The Operator reads credentials and
+the CA from Secrets and performs a verified HTTPS request. The published example includes both a complete
+application-owned Basic-over-TLS resource and a reusable Operator-client fragment.
+
+The application must independently configure matching Basic credentials, TLS material, and Coherence Health system
+properties. The Operator HTTP action supports `GET` and `PUT`, verified server TLS, Secret-backed Basic authentication,
+and non-secret headers. Use `PUT` for hardened `/suspend`.
+
+=== Certificate authentication and other custom clients
+
+Coherence also supports `cert` and `cert+basic` mutator authentication. These modes require a TLS client certificate.
+The Operator HTTP action does not present one, so configure an application-owned exec action or another
+application-owned client that can satisfy the server's authentication contract.
+
+The exec fragment in the published example demonstrates the resource shape but uses Basic authentication. Replace its
+command and mounted client material for the selected certificate contract. The application image must contain the
+required client program. Exec actions are less portable than the managed HTTP client and provide fewer sanitized
+diagnostics.
+
+An empty custom probe or a gRPC-only probe is retained as a successful no-op for compatibility with existing
+resources. The Operator emits a `ProbeActionNoOp` Warning event when it encounters either form. No request or command
+is sent, so the result does not prove StatusHA or that services were suspended. Configure an Operator-supported
+`http`, `httpGet`, `exec`, or `tcpSocket` action instead.
+
+== Disable or bypass managed security
+
+Omitting `healthMutatorConnection`, or setting only `healthMutatorConnection.secure: false`, disables the Operator's
+managed Health security configuration. The Operator then sends the default `PUT /suspend` over HTTP unless a custom
+`suspendProbe` is configured. These two disabled forms generate equivalent Pod templates, so switching between them
+does not by itself replace Pods. Switching from `secure: true` to either disabled form does change the template and
+requires a rollout to remove the secure-generation annotation, credentials, mounts, JVM configuration, and HTTPS probe
+wiring. Enabling managed security makes the corresponding template changes and also requires a rollout.
+
+This does not disable the security layer in a hardened Coherence release. Hardened Coherence keeps mutators disabled
+until they are explicitly enabled and always requires one of its supported authentication modes. Consequently,
+`secure: false` by itself cannot suspend a hardened member.
+
+Setting `spec.suspendServicesOnShutdown: false` skips service suspension entirely. This is an operational bypass, not
+a security setting. It can make scale-to-zero or shutdown unsafe, particularly with persistence, and should not be used
+to work around an authentication or TLS configuration error.
+
+== Upgrade an existing deployment
+
+Upgrade the Operator deployment and CRD to 3.6.0 or later before rolling a hardened Coherence image into an existing
+deployment. Add the selected Health security configuration as part of the Coherence image rollout. Upgrading only the
+Operator does not enable security inside existing member Pods, and upgrading only Coherence leaves an older Operator
+unable to authenticate or use the required `PUT` method.
+
+[WARNING]
+====
+The 3.6.0 CRD limits `spec.actions` to 128 entries. Installing the CRD does not remove or retroactively reject an
+existing `Coherence` resource with more than 128 actions, but Kubernetes will reject subsequent updates until the
+submitted resource contains no more than 128 actions. Check existing resources and reduce longer action lists before
+the upgrade or as the first change after upgrading the CRD.
+====
+
+For Operator-managed mode, confirm before the rollout that:
+
+* all referenced Secrets and keys exist in the `Coherence` resource namespace;
+* the member certificate is valid for `tls.serverName`;
+* the member keystore and password files are readable by the Coherence container;
+* an existing JAAS file contains the exact `CoherenceREST` context when `jaas.mode: existing` is selected; and
+* custom `coherence.health.*` JVM properties are removed because they conflict with managed mode.
+
+Keep the previous image, resource definition, and Secret generation available until the new Pods are ready and safe
+shutdown has been tested. Rotate credentials and certificates by creating a new immutable Secret generation and
+updating all related references together.
+
+== Verify the configuration
+
+After the rollout, verify these observable results:
+
+[cols="2,3",options="header"]
+|===
+|Check |Expected result
+
+|Generated kubelet probes in managed mode
+|Readiness, liveness, and startup probes that target the Health port use `HTTPS`.
+
+|Unauthenticated `GET /ready`
+|`200` when the member is ready. Read-only probes do not require mutator credentials.
+
+|`PUT /suspend` while mutators are disabled
+|`403`.
+
+|Unauthenticated or invalid-credential `PUT /suspend`
+|`401` when Basic authentication is configured.
+
+|Authenticated `PUT /suspend`
+|`200`. Send `PUT /resume` after a direct manual test.
+
+|Invalid CA, certificate name, credential, or Secret reference during scale-to-zero
+|The transition remains blocked and existing members remain running.
+|===
+
+Use application-level write and read checks when validating persistence recovery. Ready Pods and unchanged PVC names do
+not by themselves prove that application data was recovered.
+
+== Troubleshooting
+
+[cols="2,3",options="header"]
+|===
+|Observation |Action
+
+|`403` from `PUT /suspend`
+|Mutators are disabled. In managed mode, confirm that the member Pod contains the current
+`healthMutatorConnection` generation and started successfully. In application-owned mode, set
+`coherence.health.http.mutators.enabled=true`.
+
+|`401` from `PUT /suspend`
+|Confirm that the Operator client and `CoherenceREST` JAAS context use the same Secret keys and exact credential bytes.
+
+|TLS name or trust failure
+|Confirm `tls.serverName`, the certificate subject alternative names, and the PEM bundle in `tls.caSecret`. Do not
+disable certificate verification. A member-side truststore does not repair Operator-client trust.
+
+|Pod configuration rejects the selected Health server
+|Remove `COHERENCE_OPERATOR_HEALTH_CHECK=true`. Managed mode requires the Coherence Health server.
+
+|Pod configuration reports a direct-property conflict
+|Remove application-supplied `coherence.health.*` and `coherence.health.security.*` JVM properties, or omit
+`healthMutatorConnection` and use the application-owned model.
+
+|Scale-to-zero remains blocked
+|Treat the block as fail-closed. Correct the authentication, TLS, Secret, or runtime configuration while members remain
+running, or restore `spec.replicas` to a non-zero value. Do not delete the `Coherence` resource or its namespace while
+the transition is blocked: desired replicas can be zero while members are still running, and deletion can terminate
+those members without the expected suspension. Wait until scale-to-zero completes or the restored deployment is healthy
+before deleting it.
+|===
+
+Do not add an anonymous or `GET` fallback, combine a custom `suspendProbe` with
+`healthMutatorConnection.secure: true`, or disable safe suspension to hide a security configuration failure.

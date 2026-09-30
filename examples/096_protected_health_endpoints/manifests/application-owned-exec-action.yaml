@@ -1,0 +1,52 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Last-resort application-owned action. The image must contain /bin/sh and curl.
+# The application independently configures its protected health server.
+spec:
+  healthPort: 8089
+  volumes:
+    - name: health-client-material
+      projected:
+        sources:
+          - secret:
+              name: health-auth-v1
+              items:
+                - {key: username, path: username}
+                - {key: password, path: password}
+          - secret:
+              name: health-ca-v1
+              items:
+                - {key: ca.pem, path: ca.pem}
+  volumeMounts:
+    - name: health-client-material
+      mountPath: /application/health-client
+      readOnly: true
+  suspendProbe:
+    timeoutSeconds: 60
+    exec:
+      command:
+        - /bin/sh
+        - -ec
+        - >-
+          curl --silent --show-error --fail
+          --cacert /application/health-client/ca.pem
+          --resolve health.example:8089:127.0.0.1
+          --user "$(cat /application/health-client/username):$(cat /application/health-client/password)"
+          --request PUT https://health.example:8089/suspend
+  readinessProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /ready
+      port: 8089
+  livenessProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /live
+      port: 8089
+  startupProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /started
+      port: 8089

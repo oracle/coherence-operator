@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2021, 2025 Oracle and/or its affiliates.
+    Copyright (c) 2021, 2026 Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -68,6 +68,13 @@ Securing Coherence clusters using TLS.
 [link=examples/095_network_policies/README.adoc]
 --
 An example covering the use of Kubernetes `NetworkPolicy` rules with the Operator and Coherence clusters.
+--
+
+[CARD]
+.Protected Health Endpoints
+[link=examples/096_protected_health_endpoints/README.adoc]
+--
+Configure authenticated, TLS-protected Coherence Health mutators for safe shutdown and scale-to-zero.
 --
 
 [CARD]

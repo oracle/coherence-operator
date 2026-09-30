@@ -1,0 +1,284 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2026, Oracle and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Protected Coherence Health Endpoints Example
+:description: Coherence Operator Documentation - Protected Coherence Health Endpoints Example
+:keywords: oracle coherence, kubernetes, operator, health, authentication, tls, scale to zero, example
+
+This example shows how to configure the Coherence Operator to call a protected Coherence Health mutator during safe
+shutdown and scale-to-zero. It covers the recommended Operator-managed configuration and the application-owned
+alternatives.
+
+See the <<docs/health/010_protected_health_endpoints.adoc,Protected Coherence Health Endpoints>> documentation for
+compatible versions, configuration ownership, upgrade guidance, security constraints, and troubleshooting.
+
+[TIP]
+====
+image:GitHub-Mark-32px[] The complete source for this example is in the
+https://{examples-source}096_protected_health_endpoints[Coherence Operator GitHub] repository.
+====
+
+== Configuration choices
+
+[cols="2,3,3",options="header"]
+|===
+|Configuration |Use when |Example
+
+|Managed security with packaged JAAS (recommended)
+|The application can use the Coherence Health server and Basic authentication. The Operator owns the member and client
+configuration.
+|`manifests/managed-packaged-jaas.yaml`
+
+|Managed security with an existing JAAS file
+|The application already owns the JVM's global JAAS configuration and supplies the required `CoherenceREST` context.
+|`manifests/managed-existing-jaas.yaml`
+
+|Managed security with application-mounted TLS files
+|The application already mounts the member keystore and its password files.
+|`manifests/managed-mounted-store-paths.yaml`
+
+|Application-owned Basic-over-TLS server
+|The application owns the Coherence Health system properties, TLS, JAAS, and kubelet probes. The Operator owns only
+the authenticated suspension request.
+|`manifests/application-owned-basic.yaml`
+
+|Application-owned server with an HTTP action
+|The application already owns a Basic-authenticated HTTPS server and needs only the Operator-client fragment.
+|`manifests/application-owned-http-action.yaml`
+
+|Application-owned server with a custom action
+|The application needs a client flow that the Operator's HTTP action cannot express.
+|`manifests/application-owned-exec-action.yaml`
+|===
+
+Use the managed configuration unless the application already owns the protected Health server. Do not combine
+`healthMutatorConnection.secure: true` with a custom `suspendProbe` or application-supplied `coherence.health.*`
+properties.
+
+== Prerequisites
+
+Before using this example:
+
+* install Coherence Operator 3.6.0 or later and its matching CRD;
+* select a Coherence release that supports protected `PUT` Health mutators;
+* make the application image available to every Kubernetes node, preferably by immutable digest;
+* obtain a server keystore containing the member private key and certificate;
+* obtain the keystore and key password files; and
+* obtain the PEM CA bundle that the Operator will use to verify the member certificate.
+
+The member certificate must contain `health.example`, or the value selected for `tls.serverName`, in its subject
+alternative names. The managed provider uses one-way TLS and does not require a member truststore.
+
+Run the commands below from the root of the Operator repository. Select the context and namespace explicitly:
+
+[source,bash]
+----
+export CONTEXT='YOUR_KUBERNETES_CONTEXT'
+export NAMESPACE='YOUR_NAMESPACE'
+export COHERENCE_IMAGE='registry.example/application@sha256:REPLACE_WITH_DIGEST'
+
+kubectl --context "$CONTEXT" create namespace "$NAMESPACE" \
+  --dry-run=client -o yaml | kubectl --context "$CONTEXT" apply -f -
+----
+
+== Create the Secrets
+
+Create immutable, versioned Secrets in the same namespace as the `Coherence` resource. Do not put credentials or
+private keys directly in the resource.
+
+The following example creates a high-entropy password without a trailing newline and copies externally issued TLS
+material into a private temporary directory. Replace the paths under `/secure/material` with the locations supplied by
+the approved certificate and secret-management process.
+
+[source,bash]
+----
+umask 077
+export MATERIAL="$(mktemp -d "${TMPDIR:-/tmp}/coherence-health.XXXXXX")"
+trap 'rm -f "$MATERIAL/username" "$MATERIAL/password" "$MATERIAL/server.jks" "$MATERIAL/store-password" "$MATERIAL/ca.pem"; rmdir "$MATERIAL" 2>/dev/null || true' EXIT
+
+printf '%s' 'health-operator' > "$MATERIAL/username"
+openssl rand -hex 32 | tr -d '\n' > "$MATERIAL/password"
+install -m 600 /secure/material/server.jks "$MATERIAL/server.jks"
+install -m 600 /secure/material/store-password "$MATERIAL/store-password"
+install -m 600 /secure/material/ca.pem "$MATERIAL/ca.pem"
+
+kubectl --context "$CONTEXT" -n "$NAMESPACE" create secret generic health-auth-v1 \
+  --from-file=username="$MATERIAL/username" \
+  --from-file=password="$MATERIAL/password"
+
+kubectl --context "$CONTEXT" -n "$NAMESPACE" create secret generic health-stores-v1 \
+  --from-file=server.jks="$MATERIAL/server.jks" \
+  --from-file=store-password="$MATERIAL/store-password"
+
+kubectl --context "$CONTEXT" -n "$NAMESPACE" create secret generic health-ca-v1 \
+  --from-file=ca.pem="$MATERIAL/ca.pem"
+
+for secret in health-auth-v1 health-stores-v1 health-ca-v1; do
+  kubectl --context "$CONTEXT" -n "$NAMESPACE" patch secret "$secret" \
+    --type=merge -p '{"immutable":true}'
+done
+----
+
+Credential and password files are consumed as exact bytes. An unintended trailing newline changes the value. Versioned
+Secret names make the selected generation explicit; they do not by themselves prove that a mixed-generation live
+rotation is safe.
+
+== Use managed security
+
+The recommended configuration uses `healthMutatorConnection.secure: true`. The Operator configures the member's
+`HealthSSLProvider`, authenticated Coherence mutators, packaged `CoherenceREST` JAAS entry, Secret mounts, HTTPS kubelet
+probes, and authenticated `PUT /suspend` client.
+
+[source,yaml]
+.manifests/managed-packaged-jaas.yaml
+----
+include::manifests/managed-packaged-jaas.yaml[]
+----
+
+Render and apply the manifest:
+
+[source,bash]
+----
+envsubst '${NAMESPACE} ${COHERENCE_IMAGE}' \
+  < examples/096_protected_health_endpoints/manifests/managed-packaged-jaas.yaml \
+  > "$MATERIAL/protected-health.yaml"
+
+kubectl --context "$CONTEXT" apply -f "$MATERIAL/protected-health.yaml"
+kubectl --context "$CONTEXT" -n "$NAMESPACE" rollout status \
+  statefulset/protected-health --timeout=10m
+----
+
+The example enables active persistence and therefore requires a default `ReadWriteOnce` StorageClass. Replace the image,
+application, cache configuration, persistence settings, and resource sizing with the deployment's actual values.
+
+=== Use an existing JAAS file
+
+When the application already sets `java.security.auth.login.config`, use `jaas.mode: existing`. The existing file must
+contain a login context named exactly `CoherenceREST` and must validate the same credentials used by the Operator client.
+
+[source,yaml]
+.manifests/managed-existing-jaas.yaml
+----
+include::manifests/managed-existing-jaas.yaml[]
+----
+
+The file is a `ConfigMap` plus a `spec` fragment. Merge that fragment into the StatefulSet-backed `Coherence` resource.
+Managed startup fails instead of overwriting an existing global JAAS selection.
+
+=== Use application-mounted keystore files
+
+When the application already mounts the server keystore and password files, omit `serverTLS.secrets` and supply absolute
+container paths:
+
+[source,yaml]
+.manifests/managed-mounted-store-paths.yaml
+----
+include::manifests/managed-mounted-store-paths.yaml[]
+----
+
+This choice changes only ownership of the member TLS mount. The Operator still configures the Health server, Basic
+credentials, client CA, JAAS mode, and authenticated suspension request.
+
+== Use application-owned Health security
+
+Use application-owned mode when the application must configure the Health listener itself or cannot use the managed
+launcher arrangement. Omit `healthMutatorConnection`; the application owns:
+
+* `coherence.health.http.mutators.enabled=true`;
+* the `basic`, `cert`, or `cert+basic` authentication selection;
+* the HTTPS socket provider and server identity;
+* the `CoherenceREST` JAAS context when Basic authentication is used;
+* the required Secret volumes and JVM properties; and
+* HTTPS readiness, liveness, and any startup probes.
+
+The following complete Basic-over-TLS example uses the Operator support library's `SecretLoginModule`. The selected
+application launcher must place both Coherence and that LoginModule on the member JVM classpath.
+
+[source,yaml]
+.manifests/application-owned-basic.yaml
+----
+include::manifests/application-owned-basic.yaml[]
+----
+
+Render and apply it in the same way as the managed example:
+
+[source,bash]
+----
+envsubst '${NAMESPACE} ${COHERENCE_IMAGE}' \
+  < examples/096_protected_health_endpoints/manifests/application-owned-basic.yaml \
+  > "$MATERIAL/application-owned-health.yaml"
+
+kubectl --context "$CONTEXT" apply -f "$MATERIAL/application-owned-health.yaml"
+kubectl --context "$CONTEXT" -n "$NAMESPACE" rollout status \
+  statefulset/application-owned-health --timeout=10m
+----
+
+The `suspendProbe.http` block configures only the Operator client. Unlike managed mode, it does not configure the member
+JVM or rewrite kubelet probes to HTTPS.
+
+=== Use only the custom HTTP-action fragment
+
+If the application already supplies the protected server configuration, merge the following Operator-client and probe
+fragment into its `Coherence` resource:
+
+[source,yaml]
+.manifests/application-owned-http-action.yaml
+----
+include::manifests/application-owned-http-action.yaml[]
+----
+
+The HTTP action supports verified server TLS and Secret-backed Basic credentials, but it does not present a TLS client
+certificate.
+
+=== Use a custom in-Pod client
+
+For certificate authentication, `cert+basic`, or another client flow that the HTTP action cannot express, use an
+application-owned exec action. The application image must contain the required client program and must mount its client
+material.
+
+[source,yaml]
+.manifests/application-owned-exec-action.yaml
+----
+include::manifests/application-owned-exec-action.yaml[]
+----
+
+The supplied fragment demonstrates the resource shape with `curl` and Basic authentication. Replace the command and
+mounted material for the selected certificate contract. An exec action is less portable and provides fewer sanitized
+diagnostics than the managed HTTP client.
+
+== Verify the deployment
+
+For managed mode, confirm that generated probes targeting the Health port use HTTPS:
+
+[source,bash]
+----
+kubectl --context "$CONTEXT" -n "$NAMESPACE" get statefulset protected-health \
+  -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{" ready="}{.readinessProbe.httpGet.scheme}{":"}{.readinessProbe.httpGet.port}{" live="}{.livenessProbe.httpGet.scheme}{":"}{.livenessProbe.httpGet.port}{"\n"}{end}'
+----
+
+Then verify the deployment's application data before and after scale-to-zero. A failed credential, CA, or certificate
+name must block the transition while the existing members remain running. Ready Pods and unchanged PVC names do not by
+themselves prove that application data was recovered.
+
+Do not add an anonymous or `GET` fallback, disable certificate verification, or set
+`spec.suspendServicesOnShutdown: false` to hide a security configuration failure.
+
+WARNING: If scale-to-zero is blocked, correct the configuration or restore `spec.replicas` to a non-zero value before
+deleting the `Coherence` resource or its namespace. Desired replicas can be zero while members are still running, and
+deletion in that state can terminate those members without the expected suspension.
+
+== Clean up an example namespace
+
+Delete only a namespace that was created specifically for this example:
+
+[source,bash]
+----
+kubectl --context "$CONTEXT" delete namespace "$NAMESPACE"
+----
+
+Namespace deletion can also delete dynamically provisioned volumes according to the StorageClass reclaim policy.

@@ -72,6 +72,13 @@ m| status | &#160; m| <<CoherenceResourceStatus,CoherenceResourceStatus>> | fals
 * <<CoherenceWKASpec,CoherenceWKASpec>>
 * <<ConfigMapVolumeSpec,ConfigMapVolumeSpec>>
 * <<GlobalSpec,GlobalSpec>>
+* <<HTTPAction,HTTPAction>>
+* <<HTTPActionHeader,HTTPActionHeader>>
+* <<HTTPBasicAuth,HTTPBasicAuth>>
+* <<HTTPClientTLS,HTTPClientTLS>>
+* <<HTTPEndpoint,HTTPEndpoint>>
+* <<HealthJAAS,HealthJAAS>>
+* <<HealthMutatorConnection,HealthMutatorConnection>>
 * <<ImageSpec,ImageSpec>>
 * <<JVMSpec,JVMSpec>>
 * <<JvmDebugSpec,JvmDebugSpec>>
@@ -235,7 +242,7 @@ annotations: +
   foo.io/two: "value2" + +
  +
 see: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/[Kubernetes Annotations] m| map[string]string | false
-m| readyAction | ReadyAction is a probe that will be executed when one or more Pods reach the ready state. The probe will be executed on every Pod that is ready. One the required number of ready Pods is reached the probe will also be executed on every Pod that becomes ready after that time. m| &#42;<<CoherenceJobProbe,CoherenceJobProbe>> | false
+m| readyAction | ReadyAction is attempted for each Ready Pod after ReadyCount is reached. The Operator does not automatically make another attempt while a Pod remains Ready. If a Pod stops being Ready and subsequently becomes Ready again, another attempt is made. The most recently recorded result is available in status.jobProbes. m| &#42;<<CoherenceJobProbe,CoherenceJobProbe>> | false
 m| forceExit | ForceExit is a flag to indicate whether the Operator should call System.exit to forcefully exit the process when the configured main class completes execution. m| &#42;bool | false
 m| envFrom | List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated. m| []https://{k8s-doc-link}/#envfromsource-v1-core[corev1.EnvFromSource] | false
 m| global | Global contains attributes that will be applied to all resources managed by the Coherence Operator. m| &#42;<<GlobalSpec,GlobalSpec>> | false
@@ -439,6 +446,7 @@ CoherenceStatefulSetResourceSpec defines the specification of a Coherence resour
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
+m| healthMutatorConnection | HealthMutatorConnection configures the selected health server and suspension client. m| &#42;<<HealthMutatorConnection,HealthMutatorConnection>> | false
 m| cluster | The optional name of the Coherence cluster that this Coherence resource belongs to. If this value is set the Pods controlled by this Coherence resource will form a cluster with other Pods controlled by Coherence resources with the same cluster name. If not set the Coherence resource's name will be used as the cluster name. m| &#42;string | false
 m| statefulSetAnnotations | StatefulSetAnnotations are free-form yaml that will be added to the Coherence cluster `StatefulSet` as annotations. Any annotations should be placed BELOW this "annotations:" key, for example: +
  +
@@ -458,7 +466,7 @@ m| autoResumeServices | AutoResumeServices is a map of Coherence service names t
 m| suspendServiceTimeout | SuspendServiceTimeout sets the number of seconds to wait for the service suspend call to return (the default is 60 seconds) m| &#42;int | false
 m| haBeforeUpdate | Whether to perform a StatusHA test on the cluster before performing an update or deletion. This field can be set to "false" to force through an update even when a Coherence deployment is in an unstable state. The default is true, to always check for StatusHA before updating a Coherence deployment. m| &#42;bool | false
 m| allowUnsafeDelete | AllowUnsafeDelete controls whether the Operator will add a finalizer to the Coherence resource so that it can intercept deletion of the resource and initiate a controlled shutdown of the Coherence cluster. The default value is `false`. The primary use for setting this flag to `true` is in CI/CD environments so that cleanup jobs can delete a whole namespace without requiring the Operator to have removed finalizers from any Coherence resources deployed into that namespace. It is not recommended to set this flag to `true` in a production environment, especially when using Coherence persistence features. m| &#42;bool | false
-m| actions | Actions to execute once all the Pods are ready after an initial deployment m| []<<Action,Action>> | false
+m| actions | Actions to execute once all the Pods are ready after an initial deployment. A maximum of 128 actions may be configured. m| []<<Action,Action>> | false
 m| envFrom | List of sources to populate environment variables in the container. The keys defined within a source must be a C_IDENTIFIER. All invalid keys will be reported as an event when the container is starting. When a key exists in multiple sources, the value associated with the last source will take precedence. Values defined by an Env with a duplicate key will take precedence. Cannot be updated. m| []https://{k8s-doc-link}/#envfromsource-v1-core[corev1.EnvFromSource] | false
 m| global | Global contains attributes that will be applied to all resources managed by the Coherence Operator. m| &#42;<<GlobalSpec,GlobalSpec>> | false
 m| initResources | InitResources is the optional resource requests and limits for the init-container that the Operator adds to the Pod. +
@@ -554,6 +562,107 @@ GlobalSpec is attributes that will be applied to all resources managed by the Op
 | Field | Description | Type | Required
 m| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ m| map[string]string | false
 m| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ m| map[string]string | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HTTPAction
+
+HTTPAction is an Operator HTTP action. Only HTTP 200 is successful; redirects are rejected.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| path | Path is the URL path to request. It must be absolute and defaults to "/". m| string | false
+m| port | Port is the numeric or named port on the target Pod. m| https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString | true
+m| host | Host is the optional connection host. It defaults to the target Pod's address. m| string | false
+m| scheme | Scheme is the protocol used for the request and defaults to HTTP. m| https://{k8s-doc-link}/#urischeme-v1-core[corev1.URIScheme] | false
+m| httpHeaders | HTTPHeaders contains non-secret custom request headers. m| []<<HTTPActionHeader,HTTPActionHeader>> | false
+m| method | Method defaults to GET. m| string | false
+m| basicAuth | BasicAuth references credentials in the resource namespace. It can only be used with the target Pod address, so Host must be empty when BasicAuth is configured. m| &#42;<<HTTPBasicAuth,HTTPBasicAuth>> | false
+m| tls | TLS configures verified server authentication. m| &#42;<<HTTPClientTLS,HTTPClientTLS>> | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HTTPActionHeader
+
+HTTPActionHeader is a bounded non-secret HTTP request header.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| name | Name is the HTTP header name. m| string | true
+m| value | Value is the HTTP header value. m| string | true
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HTTPBasicAuth
+
+HTTPBasicAuth contains namespace-local credential references.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| username | Username references the Secret key containing the Basic authentication username. m| https://{k8s-doc-link}/#secretkeyselector-v1-core[corev1.SecretKeySelector] | true
+m| password | Password references the Secret key containing the Basic authentication password. m| https://{k8s-doc-link}/#secretkeyselector-v1-core[corev1.SecretKeySelector] | true
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HTTPClientTLS
+
+HTTPClientTLS supplies a PEM trust bundle and optional verified DNS name.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| caSecret | CASecret references the Secret key containing the PEM-encoded CA certificate bundle. m| https://{k8s-doc-link}/#secretkeyselector-v1-core[corev1.SecretKeySelector] | true
+m| serverName | ServerName is the optional DNS name used to verify the server certificate. m| string | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HTTPEndpoint
+
+HTTPEndpoint identifies a target without Kubernetes GET-only semantics.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| path | Path is the URL path to request. It must be absolute and defaults to "/". m| string | false
+m| port | Port is the numeric or named port on the target Pod. m| https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString | true
+m| host | Host is the optional connection host. It defaults to the target Pod's address. m| string | false
+m| scheme | Scheme is the protocol used for the request and defaults to HTTP. m| https://{k8s-doc-link}/#urischeme-v1-core[corev1.URIScheme] | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HealthJAAS
+
+HealthJAAS selects the packaged validator or an application-owned JAAS configuration.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| mode | Mode is "packaged" to generate the packaged JAAS configuration or "existing" to use the application's configuration. It defaults to "packaged". m| string | false
+|===
+
+<<Table of Contents,Back to TOC>>
+
+=== HealthMutatorConnection
+
+HealthMutatorConnection configures authenticated health operations for StatefulSets.
+
+[cols="1,10,1,1"options="header"]
+|===
+| Field | Description | Type | Required
+m| secure | Secure enables authenticated PUT over verified TLS. m| bool | true
+m| basicAuth | BasicAuth supplies credentials for authenticated health requests. m| &#42;<<HTTPBasicAuth,HTTPBasicAuth>> | false
+m| tls | TLS configures CA trust and server name verification for health requests. m| &#42;<<HTTPClientTLS,HTTPClientTLS>> | false
+m| serverTLS | ServerTLS configures the member's one-way TLS identity. TrustStore fields are accepted for compatibility but are not used by HealthSSLProvider. m| &#42;<<SSLSpec,SSLSpec>> | false
+m| jaas | JAAS selects how the member's CoherenceREST login context is configured. m| &#42;<<HealthJAAS,HealthJAAS>> | false
 |===
 
 <<Table of Contents,Back to TOC>>
@@ -840,11 +949,12 @@ m| ssl | SSL configures SSL settings for a Coherence component m| &#42;<<SSLSpec
 
 === Probe
 
-Probe is the handler that will be used to determine how to communicate with a Coherence deployment for operations like StatusHA checking and service suspension. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe).
+Probe is the handler that will be used to determine how to communicate with a Coherence deployment for operations like StatusHA checking and service suspension. StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting Enabled to false then no check will take place and a deployment will be assumed to be safe). Empty and gRPC-only handlers remain successful no-ops for backward compatibility. The Operator emits a Warning event because these handlers do not execute a request or command and do not prove StatusHA or service suspension.
 
 [cols="1,10,1,1"options="header"]
 |===
 | Field | Description | Type | Required
+m| http | HTTP is a method-aware request executed by the Operator. m| &#42;<<HTTPAction,HTTPAction>> | false
 m| timeoutSeconds | Number of seconds after which the handler times out (only applies to http and tcp handlers). Defaults to 1 second. Minimum value is 1. m| &#42;int | false
 |===
 
