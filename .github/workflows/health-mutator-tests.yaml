@@ -127,6 +127,7 @@ jobs:
             "${GITHUB_WORKSPACE}/build/tools/bin/kustomize" edit set image \
               "controller=${{ steps.images.outputs.operator_digest }}"
           )
+          kubectl create namespace operator-test --dry-run=client -o yaml | kubectl apply -f -
           build/tools/bin/kustomize build build/_output/config/default | kubectl apply -f -
           kubectl -n operator-test scale \
             deployment/coherence-operator-controller-manager --replicas=1
