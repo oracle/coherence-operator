@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-    Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2026, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 
@@ -36,6 +36,11 @@ scale request  (go back to step one).
 What these steps ensure is that the deployment will not be resized unless the cluster is in a safe state.
 When scaling down only a single member will be removed at a time, ensuring that the cluster is in a safe state before
 removing the next member.
+
+For a Coherence runtime that protects the `PUT /suspend` health mutator, configure the Operator to authenticate over
+verified TLS before relying on safe scale-down or scale-to-zero. See
+<<docs/health/010_protected_health_endpoints.adoc,Protected Coherence Health Endpoints>> for the complete managed
+configuration, transition checks, and fail-closed recovery procedure.
 
 NOTE: The Operator will only apply safe scaling functionality to deployments that are storage enabled.
 If a deployment is storage disabled then it can be scaled up or down by the required number of members
@@ -312,4 +317,3 @@ spec:
           - safe.sh
 ----
 <1> This deployment will check the status of the services by running the `sh safe.sh` command in the `Pod`.
-

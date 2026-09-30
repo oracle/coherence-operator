@@ -1,0 +1,40 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Operator-client fragment for an application-owned protected Health server.
+# Use only when the application independently configures the protected
+# Coherence health server. Do not add healthMutatorConnection with this probe.
+spec:
+  healthPort: 8089
+  suspendProbe:
+    timeoutSeconds: 60
+    http:
+      method: PUT
+      scheme: HTTPS
+      path: /suspend
+      port: 8089
+      basicAuth:
+        username: {name: health-auth-v1, key: username}
+        password: {name: health-auth-v1, key: password}
+      tls:
+        caSecret: {name: health-ca-v1, key: ca.pem}
+        serverName: health.example
+
+  # Custom probes are required because unmanaged mode does not rewrite the
+  # generated probes to HTTPS. Read-only endpoints must remain unauthenticated.
+  readinessProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /ready
+      port: 8089
+  livenessProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /live
+      port: 8089
+  startupProbe:
+    httpGet:
+      scheme: HTTPS
+      path: /started
+      port: 8089

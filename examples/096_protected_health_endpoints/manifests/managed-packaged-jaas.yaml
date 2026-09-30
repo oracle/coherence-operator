@@ -1,0 +1,50 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+# Complete recommended managed configuration. Render NAMESPACE and
+# COHERENCE_IMAGE with envsubst before applying. The image must contain the
+# application and a Coherence runtime that supports protected PUT mutators.
+apiVersion: coherence.oracle.com/v1
+kind: Coherence
+metadata:
+  name: protected-health
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 3
+  image: ${COHERENCE_IMAGE}
+  imagePullPolicy: IfNotPresent
+  healthPort: 8089
+  healthMutatorConnection:
+    secure: true
+    basicAuth:
+      username:
+        name: health-auth-v1
+        key: username
+      password:
+        name: health-auth-v1
+        key: password
+    tls:
+      caSecret:
+        name: health-ca-v1
+        key: ca.pem
+      serverName: health.example
+    serverTLS:
+      enabled: true
+      requireClientCert: false
+      secrets: health-stores-v1
+      keyStore: server.jks
+      keyStorePasswordFile: store-password
+      keyPasswordFile: store-password
+      keyStoreType: JKS
+    jaas:
+      mode: packaged
+  coherence:
+    persistence:
+      mode: active
+      persistentVolumeClaim:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
