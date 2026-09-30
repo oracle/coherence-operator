@@ -2319,6 +2319,7 @@ func (in *ServiceSpec) createServiceSpec() corev1.ServiceSpec {
 
 // ScalingSpec is the configuration to control safe scaling.
 // +k8s:openapi-gen=true
+// +kubebuilder:validation:XValidation:rule="!has(self.probe) || !has(self.probe.http) || !has(self.probe.http.method) || self.probe.http.method == 'GET'",message="HA requires a read-only GET action"
 type ScalingSpec struct {
 	// ScalingPolicy describes how the replicas of the deployment will be scaled.
 	// The default if not specified is based upon the value of the StorageEnabled field.
@@ -2343,13 +2344,94 @@ type ScalingSpec struct {
 // StatusHA checking is primarily used during scaling of a deployment, a deployment must be in a safe Phase HA
 // state before scaling takes place. If StatusHA handler is disabled for a deployment (by specifically setting
 // Enabled to false then no check will take place and a deployment will be assumed to be safe).
+// Empty and gRPC-only handlers remain successful no-ops for backward compatibility. The Operator emits a Warning
+// event because these handlers do not execute a request or command and do not prove StatusHA or service suspension.
 // +k8s:openapi-gen=true
+// +kubebuilder:validation:XValidation:rule="!has(self.http) || (!has(self.exec) && !has(self.httpGet) && !has(self.tcpSocket) && !has(self.grpc))",message="http cannot be combined with a legacy probe action"
 type Probe struct {
+	// HTTP is a method-aware request executed by the Operator.
+	// +optional
+	HTTP                *HTTPAction `json:"http,omitempty"`
 	corev1.ProbeHandler `json:",inline"`
 	// Number of seconds after which the handler times out (only applies to http and tcp handlers).
 	// Defaults to 1 second. Minimum value is 1.
 	// +optional
 	TimeoutSeconds *int `json:"timeoutSeconds,omitempty"`
+}
+
+// HTTPAction is an Operator HTTP action. Only HTTP 200 is successful; redirects are rejected.
+// +kubebuilder:validation:XValidation:rule="!has(self.basicAuth) || (has(self.scheme) && self.scheme == 'HTTPS')",message="Basic authentication requires HTTPS"
+// +kubebuilder:validation:XValidation:rule="!has(self.basicAuth) || !has(self.host) || size(self.host) == 0",message="Basic authentication requires the target Pod address; host must be empty"
+// +kubebuilder:validation:XValidation:rule="!has(self.basicAuth) || !has(self.httpHeaders) || self.httpHeaders.all(h, h.name.lowerAscii() != 'authorization')",message="Authorization conflicts with basicAuth"
+// +kubebuilder:validation:XValidation:rule="!has(self.tls) || (has(self.scheme) && self.scheme == 'HTTPS')",message="TLS settings require HTTPS"
+// +kubebuilder:validation:XValidation:rule="!has(self.host) || (!self.host.contains('@') && !self.host.contains('/') && !self.host.contains('?') && !self.host.contains('#'))",message="host must not contain URL credentials or delimiters"
+// +kubebuilder:validation:XValidation:rule="!has(self.path) || (self.path.startsWith('/') && !self.path.startsWith('//'))",message="path must be an absolute endpoint path"
+// +kubebuilder:validation:XValidation:rule="!has(self.httpHeaders) || self.httpHeaders.all(h, h.name.lowerAscii() != 'authorization') || (has(self.scheme) && self.scheme == 'HTTPS')",message="Authorization requires HTTPS"
+type HTTPAction struct {
+	HTTPEndpoint `json:",inline"`
+	// HTTPHeaders contains non-secret custom request headers.
+	// +optional
+	// +kubebuilder:validation:MaxItems=32
+	HTTPHeaders []HTTPActionHeader `json:"httpHeaders,omitempty"`
+	// Method defaults to GET.
+	// +optional
+	// +kubebuilder:validation:Enum=GET;PUT
+	Method string `json:"method,omitempty"`
+	// BasicAuth references credentials in the resource namespace. It can only be used with the target Pod address,
+	// so Host must be empty when BasicAuth is configured.
+	// +optional
+	BasicAuth *HTTPBasicAuth `json:"basicAuth,omitempty"`
+	// TLS configures verified server authentication.
+	// +optional
+	TLS *HTTPClientTLS `json:"tls,omitempty"`
+}
+
+// HTTPEndpoint identifies a target without Kubernetes GET-only semantics.
+type HTTPEndpoint struct {
+	// Path is the URL path to request. It must be absolute and defaults to "/".
+	// +optional
+	// +kubebuilder:validation:MaxLength=2048
+	Path string `json:"path,omitempty"`
+	// Port is the numeric or named port on the target Pod.
+	Port intstr.IntOrString `json:"port"`
+	// Host is the optional connection host. It defaults to the target Pod's address.
+	// +optional
+	// +kubebuilder:validation:MaxLength=253
+	Host string `json:"host,omitempty"`
+	// Scheme is the protocol used for the request and defaults to HTTP.
+	// +optional
+	// +kubebuilder:validation:Enum=HTTP;HTTPS
+	Scheme corev1.URIScheme `json:"scheme,omitempty"`
+}
+
+// HTTPActionHeader is a bounded non-secret HTTP request header.
+type HTTPActionHeader struct {
+	// Name is the HTTP header name.
+	// +kubebuilder:validation:MaxLength=256
+	Name string `json:"name"`
+	// Value is the HTTP header value.
+	// +kubebuilder:validation:MaxLength=8192
+	Value string `json:"value"`
+}
+
+// HTTPBasicAuth contains namespace-local credential references.
+// +kubebuilder:validation:XValidation:rule="has(self.username.name) && size(self.username.name) > 0 && size(self.username.key) > 0 && (!has(self.username.optional) || !self.username.optional)",message="username requires a non-optional named Secret key"
+// +kubebuilder:validation:XValidation:rule="has(self.password.name) && size(self.password.name) > 0 && size(self.password.key) > 0 && (!has(self.password.optional) || !self.password.optional)",message="password requires a non-optional named Secret key"
+type HTTPBasicAuth struct {
+	// Username references the Secret key containing the Basic authentication username.
+	Username corev1.SecretKeySelector `json:"username"`
+	// Password references the Secret key containing the Basic authentication password.
+	Password corev1.SecretKeySelector `json:"password"`
+}
+
+// HTTPClientTLS supplies a PEM trust bundle and optional verified DNS name.
+// +kubebuilder:validation:XValidation:rule="has(self.caSecret.name) && size(self.caSecret.name) > 0 && size(self.caSecret.key) > 0 && (!has(self.caSecret.optional) || !self.caSecret.optional)",message="TLS requires a non-optional named CA Secret key"
+type HTTPClientTLS struct {
+	// CASecret references the Secret key containing the PEM-encoded CA certificate bundle.
+	CASecret corev1.SecretKeySelector `json:"caSecret"`
+	// ServerName is the optional DNS name used to verify the server certificate.
+	// +optional
+	ServerName string `json:"serverName,omitempty"`
 }
 
 // GetTimeout returns the timeout value in seconds.

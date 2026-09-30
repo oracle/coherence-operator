@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -40,14 +40,14 @@ func GetUpgradeStrategy(c coh.CoherenceResource, p probe.CoherenceProbe) Upgrade
 			return ManualUpgradeStrategy{}
 		}
 		if name == coh.UpgradeByNode {
-			sp := spec.GetScalingProbe()
+			sp := probe.ResolveScalingProbe(spec)
 			return ByNodeUpgradeStrategy{
 				cp:           p,
 				scalingProbe: sp,
 			}
 		}
 		if name == coh.UpgradeByNodeLabel {
-			sp := spec.GetScalingProbe()
+			sp := probe.ResolveScalingProbe(spec)
 			if spec.RollingUpdateLabel == nil {
 				return ByNodeUpgradeStrategy{
 					cp:           p,
@@ -102,7 +102,7 @@ var _ UpgradeStrategy = ByNodeUpgradeStrategy{}
 
 type ByNodeUpgradeStrategy struct {
 	cp           probe.CoherenceProbe
-	scalingProbe *coh.Probe
+	scalingProbe probe.ResolvedScalingProbe
 }
 
 func (in ByNodeUpgradeStrategy) RollingUpgrade(ctx context.Context, sts *appsv1.StatefulSet, svc string, c kubernetes.Interface) (reconcile.Result, error) {
@@ -119,7 +119,7 @@ var _ UpgradeStrategy = ByNodeLabelUpgradeStrategy{}
 
 type ByNodeLabelUpgradeStrategy struct {
 	cp           probe.CoherenceProbe
-	scalingProbe *coh.Probe
+	scalingProbe probe.ResolvedScalingProbe
 	label        string
 }
 
@@ -177,7 +177,7 @@ func (p *PodNodeLabel) GetNodeId(ctx context.Context, c kubernetes.Interface, po
 
 // ----- helper methods ----------------------------------------------------------------------------
 
-func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe *coh.Probe, fn PodNodeIdSupplier, idName string, ctx context.Context, sts *appsv1.StatefulSet, svc string, c kubernetes.Interface) (reconcile.Result, error) {
+func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe probe.ResolvedScalingProbe, fn PodNodeIdSupplier, idName string, ctx context.Context, sts *appsv1.StatefulSet, svc string, c kubernetes.Interface) (reconcile.Result, error) {
 	var err error
 	var replicas int32
 
@@ -270,7 +270,7 @@ func rollingUpgrade(cp probe.CoherenceProbe, scalingProbe *coh.Probe, fn PodNode
 		// We have Pods to be upgraded
 		nodeId, _ := fn.GetNodeId(ctx, c, pods.Items[0])
 		// Check Pods are "safe"
-		if cp.ExecuteProbeForSubSetOfPods(ctx, sts, svc, scalingProbe, pods, podsToUpdate) {
+		if cp.ExecuteScalingProbeForSubSetOfPods(ctx, sts, svc, scalingProbe, pods, podsToUpdate) {
 			// delete the Pods
 			log.Info("Upgrading all Pods for Node identifier", "Namespace", sts.Namespace, "Name", sts.Name, "NodeId", idName, "IdValue", nodeId, "Count", len(podsToUpdate.Items))
 			err = deletePods(ctx, podsToUpdate, c)

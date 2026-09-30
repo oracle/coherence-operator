@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -504,10 +504,11 @@ type CoherenceJobResourceSpec struct {
 	// +optional
 	JobAnnotations map[string]string `json:"jobAnnotations,omitempty"`
 
-	// ReadyAction is a probe that will be executed when one or more Pods
-	// reach the ready state. The probe will be executed on every Pod that
-	// is ready. One the required number of ready Pods is reached the probe
-	// will also be executed on every Pod that becomes ready after that time.
+	// ReadyAction is attempted for each Ready Pod after ReadyCount is reached.
+	// The Operator does not automatically make another attempt while a Pod
+	// remains Ready. If a Pod stops being Ready and subsequently becomes Ready
+	// again, another attempt is made. The most recently recorded result is
+	// available in status.jobProbes.
 	// +optional
 	ReadyAction *CoherenceJobProbe `json:"readyAction,omitempty"`
 

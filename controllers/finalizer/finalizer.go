@@ -8,7 +8,6 @@ package finalizer
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/go-logr/logr"
@@ -70,16 +69,14 @@ func (fm *FinalizerManager) EnsureFinalizerRemoved(ctx context.Context, c *coh.C
 
 // FinalizeDeployment performs any required finalizer tasks for the Coherence resource
 func (fm *FinalizerManager) FinalizeDeployment(ctx context.Context, c *coh.Coherence, findStatefulSet func(ctx context.Context, namespace, name string) (*appsv1.StatefulSet, bool, error)) error {
-	// Check if the finalizer bypass annotation is present
+	// Preserve the existing deletion escape hatch, including presence-only semantics.
 	annotations := c.GetAnnotations()
-	if annotations != nil {
-		if _, bypass := annotations["coherence.oracle.com/finalizer-bypass"]; bypass {
-			fm.Log.Info("Bypassing service suspension due to finalizer-bypass annotation",
-				"Namespace", c.Namespace, "Name", c.Name)
-			fm.EventRecorder.Eventf(c, nil, corev1.EventTypeNormal, "FinalizerBypassed", "Finalize",
-				"Service suspension bypassed due to finalizer-bypass annotation")
-			return nil
-		}
+	if _, bypass := annotations["coherence.oracle.com/finalizer-bypass"]; bypass {
+		fm.Log.Info("Bypassing service suspension due to finalizer-bypass annotation",
+			"Namespace", c.Namespace, "Name", c.Name)
+		fm.EventRecorder.Eventf(c, nil, corev1.EventTypeNormal, "FinalizerBypassed", "Finalize",
+			"Service suspension bypassed due to finalizer-bypass annotation")
+		return nil
 	}
 
 	// determine whether we can skip service suspension
@@ -103,40 +100,36 @@ func (fm *FinalizerManager) FinalizeDeployment(ctx context.Context, c *coh.Coher
 	// Get the StatefulSet
 	sts, stsExists, err := findStatefulSet(ctx, c.Namespace, c.Name)
 	if err != nil {
-		return errors.Wrapf(err, "getting StatefulSet %s/%s", c.Namespace, c.Name)
+		return fm.suspensionFailure(c, &probe.SuspensionCauseError{Kind: probe.SuspensionCauseWorkloadLookupFailed, Cause: err})
 	}
 	if stsExists {
 		if sts.Status.ReadyReplicas == 0 {
 			fm.Log.Info("Skipping suspension of Coherence services in deployment " + c.Name + " - No Pods are ready")
 		} else {
-			// Do service suspension...
-			p := probe.CoherenceProbe{
-				Client:        fm.Client,
-				EventRecorder: events.NewOwnedEventRecorder(c, fm.EventRecorder),
-			}
-			if p.SuspendServices(ctx, c, sts) == probe.ServiceSuspendFailed {
-				// Log the failure but don't return an error if we've already tried multiple times
-				// This prevents resources from being stuck in a deleting state indefinitely
-				errorCount := 1
-				if annotations != nil {
-					if countStr, ok := annotations["coherence.oracle.com/error-count"]; ok {
-						if parsedCount, err := strconv.Atoi(countStr); err == nil {
-							errorCount = parsedCount
-						}
-					}
-				}
-
-				if errorCount > 3 {
+			p := probe.CoherenceProbe{Client: fm.Client, EventRecorder: events.NewOwnedEventRecorder(c, fm.EventRecorder)}
+			_, err = p.SuspendServicesWithError(ctx, c, sts)
+			if err != nil {
+				// Retain the established recovery policy. This is a recorded general
+				// error count, not a count of suspension attempts made here.
+				errorCount, parseErr := strconv.Atoi(annotations["coherence.oracle.com/error-count"])
+				if parseErr == nil && errorCount > 3 {
 					fm.Log.Info("Service suspension failed multiple times, allowing deletion to proceed",
 						"Namespace", c.Namespace, "Name", c.Name, "ErrorCount", errorCount)
 					fm.EventRecorder.Eventf(c, nil, corev1.EventTypeWarning, "ServiceSuspensionFailed", "SuspendServices",
 						"Service suspension failed multiple times, allowing deletion to proceed anyway")
 					return nil
 				}
-
-				return fmt.Errorf("failed to suspend services")
 			}
+			return err
 		}
 	}
 	return nil
+}
+
+func (fm *FinalizerManager) suspensionFailure(c *coh.Coherence, cause error) error {
+	err := &probe.SuspensionError{Cause: cause}
+	if fm.EventRecorder != nil {
+		fm.EventRecorder.Eventf(c, nil, corev1.EventTypeWarning, "ServiceSuspendFailed", "SuspendServices", "%s", err.Error())
+	}
+	return err
 }

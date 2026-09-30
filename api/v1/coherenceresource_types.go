@@ -466,8 +466,12 @@ func (in *Coherence) UpdateStatusVersion(v string) {
 // CoherenceStatefulSetResourceSpec defines the specification of a Coherence resource. A Coherence resource is
 // typically one or more Pods that perform the same functionality, for example storage members.
 // +k8s:openapi-gen=true
+// +kubebuilder:validation:XValidation:rule="!has(self.healthMutatorConnection) || !self.healthMutatorConnection.secure || !has(self.suspendProbe)",message="managed secure mode excludes custom suspend probes"
 type CoherenceStatefulSetResourceSpec struct {
-	CoherenceResourceSpec `json:",inline"`
+	// HealthMutatorConnection configures the selected health server and suspension client.
+	// +optional
+	HealthMutatorConnection *HealthMutatorConnection `json:"healthMutatorConnection,omitempty"`
+	CoherenceResourceSpec   `json:",inline"`
 	// The optional name of the Coherence cluster that this Coherence resource belongs to.
 	// If this value is set the Pods controlled by this Coherence resource will form a cluster
 	// with other Pods controlled by Coherence resources with the same cluster name.
@@ -554,8 +558,10 @@ type CoherenceStatefulSetResourceSpec struct {
 	// using Coherence persistence features.
 	// +optional
 	AllowUnsafeDelete *bool `json:"allowUnsafeDelete,omitempty"`
-	// Actions to execute once all the Pods are ready after an initial deployment
+	// Actions to execute once all the Pods are ready after an initial deployment.
+	// A maximum of 128 actions may be configured.
 	// +optional
+	// +kubebuilder:validation:MaxItems=128
 	Actions []Action `json:"actions,omitempty"`
 	// List of sources to populate environment variables in the container.
 	// The keys defined within a source must be a C_IDENTIFIER. All invalid keys
@@ -639,6 +645,7 @@ func (in *CoherenceStatefulSetResourceSpec) CreateStatefulSet(deployment *Cohere
 
 	replicas := in.GetReplicas()
 	podTemplate := in.CreatePodTemplateSpec(deployment)
+	in.ConfigureHealthMutators(&podTemplate)
 
 	// Work out the StatefulSet rolling upgrade strategy based on the
 	// value of the Coherence spec RollingUpdateStrategy field
@@ -763,8 +770,9 @@ func (in *CoherenceStatefulSetResourceSpec) GetDefaultSuspendProbe() *Probe {
 
 	probe := Probe{
 		TimeoutSeconds: timeout,
-		ProbeHandler: corev1.ProbeHandler{
-			HTTPGet: &corev1.HTTPGetAction{
+		HTTP: &HTTPAction{
+			Method: "PUT",
+			HTTPEndpoint: HTTPEndpoint{
 				Path: "/suspend",
 				Port: intstr.FromString(PortNameHealth),
 			},
@@ -1018,6 +1026,7 @@ func (in *CoherenceResourceStatus) UpdateFromJob(deployment *CoherenceJob, jobSt
 					ps.LastProbeTime = s.LastProbeTime
 					ps.LastReadyTime = s.LastReadyTime
 					ps.Success = s.Success
+					ps.Error = s.Error
 					updated = true
 				}
 			}
@@ -1134,9 +1143,9 @@ func (in *CoherenceResourceStatus) FindJobProbeStatus(pod string) CoherenceJobPr
 
 func (in *CoherenceResourceStatus) MaybeFindJobProbeStatus(pod string) *CoherenceJobProbeStatus {
 	if in != nil {
-		for _, status := range in.JobProbes {
-			if status.Pod == pod {
-				return &status
+		for i := range in.JobProbes {
+			if in.JobProbes[i].Pod == pod {
+				return &in.JobProbes[i]
 			}
 		}
 	}

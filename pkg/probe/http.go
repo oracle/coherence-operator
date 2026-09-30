@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -55,8 +55,7 @@ type GetHTTPInterface interface {
 func DoHTTPProbe(url *url.URL, headers http.Header, client GetHTTPInterface) (Result, string, error) {
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
-		// Convert errors into failures to catch timeouts.
-		return Failure, err.Error(), nil
+		return Failure, "", &RequestError{Kind: "request configuration", Cause: err}
 	}
 	if _, ok := headers["User-Agent"]; !ok {
 		if headers == nil {
@@ -69,22 +68,25 @@ func DoHTTPProbe(url *url.URL, headers http.Header, client GetHTTPInterface) (Re
 	if headers.Get("Host") != "" {
 		req.Host = headers.Get("Host")
 	}
-	log.Info("Executing HTTP Probe", "URL", url.String(), "Headers", headers)
+	log.Info("Executing HTTP Probe", "Method", "GET")
 	res, err := client.Do(req)
 	if err != nil {
-		// Convert errors into failures to catch timeouts.
-		return Failure, err.Error(), nil
+		kind := "transport"
+		if timeout, ok := err.(interface{ Timeout() bool }); ok && timeout.Timeout() {
+			kind = "transport timeout"
+		}
+		return Failure, "", &RequestError{Kind: kind, Cause: err}
 	}
 	defer closeBody(res)
-	b, err := io.ReadAll(res.Body)
+	b, err := io.ReadAll(io.LimitReader(res.Body, 64*1024))
 	if err != nil {
-		return Failure, "", err
+		return Failure, "", &RequestError{Kind: "uncertain response", Cause: err}
 	}
 	body := string(b)
 	if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusBadRequest {
 		return Success, body, nil
 	}
-	return Failure, fmt.Sprintf("HTTP probe failed with statuscode: %d", res.StatusCode), nil
+	return Failure, "", &RequestError{Kind: "rejected response", StatusCode: res.StatusCode}
 }
 
 func closeBody(res *http.Response) {

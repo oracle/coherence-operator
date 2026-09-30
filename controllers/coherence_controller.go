@@ -8,6 +8,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -45,6 +46,8 @@ import (
 const (
 	// The name of this controller
 	controllerName = "controllers.Coherence"
+	// The event and condition reason used when managed health configuration fails runtime validation.
+	invalidHealthMutatorConfigurationReason = "InvalidHealthMutatorConfiguration"
 
 	// The error message template to use to indicate a reconcile failure.
 	reconcileFailedMessage string = "failed to reconcile Coherence resource '%s' in namespace '%s'\n%s"
@@ -160,6 +163,10 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	}
 
 	// This is an add request or update request
+
+	if err := validateHealthMutatorConfiguration(deployment); err != nil {
+		return in.rejectHealthMutatorConfiguration(ctx, deployment, err, log)
+	}
 
 	if deployment.Spec.AllowUnsafeDelete != nil && *deployment.Spec.AllowUnsafeDelete {
 		if controllerutil.ContainsFinalizer(deployment, coh.CoherenceFinalizer) {
@@ -342,6 +349,66 @@ func (in *CoherenceReconciler) Reconcile(ctx context.Context, request ctrl.Reque
 	return result, nil
 }
 
+func validateHealthMutatorConfiguration(deployment *coh.Coherence) error {
+	connection := deployment.Spec.HealthMutatorConnection
+	if err := connection.Validate(); err != nil {
+		return err
+	}
+	if connection == nil || !connection.Secure {
+		return nil
+	}
+	if deployment.Spec.SuspendProbe != nil {
+		return fmt.Errorf("managed secure health mode excludes custom suspend probes")
+	}
+	return validateManagedHealthLauncher(deployment.Spec.Application)
+}
+
+func validateManagedHealthLauncher(application *coh.ApplicationSpec) error {
+	if application == nil {
+		return nil
+	}
+
+	useImageEntryPoint := application.UseImageEntryPoint != nil && *application.UseImageEntryPoint
+	if !useImageEntryPoint {
+		if len(application.EntryPoint) > 0 {
+			return fmt.Errorf("managed secure health with application.entryPoint requires application.useImageEntryPoint=true and a supported generated JVM argument delivery option")
+		}
+		return nil
+	}
+
+	useJdkJavaOptions := application.UseJdkJavaOptions == nil || *application.UseJdkJavaOptions
+	hasAlternateJdkJavaOptions := application.AlternateJdkJavaOptions != nil && *application.AlternateJdkJavaOptions != ""
+	if !useJdkJavaOptions && !hasAlternateJdkJavaOptions {
+		return fmt.Errorf("managed secure health with application.useImageEntryPoint=true requires application.useJdkJavaOptions=true (or omitted), or a non-empty application.alternateJdkJavaOptions that the application passes to the member JVM")
+	}
+	return nil
+}
+
+func (in *CoherenceReconciler) rejectHealthMutatorConfiguration(ctx context.Context, deployment *coh.Coherence, cause error, log logr.Logger) (ctrl.Result, error) {
+	message := fmt.Sprintf("Invalid health mutator configuration: %s", cause.Error())
+	condition := coh.Condition{
+		Type:    coh.ConditionTypeFailed,
+		Status:  coreV1.ConditionTrue,
+		Reason:  coh.ConditionReason(invalidHealthMutatorConfigurationReason),
+		Message: message,
+	}
+	updated := deployment.DeepCopy()
+	changed := updated.Status.SetCondition(deployment, condition)
+	changed = updated.Status.Conditions.SetCondition(condition) || changed
+
+	log.Error(cause, "Invalid health mutator configuration")
+	if !changed {
+		return ctrl.Result{}, nil
+	}
+
+	in.GetEventRecorder().Eventf(deployment, nil, coreV1.EventTypeWarning,
+		invalidHealthMutatorConfigurationReason, "ValidateHealthMutatorConfiguration", message)
+	if err := in.GetClient().Status().Patch(ctx, updated, client.MergeFrom(deployment)); err != nil {
+		return ctrl.Result{}, errors.Wrap(err, "updating status for invalid health mutator configuration")
+	}
+	return ctrl.Result{}, nil
+}
+
 func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.ClientSet) error {
 	SetupMonitoringResources(mgr)
 
@@ -390,6 +457,7 @@ func (in *CoherenceReconciler) SetupWithManager(mgr ctrl.Manager, cs clients.Cli
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(template).
+		Watches(&coreV1.Secret{}, handler.EnqueueRequestsFromMapFunc(in.healthSecretRequests)).
 		Named("coherence").
 		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(in)
@@ -427,4 +495,73 @@ func SetupMonitoringResources(mgr ctrl.Manager) {
 		Version: coh.ServiceMonitorVersion,
 	}
 	mgr.GetScheme().AddKnownTypes(gv, &monitoringv1.ServiceMonitor{}, &monitoringv1.ServiceMonitorList{})
+}
+
+// healthSecretRequests retries resources whose desired or live Pod generation references this Secret.
+func (in *CoherenceReconciler) healthSecretRequests(ctx context.Context, secret client.Object) []reconcile.Request {
+	return mapHealthSecretRequests(ctx, in.GetClient(), secret)
+}
+
+func mapHealthSecretRequests(ctx context.Context, kube client.Client, secret client.Object) []reconcile.Request {
+	resources := &coh.CoherenceList{}
+	if err := kube.List(ctx, resources, client.InNamespace(secret.GetNamespace())); err != nil {
+		return nil
+	}
+	matches := func(c *coh.HealthMutatorConnection) bool {
+		if c == nil {
+			return false
+		}
+		return (c.BasicAuth != nil && (c.BasicAuth.Username.Name == secret.GetName() || c.BasicAuth.Password.Name == secret.GetName())) ||
+			(c.TLS != nil && c.TLS.CASecret.Name == secret.GetName()) ||
+			(c.ServerTLS != nil && c.ServerTLS.Secrets != nil && *c.ServerTLS.Secrets == secret.GetName())
+	}
+	matched := make(map[string]bool, len(resources.Items))
+	unmatched := make(map[string]*coh.Coherence, len(resources.Items))
+	for i := range resources.Items {
+		resource := &resources.Items[i]
+		if matches(resource.Spec.HealthMutatorConnection) {
+			matched[resource.Name] = true
+		} else {
+			unmatched[resource.Name] = resource
+		}
+	}
+
+	if len(unmatched) > 0 {
+		pods := &coreV1.PodList{}
+		err := kube.List(ctx, pods,
+			client.InNamespace(secret.GetNamespace()),
+			client.MatchingLabels{coh.LabelComponent: coh.LabelComponentCoherencePod})
+		if err == nil {
+			for i := range pods.Items {
+				pod := &pods.Items[i]
+				resource, found := unmatched[pod.Labels[coh.LabelCoherenceDeployment]]
+				if !found || !matchesLabels(pod.Labels, resource.Spec.CreatePodSelectorLabels(resource)) {
+					continue
+				}
+				connection := &coh.HealthMutatorConnection{}
+				if json.Unmarshal([]byte(pod.Annotations[coh.HealthMutatorAnnotation]), connection) == nil && matches(connection) {
+					matched[resource.Name] = true
+					delete(unmatched, resource.Name)
+				}
+			}
+		}
+	}
+
+	var requests []reconcile.Request
+	for i := range resources.Items {
+		resource := &resources.Items[i]
+		if matched[resource.Name] {
+			requests = append(requests, reconcile.Request{NamespacedName: types.NamespacedName{Name: resource.Name, Namespace: resource.Namespace}})
+		}
+	}
+	return requests
+}
+
+func matchesLabels(actual, required map[string]string) bool {
+	for key, value := range required {
+		if actual[key] != value {
+			return false
+		}
+	}
+	return true
 }

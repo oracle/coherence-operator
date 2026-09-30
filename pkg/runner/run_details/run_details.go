@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -53,28 +53,29 @@ func NewRunDetails(v *viper.Viper, log logr.Logger) *RunDetails {
 
 // RunDetails contains the information to run an application.
 type RunDetails struct {
-	Command           string
-	CoherenceHome     string
-	JavaHome          string
-	UtilsDir          string
-	Dir               string
-	GetSite           bool
-	UseOperatorHealth bool
-	AppType           string
-	Classpath         string
-	MainClass         string
-	InnerMainClass    string
-	MainArgs          []string
-	BuildPacks        *bool
-	ExtraEnv          []string
-	ClassPathFile     string
-	JvmArgsFile       string
-	args              []string
-	vmOptions         []string
-	memoryArgs        []string
-	diagnosticArgs    []string
-	env               *viper.Viper
-	log               logr.Logger
+	Command                string
+	CoherenceHome          string
+	JavaHome               string
+	UtilsDir               string
+	Dir                    string
+	GetSite                bool
+	UseOperatorHealth      bool
+	ResolvedOperatorHealth bool
+	AppType                string
+	Classpath              string
+	MainClass              string
+	InnerMainClass         string
+	MainArgs               []string
+	BuildPacks             *bool
+	ExtraEnv               []string
+	ClassPathFile          string
+	JvmArgsFile            string
+	args                   []string
+	vmOptions              []string
+	memoryArgs             []string
+	diagnosticArgs         []string
+	env                    *viper.Viper
+	log                    logr.Logger
 }
 
 func (in *RunDetails) GetAllArgs() []string {
