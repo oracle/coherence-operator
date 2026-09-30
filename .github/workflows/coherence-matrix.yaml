@@ -1,4 +1,4 @@
-# Copyright 2021, 2025, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2021, 2026, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -49,8 +49,8 @@ jobs:
           - "12.2.1-4-SNAPSHOT"
         include:
           - matrixName: "15.1.1-0-SNAPSHOT"
-            coherenceVersion: "15.1.1-0-3-SNAPSHOT"
-            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-3-SNAPSHOT-java17"
+            coherenceVersion: "15.1.1-0-5-SNAPSHOT"
+            coherenceImage: "iad.ocir.io/odx-stateservice/test/coherence:15.1.1-0-5-SNAPSHOT-java17"
             javaVersion: 17
             coherenceIsJava8: false
             baseImage: "gcr.io/distroless/java17-debian12"
@@ -228,6 +228,23 @@ jobs:
         docker pull gcr.io/distroless/java17-debian12
         docker pull gcr.io/distroless/java21-debian12
         docker pull "${COHERENCE_IMAGE}"
+
+    - name: Health mutator protocol regressions
+      shell: bash
+      run: |
+        make generate
+        go test ./pkg/probe ./controllers/finalizer ./controllers/statefulset
+        ./mvnw -B -f java -pl coherence-operator -am test -Dtest=SecretLoginModuleTest,HealthSSLProviderConfigTest -Dsurefire.failIfNoSpecifiedTests=false
+        if [[ "${{ matrix.matrixName }}" == "15.1.1-0-SNAPSHOT" ]]; then
+          test/health-mutator/extract-coherence-jar.sh \
+            "${{ matrix.coherenceImage }}" \
+            "${{ matrix.coherenceVersion }}" \
+            /tmp/health-mutator/coherence.jar
+          ./mvnw -B -f java -pl coherence-operator -am test \
+            -Dtest=HealthSecuritySupportTest \
+            -Dhealth.mutator.coherence.jar=/tmp/health-mutator/coherence.jar \
+            -Dsurefire.failIfNoSpecifiedTests=false
+        fi
 
     - name: Coherence Certification Tests
       shell: bash
