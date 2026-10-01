@@ -115,6 +115,19 @@
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
+<router-link to="/examples/096_protected_health_endpoints/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Protected Health Endpoints</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Configure authenticated, TLS-protected Coherence Health mutators for safe shutdown and scale-to-zero.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
 <router-link to="/examples/100_federation/README"><div class="card__link-hover"/>
 </router-link>
 <v-card-title primary class="headline layout justify-center">
