@@ -64,7 +64,7 @@ properties.
 
 Before using this example:
 
-* install Coherence Operator 3.6.0 or later and its matching CRD;
+* install Coherence Operator 3.6.1 or later and its matching CRD;
 * select a Coherence release that supports protected `PUT` Health mutators;
 * make the application image available to every Kubernetes node, preferably by immutable digest;
 * obtain a server keystore containing the member private key and certificate;
