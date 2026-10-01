@@ -19,14 +19,14 @@ VERSION ?= 3.6.0
 MVN_VERSION ?= $(VERSION)
 
 # The version number to be replaced by this release
-PREV_VERSION ?= 3.5.18
+PREV_VERSION ?= 3.5.17
 NEXT_VERSION := $(shell sh ./hack/next-version.sh "$(VERSION)")
 
 # The operator version to use to run certification tests against
 CERTIFICATION_VERSION ?= $(VERSION)
 
 # The previous Operator version used to run the compatibility tests.
-COMPATIBLE_VERSION  ?= 3.5.18
+COMPATIBLE_VERSION  ?= 3.5.17
 # The selector to use to find Operator Pods of the COMPATIBLE_VERSION (do not put in double quotes!!)
 COMPATIBLE_SELECTOR ?= control-plane=coherence
 
