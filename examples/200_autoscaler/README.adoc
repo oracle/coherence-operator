@@ -123,7 +123,7 @@ cd coherence-operator/examples
 * https://kubernetes.io/docs/tasks/tools/install-kubectl/[kubectl].
 * https://helm.sh/docs/intro/install/[Helm].
 
-Building the project requires https://maven.apache.org[Maven] version 3.6.0+.
+Building the project requires https://maven.apache.org[Maven] version 3.6.1+.
 The commands below use the Maven Wrapper to run the commands, which will install Maven if it is not
 already on the development machine. If you already have a suitable version of Maven installed feel free to replace
 the use of `./mvnw` in the examples with your normal Maven command (typically just `mvn`).

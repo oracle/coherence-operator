@@ -11,7 +11,7 @@
 :keywords: oracle coherence, kubernetes, operator, health, basic authentication, TLS, scale to zero
 
 Recent Coherence releases protect the state-changing Health endpoints used to suspend and resume cache services.
-Coherence Operator 3.6.0 is the first Operator release that can configure and call these protected endpoints during
+Coherence Operator 3.6.1 is the first Operator release that can configure and call these protected endpoints during
 safe shutdown and scale-to-zero.
 
 The recommended configuration uses `spec.healthMutatorConnection` to configure both sides of the connection:
@@ -35,7 +35,7 @@ The hardened Coherence Health server changes the mutator endpoints as follows:
   Kubernetes and Operator health checks without mutator credentials.
 
 An older Operator sends an unauthenticated `GET /suspend`, so it cannot safely scale a deployment using a hardened
-Coherence Health server to zero. Operator 3.6.0 sends `PUT` and adds the managed and application-owned configuration
+Coherence Health server to zero. Operator 3.6.1 sends `PUT` and adds the managed and application-owned configuration
 options described on this page.
 
 == Compatible versions
@@ -69,7 +69,7 @@ patches on the same line also contain it.
 |26.07
 |===
 
-Use Coherence Operator 3.6.0 or later with a hardened Coherence release. The Operator image and CRD must be upgraded
+Use Coherence Operator 3.6.1 or later with a hardened Coherence release. The Operator image and CRD must be upgraded
 together so that the `healthMutatorConnection` and method-aware `suspendProbe.http` fields are both available.
 
 == Choose a configuration model
@@ -298,14 +298,14 @@ to work around an authentication or TLS configuration error.
 
 == Upgrade an existing deployment
 
-Upgrade the Operator deployment and CRD to 3.6.0 or later before rolling a hardened Coherence image into an existing
+Upgrade the Operator deployment and CRD to 3.6.1 or later before rolling a hardened Coherence image into an existing
 deployment. Add the selected Health security configuration as part of the Coherence image rollout. Upgrading only the
 Operator does not enable security inside existing member Pods, and upgrading only Coherence leaves an older Operator
 unable to authenticate or use the required `PUT` method.
 
 [WARNING]
 ====
-The 3.6.0 CRD limits `spec.actions` to 128 entries. Installing the CRD does not remove or retroactively reject an
+The 3.6.1 CRD limits `spec.actions` to 128 entries. Installing the CRD does not remove or retroactively reject an
 existing `Coherence` resource with more than 128 actions, but Kubernetes will reject subsequent updates until the
 submitted resource contains no more than 128 actions. Check existing resources and reduce longer action lists before
 the upgrade or as the first change after upgrading the CRD.
