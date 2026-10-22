@@ -73,7 +73,14 @@ jobs:
         sudo rm -rf /opt/hostedtoolcache/CodeQL
         df -h
 
-    - name: Set up JDK
+    # Coherence 21.12.5 requires JDK 17 when Maven runs on Java 24 or later.
+    - name: Set up legacy Coherence JDK 17
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    - name: Set up build JDK 25
       uses: oracle-actions/setup-java@v1
       with:
         website: oracle.com
