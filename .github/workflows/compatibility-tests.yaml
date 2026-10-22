@@ -124,9 +124,9 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v5
       with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-repository-v1-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-repository-v1-
 
     - name: Edit DNS Resolve
       shell: bash
