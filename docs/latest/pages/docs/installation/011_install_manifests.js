@@ -7,7 +7,7 @@ apply the manifests from the Operator release.</p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>As of v3.6.0 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
+<p ><p>As of v3.6.1 of the Operator the manifest yaml also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.</p>
 </p>
@@ -18,7 +18,7 @@ the installation has all the RBAC permissions required to install all the resour
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.0/coherence-operator.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.1/coherence-operator.yaml</markup>
 
 <p>This will create a namespace called <code>coherence</code> and install the CRDs and the Operator into the namespace,
 along with all the required <code>ClusterRole</code> and <code>RoleBinding</code> resources. The <code>coherence</code> namespace can be changed by
@@ -75,7 +75,7 @@ for an alternative way to specify site and rack on Kubernetes 1.34 and above.</p
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>As of v3.6.0 of the Operator the <code>coherence-operator-restricted.yaml</code> also installs the two CRDs that the Operator uses.
+<p ><p>As of v3.6.1 of the Operator the <code>coherence-operator-restricted.yaml</code> also installs the two CRDs that the Operator uses.
 In previous releases the Operator would install the CRDs when it started but this behaviour is disabled by default
 when installing with the manifest yaml.</p>
 </p>
@@ -86,7 +86,7 @@ the installation has all the RBAC permissions required to install all the resour
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.0/coherence-operator-restricted.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.1/coherence-operator-restricted.yaml</markup>
 
 <div class="admonition important">
 <p class="admonition-textlabel">Important</p>
@@ -105,8 +105,8 @@ below in <router-link to="#manual-crd" @click.native="this.scrollFix('#manual-cr
 <markup
 lang="bash"
 
->kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.0/coherence.oracle.com_coherence_small.yaml
-kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.0/coherencejob.oracle.com_coherence_small.yaml</markup>
+>kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.1/coherence.oracle.com_coherence_small.yaml
+kubectl apply -f https://github.com/oracle/coherence-operator/releases/download/v3.6.1/coherencejob.oracle.com_coherence_small.yaml</markup>
 
 <p>The small versions of the CRDs are identical to the full versions but hav a cut down OpenAPI spec with a lot of comments
 removed so that the CRDs are small enough to be installed with <code>kubectl apply</code></p>

@@ -12,7 +12,7 @@ The Coherence dashboards are explained in detail on the <router-link to="/docs/m
 <markup
 lang="bash"
 
->curl https://github.com/oracle/coherence-operator/releases/download/v3.6.0/coherence-dashboards.tar.gz \
+>curl https://github.com/oracle/coherence-operator/releases/download/v3.6.1/coherence-dashboards.tar.gz \
     -Lo coherence-dashboards.tar.gz
 tar -zxvf coherence-dashboards.tar.gz</markup>
 

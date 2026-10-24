@@ -159,7 +159,7 @@ cd coherence-operator/examples</markup>
 
 </li>
 </ul>
-<p>Building the project requires <a id="" title="" target="_blank" href="https://maven.apache.org">Maven</a> version 3.6.0+.
+<p>Building the project requires <a id="" title="" target="_blank" href="https://maven.apache.org">Maven</a> version 3.6.1+.
 The commands below use the Maven Wrapper to run the commands, which will install Maven if it is not
 already on the development machine. If you already have a suitable version of Maven installed feel free to replace
 the use of <code>./mvnw</code> in the examples with your normal Maven command (typically just <code>mvn</code>).</p>

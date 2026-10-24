@@ -95,7 +95,7 @@ properties.</p>
 
 <ul class="ulist">
 <li>
-<p>install Coherence Operator 3.6.0 or later and its matching CRD;</p>
+<p>install Coherence Operator 3.6.1 or later and its matching CRD;</p>
 
 </li>
 <li>

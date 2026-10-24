@@ -9,7 +9,7 @@
 <dl>
 <dt slot=title>Coherence Operator Installation</dt>
 <dd slot="desc"><p>The Coherence Operator is available as an image from the GitHub container registry
-<code>container-registry.oracle.com/middleware/coherence-operator:3.6.0</code> that can
+<code>container-registry.oracle.com/middleware/coherence-operator:3.6.1</code> that can
 easily be installed into a Kubernetes cluster.</p>
 </dd>
 </dl>
@@ -154,7 +154,7 @@ for more details if you have well-known-address issues when Pods attempt to form
 
 <ul class="ulist">
 <li>
-<p><code>container-registry.oracle.com/middleware/coherence-operator:3.6.0</code> - The Operator image.</p>
+<p><code>container-registry.oracle.com/middleware/coherence-operator:3.6.1</code> - The Operator image.</p>
 
 </li>
 </ul>
