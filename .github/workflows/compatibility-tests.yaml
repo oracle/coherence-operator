@@ -157,6 +157,13 @@ jobs:
         docker pull gcr.io/distroless/java21-debian12
         docker pull ${{ matrix.coherence-image }}
 
+    # Helm 4's server-side apply conflicts with CRDs adopted from pre-3.5 Operators.
+    - name: Set up Helm 3
+      shell: bash
+      run: |
+        make get-helm
+        echo "${GITHUB_WORKSPACE}/build/tools/bin" >> "${GITHUB_PATH}"
+
     - name: Build
       shell: bash
       run: make all
