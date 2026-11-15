@@ -213,6 +213,9 @@ jobs:
         COHERENCE_IMAGE: ${{ matrix.coherenceImage }}
         OCR_DOCKER_USERNAME: ${{ secrets.OCR_DOCKER_USERNAME }}
         OCR_DOCKER_PASSWORD: ${{ secrets.OCR_DOCKER_PASSWORD }}
+        OCI_REGISTRY: ${{ secrets.OCI_REGISTRY }}
+        OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+        OCI_PASSWORD: ${{ secrets.OCI_PASSWORD }}
       run: |
         make kind
         kubectl version
@@ -228,7 +231,15 @@ jobs:
         else
           echo "Skipping OCR login because this matrix image is not hosted by container-registry.oracle.com"
         fi
-        docker login "${{ secrets.OCI_REGISTRY }}" -u "${{ secrets.OCI_USERNAME }}" -p "${{ secrets.OCI_PASSWORD }}"
+        if [[ "${COHERENCE_IMAGE}" == *.ocir.io/* ]]; then
+          if [[ -z "${OCI_REGISTRY}" || -z "${OCI_USERNAME}" || -z "${OCI_PASSWORD}" ]]; then
+            echo "::error::OCI_REGISTRY, OCI_USERNAME and OCI_PASSWORD are required to pull ${COHERENCE_IMAGE}"
+            exit 1
+          fi
+          printf '%s' "${OCI_PASSWORD}" | docker login "${OCI_REGISTRY}" -u "${OCI_USERNAME}" --password-stdin
+        else
+          echo "Skipping OCI login because this matrix image is not hosted by OCI"
+        fi
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
