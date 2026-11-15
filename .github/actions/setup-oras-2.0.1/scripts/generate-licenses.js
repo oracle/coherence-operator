@@ -40,7 +40,11 @@ for (const inputFile of Object.keys(meta.inputs)) {
 const LICENSE_FILES = ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'LICENCE', 'license', 'license.md'];
 
 const entries = [];
-for (const [pkgName, pkgDir] of Object.entries(pkgPaths).sort()) {
+for (const [pkgName, pkgDir] of Object.entries(pkgPaths).sort(([left], [right]) => {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+})) {
   const pkgJson = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
   const licenseType = pkgJson.license || 'UNKNOWN';
 
