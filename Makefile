@@ -3031,6 +3031,7 @@ uninstall-istio: delete-istio-config get-istio ## Uninstall Istio from k8s
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
 $(BUILD_OUTPUT)/istio-config.yaml: $(BUILD_PROPS)
+	@test -n "$(ISTIO_VERSION_USE)" || { echo "Unable to resolve Istio version; check the release lookup or set ISTIO_VERSION explicitly" >&2; exit 1; }
 	@echo "Creating Istio config: rev=$(ISTIO_REVISION)"
 	cp $(SCRIPTS_DIR)/istio/istio-config.yaml $(BUILD_OUTPUT)/istio-config.yaml
 	$(SED) -e 's/ISTIO_PROFILE/$(ISTIO_PROFILE)/g' $(BUILD_OUTPUT)/istio-config.yaml
@@ -3045,6 +3046,7 @@ delete-istio-config:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
 get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to the build/tools/istio-* directory
+	@test -n "$(ISTIO_VERSION_USE)" || { echo "Unable to resolve Istio version; check the release lookup or set ISTIO_VERSION explicitly" >&2; exit 1; }
 	$(SCRIPTS_DIR)/istio/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
 	@echo "Istio installed at $(ISTIO_HOME)"
 
