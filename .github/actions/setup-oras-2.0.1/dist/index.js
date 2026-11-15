@@ -32338,8 +32338,6 @@ function mapArch() {
       return "amd64";
     case "arm64":
       return "arm64";
-    case "arm64":
-      return "arm64";
     case "ppc64":
       return "ppc64le";
     case "riscv64":
