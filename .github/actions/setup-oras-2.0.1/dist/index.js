@@ -32392,7 +32392,7 @@ async function setup() {
   }
 }
 if (require.main === module) {
-  setup();
+  void setup();
 }
 module.exports = setup;
 /*! Bundled license information:
