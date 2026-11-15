@@ -2229,6 +2229,8 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 
 KIND_CLUSTER   ?= operator
 KIND_VERSION   ?= v0.32.0
+# Export only the platform used by the KinD nodes when loading registry images.
+KIND_PLATFORM  ?= linux/$(subst aarch64,arm64,$(IMAGE_ARCH))
 # Kind v0.32.0 is pinned with the v1.36.1 node image because the release updates
 # containerd handling; using the matching CLI keeps image loading reliable.
 KIND           = $(TOOLS_BIN)/kind
@@ -2323,8 +2325,13 @@ endif
 
 .PHONY: kind-load-coherence
 kind-load-coherence: kind-install  ## Load the Coherence image into the KinD cluster
-	$(DOCKER_CMD) pull $(COHERENCE_IMAGE)
-	$(KIND) load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
+	$(DOCKER_CMD) pull --platform "$(KIND_PLATFORM)" "$(COHERENCE_IMAGE)"
+	# A platform-specific archive avoids missing content digests with Docker's containerd image store.
+	@set -eu; \
+		archive_dir=$$(mktemp -d "$${TMPDIR:-/tmp}/coherence-kind.XXXXXX"); \
+		trap 'rm -rf "$${archive_dir}"' 0; \
+		$(DOCKER_CMD) image save --platform "$(KIND_PLATFORM)" --output "$${archive_dir}/coherence.tar" "$(COHERENCE_IMAGE)"; \
+		$(KIND) load image-archive --name "$(KIND_CLUSTER)" "$${archive_dir}/coherence.tar"
 
 .PHONY: kind-load-operator
 kind-load-operator: kind-install  ## Load the Operator images into the KinD cluster
