@@ -2326,11 +2326,23 @@ endif
 .PHONY: kind-load-coherence
 kind-load-coherence: kind-install  ## Load the Coherence image into the KinD cluster
 	$(DOCKER_CMD) pull --platform "$(KIND_PLATFORM)" "$(COHERENCE_IMAGE)"
-	# A platform-specific archive avoids missing content digests with Docker's containerd image store.
+	# Flatten tagged images to one manifest before saving. This avoids missing sibling
+	# content without using Docker's containerd save --platform selector for these tags.
+	# Digest-pinned references cannot be retagged; keep their explicit platform export.
 	@set -eu; \
 		archive_dir=$$(mktemp -d "$${TMPDIR:-/tmp}/coherence-kind.XXXXXX"); \
 		trap 'rm -rf "$${archive_dir}"' 0; \
-		$(DOCKER_CMD) image save --platform "$(KIND_PLATFORM)" --output "$${archive_dir}/coherence.tar" "$(COHERENCE_IMAGE)"; \
+		case "$(COHERENCE_IMAGE)" in \
+			*@*) $(DOCKER_CMD) image save --platform "$(KIND_PLATFORM)" --output "$${archive_dir}/coherence.tar" "$(COHERENCE_IMAGE)" ;; \
+			*) \
+				manifest_digest=$$($(DOCKER_CMD) image inspect --platform "$(KIND_PLATFORM)" --format '{{if .Descriptor}}{{.Descriptor.digest}}{{end}}' "$(COHERENCE_IMAGE)"); \
+				if [ -n "$${manifest_digest}" ]; then \
+					manifest_ref="$(COHERENCE_IMAGE)@$${manifest_digest}"; \
+					$(DOCKER_CMD) pull --platform "$(KIND_PLATFORM)" "$${manifest_ref}"; \
+					$(DOCKER_CMD) image tag "$${manifest_ref}" "$(COHERENCE_IMAGE)"; \
+				fi; \
+				$(DOCKER_CMD) image save --output "$${archive_dir}/coherence.tar" "$(COHERENCE_IMAGE)" ;; \
+		esac; \
 		$(KIND) load image-archive --name "$(KIND_CLUSTER)" "$${archive_dir}/coherence.tar"
 
 .PHONY: kind-load-operator
