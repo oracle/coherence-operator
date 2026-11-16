@@ -1,4 +1,4 @@
-# Copyright 2019, 2024, Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2026, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -116,24 +116,6 @@ jobs:
       shell: bash
       run: |
         make code-review
-
-    # Spring Boot 2.7's buildpack client uses API 1.24, below Docker 29's default minimum.
-    # Restart Docker before creating KinD so its containers are not interrupted.
-    - name: Enable Docker API compatibility for Spring Boot 2
-      shell: bash
-      run: |
-        daemon_config="${RUNNER_TEMP}/docker-daemon.json"
-        if sudo test -f /etc/docker/daemon.json; then
-          sudo cat /etc/docker/daemon.json
-        else
-          echo '{}'
-        fi | jq '. + {"min-api-version": "1.24"}' > "${daemon_config}"
-        sudo dockerd --validate --config-file "${daemon_config}"
-        sudo install -D -m 0644 "${daemon_config}" /etc/docker/daemon.json
-        sudo systemctl restart docker
-        docker version
-        curl --fail --silent --show-error --unix-socket /var/run/docker.sock \
-          http://localhost/v1.24/version
 
     - name: Start KinD Cluster
 #     Start a KinD K8s cluster with single worker node

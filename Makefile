@@ -192,6 +192,9 @@ TEST_APPLICATION_IMAGE_SPRING_2      := $(OPERATOR_IMAGE_REGISTRY)/operator-test
 TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat-2:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp-2:1.0.0
 SKIP_SPRING_CNBP                     ?= false
+# Retain the builder and Java version used by the Spring Boot 2 Maven plugin.
+SPRING_CNBP_BUILDER_2                ?= paketobuildpacks/builder-jammy-base:latest
+SPRING_CNBP_PLATFORM_2               ?= linux/amd64
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -344,6 +347,8 @@ TOOLS_MANIFESTS   = $(TOOLS_DIRECTORY)/manifests
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
 ENVTEST           = $(TOOLS_BIN)/setup-envtest
+PACK_VERSION      := 0.40.11
+PACK              = $(TOOLS_BIN)/pack-v$(PACK_VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
@@ -670,12 +675,15 @@ build-spring-jib-images: $(BUILD_TARGETS)/java ## Build the Spring JIB test imag
 .PHONY: build-spring-cnbp-images
 build-spring-cnbp-images: $(BUILD_TARGETS)/java ## Build the Spring CNBP test images
 ifneq (true,$(SKIP_SPRING_CNBP))
+build-spring-cnbp-images: $(PACK)
 #   Spring Boot 3.x CNBP
 	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package \
 		spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-#   Spring Boot 2.x CNBP
-	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring-2 package spring-boot:build-image \
-		-DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+#   Preserve the Spring Boot 2 archive and loader; only replace its image builder.
+	"$(PACK)" build $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) \
+		--path java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar \
+		--builder $(SPRING_CNBP_BUILDER_2) --platform $(SPRING_CNBP_PLATFORM_2) \
+		--env 'BP_JVM_VERSION=17.*' --trust-builder
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2634,6 +2642,16 @@ get-trivy: $(TOOLS_BIN)/trivy
 
 $(TOOLS_BIN)/trivy:
 	test -s $(TOOLS_BIN)/trivy || curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $(TOOLS_BIN) v0.69.3
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download pack
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: get-pack
+get-pack: $(PACK) ## Download the pinned Cloud Native Buildpacks CLI locally.
+
+$(PACK): hack/tools/get-pack.sh hack/tools/pack-v$(PACK_VERSION).sha256
+	sh "$(SCRIPTS_DIR)/tools/get-pack.sh" "$(PACK_VERSION)" "$@"
+	"$(PACK)" version
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
