@@ -144,6 +144,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Image archive regression tests
+      shell: bash
+      run: python3 -B hack/kind/test_image_archive.py
+
 #   This step will free up disc space on the runner by removing
 #   lots of things that we do not need.
     - name: disc

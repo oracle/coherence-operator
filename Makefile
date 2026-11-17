@@ -2328,9 +2328,32 @@ kind-load-coherence: kind-install  ## Load the Coherence image into the KinD clu
 	$(DOCKER_CMD) pull --platform "$(KIND_PLATFORM)" "$(COHERENCE_IMAGE)"
 	@set -eu; \
 		archive_dir=$$(mktemp -d "$${TMPDIR:-/tmp}/coherence-kind.XXXXXX"); \
-		trap 'rm -rf "$${archive_dir}"' 0; \
+		diagnose() { \
+			printf 'Coherence image load failed: stage=%s image=%s platform=%s\n' "$${stage}" "$(COHERENCE_IMAGE)" "$(KIND_PLATFORM)" >&2; \
+			$(DOCKER_CMD) version --format 'Client={{.Client.Version}} Server={{if .Server}}{{.Server.Version}}{{else}}unavailable{{end}}' >&2 || true; \
+			$(DOCKER_CMD) info --format 'Driver={{.Driver}} DriverStatus={{json .DriverStatus}} OSType={{.OSType}} Architecture={{.Architecture}}' >&2 || true; \
+			$(DOCKER_CMD) image inspect --platform "$(KIND_PLATFORM)" --format 'ID={{.Id}} OS={{.Os}} Architecture={{.Architecture}} RepoTags={{json .RepoTags}} RepoDigests={{json .RepoDigests}}' "$(COHERENCE_IMAGE)" >&2 || true; \
+			if [ -f "$${archive_dir}/coherence.tar" ] && [ "$${stage}" != validation ]; then \
+				python3 -B "$(KIND_SCRIPTS)/image_archive.py" "$${archive_dir}/coherence.tar" --image "$(COHERENCE_IMAGE)" --platform "$(KIND_PLATFORM)" >&2 || true; \
+			fi; \
+		}; \
+		finish() { \
+			load_status=$$?; \
+			if [ "$${load_status}" -ne 0 ]; then diagnose || true; fi; \
+			rm -rf "$${archive_dir}" || true; \
+			exit "$${load_status}"; \
+		}; \
+		trap finish 0; \
+		stage='export'; \
 		$(DOCKER_CMD) image save --platform "$(KIND_PLATFORM)" --output "$${archive_dir}/coherence.tar" "$(COHERENCE_IMAGE)"; \
+		stage=validation; \
+		python3 -B "$(KIND_SCRIPTS)/image_archive.py" "$${archive_dir}/coherence.tar" --image "$(COHERENCE_IMAGE)" --platform "$(KIND_PLATFORM)"; \
+		stage=import; \
 		$(KIND) load image-archive --name "$(KIND_CLUSTER)" "$${archive_dir}/coherence.tar"
+
+.PHONY: test-kind-image-archive
+test-kind-image-archive:  ## Check image archive content and loader failure handling without a Docker daemon
+	MAKE="$(MAKE)" python3 -B "$(KIND_SCRIPTS)/test_image_archive.py"
 
 .PHONY: kind-load-operator
 kind-load-operator: kind-install  ## Load the Operator images into the KinD cluster
