@@ -8,6 +8,8 @@
 
 # --------------------------------------------------------------------------------
 # This script will build the Operator and run the K8s certification test suite.
+# Optional mode: all (default), standard, network-policy, network-policy-single-namespace.
+# RUN_NET_TEST=false skips network policy tests in any mode.
 #
 # Pre-requisites:
 # * A K8s cluster must be available to run the tests against.
@@ -27,6 +29,12 @@
 #   repository to pull down build dependencies.
 #
 # --------------------------------------------------------------------------------
+
+CERTIFICATION_MODE="${1:-all}"
+case "$CERTIFICATION_MODE" in
+  all|standard|network-policy|network-policy-single-namespace) ;;
+  *) echo "Unknown certification mode: $CERTIFICATION_MODE" >&2; exit 1 ;;
+esac
 
 export OPERATOR_NAMESPACE=coherence
 
@@ -61,26 +69,35 @@ if [[ "$LOAD_KIND" == "true" ]]; then
   fi
 fi
 
-echo "Running Certification Tests"
-if ! make certification-test;
+if [[ "$CERTIFICATION_MODE" == "all" || "$CERTIFICATION_MODE" == "standard" ]];
 then
-  exit 1
+  echo "Running Certification Tests"
+  if ! make certification-test;
+  then
+    exit 1
+  fi
 fi
 
 if [[ "$RUN_NET_TEST" != "false" ]]
 then
-  echo "Running Network Policy Tests"
-  if ! make network-policy-test;
+  if [[ "$CERTIFICATION_MODE" == "all" || "$CERTIFICATION_MODE" == "network-policy" ]];
   then
-    exit 1
+    echo "Running Network Policy Tests"
+    if ! make network-policy-test;
+    then
+      exit 1
+    fi
   fi
 
-  echo "Running Network Policy Tests - Single Namespace"
-  export OPERATOR_NAMESPACE=coherence
-  export CLUSTER_NAMESPACE=coherence
-  if ! make network-policy-test;
+  if [[ "$CERTIFICATION_MODE" == "all" || "$CERTIFICATION_MODE" == "network-policy-single-namespace" ]];
   then
-    exit 1
+    echo "Running Network Policy Tests - Single Namespace"
+    export OPERATOR_NAMESPACE=coherence
+    export CLUSTER_NAMESPACE=coherence
+    if ! make network-policy-test;
+    then
+      exit 1
+    fi
   fi
 else
   echo "Skipping Network Policy Tests"

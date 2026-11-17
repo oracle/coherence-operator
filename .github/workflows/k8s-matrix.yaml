@@ -40,6 +40,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        mode:
+          - standard
+          - network-policy
+          - network-policy-single-namespace
         matrixName:
           - v1.36
           - v1.35
@@ -163,11 +167,11 @@ jobs:
       shell: bash
       run: |
         export RUN_NET_TEST=${{ matrix.runNetTests }}
-        ./hack/k8s-certification.sh
+        ./hack/k8s-certification.sh "${{ matrix.mode }}"
 
     - uses: actions/upload-artifact@v6
       if: ${{ failure() || cancelled() }}
       with:
-        name: test-output-${{ matrix.matrixName }}
+        name: test-output-${{ matrix.matrixName }}-${{ matrix.mode }}
         path: build/_output/test-logs
         if-no-files-found: ignore
