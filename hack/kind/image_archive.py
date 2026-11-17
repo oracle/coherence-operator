@@ -99,13 +99,14 @@ class Archive:
         require(type(desc["size"]) is int and desc["size"] >= 0, "invalid descriptor size: " + name)
         return name, self.check(name, desc["digest"], desc["size"], role)
 
-    def manifests(self, descriptors, wanted, ancestors=(), annotations=None):
+    def manifests(self, descriptors, wanted, ancestors=(), image_descriptor=None):
         found = []
         for desc in descriptors:
             if desc.get("platform") and not platform_matches(desc["platform"], wanted):
                 continue  # Unselected sibling platforms need not have been exported.
             require(desc["digest"] not in ancestors, "cyclic image index")
-            desc = dict(desc, annotations={**(annotations or {}), **desc.get("annotations", {})})
+            # Containerd creates image names only from the outer index's descriptors.
+            imported = image_descriptor if image_descriptor is not None else desc
             name, valid = self.descriptor(desc, "manifest/index")
             if not valid:
                 continue
@@ -113,11 +114,11 @@ class Archive:
             require(document.get("schemaVersion") == 2, "unsupported manifest schema: " + name)
             if "manifests" in document:
                 found.extend(self.manifests(document["manifests"], wanted, (*ancestors, desc["digest"]),
-                                            desc["annotations"]))
+                                            imported))
             else:
                 require(isinstance(document.get("config"), dict) and isinstance(document.get("layers"), list),
                         "invalid image manifest: " + name)
-                found.append((desc, document))
+                found.append((desc, document, imported))
         return found
 
 
@@ -142,15 +143,15 @@ def validate(path, reference, platform):
             require(isinstance(entry.get("Layers"), list), "invalid Docker layer list")
             tags = entry.get("RepoTags") or []
             require(isinstance(tags, list) and all(isinstance(tag, str) for tag in tags), "invalid RepoTags")
-            desc = None
-            if "index.json" in archive.members:
+            image_descriptor = None
+            if "oci-layout" in archive.members or "index.json" in archive.members:
                 result["format"] = "oci"
                 require(archive.document("oci-layout").get("imageLayoutVersion") == "1.0.0", "unsupported OCI layout")
                 index = archive.document("index.json")
                 require(index.get("schemaVersion") == 2, "invalid OCI index schema")
                 selected = archive.manifests(index["manifests"], wanted)
                 require(len(selected) == 1, "expected one selected image manifest for " + platform)
-                desc, manifest = selected[0]
+                desc, manifest, image_descriptor = selected[0]
                 result["selected_manifest"] = desc["digest"]
                 config_name, config_valid = archive.descriptor(manifest["config"], "configuration")
                 layer_names = [archive.descriptor(layer, "layer")[0] for layer in manifest["layers"]]
@@ -174,7 +175,7 @@ def validate(path, reference, platform):
                 require(len(diff_ids) == len(layer_names), "configuration diff_ids disagree with layer count")
                 for diff_id in diff_ids:
                     blob_path(diff_id)
-                if desc is None:
+                if image_descriptor is None:
                     for name, digest in zip(layer_names, diff_ids):
                         archive.check(name, digest, role="uncompressed layer")
             if archive.errors:
@@ -189,8 +190,8 @@ def validate(path, reference, platform):
             else:
                 expected = canonical_tag(reference)
                 require(expected in [canonical_tag(tag) for tag in tags], "requested tag missing from RepoTags")
-                if desc is not None:
-                    name = desc.get("annotations", {}).get("io.containerd.image.name", "")
+                if image_descriptor is not None:
+                    name = image_descriptor.get("annotations", {}).get("io.containerd.image.name", "")
                     require(name and canonical_tag(name) == expected,
                             "requested tag missing or different in OCI image-name annotation")
                 result["reference_metadata"] = "present"

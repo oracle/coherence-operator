@@ -101,6 +101,22 @@ class Fixture:
         self.index["manifests"][0]["annotations"] = {}
         self.metadata()
 
+    def nest(self, image):
+        data = encoded(self.index)
+        self.members[blob_name(data)] = data
+        parent = descriptor(data, "application/vnd.oci.image.index.v1+json")
+        parent["annotations"] = {"io.containerd.image.name": image} if image else {}
+        self.index = {"schemaVersion": 2, "manifests": [parent]}
+        self.metadata()
+
+    def uncompressed(self):
+        self.layers = self.raw_layers
+        self.manifest["layers"] = [descriptor(data, "application/vnd.oci.image.layer.v1.tar")
+                                   for data in self.layers]
+        self.members.update({blob_name(data): data for data in self.layers})
+        self.entry["Layers"] = [blob_name(data) for data in self.layers]
+        self.update_manifest()
+
     def legacy(self):
         config = encoded(self.config)
         self.members = {hashlib.sha256(config).hexdigest() + ".json": config}
@@ -202,6 +218,31 @@ class ContentTests(unittest.TestCase):
         fixture.metadata()
         self.assertEqual(exit_status(self.check(fixture)), 1)
 
+    def test_oci_layout_requires_index_and_supported_version(self):
+        for compressed in (True, False):
+            original = Fixture()
+            if not compressed:
+                original.uncompressed()
+            result = self.check(original)
+            self.assertEqual(exit_status(result), 0, result)
+            self.assertEqual(result["format"], "oci")
+            for mutation in ("missing-index", "unsupported-layout", "unsupported-layout-missing-index",
+                             "malformed-layout-missing-index", "missing-layout"):
+                with self.subTest(compressed=compressed, mutation=mutation):
+                    fixture = copy.deepcopy(original)
+                    if "missing-index" in mutation:
+                        fixture.members.pop("index.json")
+                    if mutation.startswith("unsupported-layout"):
+                        fixture.members["oci-layout"] = encoded({"imageLayoutVersion": "9.9.9"})
+                    if mutation.startswith("malformed-layout"):
+                        fixture.members["oci-layout"] = b"{"
+                    if mutation == "missing-layout":
+                        fixture.members.pop("oci-layout")
+                    result = self.check(fixture)
+                    self.assertEqual(exit_status(result), 1, result)
+                    self.assertEqual(result["content"], "invalid", result)
+                    self.assertTrue(result["errors"], result)
+
     def test_platform_and_variant(self):
         self.assertEqual(exit_status(self.check(Fixture(), platform="linux/arm64")), 1)
         for variant in (None, "v8"):
@@ -225,14 +266,29 @@ class ContentTests(unittest.TestCase):
         fixture = Fixture()
         del fixture.index["manifests"][0]["annotations"]
         data = encoded(fixture.index)
-        fixture.members[blob_name(data)] = data
-        parent = descriptor(data, "application/vnd.oci.image.index.v1+json")
-        parent["annotations"] = {"io.containerd.image.name": IMAGE}
-        fixture.index = {"schemaVersion": 2, "manifests": [parent]}
-        fixture.metadata()
+        fixture.nest(IMAGE)
         self.assertEqual(exit_status(self.check(fixture)), 0)
         fixture.members[blob_name(data)] = b"corrupt parent index"
         self.assertEqual(exit_status(self.check(fixture)), 1)
+
+    def test_nested_index_name_uses_top_level_descriptor(self):
+        other = "example.invalid/different:tag"
+        for outer in (IMAGE, other, None):
+            for inner in (IMAGE, other, None):
+                with self.subTest(outer=outer, inner=inner):
+                    fixture = Fixture()
+                    fixture.index["manifests"][0]["annotations"] = (
+                        {"io.containerd.image.name": inner} if inner else {})
+                    fixture.nest(outer)
+                    result = self.check(fixture)
+                    self.assertEqual(result["content"], "complete", result)
+                    self.assertEqual(exit_status(result), 0 if outer == IMAGE else 1, result)
+                    metadata = "present" if outer == IMAGE else "not_checked"
+                    self.assertEqual(result["reference_metadata"], metadata)
+        fixture = Fixture()
+        fixture.nest(other)
+        fixture.nest(IMAGE)
+        self.assertEqual(exit_status(self.check(fixture)), 0)
 
     def test_invalid_descriptor_and_configuration_layer_count(self):
         fixture = Fixture()
@@ -337,7 +393,9 @@ class MakeTests(unittest.TestCase):
                 path.chmod(0o755)
             ttl = root / "ttl-uuid"
             ttl.write_text("unused\n")
-            for case in ("tag", "incomplete", "corrupt", "truncated", "wrong-tag", "digest", "tag-digest",
+            for case in ("tag", "nested-tag", "nested-wrong-root", "nested-anonymous-root",
+                         "missing-oci-index", "unsupported-oci-layout",
+                         "incomplete", "corrupt", "truncated", "wrong-tag", "digest", "tag-digest",
                          "pull", "mktemp", "save", "import", "diagnostics", "arm64", "aarch64", "variant"):
                 with self.subTest(case=case):
                     case_dir = root / case
@@ -348,6 +406,17 @@ class MakeTests(unittest.TestCase):
                     reference = IMAGE
                     machine = "x86_64"
                     platform = PLATFORM
+                    if case == "nested-tag":
+                        fixture.index["manifests"][0]["annotations"] = (
+                            {"io.containerd.image.name": "example.invalid/inner:tag"})
+                        fixture.nest(IMAGE)
+                    if case in ("nested-wrong-root", "nested-anonymous-root"):
+                        fixture.nest("example.invalid/wrong:tag" if case == "nested-wrong-root" else None)
+                    if case in ("missing-oci-index", "unsupported-oci-layout"):
+                        fixture.uncompressed()
+                        fixture.members.pop("index.json")
+                        if case == "unsupported-oci-layout":
+                            fixture.members["oci-layout"] = encoded({"imageLayoutVersion": "9.9.9"})
                     if case == "incomplete":
                         fixture.missing_content()
                     if case in ("corrupt", "diagnostics"):
@@ -380,7 +449,7 @@ class MakeTests(unittest.TestCase):
                     if case == "variant":
                         cmd.append("KIND_PLATFORM=" + platform)
                     process = subprocess.run(cmd, cwd=REPO, env=env, capture_output=True, text=True)
-                    success = case in ("tag", "arm64", "aarch64", "variant")
+                    success = case in ("tag", "nested-tag", "arm64", "aarch64", "variant")
                     self.assertEqual(process.returncode, 0 if success else 2, process.stdout + process.stderr)
                     calls = [json.loads(line) for line in calls_file.read_text().splitlines()]
                     docker = [call["args"][2:] for call in calls if call["command"] == "mock-docker"]
@@ -402,7 +471,8 @@ class MakeTests(unittest.TestCase):
                                       "digest": 3, "tag-digest": 3}.get(case, 1)
                     if not success:
                         self.assertIn("Error " + str(expected_error), process.stderr)
-                    if case in ("save", "import", "incomplete", "corrupt", "truncated", "wrong-tag", "digest", "tag-digest"):
+                    if case in ("save", "import", "incomplete", "corrupt", "truncated", "wrong-tag", "digest", "tag-digest",
+                                "nested-wrong-root", "nested-anonymous-root", "missing-oci-index", "unsupported-oci-layout"):
                         self.assertIn("Client=29.9.3 Server=29.9.3", process.stderr)
                         self.assertIn("Driver=overlayfs", process.stderr)
                         self.assertIn("ID=sha256:selected", process.stderr)

@@ -24,8 +24,14 @@ Archives are read without extraction. The checker can also run directly:
 python3 hack/kind/image_archive.py image.tar --image registry.example/team/image:tag --platform linux/amd64
 ```
 
+The OCI layout marker requires a valid layout version and `index.json`; a missing
+index cannot cause a fallback to classic Docker validation. An OCI index without
+its layout marker is also rejected.
+
 Content and reference metadata are separate results. A tagged export must retain
-the requested tag in `RepoTags` and, for OCI exports, its image-name annotation.
+the requested tag in `RepoTags` and, for OCI exports, the image-name annotation
+on the selected top-level descriptor. Names on nested descriptors do not replace
+that import name.
 Digest references (`repository@digest` and `tag@digest`) report complete content
 independently, but return **unsupported** (exit 3) before import. Docker can omit
 their requested name, leaving anonymous KinD imports that fail CRI lookup. This
