@@ -1,0 +1,127 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+name: Operator CI setup
+description: Prepare a runner for an Operator CI build or test job
+inputs:
+  java:
+    description: Install the build JDKs and restore Maven dependencies
+    default: 'false'
+  docker:
+    description: Use the qualified Docker version for image export/import
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: disc
+      shell: bash
+      run: |
+        echo "Listing 100 largest packages"
+        dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+        df -h
+        echo "Removing large packages"
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+        sudo apt-get remove -y '^aspnetcore-.*' || true
+        sudo apt-get remove -y '^dotnet-.*' || true
+        sudo apt-get remove -y '^llvm-.*' || true
+        sudo apt-get remove -y '^temurin-.*' || true
+        sudo apt-get remove -y 'monodoc-http' || true
+        sudo apt-get remove -y 'php.*' || true
+        sudo apt-get remove -y 'ruby.*' || true
+        sudo apt-get remove -y mercurial-common || true
+        sudo apt-get remove -y azure-cli || true
+        sudo apt-get remove -y google-cloud-cli-anthoscli || true
+        sudo apt-get remove -y google-cloud-sdk || true
+        sudo apt-get remove -y hhvm || true
+        sudo apt-get remove -y google-chrome-stable || true
+        sudo apt-get remove -y firefox || true
+        sudo apt-get remove -y microsoft-edge-stable || true
+        sudo apt-get remove -y powershell || true
+        sudo apt-get remove -y mono-devel || true
+        sudo apt-get autoremove -y || true
+        sudo apt-get clean
+        df -h
+        echo "Removing large directories"
+        rm -rf /usr/share/dotnet/
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        df -h
+
+    # Coherence 21.12.5 requires JDK 17 when Maven runs on Java 24 or later.
+    - name: Set up legacy Coherence JDK 17
+      if: inputs.java == 'true'
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    - name: Set up build JDK 25
+      if: inputs.java == 'true'
+      uses: oracle-actions/setup-java@v1
+      with:
+        website: oracle.com
+        release: 25
+
+    - name: Cache Go Modules
+      uses: actions/cache@v5
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-mods-
+
+    - name: Cache Maven packages
+      if: inputs.java == 'true'
+      uses: actions/cache@v5
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-repository-v1-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-repository-v1-
+
+    - name: Edit DNS Resolve
+      shell: bash
+      run: |
+        printf 'nameserver 8.8.8.8\n' | sudo tee /run/systemd/resolve/stub-resolv.conf > /dev/null
+
+    - name: Stop runner Docker daemon
+      if: inputs.docker == 'true'
+      shell: bash
+      run: sudo systemctl stop docker.service docker.socket
+
+    - name: Set up Docker 29.9.3
+      if: inputs.docker == 'true'
+      id: docker
+      uses: docker/setup-docker-action@3f1ab1ab0e29231562e4db4ca600c1a49653bac6 # v5.7.0
+      with:
+        version: v29.9.3
+        # Maven and KinD must inherit the same endpoint as ordinary Docker calls.
+        set-host: true
+        daemon-config: |
+          {"features": {"containerd-snapshotter": true}}
+
+    - name: Verify Docker daemon and endpoint
+      if: inputs.docker == 'true'
+      shell: bash
+      env:
+        SETUP_DOCKER_HOST: ${{ steps.docker.outputs.sock }}
+      run: |
+        echo "Docker CLI: $(command -v docker)"
+        docker version
+        docker info --format 'Driver={{.Driver}} DriverStatus={{json .DriverStatus}} DockerRootDir={{.DockerRootDir}}'
+        test "$(docker version --format '{{.Client.Version}}')" = '29.9.3'
+        test "$(docker version --format '{{.Server.Version}}')" = '29.9.3'
+        # DOCKER_CONTEXT overrides DOCKER_HOST; reject a conflicting override.
+        test -z "${DOCKER_CONTEXT:-}"
+        test -n "${SETUP_DOCKER_HOST}"
+        test "${DOCKER_HOST}" = "${SETUP_DOCKER_HOST}"
+        context="$(env -u DOCKER_HOST docker context show)"
+        test "${context}" = 'setup-docker-action'
+        context_host="$(docker context inspect "${context}" --format '{{.Endpoints.docker.Host}}')"
+        test "${context_host}" = "${DOCKER_HOST}"
+        echo "Selected context: ${context}; endpoint: ${context_host}"
+        echo "Effective DOCKER_HOST: ${DOCKER_HOST}; CLI context: $(docker context show)"
+        docker info --format '{{json .}}' | jq -e '
+          .Driver == "overlayfs" and
+          any(.DriverStatus[]; . == ["driver-type", "io.containerd.snapshotter.v1"])'
