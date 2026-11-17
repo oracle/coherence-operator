@@ -2331,6 +2331,18 @@ ifneq (true,$(SKIP_SPRING_CNBP))
 	$(KIND) load docker-image --name $(KIND_CLUSTER) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) || true
 endif
 
+# The CI build exports the same images that kind-load imports, including both
+# Spring buildpack variants. Keep this list in sync with kind-load above.
+.PHONY: ci-image-list
+ci-image-list:
+	@printf '%s\n' $(OPERATOR_IMAGE) $(TEST_APPLICATION_IMAGE) $(TEST_APPLICATION_IMAGE_CLIENT) \
+	  $(TEST_APPLICATION_IMAGE_HELIDON) $(TEST_APPLICATION_IMAGE_HELIDON_3) $(TEST_APPLICATION_IMAGE_HELIDON_2) \
+	  $(TEST_APPLICATION_IMAGE_SPRING) $(TEST_APPLICATION_IMAGE_SPRING_FAT) \
+	  $(TEST_APPLICATION_IMAGE_SPRING_2) $(TEST_APPLICATION_IMAGE_SPRING_FAT_2)
+ifneq (true,$(SKIP_SPRING_CNBP))
+	@printf '%s\n' $(TEST_APPLICATION_IMAGE_SPRING_CNBP) $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+endif
+
 .PHONY: kind-load-coherence
 kind-load-coherence: kind-install  ## Load the Coherence image into the KinD cluster
 	$(DOCKER_CMD) pull --platform "$(KIND_PLATFORM)" "$(COHERENCE_IMAGE)"
