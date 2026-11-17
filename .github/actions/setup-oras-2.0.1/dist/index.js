@@ -32338,8 +32338,6 @@ function mapArch() {
       return "amd64";
     case "arm64":
       return "arm64";
-    case "arm64":
-      return "arm64";
     case "ppc64":
       return "ppc64le";
     case "riscv64":
@@ -32394,7 +32392,7 @@ async function setup() {
   }
 }
 if (require.main === module) {
-  setup();
+  void setup();
 }
 module.exports = setup;
 /*! Bundled license information:

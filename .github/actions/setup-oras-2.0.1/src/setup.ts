@@ -54,5 +54,6 @@ async function setup(): Promise<void> {
 export = setup;
 
 if (require.main === module) {
-  setup();
+  // setup() catches setup failures and reports them through core.setFailed().
+  void setup();
 }

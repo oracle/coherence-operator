@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
@@ -47,11 +47,12 @@ func helmInstall(args ...string) (*InstallResult, error) {
 
 	ns := helper.GetTestNamespace()
 
-	args = append([]string{"install", "--dry-run", "-o", "json"}, args...)
+	args = append([]string{"install", "--dry-run=client", "-o", "json"}, args...)
 	args = append(args, "--namespace", ns, "operator", chart)
 
 	cmd := exec.Command("helm", args...)
-	b, err := cmd.CombinedOutput()
+	cmd.Stderr = os.Stderr
+	b, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}

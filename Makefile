@@ -192,6 +192,9 @@ TEST_APPLICATION_IMAGE_SPRING_2      := $(OPERATOR_IMAGE_REGISTRY)/operator-test
 TEST_APPLICATION_IMAGE_SPRING_FAT_2  := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-fat-2:1.0.0
 TEST_APPLICATION_IMAGE_SPRING_CNBP_2 := $(OPERATOR_IMAGE_REGISTRY)/operator-test-spring-cnbp-2:1.0.0
 SKIP_SPRING_CNBP                     ?= false
+# Retain the builder and Java version used by the Spring Boot 2 Maven plugin.
+SPRING_CNBP_BUILDER_2                ?= paketobuildpacks/builder-jammy-base:latest
+SPRING_CNBP_PLATFORM_2               ?= linux/amd64
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Operator Lifecycle Manager properties
@@ -344,6 +347,8 @@ TOOLS_MANIFESTS   = $(TOOLS_DIRECTORY)/manifests
 OPERATOR_SDK_HOME = $(TOOLS_DIRECTORY)/sdk/$(UNAME_S)-$(UNAME_M)
 OPERATOR_SDK      = $(OPERATOR_SDK_HOME)/operator-sdk
 ENVTEST           = $(TOOLS_BIN)/setup-envtest
+PACK_VERSION      := 0.40.11
+PACK              = $(TOOLS_BIN)/pack-v$(PACK_VERSION)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The ttl.sh images used in integration tests
@@ -670,12 +675,15 @@ build-spring-jib-images: $(BUILD_TARGETS)/java ## Build the Spring JIB test imag
 .PHONY: build-spring-cnbp-images
 build-spring-cnbp-images: $(BUILD_TARGETS)/java ## Build the Spring CNBP test images
 ifneq (true,$(SKIP_SPRING_CNBP))
+build-spring-cnbp-images: $(PACK)
 #   Spring Boot 3.x CNBP
 	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package \
 		spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
-#   Spring Boot 2.x CNBP
-	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring-2 package spring-boot:build-image \
-		-DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP_2)
+#   Preserve the Spring Boot 2 archive and loader; only replace its image builder.
+	"$(PACK)" build $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) \
+		--path java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar \
+		--builder $(SPRING_CNBP_BUILDER_2) --platform $(SPRING_CNBP_PLATFORM_2) \
+		--env 'BP_JVM_VERSION=17.*' --trust-builder
 endif
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -2229,6 +2237,8 @@ create-ssl-secrets: $(BUILD_OUTPUT)/certs
 
 KIND_CLUSTER   ?= operator
 KIND_VERSION   ?= v0.32.0
+# Export only the platform used by the KinD nodes when loading registry images.
+KIND_PLATFORM  ?= linux/$(subst aarch64,arm64,$(IMAGE_ARCH))
 # Kind v0.32.0 is pinned with the v1.36.1 node image because the release updates
 # containerd handling; using the matching CLI keeps image loading reliable.
 KIND           = $(TOOLS_BIN)/kind
@@ -2323,8 +2333,35 @@ endif
 
 .PHONY: kind-load-coherence
 kind-load-coherence: kind-install  ## Load the Coherence image into the KinD cluster
-	$(DOCKER_CMD) pull $(COHERENCE_IMAGE)
-	$(KIND) load docker-image --name $(KIND_CLUSTER) $(COHERENCE_IMAGE)
+	$(DOCKER_CMD) pull --platform "$(KIND_PLATFORM)" "$(COHERENCE_IMAGE)"
+	@set -eu; \
+		archive_dir=$$(mktemp -d "$${TMPDIR:-/tmp}/coherence-kind.XXXXXX"); \
+		diagnose() { \
+			printf 'Coherence image load failed: stage=%s image=%s platform=%s\n' "$${stage}" "$(COHERENCE_IMAGE)" "$(KIND_PLATFORM)" >&2; \
+			$(DOCKER_CMD) version --format 'Client={{.Client.Version}} Server={{if .Server}}{{.Server.Version}}{{else}}unavailable{{end}}' >&2 || true; \
+			$(DOCKER_CMD) info --format 'Driver={{.Driver}} DriverStatus={{json .DriverStatus}} OSType={{.OSType}} Architecture={{.Architecture}}' >&2 || true; \
+			$(DOCKER_CMD) image inspect --platform "$(KIND_PLATFORM)" --format 'ID={{.Id}} OS={{.Os}} Architecture={{.Architecture}} RepoTags={{json .RepoTags}} RepoDigests={{json .RepoDigests}}' "$(COHERENCE_IMAGE)" >&2 || true; \
+			if [ -f "$${archive_dir}/coherence.tar" ] && [ "$${stage}" != validation ]; then \
+				python3 -B "$(KIND_SCRIPTS)/image_archive.py" "$${archive_dir}/coherence.tar" --image "$(COHERENCE_IMAGE)" --platform "$(KIND_PLATFORM)" >&2 || true; \
+			fi; \
+		}; \
+		finish() { \
+			load_status=$$?; \
+			if [ "$${load_status}" -ne 0 ]; then diagnose || true; fi; \
+			rm -rf "$${archive_dir}" || true; \
+			exit "$${load_status}"; \
+		}; \
+		trap finish 0; \
+		stage='export'; \
+		$(DOCKER_CMD) image save --platform "$(KIND_PLATFORM)" --output "$${archive_dir}/coherence.tar" "$(COHERENCE_IMAGE)"; \
+		stage=validation; \
+		python3 -B "$(KIND_SCRIPTS)/image_archive.py" "$${archive_dir}/coherence.tar" --image "$(COHERENCE_IMAGE)" --platform "$(KIND_PLATFORM)"; \
+		stage=import; \
+		$(KIND) load image-archive --name "$(KIND_CLUSTER)" "$${archive_dir}/coherence.tar"
+
+.PHONY: test-kind-image-archive
+test-kind-image-archive:  ## Check image archive content and loader failure handling without a Docker daemon
+	MAKE="$(MAKE)" python3 -B "$(KIND_SCRIPTS)/test_image_archive.py"
 
 .PHONY: kind-load-operator
 kind-load-operator: kind-install  ## Load the Operator images into the KinD cluster
@@ -2605,6 +2642,16 @@ get-trivy: $(TOOLS_BIN)/trivy
 
 $(TOOLS_BIN)/trivy:
 	test -s $(TOOLS_BIN)/trivy || curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $(TOOLS_BIN) v0.69.3
+
+# ----------------------------------------------------------------------------------------------------------------------
+# find or download pack
+# ----------------------------------------------------------------------------------------------------------------------
+.PHONY: get-pack
+get-pack: $(PACK) ## Download the pinned Cloud Native Buildpacks CLI locally.
+
+$(PACK): hack/tools/get-pack.sh hack/tools/pack-v$(PACK_VERSION).sha256
+	sh "$(SCRIPTS_DIR)/tools/get-pack.sh" "$(PACK_VERSION)" "$@"
+	"$(PACK)" version
 
 # ----------------------------------------------------------------------------------------------------------------------
 # find or download controller-gen
@@ -3024,6 +3071,7 @@ uninstall-istio: delete-istio-config get-istio ## Uninstall Istio from k8s
 	$(ISTIO_HOME)/bin/istioctl uninstall --purge -y
 
 $(BUILD_OUTPUT)/istio-config.yaml: $(BUILD_PROPS)
+	@test -n "$(ISTIO_VERSION_USE)" || { echo "Unable to resolve Istio version; check the release lookup or set ISTIO_VERSION explicitly" >&2; exit 1; }
 	@echo "Creating Istio config: rev=$(ISTIO_REVISION)"
 	cp $(SCRIPTS_DIR)/istio/istio-config.yaml $(BUILD_OUTPUT)/istio-config.yaml
 	$(SED) -e 's/ISTIO_PROFILE/$(ISTIO_PROFILE)/g' $(BUILD_OUTPUT)/istio-config.yaml
@@ -3038,6 +3086,7 @@ delete-istio-config:
 # ----------------------------------------------------------------------------------------------------------------------
 .PHONY: get-istio
 get-istio: $(BUILD_PROPS) $(BUILD_OUTPUT)/istio-config.yaml ## Download Istio to the build/tools/istio-* directory
+	@test -n "$(ISTIO_VERSION_USE)" || { echo "Unable to resolve Istio version; check the release lookup or set ISTIO_VERSION explicitly" >&2; exit 1; }
 	$(SCRIPTS_DIR)/istio/get-istio-latest.sh "$(ISTIO_VERSION_USE)" "$(TOOLS_DIRECTORY)"
 	@echo "Istio installed at $(ISTIO_HOME)"
 

@@ -144,6 +144,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Image archive regression tests
+      shell: bash
+      run: python3 -B hack/kind/test_image_archive.py
+
 #   This step will free up disc space on the runner by removing
 #   lots of things that we do not need.
     - name: disc
@@ -207,12 +211,53 @@ jobs:
         # failures when the runner user does not own the systemd stub file.
         printf 'nameserver 8.8.8.8\n' | sudo tee /run/systemd/resolve/stub-resolv.conf > /dev/null
 
+    # Use one pinned Docker distribution before any pulls, builds or KinD work.
+    - name: Stop runner Docker daemon
+      run: sudo systemctl stop docker.service docker.socket
+
+    - name: Set up Docker 29.9.3
+      id: docker
+      uses: docker/setup-docker-action@3f1ab1ab0e29231562e4db4ca600c1a49653bac6 # v5.7.0
+      with:
+        version: v29.9.3
+        # Maven and KinD must inherit the same endpoint as ordinary Docker calls.
+        set-host: true
+        daemon-config: |
+          {"features": {"containerd-snapshotter": true}}
+
+    - name: Verify Docker daemon and endpoint
+      shell: bash
+      env:
+        SETUP_DOCKER_HOST: ${{ steps.docker.outputs.sock }}
+      run: |
+        echo "Docker CLI: $(command -v docker)"
+        docker version
+        docker info --format 'Driver={{.Driver}} DriverStatus={{json .DriverStatus}} DockerRootDir={{.DockerRootDir}}'
+        test "$(docker version --format '{{.Client.Version}}')" = '29.9.3'
+        test "$(docker version --format '{{.Server.Version}}')" = '29.9.3'
+        # DOCKER_CONTEXT overrides DOCKER_HOST; reject a conflicting override.
+        test -z "${DOCKER_CONTEXT:-}"
+        test -n "${SETUP_DOCKER_HOST}"
+        test "${DOCKER_HOST}" = "${SETUP_DOCKER_HOST}"
+        context="$(env -u DOCKER_HOST docker context show)"
+        test "${context}" = 'setup-docker-action'
+        context_host="$(docker context inspect "${context}" --format '{{.Endpoints.docker.Host}}')"
+        test "${context_host}" = "${DOCKER_HOST}"
+        echo "Selected context: ${context}; endpoint: ${context_host}"
+        echo "Effective DOCKER_HOST: ${DOCKER_HOST}; CLI context: $(docker context show)"
+        docker info --format '{{json .}}' | jq -e '
+          .Driver == "overlayfs" and
+          any(.DriverStatus[]; . == ["driver-type", "io.containerd.snapshotter.v1"])'
+
     - name: Start KinD Cluster
       shell: bash
       env:
         COHERENCE_IMAGE: ${{ matrix.coherenceImage }}
         OCR_DOCKER_USERNAME: ${{ secrets.OCR_DOCKER_USERNAME }}
         OCR_DOCKER_PASSWORD: ${{ secrets.OCR_DOCKER_PASSWORD }}
+        OCI_REGISTRY: ${{ secrets.OCI_REGISTRY }}
+        OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+        OCI_PASSWORD: ${{ secrets.OCI_PASSWORD }}
       run: |
         make kind
         kubectl version
@@ -228,7 +273,15 @@ jobs:
         else
           echo "Skipping OCR login because this matrix image is not hosted by container-registry.oracle.com"
         fi
-        docker login "${{ secrets.OCI_REGISTRY }}" -u "${{ secrets.OCI_USERNAME }}" -p "${{ secrets.OCI_PASSWORD }}"
+        if [[ "${COHERENCE_IMAGE}" == *.ocir.io/* ]]; then
+          if [[ -z "${OCI_REGISTRY}" || -z "${OCI_USERNAME}" || -z "${OCI_PASSWORD}" ]]; then
+            echo "::error::OCI_REGISTRY, OCI_USERNAME and OCI_PASSWORD are required to pull ${COHERENCE_IMAGE}"
+            exit 1
+          fi
+          printf '%s' "${OCI_PASSWORD}" | docker login "${OCI_REGISTRY}" -u "${OCI_USERNAME}" --password-stdin
+        else
+          echo "Skipping OCI login because this matrix image is not hosted by OCI"
+        fi
         docker pull gcr.io/distroless/java
         docker pull gcr.io/distroless/java11-debian11
         docker pull gcr.io/distroless/java17-debian11
@@ -274,8 +327,9 @@ jobs:
         make kind-load
         make kind-load-compatibility
         make remove-all-images
-        sudo docker image prune --all --force
-        sudo docker builder prune -a
+        # Keep cleanup on the pinned CLI and inherited DOCKER_HOST too.
+        docker image prune --all --force
+        docker builder prune -a
         df -h
         echo "Running Coherence Compatibility Tests"
         export TEST_LOGS_DIR=build/_output/test-logs/${{ matrix.matrixName }}

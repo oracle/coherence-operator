@@ -1,0 +1,8 @@
+# Copyright (c) 2026, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+# SHA-256 hashes of the official buildpacks/pack v0.40.11 release archives.
+3f8ccaacd512a203849944b3591f19f3ec5994188203386cb0f7abfb5fa93c56  pack-v0.40.11-linux-arm64.tgz
+280a53ff6526f1aa26cc903b5c5aab515afef25e3d7abac977fe193331d3b301  pack-v0.40.11-linux.tgz
+a950e7d6915a21f47d8464a291f62e8915bd647242316d5503e53f6f09d90399  pack-v0.40.11-macos-arm64.tgz
+2b90b73112d6607d7862fe7b49ae2966a6c8110549c450b8cc1c33752ad6034d  pack-v0.40.11-macos.tgz
