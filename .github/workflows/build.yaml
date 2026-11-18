@@ -52,6 +52,9 @@ jobs:
         docker pull gcr.io/distroless/java17-debian12
         docker pull gcr.io/distroless/java21-debian12
     - name: Build
+      env:
+        # Bind the setup-docker-action socket into the Spring buildpack container.
+        MAVEN_OPTIONS: -Ddocker.bindHostToBuilder=true
       run: make all
     - name: Package Shared Build
       run: hack/ci/artifacts.sh pack "$RUNNER_TEMP/operator-ci"
