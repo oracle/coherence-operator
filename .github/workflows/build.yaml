@@ -55,6 +55,7 @@ jobs:
       env:
         # Bind the setup-docker-action socket into the Spring buildpack container.
         MAVEN_OPTIONS: -Ddocker.bindHostToBuilder=true
+        PACK_OPTIONS: --docker-host=inherit
       run: make all
     - name: Package Shared Build
       run: hack/ci/artifacts.sh pack "$RUNNER_TEMP/operator-ci"
