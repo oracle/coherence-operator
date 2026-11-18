@@ -28,6 +28,10 @@ and some prerequisites always run. Tests, deployment setup and certificate
 generation still run. Use outputs from the same checkout.
 Local/remote E2E install JDK 25 after cleanup to provide `keytool`.
 
+CI builds both AMD64 and ARM64 Operator binaries/images to retain cross-architecture
+build coverage. Go caches include compilation outputs and isolate OS, runner
+architecture and `.go-version`. Matrix build products remain isolated.
+
 Local checks:
 
 ```sh

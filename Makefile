@@ -405,11 +405,11 @@ BUILD_DATE        := $(shell date -u "+${DATE_FMT}")
 BUILD_USER        := $(shell whoami)
 
 LDFLAGS          = -X main.Version=$(VERSION) -X main.Commit=$(GITCOMMIT) -X main.Branch=$(GITBRANCH) -X main.Date=$(BUILD_DATE) -X main.Author=$(BUILD_USER)
-GOS              = $(shell find . -type f -name "*.go" ! -name "*_test.go")
+GOS              = $(shell find . \( -path "./build" -o -path "./bin" -o -path "./.git" \) -prune -o -type f -name "*.go" ! -name "*_test.go" -print)
 HELM_FILES       = $(shell find helm-charts/coherence-operator -type f)
-API_GO_FILES     = $(shell find . -type f -name "*.go" ! -name "*_test.go"  ! -name "zz*.go")
+API_GO_FILES     = $(shell find . \( -path "./build" -o -path "./bin" -o -path "./.git" \) -prune -o -type f -name "*.go" ! -name "*_test.go" ! -name "zz*.go" -print) go.mod go.sum
 CRDV1_FILES      = $(shell find ./config/crd -type f)
-JAVA_FILES       = $(shell find ./java -type f)
+JAVA_FILES       = $(shell find ./java -type d -name target -prune -o -type f ! -name .flattened-pom.xml -print) mvnw $(shell find .mvn -type f)
 MANIFEST_FILES   = $(shell find ./config -type f)
 
 TEST_SSL_SECRET := coherence-ssl-secret
@@ -548,7 +548,19 @@ clean-tools: ## Cleans the locally downloaded build tools (i.e. need a new tool 
 .PHONY: build-operator
 build-operator: $(BUILD_TARGETS)/build-operator ## Build the Coherence Operator image
 
-$(BUILD_TARGETS)/build-operator: $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUILD_TARGETS)/cli
+# Compare stable recipe inputs; the default BUILD_DATE changes on every invocation.
+# Include sorted authored Go and CRD source paths to detect additions, deletions and renames.
+.PHONY: force-operator-settings
+force-operator-settings:
+
+$(BUILD_TARGETS)/operator-settings: force-operator-settings | $(BUILD_PROPS)
+	@printf '%s\n' '$(VERSION)' '$(GITCOMMIT)' '$(GITBRANCH)' '$(BUILD_USER)' \
+		'$(OPERATOR_IMAGE)' '$(OPERATOR_IMAGE_AMD)' '$(OPERATOR_IMAGE_ARM)' \
+		'$(OPERATOR_BASE_IMAGE)' '$(COHERENCE_IMAGE)' '$(sort $(filter-out ./api/v1/zz_generated.deepcopy.go,$(GOS)))' \
+		'$(sort $(filter-out ./config/crd/bases/%,$(CRDV1_FILES)))' > $@.tmp
+	@cmp -s $@.tmp $@ && rm -f $@.tmp || mv -f $@.tmp $@
+
+$(BUILD_TARGETS)/build-operator: $(BUILD_TARGETS)/operator-settings $(BUILD_BIN)/runner $(BUILD_TARGETS)/java $(BUILD_TARGETS)/cli Dockerfile LICENSE.txt
 	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),amd64,$(OPERATOR_IMAGE_AMD))
 	$(call buildOperatorImage,$(OPERATOR_BASE_IMAGE),arm64,$(OPERATOR_IMAGE_ARM))
 ifeq (amd64,$(IMAGE_ARCH))
@@ -716,7 +728,7 @@ remove-operator-image:
 	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE_AMD) || true
 	$(DOCKER_CMD) rmi $(OPERATOR_IMAGE_ARM) || true
 	$(DOCKER_CMD) rmi $($(DOCKER_CMD) images -q -f "dangling=true") || true
-	rm $(BUILD_TARGETS)/build-operator || true
+	rm -f $(BUILD_TARGETS)/build-operator
 
 .PHONY: remove-test-images
 remove-test-images:
@@ -748,11 +760,10 @@ ensure-sdk:
 .PHONY: build-runner
 build-runner: $(BUILD_BIN)/runner  ## Build the Coherence Operator runner binary
 
-$(BUILD_BIN)/runner: $(BUILD_PROPS) $(GOS) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
-	mkdir -p $(BUILD_BIN_AMD64) || true
+$(BUILD_BIN)/runner: $(BUILD_TARGETS)/operator-settings $(BUILD_PROPS) $(GOS) go.mod go.sum .go-version $(shell find pkg/data/assets -type f) $(BUILD_TARGETS)/generate $(BUILD_TARGETS)/manifests
+	mkdir -p $(BUILD_BIN_AMD64) $(BUILD_BIN_ARM64)
 	GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN_AMD64)/runner ./runner
-	mkdir -p $(BUILD_BIN_ARM64)/linux || true
-	GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -a -o $(BUILD_BIN_ARM64)/runner ./runner
+	GOOS=linux GOARCH=arm64 GO111MODULE=on go build -trimpath -ldflags "$(LDFLAGS)" -o $(BUILD_BIN_ARM64)/runner ./runner
 ifeq (x86_64, $(UNAME_M))
 	cp -f $(BUILD_BIN_AMD64)/runner $(BUILD_BIN)/runner
 else
@@ -827,11 +838,13 @@ manifests: $(BUILD_TARGETS)/manifests ## Generate the CustomResourceDefinition a
 $(BUILD_TARGETS)/manifests: $(BUILD_PROPS) config/crd/bases/coherence.oracle.com_coherence.yaml docs/about/04_coherence_spec.adoc $(MANIFEST_FILES) $(BUILD_MANIFESTS_PKG)
 	touch $(BUILD_TARGETS)/manifests
 
-config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen get-yq
+config/crd/bases/coherence.oracle.com_coherence.yaml: $(TOOLS_BIN)/kustomize $(API_GO_FILES) $(TOOLS_BIN)/controller-gen $(TOOLS_BIN)/yq \
+	$(filter-out ./config/crd/bases/%,$(CRDV1_FILES)) $(BUILD_TARGETS)/operator-settings
 	$(CONTROLLER_GEN) "crd:crdVersions={v1}" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
 	  output:crd:dir=config/crd/bases
 	go run ./utils/crd-fixup/ config/crd/bases/*.yaml
+	$(KUSTOMIZE) build config/crd > /dev/null || { rm -f $@; exit 1; }
 	cp -R config/crd/ config/crd-small
 	$(CONTROLLER_GEN) "crd:crdVersions={v1},maxDescLen=0" \
 	  rbac:roleName=manager-role paths="{./api/...,./controllers/...}" \
@@ -2074,7 +2087,7 @@ tail-logs:     ## Tail the Coherence Operator Pod logs (with follow)
 	$(KUBECTL_CMD) -n $(OPERATOR_NAMESPACE) logs $(POD) -c manager -f
 
 
-$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq $(MANIFEST_FILES)
+$(BUILD_MANIFESTS_PKG): $(TOOLS_BIN)/kustomize $(TOOLS_BIN)/yq config/crd/bases/coherence.oracle.com_coherence.yaml $(MANIFEST_FILES)
 	rm -rf $(BUILD_MANIFESTS) || true
 	mkdir -p $(BUILD_MANIFESTS)/crd
 	$(KUSTOMIZE) build config/crd > $(BUILD_MANIFESTS)/crd/temp.yaml
