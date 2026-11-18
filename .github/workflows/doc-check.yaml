@@ -43,13 +43,15 @@ jobs:
         website: oracle.com
         release: 25
 
-    - name: Cache Go Modules
+    - name: Cache Go modules and build outputs
       uses: actions/cache@v5
       with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-mods-${{ hashFiles('**/go.sum') }}
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-${{ runner.arch }}-go-${{ hashFiles('.go-version') }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-mods-
+          ${{ runner.os }}-${{ runner.arch }}-go-${{ hashFiles('.go-version') }}-
 
     - name: Cache Maven packages
       uses: actions/cache@v5
