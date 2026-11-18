@@ -692,7 +692,7 @@ build-spring-cnbp-images: $(PACK)
 	./mvnw $(MAVEN_BUILD_OPTS) -B -f java/operator-test-spring package \
 		spring-boot:build-image -DskipTests -Dcnbp-image-name=$(TEST_APPLICATION_IMAGE_SPRING_CNBP)
 #   Preserve the Spring Boot 2 archive and loader; only replace its image builder.
-	"$(PACK)" build $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) \
+	"$(PACK)" build $(TEST_APPLICATION_IMAGE_SPRING_CNBP_2) $(PACK_OPTIONS) \
 		--path java/operator-test-spring-2/target/operator-test-spring-2-$(MVN_VERSION).jar \
 		--builder $(SPRING_CNBP_BUILDER_2) --platform $(SPRING_CNBP_PLATFORM_2) \
 		--env 'BP_JVM_VERSION=17.*' --trust-builder
