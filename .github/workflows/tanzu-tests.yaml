@@ -26,6 +26,13 @@ on:
     - 2.x
     - 3.x
 
+# Only supersede PR validation: GitHub concurrency groups ignore branch-name case.
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.event_name }}-${{
+      github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SKIP_SPRING_CNBP: true
