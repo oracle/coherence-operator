@@ -6,3 +6,6 @@ spec:
   labels:
     one: testOne
     two: testTwo
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
