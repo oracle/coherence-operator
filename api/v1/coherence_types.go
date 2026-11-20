@@ -1318,16 +1318,17 @@ func (in *NamedPortSpec) CreateService(deployment CoherenceResource) *corev1.Ser
 	return &svc
 }
 
-func (in *NamedPortSpec) createServicePort(deployment CoherenceResource) corev1.ServicePort {
-	var portName string
+// getServicePortName returns the name of the port in the Service created for this port.
+func (in *NamedPortSpec) getServicePortName() string {
 	if in.Service != nil && in.Service.PortName != nil {
-		portName = *in.Service.PortName
-	} else {
-		portName = in.Name
+		return *in.Service.PortName
 	}
+	return in.Name
+}
 
+func (in *NamedPortSpec) createServicePort(deployment CoherenceResource) corev1.ServicePort {
 	sp := corev1.ServicePort{
-		Name:       portName,
+		Name:       in.getServicePortName(),
 		Protocol:   in.GetProtocol(),
 		Port:       in.GetServicePort(deployment),
 		TargetPort: intstr.FromInt32(in.GetPort(deployment)),
@@ -1377,7 +1378,8 @@ func (in *NamedPortSpec) CreateServiceMonitor(deployment CoherenceResource) *mon
 		copy(rules, endpoint.RelabelConfigs)
 		endpoint.RelabelConfigs = rules
 	}
-	endpoint.Port = in.Name
+	// The endpoint port refers to the port name in the Service, not the container port name
+	endpoint.Port = in.getServicePortName()
 	if in.ServiceMonitor.UseDefaultLabelDrop == nil || *in.ServiceMonitor.UseDefaultLabelDrop {
 		endpoint.RelabelConfigs = append(endpoint.RelabelConfigs, monitoringv1.RelabelConfig{
 			Action: "labeldrop",
