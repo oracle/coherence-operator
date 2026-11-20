@@ -50,7 +50,7 @@ api.post('/api/people', (req, res, next) => {
 
     people.set(id, person)
         .then(() => {
-            res.send(JSON.stringify(person))
+            res.json(person)
         })
         .catch(err => next(err))
 })
