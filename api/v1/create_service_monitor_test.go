@@ -15,6 +15,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	coh "github.com/oracle/coherence-operator/api/v1"
+	"k8s.io/utils/ptr"
 )
 
 func TestServiceMonitorSpecCreateServiceMonitorWithNilSampleLimit(t *testing.T) {
@@ -160,5 +161,28 @@ func TestServiceMonitorPodTemplatesAndServicesUnchanged(t *testing.T) {
 	for _, parent := range []coh.CoherenceResource{deployment, job} {
 		g.Expect(parent.GetSpec().Ports[0].CreateServiceMonitor(parent).Spec.Endpoints[0].RelabelConfigs).To(BeEmpty())
 		g.Expect(parent.GetSpec().Ports[1].CreateServiceMonitor(parent).Spec.Endpoints[0].RelabelConfigs).To(HaveLen(1))
+	}
+}
+
+func TestNamedPortSpecCreateServiceMonitorUsesServicePortName(t *testing.T) {
+	g := NewGomegaWithT(t)
+	port := coh.NamedPortSpec{
+		Name:           "metrics",
+		Service:        &coh.ServiceSpec{PortName: ptr.To("http-metrics")},
+		ServiceMonitor: &coh.ServiceMonitorSpec{Enabled: boolPtr(true)},
+	}
+	for _, parent := range []coh.CoherenceResource{createTestCoherenceDeployment(coh.CoherenceStatefulSetResourceSpec{}), createTestCoherenceJob(coh.CoherenceResourceSpec{})} {
+		svc := port.CreateService(parent)
+		g.Expect(svc).NotTo(BeNil())
+		g.Expect(svc.Spec.Ports).To(HaveLen(1))
+		g.Expect(svc.Spec.Ports[0].Name).To(Equal("http-metrics"))
+
+		sm := port.CreateServiceMonitor(parent)
+		g.Expect(sm).NotTo(BeNil())
+		g.Expect(sm.Spec.Endpoints).To(HaveLen(1))
+		// The ServiceMonitor endpoint port must name a port of the Service it selects
+		g.Expect(sm.Spec.Endpoints[0].Port).To(Equal(svc.Spec.Ports[0].Name))
+		g.Expect(sm.Spec.Selector.MatchLabels).To(HaveKeyWithValue(coh.LabelPort, "metrics"))
+		g.Expect(svc.Labels).To(HaveKeyWithValue(coh.LabelPort, "metrics"))
 	}
 }
